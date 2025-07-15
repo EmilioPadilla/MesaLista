@@ -99,37 +99,6 @@ router.use(authenticateToken);
 
 /**
  * @swagger
- * /gifts/wedding-list/{weddingListId}:
- *   get:
- *     summary: Get all gifts for a specific wedding list
- *     tags: [Gifts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: weddingListId
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID of the wedding list
- *     responses:
- *       200:
- *         description: A list of gifts
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Gift'
- *       400:
- *         description: Wedding list ID is required
- *       500:
- *         description: Server error
- */
-router.get('/wedding-list/:weddingListId', giftController.getGiftsByWeddingList);
-
-/**
- * @swagger
  * /gifts/{id}:
  *   get:
  *     summary: Get a gift by ID
@@ -322,6 +291,62 @@ router.delete('/:id', giftController.deleteGift);
  *         description: Server error
  */
 router.get('/wedding-list/couple/:coupleId', giftController.getWeddingListByCouple);
+
+/**
+ * @swagger
+ * /gifts/wedding-list/{weddingListId}:
+ *   get:
+ *     summary: Get all gifts for a specific wedding list with optional filtering and sorting
+ *     tags: [Wedding Lists]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: weddingListId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the wedding list
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Filter gifts by category
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *         required: false
+ *         description: Minimum price filter
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *         required: false
+ *         description: Maximum price filter
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         required: false
+ *         description: Sort order by price (asc or desc, defaults to asc)
+ *     responses:
+ *       200:
+ *         description: A list of gifts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Gift'
+ *       400:
+ *         description: Wedding list ID is required
+ *       500:
+ *         description: Server error
+ */
+router.get('/wedding-list/:weddingListId', giftController.getGiftsByWeddingList);
 
 /**
  * @swagger

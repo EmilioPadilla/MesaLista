@@ -10,7 +10,7 @@ import {
   UserLoginRequest,
   UserLoginResponse,
   UserDashboardResponse
-} from '../types';
+} from '../../types';
 
 export const userController = {
   // Get all users

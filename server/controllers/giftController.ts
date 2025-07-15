@@ -15,7 +15,7 @@ import {
   PurchasedGiftsResponse,
   UserPurchasesResponse,
   PurchaseGiftResponse
-} from '../types';
+} from '../../types';
 
 const prisma = new PrismaClient();
 
@@ -63,21 +63,49 @@ export const giftController = {
     }
   },
 
-  // Get all gifts for a wedding list
+  // Get all gifts for a wedding list with optional filtering and sorting
   getGiftsByWeddingList: async (req: Request, res: Response) => {
     const { weddingListId } = req.params;
+    const { category, minPrice, maxPrice, sortOrder } = req.query;
     
     if (!weddingListId) {
       return res.status(400).json({ error: 'Wedding list ID is required' });
     }
     
     try {
+      // Build the where clause with filters
+      const whereClause: any = {
+        weddingListId: Number(weddingListId)
+      };
+      
+      // Add category filter if provided
+      if (category) {
+        whereClause.category = category.toString();
+      }
+      
+      // Add price range filters if provided
+      if (minPrice !== undefined || maxPrice !== undefined) {
+        whereClause.price = {};
+        
+        if (minPrice !== undefined) {
+          whereClause.price.gte = Number(minPrice);
+        }
+        
+        if (maxPrice !== undefined) {
+          whereClause.price.lte = Number(maxPrice);
+        }
+      }
+      
+      // Determine sort order (default to ascending if not specified)
+      const priceOrder = sortOrder === 'desc' ? 'desc' : 'asc';
+      
       const gifts = await prisma.gift.findMany({
-        where: { 
-          weddingListId: Number(weddingListId) 
-        },
+        where: whereClause,
         include: {
           weddingList: true
+        },
+        orderBy: {
+          price: priceOrder
         }
       });
       
