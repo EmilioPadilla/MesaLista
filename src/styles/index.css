@@ -1,0 +1,9 @@
+/*---------------------------------
+  Main CSS file for the project that imports all other CSS files
+*/
+
+@import "./_tailwind.css";
+@import "./_fonts.css";
+@import "./_elements.css";
+@import "./_utilities.css";
+@import "./_overrides.css";

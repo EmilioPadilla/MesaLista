@@ -1,0 +1,12 @@
+/*---------------------------------
+  Utilities
+ */
+
+ body{
+
+  /* Class to disable page scrolling (when a modal is open). Also see bodyScrollLock.ts */
+  .scroll-disabled {
+      overflow: hidden;
+      position: fixed;
+  }
+}

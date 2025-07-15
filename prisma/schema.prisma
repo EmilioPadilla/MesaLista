@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  password      String
+  name          String?
+  phoneNumber   String?
+  role          UserRole  @default(GUEST)
+  weddingDate   DateTime?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  weddingList   WeddingList?
+  purchases     GiftPurchase[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  COUPLE
+  GUEST
+  ADMIN
+}
+
+model WeddingList {
+  id            Int       @id @default(autoincrement())
+  coupleId      Int       @unique @map("couple_id")
+  title         String
+  description   String?
+  coupleName    String
+  weddingDate   DateTime
+  imageUrl      String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  couple        User      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  gifts         Gift[]
+
+  @@map("wedding_lists")
+}
+
+model Gift {
+  id            Int       @id @default(autoincrement())
+  title         String
+  description   String?
+  price         Float
+  imageUrl      String?
+  category      String?
+  isPurchased   Boolean   @default(false)
+  weddingListId Int       @map("wedding_list_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  weddingList   WeddingList @relation(fields: [weddingListId], references: [id], onDelete: Cascade)
+  purchases     GiftPurchase[]
+
+  @@map("gifts")
+}
+
+enum PurchaseStatus {
+  PENDING
+  DELIVERED
+  THANKED
+}
+
+model GiftPurchase {
+  id            Int            @id @default(autoincrement())
+  giftId        Int            @map("gift_id")
+  userId        Int            @map("user_id")
+  purchaseDate  DateTime       @default(now()) @map("purchase_date")
+  status        PurchaseStatus @default(PENDING)
+  message       String?
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  gift          Gift           @relation(fields: [giftId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("gift_purchases")
+}

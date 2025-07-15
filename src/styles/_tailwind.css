@@ -1,0 +1,70 @@
+/*---------------------------------
+  TailwindCSS Configuration
+*/
+@import 'tailwindcss';
+
+/*---------------------------------
+  Tailwind Theme Configuration
+
+  Note: Any changes to colors, fonts, etc. should also be reflected in the config/cssValues.ts file (if applicable)
+*/
+@theme {
+  --breakpoint-xs: 400px;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-2xl: 1400px;
+
+  --font-sans: 'Gordita', sans-serif;
+  --font-serif: 'Gordita', serif;
+  --font-mono: 'Gordita', monospace;
+
+  --text-md: 0.875rem; /* 14px */
+  --text-sm: 0.8125rem; /* 13px */
+  --text-xs: 0.75rem; /* 12px */
+  --text-xxs: 0.625rem; /* 10px */
+
+  --color-white: #ffffff;
+  --color-black: #101418;
+  --color-transparent: transparent;
+
+  --color-gray: #f3f4f5;
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #dfe2e5;
+  --color-gray-300: #d4d8dc;
+  --color-gray-400: #bfc5cb;
+  --color-gray-500: #949ca4;
+  --color-gray-600: #535c64;
+  --color-gray-700: #30373e;
+  --color-gray-800: #1b2127;
+
+  --color-blue-nav: #191a2e;
+
+  --color-blue: #2d2e50;
+  --color-blue-200: #2d2e5033;
+  --color-blue-dark: #1f2038;
+  --color-orange: #ff7a06;
+  --color-orange-dark: #df6800;
+
+  --color-danger: #dc3545;
+  --color-danger-dark: #bd2130;
+
+  --color-success: #29bc4c;
+  --color-info: #0047ab;
+  --color-warning: #ff7a06;
+  --color-error: #dc3545;
+
+  --color-red: #fe0000;
+  --color-tangerine: #fd6301;
+  --color-taupe: #635147;
+  --color-yellow: #fbec01;
+  --color-lime: #65cc01;
+  --color-green: #029801;
+  --color-cyan: #00cdcc;
+  --color-teal: #90d0c4;
+  --color-cobalt: #0047ab;
+  --color-purple: #98009a;
+  --color-magenta: #cc0099;
+}
