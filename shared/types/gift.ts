@@ -1,13 +1,13 @@
-import { Gift, GiftPurchase } from '@prisma/client';
-import { UserResponse } from './user';
-import { WeddingListBase } from './weddingList';
+import { Gift, GiftPurchase, PurchaseStatus } from '@prisma/client';
+import { UserResponse } from './user.js';
+import { WeddingListBase } from './weddingList.js';
 
 export interface GiftBase extends Gift {
   title: string;
-  description?: string;
+  description: string | null;
   price: number;
-  imageUrl?: string;
-  category?: string;
+  imageUrl: string | null;
+  category: string | null;
   isPurchased: boolean;
   weddingListId: number;
   createdAt: Date;
@@ -18,8 +18,8 @@ export interface GiftPurchaseBase extends GiftPurchase {
   id: number;
   giftId: number;
   userId: number;
-  message?: string;
-  status: 'PENDING' | 'CONFIRMED' | 'DELIVERED' | 'CANCELLED';
+  message: string | null;
+  status: PurchaseStatus;
   purchaseDate: Date;
   createdAt: Date;
   updatedAt: Date;

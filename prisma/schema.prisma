@@ -64,6 +64,7 @@ model Gift {
   updatedAt     DateTime  @updatedAt @map("updated_at")
   weddingList   WeddingList @relation(fields: [weddingListId], references: [id], onDelete: Cascade)
   purchases     GiftPurchase[]
+  cartItems     CartItem[]
 
   @@map("gifts")
 }
@@ -72,6 +73,13 @@ enum PurchaseStatus {
   PENDING
   DELIVERED
   THANKED
+}
+
+enum PaymentType {
+  PAYPAL
+  STRIPE
+  BANK_TRANSFER
+  OTHER
 }
 
 model GiftPurchase {
@@ -87,4 +95,59 @@ model GiftPurchase {
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("gift_purchases")
+}
+
+model Cart {
+  id            Int            @id @default(autoincrement())
+  sessionId     String         @unique @map("session_id")
+  inviteeName   String?        @map("invitee_name") // Name of the person shopping
+  inviteeEmail  String?        @map("invitee_email") // Email of the person shopping
+  country       String?
+  phoneNumber   String?        @map("phone_number")
+  message       String?        // Message to the couple
+  paymentType   PaymentType?   @map("payment_type")
+  paymentId     String?        @map("payment_id") // External payment ID from PayPal or Stripe
+  isPaid        Boolean        @default(false) @map("is_paid")
+  paidAt        DateTime?      @map("paid_at")
+  totalAmount   Float?         @map("total_amount")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  items         CartItem[]
+  moneyBag      MoneyBag?      // One-to-one relation
+
+  @@map("carts")
+}
+
+model CartItem {
+  id            Int            @id @default(autoincrement())
+  cartId        Int            @map("cart_id")
+  giftId        Int            @map("gift_id")
+  quantity      Int            @default(1)
+  price         Float          // Store the price at time of adding to cart
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  cart          Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  gift          Gift           @relation(fields: [giftId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, giftId]) // Prevent duplicate gifts in cart
+  @@map("cart_items")
+}
+
+model MoneyBag {
+  id            Int            @id @default(autoincrement())
+  cartId        Int            @unique @map("cart_id")
+  amount        Float          // Total payment amount
+  currency      String         @default("USD")
+  paymentType   PaymentType    @map("payment_type")
+  paymentId     String         @map("payment_id") // External payment ID
+  transactionFee Float?        @map("transaction_fee")
+  paymentStatus String         @map("payment_status") // Status from payment provider
+  payerEmail    String?        @map("payer_email")
+  payerName     String?        @map("payer_name")
+  metadata      String?        // JSON string for additional payment data
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  cart          Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  @@map("money_bags")
 }

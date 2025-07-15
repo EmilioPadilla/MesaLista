@@ -1,13 +1,13 @@
-import { User } from '@prisma/client';
+import { User, UserRole } from '@prisma/client';
 
 // Base types from Prisma models
 export interface UserBase extends Omit<User, 'password'> {
   id: number;
   name: string;
   email: string;
-  phoneNumber?: string;
-  weddingDate?: Date;
-  role: 'USER' | 'ADMIN' | 'COUPLE' | 'GUEST';
+  phoneNumber: string | null;
+  weddingDate: Date | null;
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,7 +19,7 @@ export interface UserCreateRequest {
   password: string;
   phoneNumber?: string;
   weddingDate?: string;
-  role?: 'USER' | 'ADMIN' | 'COUPLE' | 'GUEST';
+  role?: UserRole;
 }
 
 export interface UserUpdateRequest {
@@ -28,7 +28,7 @@ export interface UserUpdateRequest {
   password?: string;
   phoneNumber?: string;
   weddingDate?: string;
-  role?: 'USER' | 'ADMIN' | 'COUPLE' | 'GUEST';
+  role?: UserRole;
 }
 
 export interface UserLoginRequest {
@@ -53,7 +53,7 @@ export interface UserResponse {
   email: string;
   phoneNumber?: string;
   weddingDate?: Date | string;
-  role?: string;
+  role?: UserRole;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }

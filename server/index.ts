@@ -9,6 +9,8 @@ import specs from './swagger.js';
 // Import route modules
 import userRoutes from './routes/userRoutes.js';
 import giftRoutes from './routes/giftRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -46,6 +48,8 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true })
 // Register route modules
 app.use('/api/users', userRoutes);
 app.use('/api/gifts', giftRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Special case for login (to maintain /api/login endpoint)
 app.post('/api/login', (req, res, next) => {
