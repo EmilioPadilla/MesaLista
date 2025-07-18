@@ -1,11 +1,16 @@
-import { User, UserRole } from '@prisma/client';
+import type { User, UserRole } from '@prisma/client';
 
 // Base types from Prisma models
 export interface UserBase extends Omit<User, 'password'> {
   id: number;
-  name: string;
+  firstName: string;
+  lastName: string;
+  spouseFirstName: string | null;
+  spouseLastName: string | null;
+  imageUrl: string | null;
   email: string;
   phoneNumber: string | null;
+  weddingLocation: string | null;
   weddingDate: Date | null;
   role: UserRole;
   createdAt: Date;
@@ -15,18 +20,28 @@ export interface UserBase extends Omit<User, 'password'> {
 // User-related interfaces
 export interface UserCreateRequest {
   email: string;
-  name: string;
+  spouseFirstName?: string;
+  spouseLastName?: string;
+  imageUrl?: string;
+  firstName: string;
+  lastName: string;
   password: string;
   phoneNumber?: string;
+  weddingLocation?: string;
   weddingDate?: string;
   role?: UserRole;
 }
 
 export interface UserUpdateRequest {
   email?: string;
-  name?: string;
+  spouseFirstName?: string;
+  spouseLastName?: string;
+  imageUrl?: string;
+  firstName?: string;
+  lastName?: string;
   password?: string;
   phoneNumber?: string;
+  weddingLocation?: string;
   weddingDate?: string;
   role?: UserRole;
 }
@@ -49,9 +64,14 @@ export interface UserDashboardResponse extends UserBase {
 // User response type (simplified for relations)
 export interface UserResponse {
   id: number;
-  name: string;
+  firstName: string;
+  lastName: string;
+  spouseFirstName: string | null;
+  spouseLastName: string | null;
+  imageUrl: string | null;
   email: string;
   phoneNumber?: string;
+  weddingLocation?: string;
   weddingDate?: Date | string;
   role?: UserRole;
   createdAt?: Date | string;

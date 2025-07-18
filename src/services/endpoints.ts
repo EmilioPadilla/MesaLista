@@ -1,11 +1,6 @@
 /**
- * This file contains the API endpoints for the RegalAmor application.
+ * This file contains the API endpoints for the MesaLista application.
  */
-
-/**
- * Base API URL configuration
- */
-const apiBase = '/api';
 
 /**
  * Authentication endpoints
@@ -16,14 +11,14 @@ export const auth_endpoints = {
    * @method POST
    * @access Public
    */
-  register: `${apiBase}/users`,
+  register: `/users`,
 
   /**
    * Login a user and get JWT token
    * @method POST
    * @access Public
    */
-  login: `${apiBase}/users/login`,
+  login: `/users/login`,
 
   /**
    * Get the current authenticated user's information
@@ -31,7 +26,7 @@ export const auth_endpoints = {
    * @access Protected
    * @requires JWT token
    */
-  getCurrentUser: `${apiBase}/users/me`,
+  getCurrentUser: `/users/me`,
 };
 
 /**
@@ -41,7 +36,7 @@ export const user_endpoints = {
   /**
    * Base users endpoint
    */
-  base: `${apiBase}/users`,
+  base: `/users`,
 
   /**
    * Get all users
@@ -49,7 +44,7 @@ export const user_endpoints = {
    * @access Protected
    * @requires JWT token
    */
-  getAll: `${apiBase}/users`,
+  getAll: `/users`,
 
   /**
    * Get user by ID
@@ -58,7 +53,7 @@ export const user_endpoints = {
    * @requires JWT token
    * @param id User ID
    */
-  getById: (id: number) => `${apiBase}/users/${id}`,
+  getById: (id: number) => `/users/${id}`,
 
   /**
    * Update user
@@ -67,7 +62,7 @@ export const user_endpoints = {
    * @requires JWT token
    * @param id User ID
    */
-  update: (id: number) => `${apiBase}/users/${id}`,
+  update: (id: number) => `/users/${id}`,
 
   /**
    * Delete user
@@ -76,7 +71,7 @@ export const user_endpoints = {
    * @requires JWT token
    * @param id User ID
    */
-  delete: (id: number) => `${apiBase}/users/${id}`,
+  delete: (id: number) => `/users/${id}`,
 };
 
 /**
@@ -86,7 +81,7 @@ export const gift_endpoints = {
   /**
    * Base gifts endpoint
    */
-  base: `${apiBase}/gifts`,
+  base: `/gifts`,
 
   /**
    * Get all gifts for a wedding list
@@ -95,7 +90,7 @@ export const gift_endpoints = {
    * @requires JWT token
    * @param weddingListId Wedding list ID
    */
-  getByWeddingList: (weddingListId: number) => `${apiBase}/gifts/wedding-list/${weddingListId}`,
+  getByWeddingList: (weddingListId: number) => `/gifts/wedding-list/${weddingListId}`,
 
   /**
    * Get gift by ID
@@ -104,7 +99,7 @@ export const gift_endpoints = {
    * @requires JWT token
    * @param id Gift ID
    */
-  getById: (id: number) => `${apiBase}/gifts/${id}`,
+  getById: (id: number) => `/gifts/${id}`,
 
   /**
    * Create a new gift
@@ -112,7 +107,7 @@ export const gift_endpoints = {
    * @access Protected
    * @requires JWT token
    */
-  create: `${apiBase}/gifts`,
+  create: `/gifts`,
 
   /**
    * Update a gift
@@ -121,7 +116,7 @@ export const gift_endpoints = {
    * @requires JWT token
    * @param id Gift ID
    */
-  update: (id: number) => `${apiBase}/gifts/${id}`,
+  update: (id: number) => `/gifts/${id}`,
 
   /**
    * Delete a gift
@@ -130,7 +125,7 @@ export const gift_endpoints = {
    * @requires JWT token
    * @param id Gift ID
    */
-  delete: (id: number) => `${apiBase}/gifts/${id}`,
+  delete: (id: number) => `/gifts/${id}`,
 };
 
 /**
@@ -143,7 +138,7 @@ export const weddingList_endpoints = {
    * @access Protected
    * @requires JWT token
    */
-  getAll: `${apiBase}/gifts/wedding-lists`,
+  getAll: `/gifts/wedding-lists`,
 
   /**
    * Get wedding list by couple ID
@@ -152,7 +147,7 @@ export const weddingList_endpoints = {
    * @requires JWT token
    * @param coupleId Couple ID
    */
-  getByCouple: (coupleId: number) => `${apiBase}/gifts/wedding-list/couple/${coupleId}`,
+  getByCouple: (coupleId: number) => `/gifts/wedding-list/couple/${coupleId}`,
 
   /**
    * Create a new wedding list
@@ -160,7 +155,7 @@ export const weddingList_endpoints = {
    * @access Protected
    * @requires JWT token
    */
-  create: `${apiBase}/gifts/wedding-list`,
+  create: `/gifts/wedding-list`,
 };
 
 /**
@@ -174,7 +169,7 @@ export const purchase_endpoints = {
    * @requires JWT token
    * @param giftId Gift ID
    */
-  purchaseGift: (giftId: number) => `${apiBase}/gifts/purchase/${giftId}`,
+  purchaseGift: (giftId: number) => `/gifts/purchase/${giftId}`,
 
   /**
    * Update purchase status
@@ -183,7 +178,7 @@ export const purchase_endpoints = {
    * @requires JWT token
    * @param purchaseId Purchase ID
    */
-  updateStatus: (purchaseId: number) => `${apiBase}/gifts/purchases/${purchaseId}`,
+  updateStatus: (purchaseId: number) => `/gifts/purchases/${purchaseId}`,
 
   /**
    * Get all purchased gifts for a couple
@@ -192,7 +187,7 @@ export const purchase_endpoints = {
    * @requires JWT token
    * @param coupleId Couple ID
    */
-  getPurchasedGifts: (coupleId: number) => `${apiBase}/gifts/purchased/${coupleId}`,
+  getPurchasedGifts: (coupleId: number) => `/gifts/purchased/${coupleId}`,
 
   /**
    * Get all purchases made by a user
@@ -201,7 +196,7 @@ export const purchase_endpoints = {
    * @requires JWT token
    * @param userId User ID
    */
-  getUserPurchases: (userId: number) => `${apiBase}/gifts/user-purchases/${userId}`,
+  getUserPurchases: (userId: number) => `/gifts/user-purchases/${userId}`,
 };
 
 /**
@@ -213,7 +208,47 @@ export const docs_endpoints = {
    * @method GET
    * @access Public
    */
-  swagger: `${apiBase}/docs`,
+  swagger: `/docs`,
+};
+
+/**
+ * Payment endpoints
+ */
+export const payment_endpoints = {
+  /**
+   * Base payments endpoint
+   */
+  base: `/payments`,
+
+  /**
+   * Initiate a payment process
+   * @method POST
+   * @access Public
+   */
+  initiate: `/payments/initiate`,
+
+  /**
+   * Verify and complete a payment
+   * @method POST
+   * @access Public
+   */
+  verify: `/payments/verify`,
+
+  /**
+   * Get payment summary
+   * @method GET
+   * @access Public
+   * @param id Money bag ID
+   */
+  getSummary: (id: number) => `/payments/${id}/summary`,
+
+  /**
+   * Get all payments
+   * @method GET
+   * @access Protected
+   * @requires JWT token
+   */
+  getAll: `/payments`,
 };
 
 /**
@@ -225,6 +260,7 @@ export const api_endpoints = {
   gifts: gift_endpoints,
   weddingLists: weddingList_endpoints,
   purchases: purchase_endpoints,
+  payments: payment_endpoints,
   docs: docs_endpoints,
 };
 

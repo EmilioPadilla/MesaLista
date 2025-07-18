@@ -1,60 +1,7 @@
 import apiClient from './client';
-
-// Types
-export interface PurchasedGift {
-  id: number;
-  giftName: string;
-  price: number;
-  purchaseDate: string;
-  purchasedBy: {
-    id: number;
-    name: string;
-    email: string;
-  };
-  status: 'pending' | 'delivered' | 'thanked';
-  message: string;
-}
-
-export interface PurchasedGiftsResponse {
-  purchases: PurchasedGift[];
-  totalAmount: number;
-  count: number;
-}
-
-export interface Gift {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  imageUrl?: string;
-  isPurchased: boolean;
-  weddingListId: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface WeddingList {
-  id: number;
-  coupleName: string;
-  weddingDate: string;
-  imageUrl?: string;
-  gifts: Gift[];
-}
-
-export interface GiftPurchase {
-  id: number;
-  userId: number;
-  giftId: number;
-  status: string;
-  message: string;
-  purchaseDate: string;
-  gift?: Gift;
-  user?: {
-    id: number;
-    name: string;
-    email: string;
-  };
-}
+import type { Gift, GiftPurchase } from '@prisma/client';
+import type { PurchasedGiftsResponse } from '../../shared/types/gift';
+import type { CreateWeddingListRequest } from '../../shared/types/weddingList';
 
 // Gift service
 export const giftService = {
@@ -67,9 +14,9 @@ export const giftService = {
     return response.data;
   },
 
-  updatePurchaseStatus: async ({ purchaseId, status }: { purchaseId: number, status: string }): Promise<GiftPurchase> => {
-    const response = await apiClient.patch(`/gifts/purchases/${purchaseId}`, { 
-      status: status.toUpperCase() 
+  updatePurchaseStatus: async ({ purchaseId, status }: { purchaseId: number; status: string }): Promise<GiftPurchase> => {
+    const response = await apiClient.patch(`/gifts/purchases/${purchaseId}`, {
+      status: status.toUpperCase(),
     });
     return response.data;
   },
@@ -110,11 +57,11 @@ export const giftService = {
   },
 
   // Wedding list functions
-  getAllWeddingLists: async (): Promise<WeddingList[]> => {
+  getAllWeddingLists: async (): Promise<CreateWeddingListRequest[]> => {
     const response = await apiClient.get('/gifts/wedding-lists');
     return response.data;
   },
-  
+
   getWeddingListByCouple: async (coupleId: number): Promise<any> => {
     const response = await apiClient.get(`/gifts/wedding-list/couple/${coupleId}`);
     return response.data;
@@ -123,7 +70,7 @@ export const giftService = {
   createWeddingList: async (coupleId: number): Promise<any> => {
     const response = await apiClient.post('/gifts/wedding-list', { coupleId });
     return response.data;
-  }
+  },
 };
 
 export default giftService;

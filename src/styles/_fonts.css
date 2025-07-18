@@ -1,0 +1,11 @@
+@font-face {
+  font-family: 'Chamberi Headline';
+  src: url('/fonts/ChamberiHeadline-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+.chamberi-heading {
+  font-family: 'Chamberi Headline', sans-serif;
+}

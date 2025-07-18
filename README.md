@@ -1,10 +1,11 @@
-# RegalAmor - Fullstack Project
+# MesaLista - Fullstack Project
 
 A modern fullstack application built with Vite, React, AntD, Tailwind CSS, Axios, TypeScript, Prisma, and MySQL.
 
 ## Tech Stack
 
 ### Frontend
+
 - **Vite**: Next-generation frontend tooling
 - **React**: UI library
 - **TypeScript**: Type safety
@@ -13,6 +14,7 @@ A modern fullstack application built with Vite, React, AntD, Tailwind CSS, Axios
 - **Axios**: HTTP client
 
 ### Backend
+
 - **Express**: Web framework for Node.js
 - **Prisma**: Next-generation ORM
 - **MySQL**: Database
@@ -21,18 +23,21 @@ A modern fullstack application built with Vite, React, AntD, Tailwind CSS, Axios
 ## Setup Instructions
 
 ### Prerequisites
+
 - Node.js (v18+)
 - MySQL server
 
 ### Installation
 
 1. Clone the repository
+
 ```bash
 git clone <repository-url>
 cd regalamor
 ```
 
 2. Install dependencies
+
 ```bash
 npm install
 ```
@@ -42,6 +47,7 @@ npm install
    - Update the `.env` file with your MySQL credentials
 
 4. Generate Prisma client and run migrations
+
 ```bash
 npm run prisma:generate
 npm run prisma:migrate
@@ -52,16 +58,19 @@ npm run prisma:migrate
 ### Development
 
 Run the frontend development server:
+
 ```bash
 npm run dev
 ```
 
 Run the backend server:
+
 ```bash
 npm run server
 ```
 
 Run both frontend and backend concurrently:
+
 ```bash
 npm run dev:all
 ```
@@ -69,16 +78,19 @@ npm run dev:all
 ### Production Build
 
 Build the frontend:
+
 ```bash
 npm run build
 ```
 
 Build the backend:
+
 ```bash
 npm run build:server
 ```
 
 Build both:
+
 ```bash
 npm run build:all
 ```
@@ -87,8 +99,8 @@ You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-re
 
 ```js
 // eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+import reactX from 'eslint-plugin-react-x';
+import reactDom from 'eslint-plugin-react-dom';
 
 export default tseslint.config([
   globalIgnores(['dist']),
@@ -109,5 +121,5 @@ export default tseslint.config([
       // other options...
     },
   },
-])
+]);
 ```

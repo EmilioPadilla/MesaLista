@@ -1,27 +1,53 @@
 {
   "compilerOptions": {
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "target": "ES2022",
-    "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
+    // Target ECMAScript version
+    "target": "ESNext",
 
-    /* Bundler mode */
+    // Library configurations
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+
+    "module": "ESNext",
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
-    "noEmit": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
 
-    /* Linting */
+    // TypeScript strict mode options
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+
+    // Additional configurations
+    "useDefineForClassFields": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "types": ["vite/client"],
+
+    // Path aliases for module resolution
+    "baseUrl": ".",
+    "paths": {
+      "src/*": ["src/*"],
+      "constants/*": ["src/config/constants/*"],
+      "hooks/*": ["src/hooks/*"],
+      "services/*": ["src/services/*"],
+      "store/*": ["src/store/*"],
+      "styles/*": ["src/styles/*"],
+      "types/*": ["src/types/*"],
+      "utils/*": ["src/utils/*"],
+      "config/*": ["src/config/*"],
+      "features/*": ["src/features/*"],
+      "app/*": ["src/app/*"],
+      "routes/*": ["src/app/routes/*"],
+      "layouts/*": ["src/app/layouts/*"],
+      "modules/*": ["src/app/modules/*"],
+      "components/*": ["src/components/*"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "./vite*.ts"],
+  "exclude": ["node_modules"]
 }

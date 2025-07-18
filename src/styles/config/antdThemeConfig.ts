@@ -7,13 +7,16 @@ import React from 'react';
 const antdThemeConfig = {
   components: {
     Layout: {
-      headerBg: cssValues.colors.chai,
-      siderBg: cssValues.colors.chai,
-      triggerBg: cssValues.colors.chai,
+      headerBg: cssValues.colors.white,
+      bodyBg: cssValues.colors.white,
+      siderBg: cssValues.colors.white,
+      triggerBg: cssValues.colors.white,
+      triggerColor: cssValues.colors.black,
     },
     Menu: {
-      itemBg: cssValues.colors.chai,
-      itemColor: cssValues.colors.white,
+      itemBg: cssValues.colors.white,
+      itemColor: cssValues.colors.black,
+      itemSelectedBg: cssValues.colors.gray100,
     },
     Select: {
       colorBorder: cssValues.colors.gray400,
@@ -61,9 +64,9 @@ const antdThemeConfig = {
   token: {
     fontFamily: cssValues.fonts.fontFamilySansSerif,
 
-    colorPrimary: cssValues.colors.chai,
+    colorPrimary: cssValues.colors.black,
     colorSecondary: cssValues.colors.pistaccio,
-    colorLinkHover: cssValues.colors.orange,
+    colorLinkHover: cssValues.colors.gray400,
     colorLink: cssValues.colors.blueDark,
     colorPrimaryHover: 'none',
     colorBorder: cssValues.colors.gray400,

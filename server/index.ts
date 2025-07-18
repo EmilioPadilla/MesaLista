@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-import { authenticateToken, optionalAuthenticateToken } from './middleware/auth.js';
 import swaggerUi from 'swagger-ui-express';
 import specs from './swagger.js';
 
@@ -24,13 +23,15 @@ const PORT = process.env.PORT || 5001;
 
 // Middleware
 // For development, allow all origins
-app.use(cors({
-  origin: '*', // Allow all origins in development
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true,
-  maxAge: 86400 // Cache preflight requests for 24 hours
-}));
+app.use(
+  cors({
+    origin: '*', // Allow all origins in development
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true,
+    maxAge: 86400, // Cache preflight requests for 24 hours
+  }),
+);
 
 // // Handle preflight requests
 // app.options('*', cors());
@@ -39,7 +40,7 @@ app.use(express.json());
 
 // Root route
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to RegalAmor API' });
+  res.json({ message: 'Welcome to MesaLista API' });
 });
 
 // Swagger documentation
@@ -55,11 +56,14 @@ app.use('/api/payments', paymentRoutes);
 app.post('/api/login', (req, res, next) => {
   // Redirect to the user login route handler
   req.url = '/login';
-  userRoutes(req, res, next);
+  next();
 });
 
+// Add a specific route for login after the redirect
+app.use('/login', userRoutes);
+
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response) => {
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Server error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });

@@ -1,6 +1,6 @@
-import { Gift, GiftPurchase, PurchaseStatus } from '@prisma/client';
-import { UserResponse } from './user.js';
-import { WeddingListBase } from './weddingList.js';
+import type { Gift, GiftPurchase, PurchaseStatus } from '@prisma/client';
+import type { UserResponse } from './user.js';
+import type { WeddingListBase } from './weddingList.js';
 
 export interface GiftBase extends Gift {
   title: string;
@@ -44,7 +44,7 @@ export interface FormattedPurchase {
     name: string;
     email: string;
   };
-  status: string;
+  status: 'pending' | 'delivered' | 'thanked';
   message?: string;
 }
 

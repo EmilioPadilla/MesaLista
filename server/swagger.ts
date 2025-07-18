@@ -4,36 +4,36 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'RegalAmor API',
+      title: 'MesaLista API',
       version: '1.0.0',
       description: 'Wedding Gift Registry API documentation',
       contact: {
-        name: 'RegalAmor Support',
-        email: 'support@regalamor.com'
-      }
+        name: 'MesaLista Support',
+        email: 'support@regalamor.com',
+      },
     },
     servers: [
       {
         url: 'http://localhost:5001/api',
-        description: 'Development server'
-      }
+        description: 'Development server',
+      },
     ],
     components: {
       securitySchemes: {
         bearerAuth: {
           type: 'http',
           scheme: 'bearer',
-          bearerFormat: 'JWT'
-        }
-      }
+          bearerFormat: 'JWT',
+        },
+      },
     },
     security: [
       {
-        bearerAuth: []
-      }
-    ]
+        bearerAuth: [],
+      },
+    ],
   },
-  apis: ['./server/routes/*.ts', './server/controllers/*.ts']
+  apis: ['./server/routes/*.ts', './server/controllers/*.ts'],
 };
 
 const specs = swaggerJsdoc(options);

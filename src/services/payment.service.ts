@@ -1,0 +1,87 @@
+import apiClient from './client';
+import { api_endpoints } from './endpoints';
+
+// Payment service types
+export interface PaymentInitiateRequest {
+  cartId: number;
+  paymentType: 'PAYPAL' | 'STRIPE' | 'BANK_TRANSFER' | 'OTHER';
+  returnUrl: string;
+  cancelUrl: string;
+}
+
+export interface PaymentVerifyRequest {
+  paymentId: string;
+  paymentType: 'PAYPAL' | 'STRIPE' | 'BANK_TRANSFER' | 'OTHER';
+  payerId?: string; // Required for PayPal
+  token?: string; // Required for Stripe
+}
+
+export interface PaymentSummary {
+  totalAmount: number;
+  currency: string;
+  itemCount: number;
+  paymentStatus: string;
+  paymentDate: string;
+  paymentType: string;
+  transactionId: string;
+}
+
+export interface Payment {
+  id: number;
+  amount: number;
+  currency: string;
+  paymentType: string;
+  paymentStatus: string;
+  paymentDate: string;
+  inviteeName: string;
+  inviteeEmail: string;
+}
+
+/**
+ * Service for handling payment-related API calls
+ */
+export const paymentService = {
+  /**
+   * Get all payments
+   * @returns List of payments
+   */
+  getAllPayments: async (): Promise<Payment[]> => {
+    const response = await apiClient.get(api_endpoints.payments.getAll);
+    return response.data;
+  },
+
+  /**
+   * Get payment summary by ID
+   * 
+   * @param id Payment ID
+   * @returns Payment summary
+   */
+  getPaymentSummary: async (id: number): Promise<PaymentSummary> => {
+    const response = await apiClient.get(api_endpoints.payments.getSummary(id));
+    return response.data;
+  },
+
+  /**
+   * Initiate a payment process
+   * 
+   * @param data Payment initiation data
+   * @returns Payment initiation response
+   */
+  initiatePayment: async (data: PaymentInitiateRequest): Promise<{ success: boolean; paymentId: string; approvalUrl: string; message: string }> => {
+    const response = await apiClient.post(api_endpoints.payments.initiate, data);
+    return response.data;
+  },
+
+  /**
+   * Verify and complete a payment
+   * 
+   * @param data Payment verification data
+   * @returns Payment verification response
+   */
+  verifyPayment: async (data: PaymentVerifyRequest): Promise<{ success: boolean; moneyBagId: number; cartId: number; message: string }> => {
+    const response = await apiClient.post(api_endpoints.payments.verify, data);
+    return response.data;
+  },
+};
+
+export default paymentService;

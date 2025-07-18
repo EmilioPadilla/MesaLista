@@ -3,9 +3,9 @@ import { Table, Card, Statistic, Row, Col, Button, Typography, message, Avatar, 
 import { UserOutlined, GiftOutlined, CheckCircleOutlined, MailOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import { giftService } from '../api/giftService';
-import type { PurchasedGift } from '../api/giftService';
-import type { DashboardUserData } from '../api/userService';
+import { giftService } from 'services/gift.service';
+import type { PurchasedGift } from 'services/gift.service';
+import type { DashboardUserData } from 'services/user.service';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -29,7 +29,7 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
   // console.log('contextData', contextData);
   const userData = props.userData || contextData?.userData;
   const queryClient = useQueryClient();
-  
+
   // Fetch purchased gifts from the API
   const { data, isLoading, error } = useQuery({
     queryKey: ['purchasedGifts', userData?.id],
@@ -38,7 +38,7 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
   });
   const purchasedGifts = data?.purchases || [];
   const totalAmount = data?.totalAmount || 0;
-  
+
   // Mutation for updating purchase status
   const updateStatusMutation = useMutation({
     mutationFn: giftService.updatePurchaseStatus,
@@ -48,14 +48,14 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
     },
     onError: () => {
       message.error('Error al actualizar el estado del regalo');
-    }
+    },
   });
 
   // Calculate statistics
-  const pendingCount = purchasedGifts.filter(gift => gift.status === 'pending').length;
-  const deliveredCount = purchasedGifts.filter(gift => gift.status === 'delivered').length;
-  const thankedCount = purchasedGifts.filter(gift => gift.status === 'thanked').length;
-  
+  const pendingCount = purchasedGifts.filter((gift) => gift.status === 'pending').length;
+  const deliveredCount = purchasedGifts.filter((gift) => gift.status === 'delivered').length;
+  const thankedCount = purchasedGifts.filter((gift) => gift.status === 'thanked').length;
+
   const handleMarkAsDelivered = (id: number) => {
     updateStatusMutation.mutate({ purchaseId: id, status: 'DELIVERED' });
   };
@@ -103,7 +103,7 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
       render: (status: string) => {
         let color = 'gold';
         let text = 'Pendiente';
-        
+
         if (status === 'delivered') {
           color = 'green';
           text = 'Entregado';
@@ -111,7 +111,7 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
           color = 'blue';
           text = 'Agradecido';
         }
-        
+
         return <Tag color={color}>{text}</Tag>;
       },
     },
@@ -121,21 +121,20 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
       render: (_: any, record: PurchasedGift) => (
         <Space size="middle">
           {record.status !== 'thanked' && (
-            <Button  
-              type="primary" 
-              size="small" 
+            <Button
+              type="primary"
+              size="small"
               icon={<MailOutlined />}
               disabled={record.status === 'pending'}
-              onClick={() => updateStatusMutation.mutate({ purchaseId: record.id, status: 'thanked' })}
-            >
+              onClick={() => updateStatusMutation.mutate({ purchaseId: record.id, status: 'thanked' })}>
               Agradecer
-            </Button>  
-          )} 
+            </Button>
+          )}
           {record.status === 'pending' && (
             <Tooltip title="Marcar como entregado">
-              <Button 
-                type="default" 
-                size="small" 
+              <Button
+                type="default"
+                size="small"
                 icon={<CheckCircleOutlined />}
                 onClick={() => updateStatusMutation.mutate({ purchaseId: record.id, status: 'delivered' })}
               />
@@ -153,7 +152,9 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
           <Avatar icon={<UserOutlined />} className="mr-3" />
           <div>
             <Text strong>{record.purchasedBy.name}</Text>
-            <Text type="secondary" className="block">{record.purchasedBy.email}</Text>
+            <Text type="secondary" className="block">
+              {record.purchasedBy.email}
+            </Text>
           </div>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg">
@@ -161,22 +162,12 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
         </div>
         <div className="mt-4 flex justify-end">
           {record.status === 'pending' && (
-            <Button 
-              type="primary" 
-              size="small" 
-              icon={<CheckCircleOutlined />}
-              onClick={() => handleMarkAsDelivered(record.id)}
-            >
+            <Button type="primary" size="small" icon={<CheckCircleOutlined />} onClick={() => handleMarkAsDelivered(record.id)}>
               Marcar como Entregado
             </Button>
           )}
           {record.status === 'delivered' && (
-            <Button 
-              type="primary" 
-              size="small" 
-              icon={<MailOutlined />}
-              onClick={() => handleSendThankYou(record.id)}
-            >
+            <Button type="primary" size="small" icon={<MailOutlined />} onClick={() => handleSendThankYou(record.id)}>
               Agradecer
             </Button>
           )}
@@ -186,12 +177,10 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
   };
 
   return (
-    <div className='m-6'>
+    <div className="m-6">
       <div className="p-6 bg-white rounded-lg shadow">
         <Title level={2}>Regalos Comprados</Title>
-        <Paragraph>
-          Aquí puedes ver todos los regalos que han sido comprados para tu boda, su estado y enviar agradecimientos.
-        </Paragraph>
+        <Paragraph>Aquí puedes ver todos los regalos que han sido comprados para tu boda, su estado y enviar agradecimientos.</Paragraph>
 
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
@@ -206,53 +195,33 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
             <Row gutter={16} className="mb-6">
               <Col span={6}>
                 <Card>
-                  <Statistic 
-                    title="Total Recibido" 
-                    value={totalAmount} 
-                    prefix="$" 
-                    precision={2} 
-                  />
+                  <Statistic title="Total Recibido" value={totalAmount} prefix="$" precision={2} />
                 </Card>
               </Col>
               <Col span={6}>
                 <Card>
-                  <Statistic
-                    title="Pendientes"
-                    value={pendingCount}
-                    valueStyle={{ color: '#faad14' }}
-                    prefix={<GiftOutlined />}
-                  />
+                  <Statistic title="Pendientes" value={pendingCount} valueStyle={{ color: '#faad14' }} prefix={<GiftOutlined />} />
                 </Card>
               </Col>
               <Col span={6}>
                 <Card>
-                  <Statistic
-                    title="Entregados"
-                    value={deliveredCount}
-                    valueStyle={{ color: '#52c41a' }}
-                    prefix={<CheckCircleOutlined />}
-                  />
+                  <Statistic title="Entregados" value={deliveredCount} valueStyle={{ color: '#52c41a' }} prefix={<CheckCircleOutlined />} />
                 </Card>
               </Col>
               <Col span={6}>
                 <Card>
-                  <Statistic
-                    title="Agradecidos"
-                    value={thankedCount}
-                    valueStyle={{ color: '#1890ff' }}
-                    prefix={<MailOutlined />}
-                  />
+                  <Statistic title="Agradecidos" value={thankedCount} valueStyle={{ color: '#1890ff' }} prefix={<MailOutlined />} />
                 </Card>
               </Col>
             </Row>
 
-            <Table 
-              dataSource={purchasedGifts} 
-              columns={columns} 
+            <Table
+              dataSource={purchasedGifts}
+              columns={columns}
               rowKey="id"
               expandable={{
                 expandedRowRender,
-                rowExpandable: record => !!record.message,
+                rowExpandable: (record) => !!record.message,
               }}
               pagination={{ pageSize: 10 }}
             />

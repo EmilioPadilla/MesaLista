@@ -17,10 +17,13 @@ model User {
   id            Int       @id @default(autoincrement())
   email         String    @unique
   password      String
-  name          String?
+  firstName     String?
+  lastName      String?
+  spouseFirstName String?
+  spouseLastName String?
+  imageUrl      String?
   phoneNumber   String?
   role          UserRole  @default(GUEST)
-  weddingDate   DateTime?
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   weddingList   WeddingList?
@@ -41,7 +44,9 @@ model WeddingList {
   title         String
   description   String?
   coupleName    String
+  invitationCount Int @default(0)
   weddingDate   DateTime
+  weddingLocation String?
   imageUrl      String?
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")

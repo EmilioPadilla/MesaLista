@@ -20,7 +20,8 @@ async function main() {
   // Create admin user
   const admin = await prisma.user.create({
     data: {
-      name: 'Admin User',
+      firstName: 'Admin',
+      lastName: 'User',
       email: 'admin@example.com',
       password: await bcrypt.hash('admin123', saltRounds),
       role: 'ADMIN',
@@ -30,11 +31,13 @@ async function main() {
   // Create a couple
   const couple = await prisma.user.create({
     data: {
-      name: 'Sol & Emilio',
+      firstName: 'Sol',
+      lastName: 'Rosales',
+      spouseFirstName: 'Emilio',
+      spouseLastName: 'Padilla',
       email: 'sol.emilio@example.com',
       password: await bcrypt.hash('couple123', saltRounds),
       phoneNumber: '+52 123 456 7890',
-      weddingDate: new Date('2025-12-15'),
       role: 'COUPLE',
     },
   });
@@ -46,7 +49,9 @@ async function main() {
       title: 'Boda de Sol & Emilio',
       description: 'Gracias por ser parte de nuestro día especial',
       coupleName: 'Sol & Emilio',
+      invitationCount: 170,
       weddingDate: new Date('2025-12-15'),
+      weddingLocation: 'Hacienda Los Olivos, Guadalajara',
     },
   });
 
@@ -117,7 +122,8 @@ async function main() {
   // Create a guest user
   const guest = await prisma.user.create({
     data: {
-      name: 'Juan Pérez',
+      firstName: 'Juan',
+      lastName: 'Perez',
       email: 'juan@example.com',
       password: await bcrypt.hash('guest123', saltRounds),
       role: 'GUEST',
@@ -127,7 +133,8 @@ async function main() {
   // Create another guest user
   const guest2 = await prisma.user.create({
     data: {
-      name: 'María López',
+      firstName: 'María',
+      lastName: 'López',
       email: 'maria@example.com',
       password: await bcrypt.hash('guest123', saltRounds),
       role: 'GUEST',

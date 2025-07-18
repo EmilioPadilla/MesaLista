@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import path, { resolve } from 'path';
+import { resolve } from 'path';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -16,45 +16,26 @@ export default defineConfig({
   // Module resolution and path aliases
   resolve: {
     alias: {
-      'src': resolvePath(''),
-      'components': resolvePath('components'),
-      'constants': resolvePath('constants'),
-      'hooks': resolvePath('hooks'),
-      'modules': resolvePath('modules'),
-      'pages': resolvePath('pages'),
-      'services': resolvePath('services'),
-      'styles': resolvePath('styles'),
-      'types': resolvePath('types'),
-      'utils': resolvePath('utils'),
-      // Direct Vite to use the CommonJS bundle at index.js:
-      'react-froala-wysiwyg': path.resolve(__dirname, 'node_modules/react-froala-wysiwyg/index.js'),
+      src: resolvePath(''),
+      components: resolvePath('components'),
+      constants: resolvePath('constants'),
+      hooks: resolvePath('hooks'),
+      modules: resolvePath('modules'),
+      routes: resolvePath('app/routes'),
+      services: resolvePath('services'),
+      styles: resolvePath('styles'),
+      types: resolvePath('types'),
+      utils: resolvePath('utils'),
     },
   },
 
-
   // Production build
   build: {
-    sourcemap: true,  // Keep so we can debug production builds
+    sourcemap: true, // Keep so we can debug production builds
     emptyOutDir: true,
     chunkSizeWarningLimit: 2000, // Warn if chunk size exceeds 2MB
     commonjsOptions: {
       include: [/node_modules/, /react-froala-wysiwyg/],
     },
   },
-
-  // Dev server settings
-  // server: {
-  //   host: '0.0.0.0',
-  //   port: 5173,
-
-  //   proxy: {
-  //     // Proxy configuration for API calls
-  //     '/afs/app/mvc/': {
-  //       target: 'http://localhost:8080',
-  //       changeOrigin: true,
-  //       secure: false,
-  //       ws: true,
-  //     },
-  //   },
-  // },
 });

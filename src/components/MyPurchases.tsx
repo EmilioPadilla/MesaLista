@@ -3,9 +3,9 @@ import { Typography, Table, Card, Row, Col, Tag, Space, Avatar, Tooltip, Empty, 
 import { ShoppingOutlined, GiftOutlined, UserOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import type { DashboardUserData } from '../api/userService';
-import { giftService } from '../api/giftService';
-import type { PurchasedGift, PurchasedGiftsResponse } from '../api/giftService';
+import type { DashboardUserData } from '../services/user.service';
+import { giftService } from '../services/gift.service';
+import type { PurchasedGift, PurchasedGiftsResponse } from '../services/gift.service';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -33,10 +33,10 @@ const MyPurchases: React.FC<MyPurchasesProps> = (props) => {
 
   const userPurchases = data?.purchases || [];
   const totalSpent = data?.totalAmount || 0;
-  
+
   // Calculate statistics
   // Only using thankedCount in UI, but calculating others for future use
-  const thankedCount = userPurchases.filter(gift => gift.status === 'thanked').length;
+  const thankedCount = userPurchases.filter((gift) => gift.status === 'thanked').length;
 
   const columns = [
     {
@@ -75,7 +75,7 @@ const MyPurchases: React.FC<MyPurchasesProps> = (props) => {
         let color = 'gold';
         let text = 'Pendiente';
         let icon = <GiftOutlined />;
-        
+
         if (status === 'delivered') {
           color = 'green';
           text = 'Entregado';
@@ -85,10 +85,12 @@ const MyPurchases: React.FC<MyPurchasesProps> = (props) => {
           text = 'Agradecido';
           icon = <CheckCircleOutlined />;
         }
-        
+
         return (
           <Tooltip title={getStatusDescription(status)}>
-            <Tag color={color} icon={icon}>{text}</Tag>
+            <Tag color={color} icon={icon}>
+              {text}
+            </Tag>
           </Tooltip>
         );
       },
@@ -114,7 +116,9 @@ const MyPurchases: React.FC<MyPurchasesProps> = (props) => {
     return (
       <div className="p-4">
         <div className="bg-gray-50 p-4 rounded-lg">
-          <Title level={5} className="mb-2">Tu mensaje:</Title>
+          <Title level={5} className="mb-2">
+            Tu mensaje:
+          </Title>
           <Text italic>"{record.message}"</Text>
         </div>
       </div>
@@ -126,9 +130,7 @@ const MyPurchases: React.FC<MyPurchasesProps> = (props) => {
       <div className="p-6 bg-white rounded-lg shadow">
         <div className="mb-6">
           <Title level={2}>Mis Compras</Title>
-          <Paragraph>
-            Aquí puedes ver todos los regalos que has comprado para bodas y su estado actual.
-          </Paragraph>
+          <Paragraph>Aquí puedes ver todos los regalos que has comprado para bodas y su estado actual.</Paragraph>
         </div>
 
         {isLoading ? (
@@ -140,13 +142,8 @@ const MyPurchases: React.FC<MyPurchasesProps> = (props) => {
             <Typography.Text type="danger">Error al cargar tus compras</Typography.Text>
           </div>
         ) : userPurchases.length === 0 ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={
-              <Text>Aún no has realizado ninguna compra</Text>
-            }
-          >
-            <Button type="primary" onClick={() => window.location.href = '/dashboard/gift-lists'}>
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={<Text>Aún no has realizado ninguna compra</Text>}>
+            <Button type="primary" onClick={() => (window.location.href = '/dashboard/gift-lists')}>
               Explorar Listas de Regalos
             </Button>
           </Empty>
@@ -155,13 +152,7 @@ const MyPurchases: React.FC<MyPurchasesProps> = (props) => {
             <Row gutter={16} className="mb-6">
               <Col span={8}>
                 <Card>
-                  <Statistic 
-                    title="Total Gastado" 
-                    value={totalSpent} 
-                    prefix="$" 
-                    precision={2} 
-                    valueStyle={{ color: '#1890ff' }}
-                  />
+                  <Statistic title="Total Gastado" value={totalSpent} prefix="$" precision={2} valueStyle={{ color: '#1890ff' }} />
                 </Card>
               </Col>
               <Col span={8}>
@@ -186,13 +177,13 @@ const MyPurchases: React.FC<MyPurchasesProps> = (props) => {
               </Col>
             </Row>
 
-            <Table 
-              dataSource={userPurchases} 
-              columns={columns} 
+            <Table
+              dataSource={userPurchases}
+              columns={columns}
               rowKey="id"
               expandable={{
                 expandedRowRender,
-                rowExpandable: record => !!record.message,
+                rowExpandable: (record) => !!record.message,
               }}
               pagination={{ pageSize: 10 }}
             />

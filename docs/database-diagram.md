@@ -1,4 +1,4 @@
-# RegalAmor Database Relationship Diagram
+# MesaLista Database Relationship Diagram
 
 ```mermaid
 erDiagram

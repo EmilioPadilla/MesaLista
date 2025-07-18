@@ -3,10 +3,10 @@ import { Typography, Button, Table, Tag, Input, Space } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import type { DashboardUserData } from '../api/userService';
-import { giftService } from '../api/giftService';
-import type { Gift } from '../api/giftService';
-import { CreateWeddingGift } from './CreateWeddingGift';
+import type { Gift } from '@prisma/client';
+import type { DashboardUserData } from 'services/user.service';
+import { giftService } from 'services/gift.service';
+import { CreateWeddingGift } from 'components/CreateWeddingGift';
 
 const { Title, Paragraph } = Typography;
 
@@ -30,21 +30,28 @@ const GiftRegistry: React.FC<GiftRegistryProps> = (props) => {
   const userData = props.userData || contextData?.userData;
   const [isModalVisible, setIsModalVisible] = React.useState(false);
 
-
   // Fetch wedding list for the couple
-  const { data: weddingList, isLoading: isLoadingWeddingList, error: weddingListError } = useQuery({
+  const {
+    data: weddingList,
+    isLoading: isLoadingWeddingList,
+    error: weddingListError,
+  } = useQuery({
     queryKey: ['weddingList', userData?.id],
     queryFn: () => giftService.getWeddingListByCouple(userData?.id as number),
     enabled: !!userData?.id && userData?.role === 'COUPLE',
   });
 
   // Fetch gifts for the wedding list
-  const { data: gifts = [], isLoading: isLoadingGifts, error: giftsError } = useQuery({
+  const {
+    data: gifts = [],
+    isLoading: isLoadingGifts,
+    error: giftsError,
+  } = useQuery({
     queryKey: ['gifts', weddingList?.id],
     queryFn: () => giftService.getGiftsByWeddingList(weddingList?.id),
     enabled: !!weddingList?.id,
   });
-  
+
   // Handle loading and error states
   const isLoading = isLoadingWeddingList || isLoadingGifts;
   const error = weddingListError || giftsError;
@@ -52,8 +59,6 @@ const GiftRegistry: React.FC<GiftRegistryProps> = (props) => {
   const showModal = () => {
     setIsModalVisible(true);
   };
-
-
 
   const columns = [
     {
@@ -85,7 +90,7 @@ const GiftRegistry: React.FC<GiftRegistryProps> = (props) => {
       render: (isPurchased: boolean) => {
         const color = isPurchased ? 'blue' : 'green';
         const text = isPurchased ? 'Comprado' : 'Disponible';
-        
+
         return <Tag color={color}>{text}</Tag>;
       },
     },
@@ -107,16 +112,10 @@ const GiftRegistry: React.FC<GiftRegistryProps> = (props) => {
         <div className="flex justify-between items-center mb-6">
           <div>
             <Title level={2}>Mesa de Regalos</Title>
-            <Paragraph>
-              Gestiona los regalos que deseas recibir en tu boda. Puedes agregar, editar o eliminar regalos.
-            </Paragraph>
+            <Paragraph>Gestiona los regalos que deseas recibir en tu boda. Puedes agregar, editar o eliminar regalos.</Paragraph>
           </div>
           {userData?.role === 'COUPLE' && (
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />}
-              onClick={showModal}
-            >
+            <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
               Agregar Regalo
             </Button>
           )}
@@ -145,15 +144,8 @@ const GiftRegistry: React.FC<GiftRegistryProps> = (props) => {
             <Typography.Text>No hay regalos disponibles.</Typography.Text>
           </div>
         ) : (
-          <Table 
-            dataSource={gifts} 
-            columns={columns} 
-            rowKey="id" 
-            pagination={false}
-          />
+          <Table dataSource={gifts} columns={columns} rowKey="id" pagination={false} />
         )}
-
-
       </div>
       <CreateWeddingGift isModalVisible={isModalVisible} setIsModalVisible={setIsModalVisible} />
     </div>
