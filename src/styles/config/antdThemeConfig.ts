@@ -44,6 +44,7 @@ const antdThemeConfig = {
     Button: {
       colorBorder: 'none',
       fontWeight: 500,
+      colorPrimaryHover: cssValues.colors.gray800,
     },
     Segmented: {
       itemColor: cssValues.colors.gray500,

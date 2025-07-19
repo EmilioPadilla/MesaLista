@@ -2,12 +2,7 @@ import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@ta
 import { message } from 'antd';
 import type { User } from '@prisma/client';
 import { userService } from '../services/user.service';
-
-// Define query keys
-const queryKeys = {
-  users: 'users',
-  currentUser: 'currentUser',
-};
+import { queryKeys } from './queryKeys';
 
 /**
  * Hook to fetch the current authenticated user

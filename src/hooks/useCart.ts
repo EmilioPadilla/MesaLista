@@ -1,11 +1,6 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { cartService } from '../services/cart.service';
-
-// Define query keys
-const queryKeys = {
-  cart: 'cart',
-  cartItems: 'cartItems',
-};
+import { queryKeys } from './queryKeys';
 
 /**
  * Hook to fetch the current user's cart

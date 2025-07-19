@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Typography, Input, Card, Row, Col, Button, Avatar, Modal, Form, message, Spin } from 'antd';
 import { SearchOutlined, HeartOutlined, ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
 import { giftService } from '../services/gift.service';
-import type { Gift, WeddingList } from '../services/gift.service';
+import type { Gift, WeddingList } from '@prisma/client';
+import { useWeddingLists } from 'hooks/useWeddingList';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -18,16 +18,7 @@ const GiftLists: React.FC<GiftListsProps> = () => {
   const [purchaseLoading, setPurchaseLoading] = useState(false);
 
   // Fetch all wedding lists from the API
-  const {
-    data: weddingLists,
-    isLoading: isLoadingWeddingLists,
-    refetch,
-  } = useQuery<WeddingList[]>({
-    queryKey: ['allWeddingLists'],
-    queryFn: async () => {
-      return await giftService.getAllWeddingLists();
-    },
-  });
+  const { data: weddingLists, isLoading: isLoadingWeddingLists, refetch } = useWeddingLists();
 
   // Filter wedding lists based on search term
   const filteredWeddingLists = weddingLists
@@ -114,13 +105,13 @@ const GiftLists: React.FC<GiftListsProps> = () => {
                         <div className="flex-grow">
                           <div className="flex justify-between items-start mb-2">
                             <Title level={5} className="mb-1">
-                              {gift.title}
+                              {gift?.title}
                             </Title>
                             <Text strong className="text-lg">
-                              ${gift.price.toFixed(2)}
+                              ${gift?.price.toFixed(2)}
                             </Text>
                           </div>
-                          <Paragraph className="text-gray-600 mb-4">{gift.description}</Paragraph>
+                          <Paragraph className="text-gray-600 mb-4">{gift?.description}</Paragraph>
                         </div>
                         <div className="mt-auto pt-4 flex justify-between items-center">
                           {gift.isPurchased ? (

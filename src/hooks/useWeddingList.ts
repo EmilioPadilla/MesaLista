@@ -1,12 +1,7 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import type { WeddingListBase, WeddingListWithGifts, CreateWeddingListRequest } from '../../shared/types/weddingList';
 import { weddingListService } from '../services/weddingList.service';
-
-// Define query keys
-const queryKeys = {
-  weddingLists: 'weddingLists',
-  weddingListByCouple: 'weddingListByCouple',
-};
+import { queryKeys } from './queryKeys';
 
 /**
  * Hook to fetch all wedding lists

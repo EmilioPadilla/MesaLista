@@ -1,6 +1,7 @@
 import { Button, Layout, Tabs, type TabsProps } from 'antd';
 import { ExportOutlined, MenuOutlined, SettingOutlined, ShareAltOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import { message } from 'antd';
 
 const { Header } = Layout;
 
@@ -20,6 +21,11 @@ export const HeaderComponent = ({ currentPath, setCurrentPath, drawerOpen, setDr
   const onChange = (key: string) => {
     setCurrentPath(key);
     setDrawerOpen(false);
+  };
+
+  const copyPublicWeddingListLink = () => {
+    message.success('Link copiado al portapapeles');
+    navigator.clipboard.writeText(window.location.href);
   };
 
   const items: TabsProps['items'] = [
@@ -48,7 +54,7 @@ export const HeaderComponent = ({ currentPath, setCurrentPath, drawerOpen, setDr
           <Tabs activeKey={currentPath} items={items} onChange={onChange} />
         </div>
         <div>
-          <Button type="link" icon={<ShareAltOutlined />}>
+          <Button type="link" icon={<ShareAltOutlined />} onClick={copyPublicWeddingListLink}>
             Compartir
           </Button>
           <Button type="link" icon={<ExportOutlined />}>

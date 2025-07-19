@@ -2,14 +2,7 @@ import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@ta
 import type { Gift } from '@prisma/client';
 import type { PurchasedGiftsResponse } from '../../shared/types/gift';
 import { giftService } from '../services/gift.service';
-
-// Define query keys
-const queryKeys = {
-  gifts: 'gifts',
-  giftsByWeddingList: 'giftsByWeddingList',
-  purchasedGifts: 'purchasedGifts',
-  userPurchases: 'userPurchases',
-};
+import { queryKeys } from './queryKeys';
 
 /**
  * Hook to fetch gifts by wedding list ID
@@ -50,6 +43,7 @@ export const useCreateGift = () => {
     mutationFn: giftService.createGift,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.giftsByWeddingList, variables.weddingListId] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple] });
     },
   });
 };

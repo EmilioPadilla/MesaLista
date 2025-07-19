@@ -1,11 +1,6 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { paymentService } from '../services/payment.service';
-
-// Define query keys
-const queryKeys = {
-  payments: 'payments',
-  paymentSummary: 'paymentSummary',
-};
+import { queryKeys } from './queryKeys';
 
 /**
  * Hook to fetch all payments

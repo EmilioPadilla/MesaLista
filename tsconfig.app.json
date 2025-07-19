@@ -45,9 +45,10 @@
       "routes/*": ["src/app/routes/*"],
       "layouts/*": ["src/app/layouts/*"],
       "modules/*": ["src/app/modules/*"],
-      "components/*": ["src/components/*"]
+      "components/*": ["src/components/*"],
+      "core/*": ["src/components/core/*"]
     }
   },
-  "include": ["src", "./vite*.ts"],
+  "include": ["src", "./vite*.ts", "src/hooks/.ts"],
   "exclude": ["node_modules"]
 }

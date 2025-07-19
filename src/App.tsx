@@ -17,13 +17,14 @@ import ProtectedRoute from 'components/ProtectedRoute';
 
 // Auth service
 import { userService } from 'services/user.service';
-import GiftLists from 'components/GiftLists';
+import GiftLists from 'src/components/GiftList';
 import MyPurchases from 'components/MyPurchases';
 import antdThemeConfig from 'styles/config/antdThemeConfig';
 
 function App() {
   // Check if user is already authenticated
   const isAuthenticated = userService.isAuthenticated();
+  console.log('isAuthenticated', isAuthenticated);
 
   return (
     <ConfigProvider theme={antdThemeConfig}>
