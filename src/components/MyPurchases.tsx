@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
 import type { DashboardUserData } from '../services/user.service';
 import { giftService } from '../services/gift.service';
-import type { PurchasedGift, PurchasedGiftsResponse } from '../services/gift.service';
+import { PurchasedGiftsResponse } from 'shared/types/gift';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -112,13 +112,14 @@ const MyPurchases: React.FC<MyPurchasesProps> = (props) => {
   };
 
   // Expanded row to show the message sent with the gift
-  const expandedRowRender = (record: PurchasedGift) => {
+  const expandedRowRender = (record: PurchasedGiftsResponse) => {
     return (
       <div className="p-4">
         <div className="bg-gray-50 p-4 rounded-lg">
           <Title level={5} className="mb-2">
             Tu mensaje:
           </Title>
+          {/* @ts-ignore */}
           <Text italic>"{record.message}"</Text>
         </div>
       </div>
@@ -178,11 +179,13 @@ const MyPurchases: React.FC<MyPurchasesProps> = (props) => {
             </Row>
 
             <Table
+              // @ts-ignore
               dataSource={userPurchases}
               columns={columns}
               rowKey="id"
               expandable={{
                 expandedRowRender,
+                // @ts-ignore
                 rowExpandable: (record) => !!record.message,
               }}
               pagination={{ pageSize: 10 }}

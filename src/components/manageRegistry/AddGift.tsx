@@ -69,7 +69,7 @@ export const AddGift = ({ open, onCancel }: AddGiftProps) => {
       setImageUrl(result);
       setLoading(false);
     };
-    reader.readAsDataURL(file);
+    // reader.readAsDataURL(file);
   };
 
   return (

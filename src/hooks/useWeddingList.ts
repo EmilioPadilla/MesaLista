@@ -4,11 +4,11 @@ import { weddingListService } from '../services/weddingList.service';
 import { queryKeys } from './queryKeys';
 
 /**
- * Hook to fetch all wedding lists
+ * Hook to fetch all wedding lists with their gifts
  *
  * @param options React Query options
  */
-export const useWeddingLists = (options?: Partial<UseQueryOptions<WeddingListBase[], Error>>) => {
+export const useWeddingLists = (options?: Partial<UseQueryOptions<WeddingListWithGifts[], Error>>) => {
   return useQuery({
     queryKey: [queryKeys.weddingLists],
     queryFn: () => weddingListService.getAllWeddingLists(),

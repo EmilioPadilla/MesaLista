@@ -3,10 +3,10 @@ import type { WeddingListBase, WeddingListWithGifts, CreateWeddingListRequest } 
 import { api_endpoints } from './endpoints';
 
 /**
- * Fetches all wedding lists
- * @returns List of wedding lists
+ * Fetches all wedding lists with their gifts
+ * @returns List of wedding lists with gifts
  */
-const getAllWeddingLists = async (): Promise<WeddingListBase[]> => {
+const getAllWeddingLists = async (): Promise<WeddingListWithGifts[]> => {
   const response = await apiClient.get(api_endpoints.weddingLists.getAll);
   return response.data;
 };

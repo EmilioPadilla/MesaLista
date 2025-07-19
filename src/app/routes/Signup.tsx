@@ -25,12 +25,24 @@ const Signup: React.FC = () => {
     setLoading(true);
     try {
       // Remove confirmPassword as it's not needed for the API call
-      const { confirmPassword, ...userData } = values;
+      const { confirmPassword, name, weddingDate, ...restValues } = values;
 
-      // Format wedding date if provided
-      if (userData.weddingDate) {
-        userData.weddingDate = new Date(userData.weddingDate).toISOString();
-      }
+      // Split name into firstName and lastName
+      const nameParts = name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || null;
+
+      // Create userData object that matches the Prisma User type
+      const userData = {
+        ...restValues,
+        firstName,
+        lastName,
+        spouseFirstName: null,
+        spouseLastName: null,
+        imageUrl: null,
+        updatedAt: new Date(),
+        phoneNumber: restValues.phoneNumber || null,
+      };
 
       await userService.create(userData);
       message.success('¡Cuenta creada exitosamente! Por favor inicia sesión.');

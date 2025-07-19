@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Typography, Input, Card, Row, Col, Button, Avatar, Modal, Form, message, Spin } from 'antd';
 import { SearchOutlined, HeartOutlined, ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
 import { giftService } from '../services/gift.service';
-import type { Gift, WeddingList } from '@prisma/client';
+import type { Gift } from '@prisma/client';
+import type { WeddingListWithGifts } from '../../shared/types/weddingList';
 import { useWeddingLists } from 'hooks/useWeddingList';
 
 const { Title, Paragraph, Text } = Typography;
@@ -22,7 +23,7 @@ const GiftLists: React.FC<GiftListsProps> = () => {
 
   // Filter wedding lists based on search term
   const filteredWeddingLists = weddingLists
-    ? weddingLists.filter((list: WeddingList) => list.coupleName.toLowerCase().includes(searchTerm.toLowerCase()))
+    ? weddingLists.filter((list: WeddingListWithGifts) => list.coupleName.toLowerCase().includes(searchTerm.toLowerCase()))
     : [];
 
   const handlePurchase = (gift: Gift) => {
@@ -80,7 +81,7 @@ const GiftLists: React.FC<GiftListsProps> = () => {
           </div>
         ) : (
           <div>
-            {filteredWeddingLists.map((weddingList: WeddingList) => (
+            {filteredWeddingLists.map((weddingList: WeddingListWithGifts) => (
               <Card
                 key={weddingList.id}
                 className="mb-6"
@@ -99,7 +100,7 @@ const GiftLists: React.FC<GiftListsProps> = () => {
                   </div>
                 }>
                 <Row gutter={[16, 16]}>
-                  {weddingList.gifts.map((gift: Gift) => (
+                  {weddingList?.gifts?.map((gift: Gift) => (
                     <Col xs={24} sm={12} md={8} key={gift.id}>
                       <Card hoverable className={`h-full flex flex-col ${gift.isPurchased ? 'opacity-60' : ''}`}>
                         <div className="flex-grow">

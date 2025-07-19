@@ -4,8 +4,8 @@ import { UserOutlined, GiftOutlined, CheckCircleOutlined, MailOutlined } from '@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
 import { giftService } from 'services/gift.service';
-import type { PurchasedGift } from 'services/gift.service';
 import type { DashboardUserData } from 'services/user.service';
+import { PurchasedGiftsResponse } from 'shared/types/gift';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -86,7 +86,7 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
       title: 'Comprado por',
       dataIndex: 'purchasedBy',
       key: 'purchasedBy',
-      render: (purchasedBy: PurchasedGift['purchasedBy']) => (
+      render: (purchasedBy: PurchasedGiftsResponse['purchases'][number]['purchasedBy']) => (
         <Space>
           <Avatar icon={<UserOutlined />} />
           <div>
@@ -118,7 +118,7 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
     {
       title: 'Acciones',
       key: 'actions',
-      render: (_: any, record: PurchasedGift) => (
+      render: (_: any, record: PurchasedGiftsResponse['purchases'][number]) => (
         <Space size="middle">
           {record.status !== 'thanked' && (
             <Button
@@ -145,7 +145,7 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
     },
   ];
 
-  const expandedRowRender = (record: PurchasedGift) => {
+  const expandedRowRender = (record: PurchasedGiftsResponse['purchases'][number]) => {
     return (
       <div className="p-4">
         <div className="flex items-start mb-4">
