@@ -42,7 +42,7 @@ app.use(
 app.use(express.json());
 
 // Serve static files from the React app build directory
-const distPath = path.resolve(__dirname, '../../dist');
+const distPath = path.resolve(__dirname, '../../../dist');
 app.use(express.static(distPath));
 
 // API root route
@@ -102,7 +102,7 @@ app.use((req, res, next) => {
   // Serve index.html for all non-API routes (SPA routing)
   const indexPath = path.join(distPath, 'index.html');
   console.log('Serving index from:', indexPath);
-  res.sendFile('/app/dist/index.html', (err) => {
+  res.sendFile(indexPath, (err) => {
     if (err) {
       console.error('Error serving index.html:', err);
       res.status(500).json({ error: 'Failed to serve application' });
