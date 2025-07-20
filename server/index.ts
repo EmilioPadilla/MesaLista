@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { PrismaClient } from '@prisma/client';
 import swaggerUi from 'swagger-ui-express';
 import specs from './swagger.js';
@@ -16,6 +18,10 @@ dotenv.config();
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
+
+// Setup __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Create Express app
 const app = express();
@@ -38,8 +44,12 @@ app.use(
 
 app.use(express.json());
 
-// Root route
-app.get('/', (req, res) => {
+// Serve static files from the React app build directory
+const distPath = path.join(__dirname, '../dist');
+app.use(express.static(distPath));
+
+// API root route
+app.get('/api', (req, res) => {
   res.json({ message: 'Welcome to MesaLista API' });
 });
 
@@ -48,18 +58,18 @@ app.get('/health', async (req, res) => {
   try {
     // Test database connection
     await prisma.$queryRaw`SELECT 1`;
-    res.status(200).json({ 
-      status: 'healthy', 
+    res.status(200).json({
+      status: 'healthy',
       timestamp: new Date().toISOString(),
-      database: 'connected'
+      database: 'connected',
     });
   } catch (error) {
     console.error('Health check failed:', error);
-    res.status(503).json({ 
-      status: 'unhealthy', 
+    res.status(503).json({
+      status: 'unhealthy',
       timestamp: new Date().toISOString(),
       database: 'disconnected',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -83,6 +93,22 @@ app.post('/api/login', (req, res, next) => {
 // Add a specific route for login after the redirect
 app.use('/login', userRoutes);
 
+// // Catch-all handler: send back React's index.html file for SPA routing
+// app.get('*', (req, res) => {
+//   // Don't serve index.html for API routes
+//   if (req.path.startsWith('/api/')) {
+//     return res.status(404).json({ error: 'API endpoint not found' });
+//   }
+
+//   const indexPath = path.join(distPath, 'index.html');
+//   res.sendFile(indexPath, (err) => {
+//     if (err) {
+//       console.error('Error serving index.html:', err);
+//       res.status(500).json({ error: 'Failed to serve application' });
+//     }
+//   });
+// });
+
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Server error:', err);
@@ -90,7 +116,8 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 });
 
 // Test database connection on startup (non-blocking)
-prisma.$connect()
+prisma
+  .$connect()
   .then(() => {
     console.log('✅ Database connected successfully');
   })
