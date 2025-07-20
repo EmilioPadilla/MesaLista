@@ -39,9 +39,6 @@ app.use(
   }),
 );
 
-// // Handle preflight requests
-// app.options('*', cors());
-
 app.use(express.json());
 
 // Serve static files from the React app build directory
@@ -105,7 +102,7 @@ app.use((req, res, next) => {
   // Serve index.html for all non-API routes (SPA routing)
   const indexPath = path.join(distPath, 'index.html');
   console.log('Serving index from:', indexPath);
-  res.sendFile(indexPath, (err) => {
+  res.sendFile('/app/dist/index.html', (err) => {
     if (err) {
       console.error('Error serving index.html:', err);
       res.status(500).json({ error: 'Failed to serve application' });
