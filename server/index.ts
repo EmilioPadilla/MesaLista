@@ -43,6 +43,27 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to MesaLista API' });
 });
 
+// Health check endpoint for Railway
+app.get('/health', async (req, res) => {
+  try {
+    // Test database connection
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      database: 'connected'
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(503).json({ 
+      status: 'unhealthy', 
+      timestamp: new Date().toISOString(),
+      database: 'disconnected',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Swagger documentation
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
@@ -68,11 +89,27 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// Test database connection on startup (non-blocking)
+prisma.$connect()
+  .then(() => {
+    console.log('✅ Database connected successfully');
+  })
+  .catch((error: any) => {
+    console.warn('⚠️ Database connection failed, but server will continue:', error.message);
+  });
+
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`API available at http://0.0.0.0:${PORT}/api`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log('🚀 Server started successfully');
+});
+
+// Handle server startup errors
+server.on('error', (error) => {
+  console.error('❌ Server startup error:', error);
+  process.exit(1);
 });
 
 // Handle shutdown
