@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, PurchaseStatus } from '@prisma/client';
 import {
   FormattedWeddingList,
   WeddingListWithGifts,
-  GiftWithWeddingList,
+  GiftBase,
   CreateGiftRequest,
   UpdateGiftRequest,
   CreateWeddingListRequest,
@@ -15,7 +15,7 @@ import {
   PurchasedGiftsResponse,
   UserPurchasesResponse,
   PurchaseGiftResponse,
-} from '../../types';
+} from '../../shared/types/index.js';
 
 const prisma = new PrismaClient();
 
@@ -31,7 +31,14 @@ export const giftController = {
               id: true,
               firstName: true,
               lastName: true,
+              spouseFirstName: true,
+              spouseLastName: true,
+              imageUrl: true,
               email: true,
+              phoneNumber: true,
+              role: true,
+              createdAt: true,
+              updatedAt: true,
             },
           },
         },
@@ -45,12 +52,11 @@ export const giftController = {
           id: list.id,
           coupleName: list.coupleName,
           weddingDate: list.weddingDate.toISOString(),
-          weddingLocation: list.weddingLocation,
           imageUrl: list.imageUrl || 'https://via.placeholder.com/150',
-          gifts: list.gifts.map((gift: GiftWithWeddingList) => ({
+          gifts: list.gifts.map((gift: GiftBase) => ({
             id: gift.id,
             title: gift.title,
-            description: gift.description,
+            description: gift.description || undefined,
             price: gift.price,
             isPurchased: gift.isPurchased,
             weddingListId: gift.weddingListId,
@@ -334,7 +340,12 @@ export const giftController = {
                 lastName: true,
                 spouseFirstName: true,
                 spouseLastName: true,
+                imageUrl: true,
                 email: true,
+                phoneNumber: true,
+                role: true,
+                createdAt: true,
+                updatedAt: true,
               },
             },
             gift: true,
@@ -370,7 +381,7 @@ export const giftController = {
     try {
       const updatedPurchase = await prisma.giftPurchase.update({
         where: { id: Number(purchaseId) },
-        data: { status: status.toUpperCase() },
+        data: { status: status.toUpperCase() as PurchaseStatus },
         include: {
           gift: true,
           user: {
@@ -378,6 +389,13 @@ export const giftController = {
               id: true,
               firstName: true,
               lastName: true,
+              spouseFirstName: true,
+              spouseLastName: true,
+              imageUrl: true,
+              phoneNumber: true,
+              role: true,
+              createdAt: true,
+              updatedAt: true,
               email: true,
             },
           },
@@ -428,7 +446,14 @@ export const giftController = {
               id: true,
               firstName: true,
               lastName: true,
+              spouseFirstName: true,
+              spouseLastName: true,
+              imageUrl: true,
               email: true,
+              phoneNumber: true,
+              role: true,
+              createdAt: true,
+              updatedAt: true,
             },
           },
         },
@@ -446,10 +471,10 @@ export const giftController = {
           purchaseDate: purchase.purchaseDate.toISOString(),
           purchasedBy: {
             id: purchase.user.id,
-            firstName: purchase.user.firstName + ' ' + purchase.user.lastName || 'Anonymous',
+            name: purchase.user.firstName + ' ' + purchase.user.lastName || 'Anonymous',
             email: purchase.user.email,
           },
-          status: purchase.status.toLowerCase(),
+          status: purchase.status,
           message: purchase.message,
         }),
       );
@@ -482,6 +507,21 @@ export const giftController = {
       const purchases = await prisma.giftPurchase.findMany({
         where: { userId: Number(userId) },
         include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              spouseFirstName: true,
+              spouseLastName: true,
+              imageUrl: true,
+              email: true,
+              phoneNumber: true,
+              role: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
           gift: {
             include: {
               weddingList: {
@@ -491,7 +531,14 @@ export const giftController = {
                       id: true,
                       firstName: true,
                       lastName: true,
+                      spouseFirstName: true,
+                      spouseLastName: true,
+                      imageUrl: true,
                       email: true,
+                      phoneNumber: true,
+                      role: true,
+                      createdAt: true,
+                      updatedAt: true,
                     },
                   },
                 },
@@ -512,11 +559,11 @@ export const giftController = {
           price: purchase.gift.price,
           purchaseDate: purchase.purchaseDate.toISOString(),
           couple: {
-            id: purchase.gift.weddingList.couple.id,
-            firstName: purchase.gift.weddingList.couple.firstName + ' ' + purchase.gift.weddingList.couple.lastName || 'Anonymous Couple',
-            email: purchase.gift.weddingList.couple.email,
+            id: purchase.user.id,
+            name: purchase.user.firstName + ' ' + purchase.user.lastName || 'Anonymous Couple',
+            email: purchase.user.email,
           },
-          status: purchase.status.toLowerCase(),
+          status: purchase.status,
           message: purchase.message,
         }),
       );

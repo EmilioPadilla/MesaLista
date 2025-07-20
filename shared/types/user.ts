@@ -64,13 +64,13 @@ export interface UserDashboardResponse extends UserBase {
 // User response type (simplified for relations)
 export interface UserResponse {
   id: number;
-  firstName: string;
-  lastName: string;
+  firstName: string | null;
+  lastName: string | null;
   spouseFirstName: string | null;
   spouseLastName: string | null;
   imageUrl: string | null;
   email: string;
-  phoneNumber?: string;
+  phoneNumber?: string | null;
   weddingLocation?: string;
   weddingDate?: Date | string;
   role?: UserRole;

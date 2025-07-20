@@ -52,9 +52,9 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
   });
 
   // Calculate statistics
-  const pendingCount = purchasedGifts.filter((gift) => gift.status === 'pending').length;
-  const deliveredCount = purchasedGifts.filter((gift) => gift.status === 'delivered').length;
-  const thankedCount = purchasedGifts.filter((gift) => gift.status === 'thanked').length;
+  const pendingCount = purchasedGifts.filter((gift) => gift.status === 'PENDING').length;
+  const deliveredCount = purchasedGifts.filter((gift) => gift.status === 'DELIVERED').length;
+  const thankedCount = purchasedGifts.filter((gift) => gift.status === 'THANKED').length;
 
   const handleMarkAsDelivered = (id: number) => {
     updateStatusMutation.mutate({ purchaseId: id, status: 'DELIVERED' });
@@ -120,17 +120,17 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
       key: 'actions',
       render: (_: any, record: PurchasedGiftsResponse['purchases'][number]) => (
         <Space size="middle">
-          {record.status !== 'thanked' && (
+          {record.status !== 'THANKED' && (
             <Button
               type="primary"
               size="small"
               icon={<MailOutlined />}
-              disabled={record.status === 'pending'}
-              onClick={() => updateStatusMutation.mutate({ purchaseId: record.id, status: 'thanked' })}>
+              disabled={record.status === 'PENDING'}
+              onClick={() => updateStatusMutation.mutate({ purchaseId: record.id, status: 'THANKED' })}>
               Agradecer
             </Button>
           )}
-          {record.status === 'pending' && (
+          {record.status === 'PENDING' && (
             <Tooltip title="Marcar como entregado">
               <Button
                 type="default"
@@ -161,12 +161,12 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
           <Text italic>"{record.message}"</Text>
         </div>
         <div className="mt-4 flex justify-end">
-          {record.status === 'pending' && (
+          {record.status === 'PENDING' && (
             <Button type="primary" size="small" icon={<CheckCircleOutlined />} onClick={() => handleMarkAsDelivered(record.id)}>
               Marcar como Entregado
             </Button>
           )}
-          {record.status === 'delivered' && (
+          {record.status === 'DELIVERED' && (
             <Button type="primary" size="small" icon={<MailOutlined />} onClick={() => handleSendThankYou(record.id)}>
               Agradecer
             </Button>

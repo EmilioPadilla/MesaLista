@@ -1,6 +1,6 @@
 import type { WeddingList } from '@prisma/client';
-import type { GiftBase } from './gift';
-import type { UserResponse } from './user';
+import type { GiftBase } from './gift.js';
+import type { UserResponse } from './user.js';
 
 export interface WeddingListBase extends WeddingList {
   id: number;
@@ -10,7 +10,7 @@ export interface WeddingListBase extends WeddingList {
   coupleName: string;
   weddingDate: Date;
   invitationCount: number;
-  weddingLocation: string;
+  weddingLocation: string | null;
   imageUrl: string | null;
   createdAt: Date;
   updatedAt: Date;

@@ -44,8 +44,8 @@ export interface FormattedPurchase {
     name: string;
     email: string;
   };
-  status: 'pending' | 'delivered' | 'thanked';
-  message?: string;
+  status: PurchaseStatus;
+  message: string | null;
 }
 
 export interface UserPurchase {
@@ -58,8 +58,8 @@ export interface UserPurchase {
     name: string;
     email: string;
   };
-  status: string;
-  message?: string;
+  status: PurchaseStatus;
+  message: string | null;
 }
 
 export interface PurchaseGiftResponse {

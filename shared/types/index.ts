@@ -4,3 +4,4 @@ export * from './gift.js';
 export * from './weddingList.js';
 export * from './cart.js';
 export * from './payment.js';
+export * from './errors.js';

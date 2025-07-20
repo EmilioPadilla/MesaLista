@@ -306,12 +306,24 @@ export default {
         });
 
         if (!guestUser) {
+          // Split the invitee name into firstName and lastName
+          const fullName = cart.inviteeName || 'Guest';
+          const nameParts = fullName.trim().split(' ');
+          const firstName = nameParts[0] || 'Guest';
+          const lastName = nameParts.slice(1).join(' ') || null;
+
           guestUser = await prisma.user.create({
             data: {
-              name: cart.inviteeName || 'Guest',
+              firstName,
+              lastName,
               email: cart.inviteeEmail || '',
               password: '', // No password for guest users
               role: 'GUEST',
+              spouseFirstName: null,
+              spouseLastName: null,
+              imageUrl: null,
+              phoneNumber: null,
+              updatedAt: new Date(),
             },
           });
         }

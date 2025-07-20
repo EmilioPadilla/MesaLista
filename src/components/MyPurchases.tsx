@@ -36,7 +36,7 @@ const MyPurchases: React.FC<MyPurchasesProps> = (props) => {
 
   // Calculate statistics
   // Only using thankedCount in UI, but calculating others for future use
-  const thankedCount = userPurchases.filter((gift) => gift.status === 'thanked').length;
+  const thankedCount = userPurchases.filter((gift) => gift.status === 'THANKED').length;
 
   const columns = [
     {

@@ -11,7 +11,7 @@ import {
   UserLoginRequest,
   UserLoginResponse,
   UserDashboardResponse,
-} from '../../types';
+} from '../../shared/types/index.js';
 
 export const userController = {
   // Get all users
@@ -274,7 +274,6 @@ export const userController = {
 
       const response: UserLoginResponse = {
         ...(userWithoutPassword as UserBase),
-        name: user.firstName,
         token,
         message: 'Login successful',
       };
