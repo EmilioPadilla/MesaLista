@@ -27,6 +27,9 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "types": ["vite/client"],
+    
+    // Prevent TypeScript from emitting files (let Vite handle bundling)
+    "noEmit": true,
 
     // Path aliases for module resolution
     "baseUrl": ".",

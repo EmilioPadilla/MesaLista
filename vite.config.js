@@ -1,8 +1,12 @@
 import { defineConfig } from 'vite';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-export const resolvePath = (folder) => resolve(__dirname, `./src/${folder}`);
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const resolvePath = (folder) => resolve(__dirname, `./src/${folder}`);
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   define: {
