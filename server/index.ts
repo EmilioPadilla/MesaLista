@@ -45,7 +45,7 @@ app.use(
 app.use(express.json());
 
 // Serve static files from the React app build directory
-const distPath = path.join(__dirname, '../dist');
+const distPath = path.resolve(__dirname, '../../dist');
 app.use(express.static(distPath));
 
 // API root route
