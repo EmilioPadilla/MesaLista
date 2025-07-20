@@ -5,7 +5,10 @@ nixPkgs = ['nodejs_22', 'npm-9_x']
 cmds = ['npm ci']
 
 [phases.build]
-cmds = ['npm run build']
+cmds = [
+  'npm run build:client',
+  'npm run build:server'
+]
 
 [start]
-cmd = 'node server/index.js'
+cmd = 'node server/dist/server/index.js'
