@@ -3,16 +3,16 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "node": {
-    "version": "22.17.0"
+  "engines": {
+    "node": "18.x"
   },
   "scripts": {
     "dev": "vite",
     "server": "tsx watch server/index.ts",
     "dev:all": "concurrently \"npm run dev\" \"npm run server\"",
-    "build": "tsc -b && vite build",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "tsc -b && vite build",
     "build:server": "tsc -p server/tsconfig.json",
-    "build:all": "npm run build && npm run build:server",
     "lint": "eslint .",
     "preview": "vite preview",
     "prisma:generate": "prisma generate",
