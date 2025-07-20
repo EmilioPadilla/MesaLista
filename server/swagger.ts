@@ -1,41 +1,15 @@
-import swaggerJsdoc from 'swagger-jsdoc';
+import fs from 'fs';
+import path from 'path';
+import yaml from 'js-yaml';
+import { fileURLToPath } from 'url';
 
-const options = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'MesaLista API',
-      version: '1.0.0',
-      description: 'Wedding Gift Registry API documentation',
-      contact: {
-        name: 'MesaLista Support',
-        email: 'support@regalamor.com',
-      },
-    },
-    servers: [
-      {
-        url: 'http://localhost:5001/api',
-        description: 'Development server',
-      },
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-        },
-      },
-    },
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
-  },
-  apis: ['./server/routes/*.ts', './server/controllers/*.ts'],
-};
+// Setup __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const specs = swaggerJsdoc(options);
+// Load the centralized OpenAPI specification
+const openApiPath = path.join(__dirname, 'swagger', 'openapi.yaml');
+const openApiContent = fs.readFileSync(openApiPath, 'utf8');
+const specs = yaml.load(openApiContent) as object;
 
 export default specs;

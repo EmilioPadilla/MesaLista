@@ -103,6 +103,7 @@ app.use((req, res, next) => {
 
   // Serve index.html for all non-API routes (SPA routing)
   const indexPath = path.join(distPath, 'index.html');
+  console.log('Serving index from:', indexPath);
   res.sendFile(indexPath, (err) => {
     if (err) {
       console.error('Error serving index.html:', err);

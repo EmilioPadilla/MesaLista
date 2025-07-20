@@ -3,6 +3,7 @@ import type { UserResponse } from './user.js';
 import type { WeddingListBase } from './weddingList.js';
 
 export interface GiftBase extends Gift {
+  id: number;
   title: string;
   description: string | null;
   price: number;
