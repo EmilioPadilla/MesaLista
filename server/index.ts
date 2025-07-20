@@ -25,7 +25,7 @@ const __dirname = path.dirname(__filename);
 
 // Create Express app
 const app = express();
-const PORT = parseInt(process.env.PORT || '5001', 10);
+const PORT = parseInt(process.env.PORT || '8080', 10);
 
 // Middleware
 // For development, allow all origins
@@ -55,6 +55,7 @@ app.get('/api', (req, res) => {
 
 // Health check endpoint for Railway
 app.get('/health', async (req, res) => {
+  console.log('Health check request received');
   try {
     // Test database connection
     await prisma.$queryRaw`SELECT 1`;
