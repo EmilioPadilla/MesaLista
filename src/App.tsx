@@ -37,7 +37,7 @@ function App() {
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />}>
-              <Route path="" element={<ManageRegistry />} />
+              <Route index element={<ManageRegistry />} />
               <Route path="gift-registry" element={<GiftRegistry />} />
               <Route path="purchased-gifts" element={<PurchasedGifts />} />
               <Route path="messages" element={<div className="m-6 p-6 bg-white rounded-lg shadow">Mensajes (En desarrollo)</div>} />

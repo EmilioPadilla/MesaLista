@@ -93,23 +93,25 @@ app.post('/api/login', (req, res, next) => {
 // Add a specific route for login after the redirect
 app.use('/login', userRoutes);
 
-// // Catch-all handler: send back React's index.html file for SPA routing
-// app.get('*', (req, res) => {
-//   // Don't serve index.html for API routes
-//   if (req.path.startsWith('/api/')) {
-//     return res.status(404).json({ error: 'API endpoint not found' });
-//   }
+// Catch-all handler: send back React's index.html file for SPA routing
+// This must be AFTER all API routes to avoid conflicts
+app.use((req, res, next) => {
+  // Skip if it's an API route
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
 
-//   const indexPath = path.join(distPath, 'index.html');
-//   res.sendFile(indexPath, (err) => {
-//     if (err) {
-//       console.error('Error serving index.html:', err);
-//       res.status(500).json({ error: 'Failed to serve application' });
-//     }
-//   });
-// });
+  // Serve index.html for all non-API routes (SPA routing)
+  const indexPath = path.join(distPath, 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('Error serving index.html:', err);
+      res.status(500).json({ error: 'Failed to serve application' });
+    }
+  });
+});
 
-// Error handling middleware
+// Error handling middleware (must be last)
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Server error:', err);
   res.status(500).json({ error: 'Internal server error' });
