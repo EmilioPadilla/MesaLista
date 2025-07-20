@@ -12,7 +12,7 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run server\"",
     "build": "npm run build:client && npm run build:server",
     "build:client": "tsc -b && vite build",
-    "build:server": "tsc -p server/tsconfig.json",
+    "build:server": "tsc -p server/tsconfig.json && cp -r server/swagger server/dist/server/",
     "lint": "eslint .",
     "preview": "vite preview",
     "prisma:generate": "prisma generate",
