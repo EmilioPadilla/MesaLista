@@ -5,7 +5,7 @@ import { useWeddingListByCouple } from 'hooks/useWeddingList';
 import { RegistryAdvisor } from 'components/manageRegistry/RegistryAdvisor';
 import type { User } from '@prisma/client';
 import { GiftsList } from 'components/manageRegistry/GiftsList';
-import { AddGift } from 'src/components/manageRegistry/AddGift';
+import { AddGiftModal } from 'src/components/manageRegistry/AddGiftModal';
 
 type OutletContextType = {
   userData?: User;
@@ -73,7 +73,7 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
           )}
         </div>
       )}
-      <AddGift open={isAddGiftModalOpen} onCancel={() => setIsAddGiftModalOpen(false)} />
+      <AddGiftModal weddingListId={weddinglist?.id} open={isAddGiftModalOpen} onCancel={() => setIsAddGiftModalOpen(false)} />
     </div>
   );
 };

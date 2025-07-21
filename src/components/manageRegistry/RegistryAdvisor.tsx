@@ -1,37 +1,20 @@
-import { useState } from 'react';
-import {
-  EditOutlined,
-  CalendarOutlined,
-  UserOutlined,
-  GiftOutlined,
-  ShoppingOutlined,
-  DownOutlined,
-  UploadOutlined,
-  CameraOutlined,
-} from '@ant-design/icons';
+import { useEffect, useState } from 'react';
+import { EditOutlined, CalendarOutlined, UserOutlined, GiftOutlined, ShoppingOutlined, DownOutlined } from '@ant-design/icons';
 import { User } from '@prisma/client';
-import { Col, Button, Card, Divider, Typography, Input, Upload, Form, message } from 'antd';
+import { Col, Button, Card, Divider, Typography } from 'antd';
 import type { WeddingListWithGifts } from '../../../shared/types/weddingList';
-import { Collapsible } from 'core/Collapsible';
 import dayjs from 'dayjs';
-
-const { Title, Text } = Typography;
+import { EditCoupleHeader } from './EditCoupleHeader';
 
 interface RegistryAdvisorProps {
   userData: User;
   weddinglist: WeddingListWithGifts;
 }
 
+const { Title } = Typography;
+
 export const RegistryAdvisor = ({ userData, weddinglist }: RegistryAdvisorProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [note, setNote] = useState(
-    weddinglist?.description ||
-      "Your presence is enough of a present to us! But for those of you who are stubborn, we've put together a wish-list to help you out.",
-  );
-  const [isEditingNote, setIsEditingNote] = useState(false);
-
-  const [imageUrl, setImageUrl] = useState(weddinglist?.imageUrl || '');
-  const [form] = Form.useForm();
   const formattedWeddingDate = weddinglist?.weddingDate ? dayjs(weddinglist.weddingDate).format('MMM DD, YYYY') : '';
 
   return (
@@ -45,83 +28,7 @@ export const RegistryAdvisor = ({ userData, weddinglist }: RegistryAdvisorProps)
             Editar Foto y Nota
           </Button>
         </div>
-        <Collapsible isOpen={isOpen}>
-          <Card className="mt-4 mb-4">
-            <Form form={form} layout="vertical" initialValues={{ note, imageUrl }}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Form.Item name="imageUrl">
-                    <div className="flex flex-col items-center">
-                      <div className="relative w-full max-w-md h-64 bg-gray-100 rounded-md mb-4 overflow-hidden">
-                        {imageUrl ? (
-                          <img src={imageUrl} alt="Couple" className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="flex items-center justify-center h-full w-full">
-                            <CameraOutlined style={{ fontSize: '48px', color: '#d9d9d9' }} />
-                          </div>
-                        )}
-                      </div>
-                      <Upload
-                        name="photo"
-                        showUploadList={false}
-                        beforeUpload={(file) => {
-                          // Here you would normally upload to your server
-                          // For now, we'll just create a local URL for preview
-                          const reader = new FileReader();
-                          reader.onload = (e) => {
-                            if (e.target?.result) {
-                              setImageUrl(e.target.result as string);
-                              form.setFieldsValue({ imageUrl: e.target.result });
-                            }
-                          };
-                          reader.readAsDataURL(file);
-                          // Prevent default upload behavior
-                          return false;
-                        }}>
-                        <Button icon={<UploadOutlined />}>Subir Foto</Button>
-                      </Upload>
-                    </div>
-                  </Form.Item>
-                </div>
-                <div className="flex items-center justify-center">
-                  {isEditingNote ? (
-                    <div className="flex flex-col w-full">
-                      <Form.Item name="note">
-                        <Input.TextArea
-                          rows={6}
-                          value={note}
-                          onChange={(e) => setNote(e.target.value)}
-                          placeholder="Write a note to your guests..."
-                        />
-                      </Form.Item>
-                      <div className="flex justify-end">
-                        <Button
-                          type="primary"
-                          onClick={() => {
-                            // Here you would normally save to your backend
-                            message.success('Photo and note updated successfully!');
-                            setIsEditingNote(false);
-                          }}>
-                          Save Changes
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col">
-                      <Title level={4}>{formattedWeddingDate}</Title>
-                      <Text>{note}</Text>
-                      <div className="flex justify-start mt-6">
-                        <Button className="" type="primary" icon={<EditOutlined />} onClick={() => setIsEditingNote(true)}>
-                          Editar
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Form>
-          </Card>
-        </Collapsible>
+        <EditCoupleHeader isOpen={isOpen} weddinglist={weddinglist} formattedWeddingDate={formattedWeddingDate} />
       </Col>
 
       <Col span={24}>
@@ -183,7 +90,7 @@ export const RegistryAdvisor = ({ userData, weddinglist }: RegistryAdvisorProps)
             </div>
           </div>
 
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <div className="flex justify-between items-center">
               <div>
                 <Text type="secondary">40% de los invitados eligen un regalo según el precio que quieren gastar.</Text>
@@ -193,7 +100,7 @@ export const RegistryAdvisor = ({ userData, weddinglist }: RegistryAdvisorProps)
               </div>
               <div className="text-gray-400 text-sm">Siguiente Consejo</div>
             </div>
-          </div>
+          </div> */}
 
           <Divider />
 

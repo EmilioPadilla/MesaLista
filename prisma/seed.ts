@@ -50,8 +50,8 @@ async function main() {
       description: 'Gracias por ser parte de nuestro día especial',
       coupleName: 'Sol & Emilio',
       invitationCount: 170,
-      weddingDate: new Date('2025-12-15'),
-      weddingLocation: 'Hacienda Los Olivos, Guadalajara',
+      weddingDate: new Date('2025-11-29'),
+      weddingLocation: 'Casona de los 5 Patios, Querétaro',
     },
   });
 

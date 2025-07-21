@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card, Typography, Button, Tooltip } from 'antd';
-import { DeleteOutlined, DragOutlined } from '@ant-design/icons';
+import { DeleteOutlined, DragOutlined, EditOutlined } from '@ant-design/icons';
 import type { GiftBase } from '../../../shared/types/gift';
 
 const { Text, Title } = Typography;
@@ -13,6 +13,7 @@ interface GiftCardProps {
 
 export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -23,10 +24,14 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove }) =>
     e.stopPropagation();
     if (onMove) onMove(gift.id);
   };
-
   // Calculate how many have been purchased
   const purchasedCount = gift.isPurchased ? 1 : 0; // This will need to be updated with actual data
   const requestedCount = 1; // This will need to be updated with actual data
+
+  const handleEditImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Implement image editing logic here
+  };
 
   return (
     <Card
@@ -36,15 +41,28 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove }) =>
       onMouseLeave={() => setIsHovered(false)}
       cover={
         <div className="relative overflow-hidden" style={{ height: '200px' }}>
-          {gift.imageUrl ? (
-            <img src={gift.imageUrl} alt={gift.title} className="w-full h-full object-cover" />
+          {gift.imageUrl && !imageError ? (
+            <img src={gift.imageUrl} alt={gift.title} className="w-full h-full object-cover" onError={() => setImageError(true)} />
           ) : (
-            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-              <Text type="secondary">No Image</Text>
-            </div>
+            <img
+              src="/images/gift_placeholder.png"
+              alt={gift.title}
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                // If even the fallback fails, show a div with text
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  parent.innerHTML =
+                    '<div class="w-full h-full bg-gray-100 flex items-center justify-center"><span class="text-gray-500">No Image</span></div>';
+                }
+              }}
+            />
           )}
           {isHovered && (
             <div className="absolute top-2 right-2 flex space-x-2">
+              <Button icon={<EditOutlined />} size="small" className="bg-white hover:bg-gray-100" onClick={handleEditImage} />
               <Button icon={<DragOutlined />} size="small" className="bg-white hover:bg-gray-100" onClick={handleMove} />
               <Button icon={<DeleteOutlined />} size="small" danger className="bg-white hover:bg-red-50" onClick={handleDelete} />
             </div>

@@ -11,4 +11,5 @@ export const queryKeys = {
   paymentSummary: 'paymentSummary',
   users: 'users',
   currentUser: 'currentUser',
+  uploadFile: 'uploadFile',
 };

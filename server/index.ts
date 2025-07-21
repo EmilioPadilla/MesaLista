@@ -12,6 +12,7 @@ import userRoutes from './routes/userRoutes.js';
 import giftRoutes from './routes/giftRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import fileUploadRouter from './routes/fileUpload.js';
 
 // Load environment variables
 dotenv.config();
@@ -52,7 +53,6 @@ app.get('/api', (req, res) => {
 
 // Health check endpoint for Railway
 app.get('/health', async (req, res) => {
-  console.log('Health check request received');
   try {
     // Test database connection
     await prisma.$queryRaw`SELECT 1`;
@@ -80,6 +80,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/gifts', giftRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/upload', fileUploadRouter);
 
 // Special case for login (to maintain /api/login endpoint)
 app.post('/api/login', (req, res, next) => {
@@ -101,7 +102,6 @@ app.use((req, res, next) => {
 
   // Serve index.html for all non-API routes (SPA routing)
   const indexPath = path.join(distPath, 'index.html');
-  console.log('Serving index from:', indexPath);
   res.sendFile(indexPath, (err) => {
     if (err) {
       console.error('Error serving index.html:', err);

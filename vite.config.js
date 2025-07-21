@@ -24,9 +24,10 @@ export default defineConfig({
       modules: resolvePath('modules'),
       routes: resolvePath('app/routes'),
       services: resolvePath('services'),
+      config: resolvePath('config'),
+      utils: resolvePath('utils'),
       styles: resolvePath('styles'),
       types: resolvePath('types'),
-      utils: resolvePath('utils'),
     },
   },
   // Production build
