@@ -5,7 +5,8 @@ import { useWeddingListByCouple } from 'hooks/useWeddingList';
 import { RegistryAdvisor } from 'components/manageRegistry/RegistryAdvisor';
 import type { User } from '@prisma/client';
 import { GiftsList } from 'components/manageRegistry/GiftsList';
-import { AddGiftModal } from 'src/components/manageRegistry/AddGiftModal';
+import { AddGiftModal } from 'components/manageRegistry/AddGiftModal';
+import { useComponentMountControl } from 'hooks/useComponentMountControl';
 
 type OutletContextType = {
   userData?: User;
@@ -17,7 +18,12 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
   // Use props if provided directly, otherwise use context from Outlet
   const contextData = useOutletContext<OutletContextType>();
   const { data: weddinglist, isLoading: loadingGifts } = useWeddingListByCouple(contextData?.userData?.id);
-  const [isAddGiftModalOpen, setIsAddGiftModalOpen] = useState(false);
+  const {
+    isOpen: showAddGiftModal,
+    setIsOpen: setShowAddGiftModal,
+    shouldRender: renderAddGiftModal,
+    handleAfterClose: handleAfterCloseAddGiftModal,
+  } = useComponentMountControl();
 
   const userData = props?.userData || contextData?.userData;
   const isLoading = props?.isLoading !== undefined ? props?.isLoading : contextData?.isLoading;
@@ -40,7 +46,7 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
                     <GiftsList
                       loadingGifts={loadingGifts}
                       weddingListData={weddinglist!}
-                      onOpenAddGiftModal={() => setIsAddGiftModalOpen(true)}
+                      onOpenAddGiftModal={() => setShowAddGiftModal(true)}
                     />
                   </>
                 ) : (
@@ -73,7 +79,14 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
           )}
         </div>
       )}
-      <AddGiftModal weddingListId={weddinglist?.id} open={isAddGiftModalOpen} onCancel={() => setIsAddGiftModalOpen(false)} />
+      {renderAddGiftModal && (
+        <AddGiftModal
+          weddingListId={weddinglist?.id}
+          open={showAddGiftModal}
+          afterClose={handleAfterCloseAddGiftModal}
+          onCancel={() => setShowAddGiftModal(false)}
+        />
+      )}
     </div>
   );
 };

@@ -26,7 +26,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     await s3.putObject(uploadParams).promise();
 
-    const publicUrl = `https://${process.env.R2_BUCKET_ID}.r2.cloudflarestorage.com/${key}`;
+    const publicUrl = `https://${process.env.R2_BUCKET_ID}/${key}`;
 
     res.json({ url: publicUrl });
   } catch (err: any) {

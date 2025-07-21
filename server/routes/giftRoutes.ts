@@ -21,6 +21,8 @@ router.get('/wedding-list/couple/:coupleId', giftController.getWeddingListByCoup
 
 router.get('/wedding-list/:weddingListId', giftController.getGiftsByWeddingList);
 
+router.put('/wedding-list/:weddingListId', giftController.updateWeddingList);
+
 router.post('/wedding-list', giftController.createWeddingList);
 
 router.post('/purchase/:giftId', giftController.purchaseGift);

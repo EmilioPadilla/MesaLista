@@ -1,4 +1,4 @@
-import { Button, Form, Input, InputNumber, Modal, Checkbox } from 'antd';
+import { Button, Form, Input, InputNumber, Modal, Checkbox, message } from 'antd';
 import { useState, useEffect } from 'react';
 import { Gift } from '@prisma/client';
 import { useCreateGift } from 'hooks/useGift';
@@ -9,13 +9,14 @@ interface AddGiftProps {
   weddingListId?: number;
   open: boolean;
   onCancel: () => void;
+  afterClose: () => void;
 }
 
-export const AddGiftModal = ({ weddingListId, open, onCancel }: AddGiftProps) => {
+export const AddGiftModal = ({ weddingListId, open, onCancel, afterClose }: AddGiftProps) => {
   const [imageUrl, setImageUrl] = useState<string>();
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
 
-  const { mutate: createGift } = useCreateGift();
+  const { mutate: createGift, isSuccess: createSuccess, isError: createError } = useCreateGift();
   const { mutate: uploadFile, data: imageData } = useUploadFile();
 
   useEffect(() => {
@@ -37,12 +38,21 @@ export const AddGiftModal = ({ weddingListId, open, onCancel }: AddGiftProps) =>
 
   useEffect(() => {
     if (imageData) {
-      setImageUrl(imageData.url);
+      setImageUrl(imageData);
     }
   }, [imageData]);
 
+  useEffect(() => {
+    if (createSuccess) {
+      message.success('Regalo agregado correctamente!');
+    }
+    if (createError) {
+      message.error('Error al agregar el regalo');
+    }
+  }, [createSuccess, createError]);
+
   return (
-    <Modal destroyOnHidden title="Agregar Regalo" open={open} onCancel={onCancel} footer={null} width={700}>
+    <Modal afterClose={afterClose} destroyOnHidden title="Agregar Regalo" open={open} onCancel={onCancel} footer={null} width={700}>
       <Form<Gift>
         onFinish={handleFinish}
         layout="vertical"
@@ -60,6 +70,7 @@ export const AddGiftModal = ({ weddingListId, open, onCancel }: AddGiftProps) =>
               <img src={imageUrl} alt="Gift" className="max-h-full max-w-full object-contain" />
             ) : (
               <FileUpload
+                value={uploadFiles[0]}
                 onChange={(file: File | null) => {
                   if (file) {
                     setUploadFiles([file]);

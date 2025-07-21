@@ -46,3 +46,12 @@ export interface CreateWeddingListRequest {
   weddingDate: string;
   imageUrl?: string;
 }
+
+export interface UpdateWeddingListRequest {
+  id: number;
+  title?: string;
+  description?: string;
+  coupleName?: string;
+  weddingDate?: string;
+  imageUrl?: string;
+}

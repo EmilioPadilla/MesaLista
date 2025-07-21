@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
-import type { WeddingListBase, WeddingListWithGifts, CreateWeddingListRequest } from '../../shared/types/weddingList';
+import type { WeddingListBase, WeddingListWithGifts, UpdateWeddingListRequest } from '../../shared/types/weddingList';
 import { weddingListService } from '../services/weddingList.service';
 import { queryKeys } from './queryKeys';
 
@@ -50,7 +50,7 @@ export const useCreateWeddingList = () => {
 export const useUpdateWeddingList = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<CreateWeddingListRequest> }) => weddingListService.updateWeddingList(id, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<UpdateWeddingListRequest> }) => weddingListService.updateWeddingList(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.weddingLists] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple, variables.id] });

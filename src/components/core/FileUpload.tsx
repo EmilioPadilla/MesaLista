@@ -53,7 +53,7 @@ export const FileUpload: React.FC<AFSUploadProps> = ({
 
   // Convert File to UploadFile when value changes
   useEffect(() => {
-    if (value) {
+    if (value && value instanceof File) {
       // Create RcFile object by extending the File with required properties
       const rcFile = {
         ...value,
@@ -118,19 +118,23 @@ export const FileUpload: React.FC<AFSUploadProps> = ({
 
   const uploadFileProps: UploadProps = {
     name: 'fileUpload',
+    customRequest: (options: any) => {
+      const { onSuccess, file } = options;
+      // Don't call onChange here, it's handled in handleChange
+      onSuccess('ok');
+    },
     fileList,
     onChange: handleChange,
     onRemove: handleRemove,
     showUploadList: {
-      showPreviewIcon: true,
       showRemoveIcon: true,
       showDownloadIcon: false,
     },
     accept: acceptedImageTypes.join(','),
-    maxCount: maxCount ?? undefined,
+    maxCount: maxCount ?? 1,
     itemRender: (originNode, file) => {
       return (
-        <div className="mt-10 border border-dashed rounded-md">
+        <div className="border border-dashed rounded-md">
           <img src={file.url} alt={file.name} />
           {originNode}
         </div>

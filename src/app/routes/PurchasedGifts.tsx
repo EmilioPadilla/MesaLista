@@ -26,7 +26,6 @@ type OutletContextType = {
 const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
   // Use props if provided directly, otherwise use context from Outlet
   const contextData = useOutletContext<OutletContextType>();
-  // console.log('contextData', contextData);
   const userData = props.userData || contextData?.userData;
   const queryClient = useQueryClient();
 

@@ -15,6 +15,7 @@ import {
   PurchasedGiftsResponse,
   UserPurchasesResponse,
   PurchaseGiftResponse,
+  UpdateWeddingListRequest,
 } from '../../shared/types/index.js';
 
 const prisma = new PrismaClient();
@@ -296,6 +297,39 @@ export const giftController = {
       }
 
       res.status(500).json({ error: 'Failed to create wedding list' });
+    }
+  },
+
+  // Update a wedding list
+  updateWeddingList: async (req: Request, res: Response) => {
+    const { weddingListId } = req.params;
+    const { title, description, coupleName, weddingDate, imageUrl } = req.body as UpdateWeddingListRequest;
+
+    if (!weddingListId) {
+      return res.status(400).json({ error: 'Wedding list ID is required' });
+    }
+
+    try {
+      const weddingList = await prisma.weddingList.update({
+        where: { id: Number(weddingListId) },
+        data: {
+          ...(title && { title }),
+          ...(description !== undefined && { description }),
+          ...(coupleName && { coupleName }),
+          ...(weddingDate && { weddingDate: new Date(weddingDate) }),
+          ...(imageUrl !== undefined && { imageUrl }),
+        },
+      });
+
+      res.json(weddingList);
+    } catch (error: any) {
+      console.error('Error updating wedding list:', error);
+
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+        return res.status(404).json({ error: 'Wedding list not found' });
+      }
+
+      res.status(500).json({ error: 'Failed to update wedding list' });
     }
   },
 

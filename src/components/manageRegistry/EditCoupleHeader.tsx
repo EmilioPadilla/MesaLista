@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CameraOutlined, EditOutlined } from '@ant-design/icons';
+import { EditOutlined } from '@ant-design/icons';
 import { Card, Button, Input, message } from 'antd';
 import { Form, Typography } from 'antd';
 import { Collapsible } from 'core/Collapsible';
@@ -24,16 +24,24 @@ export const EditCoupleHeader = ({ isOpen, weddinglist, formattedWeddingDate }: 
 
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [isEditingNote, setIsEditingNote] = useState(false);
+  const [isEditingImage, setIsEditingImage] = useState(false);
   const [note, setNote] = useState(
     weddinglist?.description ||
       "Your presence is enough of a present to us! But for those of you who are stubborn, we've put together a wish-list to help you out.",
   );
 
   useEffect(() => {
-    if (imageData?.url) {
-      updateWeddingList({ id: weddinglist?.id, data: { imageUrl: imageData?.url } });
+    if (!isOpen) {
+      setIsEditingImage(false);
+      setIsEditingNote(false);
     }
-  }, []);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (imageData) {
+      updateWeddingList({ id: weddinglist?.id, data: { imageUrl: imageData } });
+    }
+  }, [imageData]);
 
   useEffect(() => {
     if (uploadFiles.length > 0) {
@@ -43,10 +51,10 @@ export const EditCoupleHeader = ({ isOpen, weddinglist, formattedWeddingDate }: 
 
   useEffect(() => {
     if (updateSuccess) {
-      message.success('Wedding list updated successfully!');
+      message.success('Información actualizada correctamente!');
     }
     if (updateError) {
-      message.error('Failed to update wedding list!');
+      message.error('Error al actualizar la información');
     }
   }, [updateSuccess, updateError]);
 
@@ -58,17 +66,24 @@ export const EditCoupleHeader = ({ isOpen, weddinglist, formattedWeddingDate }: 
             <div>
               <Form.Item name="imageUrl">
                 <div className="flex flex-col items-center">
-                  <div className="relative w-96 h-64 bg-gray-100 rounded-md mb-4 overflow-hidden">
-                    <FileUpload
-                      width="w-96"
-                      height="h-64"
-                      onChange={(file: File | null) => {
-                        if (file) {
-                          setUploadFiles([file]);
-                        }
-                      }}
-                    />
+                  <div className="relative w-96 bg-gray-100 rounded-md mb-4 overflow-hidden">
+                    {weddinglist?.imageUrl && !isEditingImage ? (
+                      <img src={weddinglist?.imageUrl} alt="Couple Image" className="w-full h-full object-cover" />
+                    ) : (
+                      <FileUpload
+                        value={uploadFiles[0]}
+                        width="w-96"
+                        onChange={(file: File | null) => {
+                          if (file) {
+                            setUploadFiles([file]);
+                          }
+                        }}
+                      />
+                    )}
                   </div>
+                  <Button type="primary" icon={<EditOutlined />} onClick={() => setIsEditingImage(!isEditingImage)}>
+                    Editar
+                  </Button>
                 </div>
               </Form.Item>
             </div>
@@ -84,13 +99,16 @@ export const EditCoupleHeader = ({ isOpen, weddinglist, formattedWeddingDate }: 
                     />
                   </Form.Item>
                   <div className="flex justify-end">
+                    <Button className="mr-2" onClick={() => setIsEditingNote(false)}>
+                      Cancelar
+                    </Button>
                     <Button
                       type="primary"
                       onClick={() => {
                         updateWeddingList({ id: weddinglist.id, data: { description: note } });
                         setIsEditingNote(false);
                       }}>
-                      Save Changes
+                      Guardar cambios
                     </Button>
                   </div>
                 </div>

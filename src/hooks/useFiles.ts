@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 import { queryKeys } from './queryKeys';
-import { fileService } from '../services/files.service';
+import { fileService } from 'services/files.service';
 
 /**
  * Hook to fetch the current user's cart
