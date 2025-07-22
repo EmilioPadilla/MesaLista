@@ -62,18 +62,41 @@ model Gift {
   description   String?
   price         Float
   imageUrl      String?
-  category      String?
   isPurchased   Boolean   @default(false)
   isMostWanted    Boolean   @default(false)
   weddingListId Int       @map("wedding_list_id")
   quantity      Int       @default(1)
+  order         Int       @default(0)
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   weddingList   WeddingList @relation(fields: [weddingListId], references: [id], onDelete: Cascade)
   purchases     GiftPurchase[]
   cartItems     CartItem[]
+  categories    GiftCategoryOnGift[]
 
   @@map("gifts")
+}
+
+model GiftCategory {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  gifts     GiftCategoryOnGift[]
+
+  @@map("gift_categories")
+}
+
+model GiftCategoryOnGift {
+  id           Int          @id @default(autoincrement())
+  giftId       Int          @map("gift_id")
+  categoryId   Int          @map("category_id")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  gift         Gift         @relation(fields: [giftId], references: [id], onDelete: Cascade)
+  category     GiftCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([giftId, categoryId])
+  @@map("gift_categories_on_gifts")
 }
 
 enum PurchaseStatus {

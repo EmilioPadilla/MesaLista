@@ -2,17 +2,20 @@ import type { Gift, GiftPurchase, PurchaseStatus } from '@prisma/client';
 import type { UserResponse } from './user.js';
 import type { WeddingListBase } from './weddingList.js';
 
-export interface GiftBase extends Gift {
+export interface GiftBase {
   id: number;
   title: string;
   description: string | null;
   price: number;
   imageUrl: string | null;
-  category: string | null;
   isPurchased: boolean;
+  isMostWanted: boolean;
+  quantity: number;
+  order: number;
   weddingListId: number;
   createdAt: Date;
   updatedAt: Date;
+  categories: string[];
 }
 
 export interface GiftPurchaseBase extends GiftPurchase {
@@ -85,7 +88,10 @@ export interface CreateGiftRequest {
   description?: string;
   price: number;
   imageUrl?: string;
-  category?: string;
+  category?: string; // For backward compatibility
+  categories?: string[]; // New multi-category support
+  quantity?: number;
+  isMostWanted?: boolean;
   weddingListId: number;
 }
 
@@ -94,7 +100,10 @@ export interface UpdateGiftRequest {
   description?: string;
   price?: number;
   imageUrl?: string;
-  category?: string;
+  category?: string; // For backward compatibility
+  categories?: string[]; // New multi-category support
+  quantity?: number;
+  isMostWanted?: boolean;
 }
 
 export interface PurchaseGiftRequest {

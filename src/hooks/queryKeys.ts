@@ -11,5 +11,7 @@ export const queryKeys = {
   paymentSummary: 'paymentSummary',
   users: 'users',
   currentUser: 'currentUser',
+  categories: 'categories',
+  categoriesByWeddingList: 'categoriesByWeddingList',
   uploadFile: 'uploadFile',
 };

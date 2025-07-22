@@ -1,22 +1,27 @@
-import { useState, useEffect } from 'react';
-import { Row, Typography, Button, Select, Empty } from 'antd';
+import { useState, useEffect, useMemo } from 'react';
+import { Row, Typography, Button, Select, Empty, Popconfirm } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { WeddingListWithGifts } from '../../../shared/types/weddingList';
 import type { GiftBase } from '../../../shared/types/gift';
-import { DraggableList } from '../core/DraggableList';
+import { DraggableList } from 'core/DraggableList';
 import { SortableGiftItem } from './SortableGiftItem';
+import { useCategoriesByWeddingList, useDeleteGift, useReorderGifts } from 'hooks/useGift';
 
 const { Title, Text } = Typography;
 
 interface GiftsListProps {
   weddingListData: WeddingListWithGifts;
-  loadingGifts?: boolean;
   onOpenGiftModal: (giftId: number | undefined) => void;
 }
 
-export const GiftsList = ({ weddingListData, loadingGifts, onOpenGiftModal }: GiftsListProps) => {
-  const [filter, setFilter] = useState('Everything');
+export const GiftsList = ({ weddingListData, onOpenGiftModal }: GiftsListProps) => {
+  const [filter, setFilter] = useState('Todos');
   const [gifts, setGifts] = useState<GiftBase[]>(weddingListData?.gifts || []);
+
+  const { mutate: deleteGift } = useDeleteGift();
+  const { mutate: reorderGifts } = useReorderGifts();
+
+  const { data: weddingListCategories } = useCategoriesByWeddingList(weddingListData?.id);
 
   useEffect(() => {
     if (weddingListData) {
@@ -24,33 +29,54 @@ export const GiftsList = ({ weddingListData, loadingGifts, onOpenGiftModal }: Gi
     }
   }, [weddingListData]);
 
+  // Filter gifts by category locally
+  useEffect(() => {
+    if (filter === 'Todos') {
+      setGifts(weddingListData?.gifts || []);
+    } else {
+      const filteredGifts = weddingListData?.gifts?.filter((gift) =>
+        gift.categories?.some((category: any) => category?.category?.name === filter),
+      );
+      setGifts(filteredGifts || []);
+    }
+  }, [filter]);
+
   const handleReorderGifts = (reorderedGifts: GiftBase[]) => {
     setGifts(reorderedGifts);
-    // Here you would typically save the new order to the backend
-    console.log('Gifts reordered:', reorderedGifts);
+
+    // Create the order updates array
+    const giftOrders = reorderedGifts.map((gift, index) => ({
+      giftId: gift.id,
+      order: index,
+    }));
+
+    // Persist the new order to the backend
+    if (weddingListData?.id) {
+      reorderGifts({
+        weddingListId: weddingListData.id,
+        giftOrders,
+      });
+    }
   };
 
   const handleDeleteGift = (giftId: number) => {
-    console.log('Delete gift:', giftId);
-    // Implement delete functionality
+    deleteGift(giftId);
     setGifts(gifts.filter((gift) => gift.id !== giftId));
   };
 
-  const handleMoveGift = (giftId: number) => {
-    console.log('Move gift:', giftId);
-    // Implement move functionality
-  };
-
   const filterOptions = [
-    { value: 'Everything', label: 'Everything' },
-    { value: 'Kitchen', label: 'Kitchen' },
-    { value: 'Dining', label: 'Dining' },
-    { value: 'Bedroom', label: 'Bedroom' },
-    { value: 'Bathroom', label: 'Bathroom' },
-    { value: 'Living Room', label: 'Living Room' },
+    { value: 'Todos', label: 'Todos' },
+    ...(weddingListCategories?.categories?.map((category: any) => ({ value: category.name, label: category.name })) || []),
   ];
 
-  const filteredGifts = filter === 'Everything' ? gifts : gifts.filter((gift) => gift.category === filter);
+  const filteredGifts = useMemo(
+    () =>
+      (filter === 'Todos'
+        ? gifts
+        : gifts.filter((gift) => gift.categories && gift.categories.some((categoryItem: any) => categoryItem.category.name === filter))
+      ).sort((a, b) => (a.order || 0) - (b.order || 0)),
+    [filter, gifts],
+  );
 
   return (
     <div className="mt-8 w-full">
@@ -60,6 +86,7 @@ export const GiftsList = ({ weddingListData, loadingGifts, onOpenGiftModal }: Gi
         </Title>
         <div className="flex items-center">
           <Text className="mr-2">Filtrar por:</Text>
+
           <Select value={filter} onChange={setFilter} style={{ width: 150 }} options={filterOptions} />
           <Button type="primary" icon={<PlusOutlined />} className="ml-4" onClick={() => onOpenGiftModal(undefined)} />
         </div>
@@ -89,13 +116,7 @@ export const GiftsList = ({ weddingListData, loadingGifts, onOpenGiftModal }: Gi
             </Row>
           )}
           renderItem={(gift) => (
-            <SortableGiftItem
-              key={gift.id}
-              gift={gift}
-              onDelete={handleDeleteGift}
-              onMove={handleMoveGift}
-              onEdit={() => onOpenGiftModal(gift.id)}
-            />
+            <SortableGiftItem key={gift.id} gift={gift} onDelete={handleDeleteGift} onEdit={() => onOpenGiftModal(gift.id)} />
           )}
         />
       )}

@@ -136,3 +136,33 @@ export const useUpdatePurchaseStatus = () => {
     },
   });
 };
+
+/**
+ * Hook to fetch categories by wedding list ID
+ *
+ * @param weddingListId ID of the wedding list
+ * @param options React Query options
+ */
+export const useCategoriesByWeddingList = (weddingListId?: number) => {
+  return useQuery({
+    queryKey: [queryKeys.categoriesByWeddingList, weddingListId],
+    queryFn: () => giftService.getCategoriesByWeddingList(weddingListId!),
+    enabled: !!weddingListId,
+  });
+};
+
+/**
+ * Hook to reorder gifts
+ */
+export const useReorderGifts = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ weddingListId, giftOrders }: { weddingListId: number; giftOrders: Array<{ giftId: number; order: number }> }) =>
+      giftService.reorderGifts(weddingListId, giftOrders),
+    onSuccess: () => {
+      // Invalidate and refetch wedding list data to get updated order
+      queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple] });
+    },
+  });
+};

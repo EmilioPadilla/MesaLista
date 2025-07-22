@@ -71,6 +71,16 @@ export const giftService = {
     const response = await apiClient.post('/gifts/wedding-list', { coupleId });
     return response.data;
   },
+
+  getCategoriesByWeddingList: async (weddingListId: number): Promise<any> => {
+    const response = await apiClient.get(`/gifts/wedding-list-by-category/${weddingListId}`);
+    return response.data;
+  },
+
+  reorderGifts: async (weddingListId: number, giftOrders: Array<{ giftId: number; order: number }>): Promise<any> => {
+    const response = await apiClient.put(`/gifts/reorder/${weddingListId}`, { giftOrders });
+    return response.data;
+  },
 };
 
 export default giftService;

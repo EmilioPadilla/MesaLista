@@ -13,4 +13,12 @@ body {
       }
     }
   }
+
+  .ant-popover-content {
+    .anticon-exclamation-circle {
+      svg {
+        fill: red !important;
+      }
+    }
+  }
 }

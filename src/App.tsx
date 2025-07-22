@@ -20,11 +20,16 @@ import { userService } from 'services/user.service';
 import GiftLists from 'src/components/GiftList';
 import MyPurchases from 'components/MyPurchases';
 import antdThemeConfig from 'styles/config/antdThemeConfig';
+import { useEffect } from 'react';
 
 function App() {
-  // Check if user is already authenticated
-  const isAuthenticated = userService.isAuthenticated();
-  console.log('isAuthenticated', isAuthenticated);
+  // Check if user is already authenticated every time the path changes
+  let isAuthenticated = userService.isAuthenticated();
+  const path = window.location.pathname;
+
+  useEffect(() => {
+    isAuthenticated = userService.isAuthenticated();
+  }, [path]);
 
   return (
     <ConfigProvider theme={antdThemeConfig}>

@@ -1,6 +1,13 @@
 import { useState } from 'react';
-import { Card, Typography, Button, Tooltip } from 'antd';
-import { DeleteOutlined, DragOutlined, EditOutlined } from '@ant-design/icons';
+import { Card, Typography, Button, Popconfirm, Tooltip } from 'antd';
+import {
+  DeleteOutlined,
+  DragOutlined,
+  EditOutlined,
+  ExclamationCircleFilled,
+  ExclamationCircleOutlined,
+  WarningFilled,
+} from '@ant-design/icons';
 import type { GiftBase } from '../../../shared/types/gift';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
@@ -24,9 +31,12 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onDelete) onDelete(gift.id);
+  const handleDelete = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (onDelete) {
+      onDelete(gift.id);
+    }
   };
 
   const handleMove = (e: React.MouseEvent) => {
@@ -46,7 +56,7 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
   return (
     <Card
       className={`transition-all duration-200 ant-card-no-boder h-full ${isHovered ? 'shadow-lg border-gray-300' : ''}`}
-      styles={{ body: { padding: '16px', height: '100%', display: 'flex', flexDirection: 'column' } }}
+      styles={{ body: { padding: '16px', display: 'flex', flexDirection: 'column' } }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       cover={
@@ -71,7 +81,7 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
             />
           )}
           {isHovered && (
-            <div className="absolute top-2 right-2 flex space-x-2">
+            <div className="absolute top-2 right-2 flex space-x-2 gift-card-actions">
               <Button icon={<EditOutlined />} size="small" className="bg-white hover:bg-gray-100" onClick={handleEditImage} />
               <Button
                 icon={<DragOutlined />}
@@ -81,7 +91,17 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
                 {...(dragHandleProps?.listeners || {})}
                 {...(dragHandleProps?.attributes || {})}
               />
-              <Button icon={<DeleteOutlined />} size="small" danger className="bg-white hover:bg-red-50" onClick={handleDelete} />
+              <Popconfirm
+                title="Delete Gift"
+                className="pop-delete"
+                description="Are you sure you want to delete this gift?"
+                onConfirm={handleDelete}
+                okText="Yes"
+                icon={<ExclamationCircleFilled color="red" />}
+                okButtonProps={{ danger: true }}
+                cancelText="No">
+                <Button icon={<DeleteOutlined />} size="small" danger className="bg-white hover:bg-red-50" />
+              </Popconfirm>
             </div>
           )}
         </div>
@@ -89,7 +109,9 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
       <div className="flex flex-col flex-grow">
         <div className="mb-1">
           <Text type="secondary" className="text-xs uppercase">
-            {gift.category || 'Uncategorized'}
+            {gift.categories && gift.categories.length > 0
+              ? gift.categories.map((categoryItem: any) => categoryItem.category.name).join(', ')
+              : 'Uncategorized'}
           </Text>
         </div>
         <Title level={5} className="mb-1 line-clamp-2" style={{ minHeight: '48px' }}>

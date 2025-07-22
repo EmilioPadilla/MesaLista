@@ -2,10 +2,6 @@ import { Request, Response } from 'express';
 import { PrismaClient, PurchaseStatus } from '@prisma/client';
 import {
   FormattedWeddingList,
-  WeddingListWithGifts,
-  GiftBase,
-  CreateGiftRequest,
-  UpdateGiftRequest,
   CreateWeddingListRequest,
   PurchaseGiftRequest,
   UpdatePurchaseStatusRequest,
@@ -26,7 +22,15 @@ export const giftController = {
     try {
       const weddingLists = await prisma.weddingList.findMany({
         include: {
-          gifts: true,
+          gifts: {
+            include: {
+              categories: {
+                include: {
+                  category: true,
+                },
+              },
+            },
+          },
           couple: {
             select: {
               id: true,
@@ -49,17 +53,21 @@ export const giftController = {
       });
 
       const formattedWeddingLists = weddingLists.map(
-        (list: WeddingListWithGifts): FormattedWeddingList => ({
+        (list: any): FormattedWeddingList => ({
           id: list.id,
           coupleName: list.coupleName,
           weddingDate: list.weddingDate.toISOString(),
           imageUrl: list.imageUrl || 'https://via.placeholder.com/150',
-          gifts: list.gifts.map((gift: GiftBase) => ({
+          gifts: list.gifts.map((gift: any) => ({
             id: gift.id,
             title: gift.title,
             description: gift.description || undefined,
             price: gift.price,
             isPurchased: gift.isPurchased,
+            isMostWanted: gift.isMostWanted,
+            quantity: gift.quantity,
+            imageUrl: gift.imageUrl,
+            categories: gift.categories.map((cat: any) => cat.category.name),
             weddingListId: gift.weddingListId,
             createdAt: gift.createdAt.toISOString(),
             updatedAt: gift.updatedAt.toISOString(),
@@ -91,7 +99,13 @@ export const giftController = {
 
       // Add category filter if provided
       if (category) {
-        whereClause.category = category.toString();
+        whereClause.categories = {
+          some: {
+            category: {
+              name: category.toString(),
+            },
+          },
+        };
       }
 
       // Add price range filters if provided
@@ -114,13 +128,23 @@ export const giftController = {
         where: whereClause,
         include: {
           weddingList: true,
+          categories: {
+            include: {
+              category: true,
+            },
+          },
         },
-        orderBy: {
-          price: priceOrder,
-        },
+        orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
       });
 
-      res.json(gifts);
+      // Format gifts to include category information
+      const formattedGifts = gifts.map((gift: any) => ({
+        ...gift,
+        category: gift.categories.map((cat: any) => cat.category.name).join(', ') || null,
+        categories: gift.categories.map((cat: any) => cat.category.name),
+      }));
+
+      res.json(formattedGifts);
     } catch (error) {
       console.error('Error fetching gifts:', error);
       res.status(500).json({ error: 'Failed to fetch gifts' });
@@ -142,6 +166,11 @@ export const giftController = {
         },
         include: {
           weddingList: true,
+          categories: {
+            include: {
+              category: true,
+            },
+          },
         },
       });
 
@@ -149,7 +178,14 @@ export const giftController = {
         return res.status(404).json({ error: 'Gift not found' });
       }
 
-      res.json(gift);
+      // Format gift to include category information
+      const formattedGift = {
+        ...gift,
+        category: gift.categories.map((cat: any) => cat.category.name).join(', ') || null,
+        categories: gift.categories.map((cat: any) => cat.category.name),
+      };
+
+      res.json(formattedGift);
     } catch (error) {
       console.error('Error fetching gift:', error);
       res.status(500).json({ error: 'Failed to fetch gift' });
@@ -158,25 +194,86 @@ export const giftController = {
 
   // Create a new gift
   createGift: async (req: Request, res: Response) => {
-    const { title, description, price, imageUrl, category, weddingListId } = req.body as CreateGiftRequest;
+    const { title, description, price, imageUrl, category, categories, weddingListId, quantity, isMostWanted } = req.body as any;
 
     if (!title || !price || !weddingListId) {
       return res.status(400).json({ error: 'Title, price, and wedding list ID are required' });
     }
 
     try {
+      // Determine which categories to use (prioritize 'categories' array over single 'category')
+      let categoryNames: string[] = [];
+      if (categories && Array.isArray(categories)) {
+        categoryNames = categories.slice(0, 3); // Limit to 3 categories
+      } else if (category && typeof category === 'string') {
+        categoryNames = [category];
+      }
+
+      // Create the gift first
       const gift = await prisma.gift.create({
         data: {
           title,
           description,
           price: Number(price),
           imageUrl,
-          category,
+          quantity: quantity ? Number(quantity) : 1,
+          isMostWanted: Boolean(isMostWanted),
           weddingListId: Number(weddingListId),
         },
       });
 
-      res.status(201).json(gift);
+      // Handle categories if provided
+      if (categoryNames.length > 0) {
+        // Find or create categories
+        const categoryPromises = categoryNames.map(async (categoryName) => {
+          let giftCategory = await prisma.giftCategory.findUnique({
+            where: { name: categoryName },
+          });
+
+          if (!giftCategory) {
+            giftCategory = await prisma.giftCategory.create({
+              data: { name: categoryName },
+            });
+          }
+
+          return giftCategory;
+        });
+
+        const giftCategories = await Promise.all(categoryPromises);
+
+        // Create the many-to-many relationships
+        const categoryRelationPromises = giftCategories.map((giftCategory) =>
+          prisma.giftCategoryOnGift.create({
+            data: {
+              giftId: gift.id,
+              categoryId: giftCategory.id,
+            },
+          }),
+        );
+
+        await Promise.all(categoryRelationPromises);
+      }
+
+      // Fetch the created gift with categories for response
+      const createdGift = await prisma.gift.findUnique({
+        where: { id: gift.id },
+        include: {
+          categories: {
+            include: {
+              category: true,
+            },
+          },
+        },
+      });
+
+      // Format response to include category information
+      const formattedGift = {
+        ...createdGift,
+        category: createdGift?.categories.map((cat: any) => cat.category.name).join(', ') || null,
+        categories: createdGift?.categories.map((cat: any) => cat.category.name) || [],
+      };
+
+      res.status(201).json(formattedGift);
     } catch (error) {
       console.error('Error creating gift:', error);
       res.status(500).json({ error: 'Failed to create gift' });
@@ -186,13 +283,14 @@ export const giftController = {
   // Update a gift
   updateGift: async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { title, description, price, imageUrl, category } = req.body as UpdateGiftRequest;
+    const { title, description, price, imageUrl, category, categories, quantity, isMostWanted } = req.body as any;
 
     if (!id) {
       return res.status(400).json({ error: 'Gift ID is required' });
     }
 
     try {
+      // Update the gift basic information
       const gift = await prisma.gift.update({
         where: { id: Number(id) },
         data: {
@@ -200,11 +298,75 @@ export const giftController = {
           ...(description !== undefined && { description }),
           ...(price && { price: Number(price) }),
           ...(imageUrl !== undefined && { imageUrl }),
-          ...(category !== undefined && { category }),
+          ...(quantity && { quantity: Number(quantity) }),
+          ...(isMostWanted !== undefined && { isMostWanted: Boolean(isMostWanted) }),
         },
       });
 
-      res.json(gift);
+      // Handle categories if provided
+      let categoryNames: string[] = [];
+      if (categories && Array.isArray(categories)) {
+        categoryNames = categories.slice(0, 3); // Limit to 3 categories
+      } else if (category && typeof category === 'string') {
+        categoryNames = [category];
+      }
+
+      if (categoryNames.length > 0) {
+        // Remove existing category relationships
+        await (prisma as any).giftCategoryOnGift.deleteMany({
+          where: { giftId: Number(id) },
+        });
+
+        // Find or create categories
+        const categoryPromises = categoryNames.map(async (categoryName) => {
+          let giftCategory = await (prisma as any).giftCategory.findUnique({
+            where: { name: categoryName },
+          });
+
+          if (!giftCategory) {
+            giftCategory = await (prisma as any).giftCategory.create({
+              data: { name: categoryName },
+            });
+          }
+
+          return giftCategory;
+        });
+
+        const giftCategories = await Promise.all(categoryPromises);
+
+        // Create new category relationships
+        const categoryRelationPromises = giftCategories.map((giftCategory: any) =>
+          (prisma as any).giftCategoryOnGift.create({
+            data: {
+              giftId: Number(id),
+              categoryId: giftCategory.id,
+            },
+          }),
+        );
+
+        await Promise.all(categoryRelationPromises);
+      }
+
+      // Fetch the updated gift with categories for response
+      const updatedGift = await prisma.gift.findUnique({
+        where: { id: Number(id) },
+        include: {
+          categories: {
+            include: {
+              category: true,
+            },
+          },
+        } as any,
+      });
+
+      // Format response to include category information
+      const formattedGift = {
+        ...updatedGift,
+        category: (updatedGift as any)?.categories.map((cat: any) => cat.category.name).join(', ') || null,
+        categories: (updatedGift as any)?.categories.map((cat: any) => cat.category.name) || [],
+      };
+
+      res.json(formattedGift);
     } catch (error: any) {
       console.error('Error updating gift:', error);
 
@@ -253,7 +415,15 @@ export const giftController = {
       const weddingList = await prisma.weddingList.findUnique({
         where: { coupleId: Number(coupleId) },
         include: {
-          gifts: true,
+          gifts: {
+            include: {
+              categories: {
+                include: {
+                  category: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -392,7 +562,9 @@ export const giftController = {
       ]);
 
       const response: PurchaseGiftResponse = {
+        // @ts-ignore
         purchase,
+        // @ts-ignore
         gift: updatedGift,
       };
 
@@ -498,9 +670,12 @@ export const giftController = {
 
       // Format the response to match the expected structure in the frontend
       const formattedPurchases = purchases.map(
+        // @ts-ignore
         (purchase: GiftPurchaseWithRelations): FormattedPurchase => ({
           id: purchase.id,
           giftName: purchase.gift.title,
+          // @ts-ignore
+          categories: purchase.gift.categories.map((cat: any) => cat.category.name),
           price: purchase.gift.price,
           purchaseDate: purchase.purchaseDate.toISOString(),
           purchasedBy: {
@@ -587,6 +762,7 @@ export const giftController = {
 
       // Format the response
       const formattedPurchases = purchases.map(
+        // @ts-ignore
         (purchase: GiftPurchaseWithRelations): UserPurchase => ({
           id: purchase.id,
           giftName: purchase.gift.title,
@@ -611,6 +787,89 @@ export const giftController = {
     } catch (error) {
       console.error('Error fetching user purchases:', error);
       res.status(500).json({ error: 'Failed to fetch user purchases' });
+    }
+  },
+
+  getCategoriesByWeddingList: async (req: Request, res: Response) => {
+    const { weddingListId } = req.params;
+
+    if (!weddingListId) {
+      return res.status(400).json({ error: 'Wedding list ID is required' });
+    }
+
+    try {
+      // Fetch all gifts from the wedding list with their categories
+      const gifts = await prisma.gift.findMany({
+        where: { weddingListId: Number(weddingListId) },
+        include: {
+          categories: {
+            include: {
+              category: true,
+            },
+          },
+        },
+      });
+
+      // Extract unique categories from all gifts
+      const categorySet = new Set<string>();
+      const categoryMap = new Map<string, number>();
+
+      gifts.forEach((gift: any) => {
+        gift.categories.forEach((giftCategory: any) => {
+          const categoryName = giftCategory.category.name;
+          if (!categorySet.has(categoryName)) {
+            categorySet.add(categoryName);
+            categoryMap.set(categoryName, giftCategory.category.id);
+          }
+        });
+      });
+
+      // Convert to response format
+      const categories = Array.from(categorySet).map((name) => ({
+        id: categoryMap.get(name)!,
+        name,
+      }));
+
+      res.json({ categories });
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      res.status(500).json({ error: 'Failed to fetch categories' });
+    }
+  },
+
+  reorderGifts: async (req: Request, res: Response) => {
+    const { weddingListId } = req.params;
+    const { giftOrders } = req.body; // Array of { giftId: number, order: number }
+
+    if (!weddingListId) {
+      return res.status(400).json({ error: 'Wedding list ID is required' });
+    }
+
+    if (!giftOrders || !Array.isArray(giftOrders)) {
+      return res.status(400).json({ error: 'Gift orders array is required' });
+    }
+
+    try {
+      // Update each gift's order in a transaction
+      // @ts-ignore
+      await prisma.$transaction(async (tx) => {
+        for (const { giftId, order } of giftOrders) {
+          await tx.gift.update({
+            where: {
+              id: Number(giftId),
+              weddingListId: Number(weddingListId), // Ensure gift belongs to this wedding list
+            },
+            data: {
+              order: Number(order),
+            },
+          });
+        }
+      });
+
+      res.json({ message: 'Gift order updated successfully' });
+    } catch (error) {
+      console.error('Error updating gift order:', error);
+      res.status(500).json({ error: 'Failed to update gift order' });
     }
   },
 };

@@ -17,7 +17,7 @@ type OutletContextType = {
 const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) => {
   // Use props if provided directly, otherwise use context from Outlet
   const contextData = useOutletContext<OutletContextType>();
-  const { data: weddinglist, isLoading: loadingGifts } = useWeddingListByCouple(contextData?.userData?.id);
+  const { data: weddinglist } = useWeddingListByCouple(contextData?.userData?.id);
   const {
     isOpen: showGiftModal,
     setIsOpen: setShowGiftModal,
@@ -45,7 +45,6 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
                   <>
                     <RegistryAdvisor userData={userData} weddinglist={weddinglist!} />
                     <GiftsList
-                      loadingGifts={loadingGifts}
                       weddingListData={weddinglist!}
                       onOpenGiftModal={(giftId: number | undefined) => {
                         setEditingGiftId(giftId);

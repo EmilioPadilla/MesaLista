@@ -33,4 +33,9 @@ router.get('/purchased/:coupleId', giftController.getPurchasedGifts);
 
 router.get('/user-purchases/:userId', giftController.getUserPurchases);
 
+router.get('/wedding-list-by-category/:weddingListId', giftController.getCategoriesByWeddingList);
+
+// Update gift order within a wedding list
+router.put('/reorder/:weddingListId', giftController.reorderGifts);
+
 export default router;
