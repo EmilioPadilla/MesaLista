@@ -5,8 +5,8 @@ import { useWeddingListByCouple } from 'hooks/useWeddingList';
 import { RegistryAdvisor } from 'components/manageRegistry/RegistryAdvisor';
 import type { User } from '@prisma/client';
 import { GiftsList } from 'components/manageRegistry/GiftsList';
-import { AddGiftModal } from 'components/manageRegistry/AddGiftModal';
 import { useComponentMountControl } from 'hooks/useComponentMountControl';
+import { GiftModal } from 'components/manageRegistry/GiftModal';
 
 type OutletContextType = {
   userData?: User;
@@ -19,11 +19,12 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
   const contextData = useOutletContext<OutletContextType>();
   const { data: weddinglist, isLoading: loadingGifts } = useWeddingListByCouple(contextData?.userData?.id);
   const {
-    isOpen: showAddGiftModal,
-    setIsOpen: setShowAddGiftModal,
-    shouldRender: renderAddGiftModal,
-    handleAfterClose: handleAfterCloseAddGiftModal,
+    isOpen: showGiftModal,
+    setIsOpen: setShowGiftModal,
+    shouldRender: renderGiftModal,
+    handleAfterClose: handleAfterCloseGiftModal,
   } = useComponentMountControl();
+  const [editingGiftId, setEditingGiftId] = useState<number | undefined>();
 
   const userData = props?.userData || contextData?.userData;
   const isLoading = props?.isLoading !== undefined ? props?.isLoading : contextData?.isLoading;
@@ -46,7 +47,10 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
                     <GiftsList
                       loadingGifts={loadingGifts}
                       weddingListData={weddinglist!}
-                      onOpenAddGiftModal={() => setShowAddGiftModal(true)}
+                      onOpenGiftModal={(giftId: number | undefined) => {
+                        setEditingGiftId(giftId);
+                        setShowGiftModal(true);
+                      }}
                     />
                   </>
                 ) : (
@@ -79,12 +83,16 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
           )}
         </div>
       )}
-      {renderAddGiftModal && (
-        <AddGiftModal
+      {renderGiftModal && (
+        <GiftModal
           weddingListId={weddinglist?.id}
-          open={showAddGiftModal}
-          afterClose={handleAfterCloseAddGiftModal}
-          onCancel={() => setShowAddGiftModal(false)}
+          giftId={editingGiftId}
+          open={showGiftModal}
+          afterClose={handleAfterCloseGiftModal}
+          onCancel={() => {
+            setShowGiftModal(false);
+            setEditingGiftId(undefined);
+          }}
         />
       )}
     </div>

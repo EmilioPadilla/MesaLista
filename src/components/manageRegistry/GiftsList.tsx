@@ -11,10 +11,10 @@ const { Title, Text } = Typography;
 interface GiftsListProps {
   weddingListData: WeddingListWithGifts;
   loadingGifts?: boolean;
-  onOpenAddGiftModal: () => void;
+  onOpenGiftModal: (giftId: number | undefined) => void;
 }
 
-export const GiftsList = ({ weddingListData, loadingGifts, onOpenAddGiftModal }: GiftsListProps) => {
+export const GiftsList = ({ weddingListData, loadingGifts, onOpenGiftModal }: GiftsListProps) => {
   const [filter, setFilter] = useState('Everything');
   const [gifts, setGifts] = useState<GiftBase[]>(weddingListData?.gifts || []);
 
@@ -61,7 +61,7 @@ export const GiftsList = ({ weddingListData, loadingGifts, onOpenAddGiftModal }:
         <div className="flex items-center">
           <Text className="mr-2">Filtrar por:</Text>
           <Select value={filter} onChange={setFilter} style={{ width: 150 }} options={filterOptions} />
-          <Button type="primary" icon={<PlusOutlined />} className="ml-4" onClick={onOpenAddGiftModal} />
+          <Button type="primary" icon={<PlusOutlined />} className="ml-4" onClick={() => onOpenGiftModal(undefined)} />
         </div>
       </div>
 
@@ -71,7 +71,7 @@ export const GiftsList = ({ weddingListData, loadingGifts, onOpenAddGiftModal }:
             description={
               <div className="mt-4">
                 <Text className="text-gray-500 block mb-4">No gifts added yet</Text>
-                <Button type="primary" icon={<PlusOutlined />} onClick={onOpenAddGiftModal}>
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => onOpenGiftModal(undefined)}>
                   Add Gifts
                 </Button>
               </div>
@@ -88,7 +88,15 @@ export const GiftsList = ({ weddingListData, loadingGifts, onOpenAddGiftModal }:
               {children}
             </Row>
           )}
-          renderItem={(gift) => <SortableGiftItem key={gift.id} gift={gift} onDelete={handleDeleteGift} onMove={handleMoveGift} />}
+          renderItem={(gift) => (
+            <SortableGiftItem
+              key={gift.id}
+              gift={gift}
+              onDelete={handleDeleteGift}
+              onMove={handleMoveGift}
+              onEdit={() => onOpenGiftModal(gift.id)}
+            />
+          )}
         />
       )}
     </div>

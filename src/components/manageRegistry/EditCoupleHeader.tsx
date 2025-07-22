@@ -81,9 +81,7 @@ export const EditCoupleHeader = ({ isOpen, weddinglist, formattedWeddingDate }: 
                       />
                     )}
                   </div>
-                  <Button type="primary" icon={<EditOutlined />} onClick={() => setIsEditingImage(!isEditingImage)}>
-                    Editar
-                  </Button>
+                  <Button type="primary" icon={<EditOutlined />} onClick={() => setIsEditingImage(!isEditingImage)} />
                 </div>
               </Form.Item>
             </div>
@@ -117,9 +115,7 @@ export const EditCoupleHeader = ({ isOpen, weddinglist, formattedWeddingDate }: 
                   <Title level={4}>{formattedWeddingDate}</Title>
                   <Text>{note}</Text>
                   <div className="flex justify-start mt-6">
-                    <Button className="" type="primary" icon={<EditOutlined />} onClick={() => setIsEditingNote(true)}>
-                      Editar
-                    </Button>
+                    <Button className="" type="primary" icon={<EditOutlined />} onClick={() => setIsEditingNote(true)} />
                   </div>
                 </div>
               )}

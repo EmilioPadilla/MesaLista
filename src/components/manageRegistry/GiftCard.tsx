@@ -2,16 +2,25 @@ import { useState } from 'react';
 import { Card, Typography, Button, Tooltip } from 'antd';
 import { DeleteOutlined, DragOutlined, EditOutlined } from '@ant-design/icons';
 import type { GiftBase } from '../../../shared/types/gift';
+import type { DraggableAttributes } from '@dnd-kit/core';
+import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 
 const { Text, Title } = Typography;
+
+interface DragHandleProps {
+  listeners: SyntheticListenerMap | undefined;
+  attributes: DraggableAttributes;
+}
 
 interface GiftCardProps {
   gift: GiftBase;
   onDelete?: (giftId: number) => void;
   onMove?: (giftId: number) => void;
+  onEdit: (giftId: number | undefined) => void;
+  dragHandleProps?: DragHandleProps;
 }
 
-export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove }) => {
+export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEdit, dragHandleProps }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -26,16 +35,17 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove }) =>
   };
   // Calculate how many have been purchased
   const purchasedCount = gift.isPurchased ? 1 : 0; // This will need to be updated with actual data
-  const requestedCount = 1; // This will need to be updated with actual data
+  const requestedCount = gift.quantity; // This will need to be updated with actual data
 
   const handleEditImage = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    // Implement image editing logic here
+    onEdit(gift.id);
   };
 
   return (
     <Card
-      className={`transition-all duration-200 h-full ${isHovered ? 'shadow-lg border-gray-300' : ''}`}
+      className={`transition-all duration-200 ant-card-no-boder h-full ${isHovered ? 'shadow-lg border-gray-300' : ''}`}
       styles={{ body: { padding: '16px', height: '100%', display: 'flex', flexDirection: 'column' } }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -63,7 +73,14 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove }) =>
           {isHovered && (
             <div className="absolute top-2 right-2 flex space-x-2">
               <Button icon={<EditOutlined />} size="small" className="bg-white hover:bg-gray-100" onClick={handleEditImage} />
-              <Button icon={<DragOutlined />} size="small" className="bg-white hover:bg-gray-100" onClick={handleMove} />
+              <Button
+                icon={<DragOutlined />}
+                size="small"
+                className="bg-white hover:bg-gray-100 cursor-grab"
+                onClick={handleMove}
+                {...(dragHandleProps?.listeners || {})}
+                {...(dragHandleProps?.attributes || {})}
+              />
               <Button icon={<DeleteOutlined />} size="small" danger className="bg-white hover:bg-red-50" onClick={handleDelete} />
             </div>
           )}

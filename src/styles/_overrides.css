@@ -1,0 +1,16 @@
+body {
+  .ant-tabs-nav {
+    margin-bottom: 0 !important;
+  }
+  .ant-tabs-top > .ant-tabs-nav {
+    margin-bottom: 0 !important;
+  }
+
+  .ant-card {
+    &.ant-card-no-boder {
+      &.ant-card-bordered {
+        border: none !important;
+      }
+    }
+  }
+}

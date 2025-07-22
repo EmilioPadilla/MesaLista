@@ -148,7 +148,7 @@ export const FileUpload: React.FC<AFSUploadProps> = ({
     <div
       className={`flex flex-col ${width ? width : 'w-48'} ${height ? height : 'h-64'} px-3 items-center justify-center border border-dashed rounded-md`}>
       <UploadOutlined className="text-2xl mb-2" />
-      <div className="text-sm">Da click o arrastra para subir un foto</div>
+      <div className="text-center text-sm">Da click o arrastra para subir un foto</div>
     </div>
   );
 
