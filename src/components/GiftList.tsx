@@ -3,12 +3,11 @@ import { Typography, Input, Card, Row, Col, Button, Avatar, Modal, Form, message
 import { SearchOutlined, HeartOutlined, ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
 import { giftService } from '../services/gift.service';
 import type { Gift } from '@prisma/client';
-import type { WeddingListWithGifts } from '../../shared/types/weddingList';
+import type { WeddingListWithGifts } from 'types/models/weddingList';
 import { useWeddingLists } from 'hooks/useWeddingList';
 
 const { Title, Paragraph, Text } = Typography;
 
-// No props needed since we're using React Query for data fetching
 interface GiftListsProps {}
 
 const GiftLists: React.FC<GiftListsProps> = () => {
@@ -22,9 +21,9 @@ const GiftLists: React.FC<GiftListsProps> = () => {
   const { data: weddingLists, isLoading: isLoadingWeddingLists, refetch } = useWeddingLists();
 
   // Filter wedding lists based on search term
-  const filteredWeddingLists = weddingLists
-    ? weddingLists.filter((list: WeddingListWithGifts) => list.coupleName.toLowerCase().includes(searchTerm.toLowerCase()))
-    : [];
+  // const filteredWeddingLists = weddingLists
+  //   ? weddingLists.filter((list: WeddingListWithGifts) => list.couple.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  //   : [];
 
   const handlePurchase = (gift: Gift) => {
     setSelectedGift(gift);
@@ -75,13 +74,13 @@ const GiftLists: React.FC<GiftListsProps> = () => {
           <div className="flex justify-center items-center h-64">
             <Spin size="large" />
           </div>
-        ) : filteredWeddingLists.length === 0 ? (
+        ) : weddingLists?.length === 0 ? (
           <div className="flex justify-center items-center h-64">
             <Text>No se encontraron listas de regalos.</Text>
           </div>
         ) : (
           <div>
-            {filteredWeddingLists.map((weddingList: WeddingListWithGifts) => (
+            {/* {filteredWeddingLists.map((weddingList: WeddingListWithGifts) => (
               <Card
                 key={weddingList.id}
                 className="mb-6"
@@ -130,7 +129,7 @@ const GiftLists: React.FC<GiftListsProps> = () => {
                   ))}
                 </Row>
               </Card>
-            ))}
+            ))} */}
           </div>
         )}
       </div>

@@ -13,6 +13,7 @@ import giftRoutes from './routes/giftRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import fileUploadRouter from './routes/fileUpload.js';
+import weddingListRoutes from './routes/weddingListRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -76,10 +77,11 @@ app.get('/health', async (req, res) => {
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
 // Register route modules
-app.use('/api/users', userRoutes);
-app.use('/api/gifts', giftRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/gift', giftRoutes);
 app.use('/api/cart', cartRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/wedding-list', weddingListRoutes);
 app.use('/api/upload', fileUploadRouter);
 
 // Special case for login (to maintain /api/login endpoint)

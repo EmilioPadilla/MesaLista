@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import { AddToCartRequest, UpdateCartDetailsRequest, UpdateCartItemRequest } from '../../shared/types/cart.js';
+import { AddToCartRequest, UpdateCartDetailsRequest, UpdateCartItemRequest } from 'types/models/cart.js';
 
 const prisma = new PrismaClient();
 
@@ -310,7 +310,7 @@ export default {
           const fullName = cart.inviteeName || 'Guest';
           const nameParts = fullName.trim().split(' ');
           const firstName = nameParts[0] || 'Guest';
-          const lastName = nameParts.slice(1).join(' ') || null;
+          const lastName = nameParts.slice(1).join(' ');
 
           guestUser = await prisma.user.create({
             data: {

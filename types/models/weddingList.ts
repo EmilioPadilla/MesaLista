@@ -1,24 +1,25 @@
-import type { WeddingList } from '@prisma/client';
-import type { GiftBase } from './gift.js';
-import type { UserResponse } from './user.js';
+import type { User } from './user.js';
+import type { Gift } from './gift.js';
 
-export interface WeddingListBase extends WeddingList {
+export interface WeddingList {
   id: number;
   coupleId: number;
   title: string;
-  description: string | null;
+  description?: string;
   coupleName: string;
-  weddingDate: Date;
   invitationCount: number;
-  weddingLocation: string | null;
-  imageUrl: string | null;
+  weddingDate: Date;
+  weddingLocation?: string;
+  imageUrl?: string;
   createdAt: Date;
   updatedAt: Date;
+  couple: User;
+  gifts: Gift[];
 }
 
-export interface WeddingListWithGifts extends WeddingListBase {
-  gifts: GiftBase[];
-  couple: UserResponse;
+export interface WeddingListWithGifts extends WeddingList {
+  gifts: Gift[];
+  couple: User;
 }
 
 export interface FormattedWeddingList {

@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Row, Typography, Button, Select, Empty, Popconfirm } from 'antd';
+import { Row, Typography, Button, Select, Empty } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import type { WeddingListWithGifts } from '../../../shared/types/weddingList';
-import type { GiftBase } from '../../../shared/types/gift';
+import type { WeddingListWithGifts } from 'types/models/weddingList';
 import { DraggableList } from 'core/DraggableList';
 import { SortableGiftItem } from './SortableGiftItem';
-import { useCategoriesByWeddingList, useDeleteGift, useReorderGifts } from 'hooks/useGift';
+import { useDeleteGift } from 'hooks/useGift';
+import { useCategoriesByWeddingList, useReorderGifts } from 'hooks/useWeddingList';
+import { Gift } from 'types/models/gift';
 
 const { Title, Text } = Typography;
 
@@ -16,7 +17,7 @@ interface GiftsListProps {
 
 export const GiftsList = ({ weddingListData, onOpenGiftModal }: GiftsListProps) => {
   const [filter, setFilter] = useState('Todos');
-  const [gifts, setGifts] = useState<GiftBase[]>(weddingListData?.gifts || []);
+  const [gifts, setGifts] = useState<Gift[]>(weddingListData?.gifts || []);
 
   const { mutate: deleteGift } = useDeleteGift();
   const { mutate: reorderGifts } = useReorderGifts();
@@ -41,7 +42,7 @@ export const GiftsList = ({ weddingListData, onOpenGiftModal }: GiftsListProps) 
     }
   }, [filter]);
 
-  const handleReorderGifts = (reorderedGifts: GiftBase[]) => {
+  const handleReorderGifts = (reorderedGifts: Gift[]) => {
     setGifts(reorderedGifts);
 
     // Create the order updates array

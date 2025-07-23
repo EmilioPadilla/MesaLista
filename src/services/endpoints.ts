@@ -36,15 +36,15 @@ export const user_endpoints = {
   /**
    * Base users endpoint
    */
-  base: `/users`,
+  base: `/user`,
 
   /**
-   * Get all users
+   * Get current user
    * @method GET
    * @access Protected
    * @requires JWT token
    */
-  getAll: `/users`,
+  getCurrentUser: `/user/me`,
 
   /**
    * Get user by ID
@@ -53,25 +53,14 @@ export const user_endpoints = {
    * @requires JWT token
    * @param id User ID
    */
-  getById: (id: number) => `/users/${id}`,
+  byId: (id: number) => `/user/${id}`,
 
   /**
-   * Update user
-   * @method PUT
-   * @access Protected
-   * @requires JWT token
-   * @param id User ID
+   * Login user
+   * @method POST
+   * @access Public
    */
-  update: (id: number) => `/users/${id}`,
-
-  /**
-   * Delete user
-   * @method DELETE
-   * @access Protected
-   * @requires JWT token
-   * @param id User ID
-   */
-  delete: (id: number) => `/users/${id}`,
+  login: `/user/login`,
 };
 
 /**
@@ -81,7 +70,7 @@ export const gift_endpoints = {
   /**
    * Base gifts endpoint
    */
-  base: `/gifts`,
+  base: `/gift`,
 
   /**
    * Get all gifts for a wedding list
@@ -90,7 +79,7 @@ export const gift_endpoints = {
    * @requires JWT token
    * @param weddingListId Wedding list ID
    */
-  getByWeddingList: (weddingListId: number) => `/gifts/wedding-list/${weddingListId}`,
+  getByWeddingList: (weddingListId: number) => `/gift/wedding-list/${weddingListId}`,
 
   /**
    * Get gift by ID
@@ -99,33 +88,7 @@ export const gift_endpoints = {
    * @requires JWT token
    * @param id Gift ID
    */
-  getById: (id: number) => `/gifts/${id}`,
-
-  /**
-   * Create a new gift
-   * @method POST
-   * @access Protected
-   * @requires JWT token
-   */
-  create: `/gifts`,
-
-  /**
-   * Update a gift
-   * @method PUT
-   * @access Protected
-   * @requires JWT token
-   * @param id Gift ID
-   */
-  update: (id: number) => `/gifts/${id}`,
-
-  /**
-   * Delete a gift
-   * @method DELETE
-   * @access Protected
-   * @requires JWT token
-   * @param id Gift ID
-   */
-  delete: (id: number) => `/gifts/${id}`,
+  byId: (id: number) => `/gift/${id}`,
 };
 
 /**
@@ -133,12 +96,9 @@ export const gift_endpoints = {
  */
 export const weddingList_endpoints = {
   /**
-   * Get all wedding lists
-   * @method GET
-   * @access Protected
-   * @requires JWT token
+   * Base payments endpoint
    */
-  getAll: `/gifts/wedding-lists`,
+  base: `/wedding-list`,
 
   /**
    * Get wedding list by couple ID
@@ -147,15 +107,43 @@ export const weddingList_endpoints = {
    * @requires JWT token
    * @param coupleId Couple ID
    */
-  getByCouple: (coupleId: number) => `/gifts/wedding-list/couple/${coupleId}`,
+  getByCouple: (coupleId: number) => `/wedding-list/${coupleId}`,
 
   /**
-   * Create a new wedding list
-   * @method POST
+   * Update a wedding list
+   * @method PUT
    * @access Protected
    * @requires JWT token
+   * @param id Wedding list ID
    */
-  create: `/gifts/wedding-list`,
+  update: (id: number) => `/wedding-list/${id}`,
+
+  /**
+   * Get gifts in a wedding list
+   * @method GET
+   * @access Protected
+   * @requires JWT token
+   * @param weddingListId Wedding list ID
+   */
+  getGiftsByWeddingList: (weddingListId: number) => `/wedding-list/${weddingListId}/gifts`,
+
+  /**
+   * Get categories in a wedding list
+   * @method GET
+   * @access Protected
+   * @requires JWT token
+   * @param weddingListId Wedding list ID
+   */
+  getCategoriesByWeddingList: (weddingListId: number) => `/wedding-list/${weddingListId}/wedding-list-by-category`,
+
+  /**
+   * Reorder gifts in a wedding list
+   * @method PUT
+   * @access Protected
+   * @requires JWT token
+   * @param weddingListId Wedding list ID
+   */
+  reorderGifts: (weddingListId: number) => `/wedding-list/${weddingListId}/reorder`,
 };
 
 /**

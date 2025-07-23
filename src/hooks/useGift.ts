@@ -1,23 +1,8 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import type { Gift } from '@prisma/client';
-import type { PurchasedGiftsResponse } from '../../shared/types/gift';
+import type { PurchasedGiftsResponse } from 'types/api/gift';
 import { giftService } from '../services/gift.service';
 import { queryKeys } from './queryKeys';
-
-/**
- * Hook to fetch gifts by wedding list ID
- *
- * @param weddingListId ID of the wedding list
- * @param options React Query options
- */
-export const useGiftsByWeddingList = (weddingListId: number | undefined, options?: Partial<UseQueryOptions<Gift[], Error>>) => {
-  return useQuery({
-    queryKey: [queryKeys.giftsByWeddingList, weddingListId],
-    queryFn: () => giftService.getGiftsByWeddingList(weddingListId!),
-    enabled: !!weddingListId,
-    ...options,
-  });
-};
 
 /**
  * Hook to fetch a gift by ID
@@ -133,36 +118,6 @@ export const useUpdatePurchaseStatus = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.purchasedGifts] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.userPurchases] });
-    },
-  });
-};
-
-/**
- * Hook to fetch categories by wedding list ID
- *
- * @param weddingListId ID of the wedding list
- * @param options React Query options
- */
-export const useCategoriesByWeddingList = (weddingListId?: number) => {
-  return useQuery({
-    queryKey: [queryKeys.categoriesByWeddingList, weddingListId],
-    queryFn: () => giftService.getCategoriesByWeddingList(weddingListId!),
-    enabled: !!weddingListId,
-  });
-};
-
-/**
- * Hook to reorder gifts
- */
-export const useReorderGifts = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ weddingListId, giftOrders }: { weddingListId: number; giftOrders: Array<{ giftId: number; order: number }> }) =>
-      giftService.reorderGifts(weddingListId, giftOrders),
-    onSuccess: () => {
-      // Invalidate and refetch wedding list data to get updated order
-      queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple] });
     },
   });
 };

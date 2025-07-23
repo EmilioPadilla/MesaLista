@@ -1,12 +1,11 @@
 import React from 'react';
 import { Typography, Button, Table, Tag, Input, Space } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import type { Gift } from '@prisma/client';
 import type { DashboardUserData } from 'services/user.service';
-import { giftService } from 'services/gift.service';
 import { CreateWeddingGift } from 'components/CreateWeddingGift';
+import { useWeddingListByCouple, useGiftsByWeddingList } from 'hooks/useWeddingList';
+import { Gift } from 'types/models/gift';
 
 const { Title, Paragraph } = Typography;
 
@@ -20,10 +19,6 @@ type OutletContextType = {
   isCouple: boolean;
 };
 
-// Using Gift type from giftService
-
-// Removed mock gifts - using real data from backend
-
 const GiftRegistry: React.FC<GiftRegistryProps> = (props) => {
   // Use props if provided directly, otherwise use context from Outlet
   const contextData = useOutletContext<OutletContextType>();
@@ -31,26 +26,10 @@ const GiftRegistry: React.FC<GiftRegistryProps> = (props) => {
   const [isModalVisible, setIsModalVisible] = React.useState(false);
 
   // Fetch wedding list for the couple
-  const {
-    data: weddingList,
-    isLoading: isLoadingWeddingList,
-    error: weddingListError,
-  } = useQuery({
-    queryKey: ['weddingList', userData?.id],
-    queryFn: () => giftService.getWeddingListByCouple(userData?.id as number),
-    enabled: !!userData?.id && userData?.role === 'COUPLE',
-  });
+  const { data: weddingList, isLoading: isLoadingWeddingList, error: weddingListError } = useWeddingListByCouple(userData?.id);
 
   // Fetch gifts for the wedding list
-  const {
-    data: gifts = [],
-    isLoading: isLoadingGifts,
-    error: giftsError,
-  } = useQuery({
-    queryKey: ['gifts', weddingList?.id],
-    queryFn: () => giftService.getGiftsByWeddingList(weddingList?.id),
-    enabled: !!weddingList?.id,
-  });
+  const { data: gifts = [], isLoading: isLoadingGifts, error: giftsError } = useGiftsByWeddingList(weddingList?.coupleId);
 
   // Handle loading and error states
   const isLoading = isLoadingWeddingList || isLoadingGifts;

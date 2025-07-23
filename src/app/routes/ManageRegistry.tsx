@@ -84,7 +84,7 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
       )}
       {renderGiftModal && (
         <GiftModal
-          weddingListId={weddinglist?.id}
+          weddingListId={weddinglist?.coupleId}
           giftId={editingGiftId}
           open={showGiftModal}
           afterClose={handleAfterCloseGiftModal}

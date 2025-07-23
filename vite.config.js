@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const resolvePath = (folder) => resolve(__dirname, `./src/${folder}`);
+const resolveRootPath = (folder) => resolve(__dirname, `./${folder}`);
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -27,7 +28,7 @@ export default defineConfig({
       config: resolvePath('config'),
       utils: resolvePath('utils'),
       styles: resolvePath('styles'),
-      types: resolvePath('types'),
+      types: resolveRootPath('types'),
     },
   },
   // Production build

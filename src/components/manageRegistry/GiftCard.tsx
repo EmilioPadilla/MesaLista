@@ -1,14 +1,7 @@
 import { useState } from 'react';
 import { Card, Typography, Button, Popconfirm, Tooltip } from 'antd';
-import {
-  DeleteOutlined,
-  DragOutlined,
-  EditOutlined,
-  ExclamationCircleFilled,
-  ExclamationCircleOutlined,
-  WarningFilled,
-} from '@ant-design/icons';
-import type { GiftBase } from '../../../shared/types/gift';
+import { DeleteOutlined, DragOutlined, EditOutlined, ExclamationCircleFilled } from '@ant-design/icons';
+import type { Gift } from 'types/models/gift';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 
@@ -20,7 +13,7 @@ interface DragHandleProps {
 }
 
 interface GiftCardProps {
-  gift: GiftBase;
+  gift: Gift;
   onDelete?: (giftId: number) => void;
   onMove?: (giftId: number) => void;
   onEdit: (giftId: number | undefined) => void;

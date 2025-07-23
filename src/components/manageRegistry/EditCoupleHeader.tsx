@@ -3,7 +3,7 @@ import { EditOutlined } from '@ant-design/icons';
 import { Card, Button, Input, message } from 'antd';
 import { Form, Typography } from 'antd';
 import { Collapsible } from 'core/Collapsible';
-import type { WeddingListWithGifts } from '../../../shared/types/weddingList';
+import type { WeddingListWithGifts } from 'types/models/weddingList';
 import { FileUpload } from 'core/FileUpload';
 import { useUploadFile } from 'hooks/useFiles';
 import { useUpdateWeddingList } from 'hooks/useWeddingList';

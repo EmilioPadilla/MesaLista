@@ -40,7 +40,6 @@
       "services/*": ["src/services/*"],
       "store/*": ["src/store/*"],
       "styles/*": ["src/styles/*"],
-      "types/*": ["src/types/*"],
       "utils/*": ["src/utils/*"],
       "config/*": ["src/config/*"],
       "features/*": ["src/features/*"],

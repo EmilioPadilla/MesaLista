@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { EditOutlined, CalendarOutlined, UserOutlined, GiftOutlined, ShoppingOutlined, DownOutlined } from '@ant-design/icons';
 import { User } from '@prisma/client';
 import { Col, Button, Card, Divider, Typography } from 'antd';
-import type { WeddingListWithGifts } from '../../../shared/types/weddingList';
+import type { WeddingListWithGifts } from 'types/models/weddingList';
 import dayjs from 'dayjs';
 import { EditCoupleHeader } from './EditCoupleHeader';
 

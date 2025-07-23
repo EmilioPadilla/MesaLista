@@ -1,5 +1,6 @@
-import type { User } from '@prisma/client';
 import apiClient from './client';
+import { user_endpoints } from './endpoints';
+import { User } from 'types/models/user';
 
 export interface LoginResponse extends User {
   token: string;
@@ -11,22 +12,22 @@ export const userService = {
   getCurrentUser: async (): Promise<User> => {
     // Get the current user based on the stored token
     // The backend will identify the user from the token
-    const response = await apiClient.get('/users/me');
+    const response = await apiClient.get(user_endpoints.getCurrentUser);
     return response.data;
   },
   getAll: async (): Promise<User[]> => {
-    const response = await apiClient.get('/users');
+    const response = await apiClient.get(user_endpoints.base);
     return response.data;
   },
 
   getById: async (id: number): Promise<User> => {
-    const response = await apiClient.get(`/users/${id}`);
+    const response = await apiClient.get(user_endpoints.byId(id));
     return response.data;
   },
 
   login: async (email: string, password: string): Promise<LoginResponse> => {
     try {
-      const response = await apiClient.post<LoginResponse>('/users/login', { email, password });
+      const response = await apiClient.post<LoginResponse>(user_endpoints.login, { email, password });
 
       // Store the token in localStorage for future API calls
       if (response.data.token) {
@@ -74,17 +75,17 @@ export const userService = {
   },
 
   create: async (userData: Omit<User, 'id' | 'createdAt'> & { password: string }): Promise<User> => {
-    const response = await apiClient.post('/users', userData);
+    const response = await apiClient.post(user_endpoints.base, userData);
     return response.data;
   },
 
   update: async (id: number, userData: Partial<Omit<User, 'id' | 'createdAt'>>): Promise<User> => {
-    const response = await apiClient.put(`/users/${id}`, userData);
+    const response = await apiClient.put(user_endpoints.byId(id), userData);
     return response.data;
   },
 
   delete: async (id: number): Promise<void> => {
-    await apiClient.delete(`/users/${id}`);
+    await apiClient.delete(user_endpoints.byId(id));
   },
 };
 

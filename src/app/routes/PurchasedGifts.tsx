@@ -1,11 +1,10 @@
 import React from 'react';
-import { Table, Card, Statistic, Row, Col, Button, Typography, message, Avatar, Tag, Space, Tooltip } from 'antd';
+import { Table, Card, Statistic, Row, Col, Button, Typography, Avatar, Tag, Space, Tooltip } from 'antd';
 import { UserOutlined, GiftOutlined, CheckCircleOutlined, MailOutlined } from '@ant-design/icons';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import { giftService } from 'services/gift.service';
 import type { DashboardUserData } from 'services/user.service';
-import { PurchasedGiftsResponse } from 'shared/types/gift';
+import { PurchasedGiftsResponse } from 'types/api/gift';
+import { usePurchasedGifts, useUpdatePurchaseStatus } from 'hooks/useGift';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -19,36 +18,18 @@ type OutletContextType = {
   isCouple: boolean;
 };
 
-// Using types from giftService
-
-// Using functions from giftService
-
 const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
   // Use props if provided directly, otherwise use context from Outlet
   const contextData = useOutletContext<OutletContextType>();
   const userData = props.userData || contextData?.userData;
-  const queryClient = useQueryClient();
 
   // Fetch purchased gifts from the API
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['purchasedGifts', userData?.id],
-    queryFn: () => giftService.fetchPurchasedGifts(userData?.id),
-    enabled: !!userData?.id,
-  });
+  const { data, isLoading, error } = usePurchasedGifts(userData?.id);
   const purchasedGifts = data?.purchases || [];
   const totalAmount = data?.totalAmount || 0;
 
   // Mutation for updating purchase status
-  const updateStatusMutation = useMutation({
-    mutationFn: giftService.updatePurchaseStatus,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['purchasedGifts', userData?.id] });
-      message.success('Estado del regalo actualizado correctamente');
-    },
-    onError: () => {
-      message.error('Error al actualizar el estado del regalo');
-    },
-  });
+  const updateStatusMutation = useUpdatePurchaseStatus();
 
   // Calculate statistics
   const pendingCount = purchasedGifts.filter((gift) => gift.status === 'PENDING').length;

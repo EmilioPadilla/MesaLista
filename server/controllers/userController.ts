@@ -2,16 +2,16 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { generateToken } from '../middleware/auth.js';
 import prisma from '../lib/prisma.js';
-import { User } from '@prisma/client';
 import {
   UserBase,
-  UserResponse,
   UserCreateRequest,
-  UserUpdateRequest,
+  UserDashboardResponse,
   UserLoginRequest,
   UserLoginResponse,
-  UserDashboardResponse,
-} from '../../shared/types/index.js';
+  UserResponse,
+  UserUpdateRequest,
+} from '../../types/api/user.js';
+import { User } from 'types/models/user.js';
 
 export const userController = {
   // Get all users
@@ -31,7 +31,7 @@ export const userController = {
           createdAt: true,
           // Exclude password for security
         },
-      })) as UserResponse[];
+      })) as UserBase[];
       res.json(users);
     } catch (error: unknown) {
       console.error('Error fetching users:', error);
@@ -173,22 +173,16 @@ export const userController = {
   // Update user
   updateUser: async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { email, firstName, lastName, spouseFirstName, spouseLastName, password } = req.body as UserUpdateRequest;
+    const { email, firstName, lastName, spouseFirstName, spouseLastName } = req.body as UserUpdateRequest;
 
     try {
-      const updateData: Partial<User> = {};
+      const updateData: Partial<UserBase> = {};
 
       if (email) updateData.email = email;
       if (firstName !== undefined) updateData.firstName = firstName;
       if (lastName !== undefined) updateData.lastName = lastName;
       if (spouseFirstName !== undefined) updateData.spouseFirstName = spouseFirstName;
       if (spouseLastName !== undefined) updateData.spouseLastName = spouseLastName;
-
-      // If password is provided, hash it before updating
-      if (password) {
-        const saltRounds = 10;
-        updateData.password = await bcrypt.hash(password, saltRounds);
-      }
 
       const user = (await prisma.user.update({
         where: { id: Number(id) },
@@ -282,6 +276,36 @@ export const userController = {
     } catch (error: unknown) {
       console.error('Error during login:', error);
       res.status(500).json({ error: 'Login failed' });
+    }
+  },
+
+  // Update user password
+  updateUserPassword: async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { password } = req.body as UserUpdateRequest;
+
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required' });
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    try {
+      const user = (await prisma.user.update({
+        where: { id: Number(id) },
+        data: { password: hashedPassword },
+      })) as UserResponse;
+
+      res.json(user);
+    } catch (error: unknown) {
+      console.error('Error updating user password:', error);
+
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.status(500).json({ error: 'Failed to update user password' });
     }
   },
 };

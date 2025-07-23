@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { message } from 'antd';
-import type { User } from '@prisma/client';
 import { userService } from '../services/user.service';
 import { queryKeys } from './queryKeys';
+import { User } from 'types/models/user';
 
 /**
  * Hook to fetch the current authenticated user

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { PaymentType, InitiatePaymentRequest, VerifyPaymentRequest } from '../../shared/types/index.js';
+import { PaymentType, InitiatePaymentRequest, VerifyPaymentRequest } from '../../types/index.js';
 import axios from 'axios';
 import Stripe from 'stripe';
 

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message, Divider, DatePicker, Radio, Select } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, CalendarOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, Typography, message, Divider, DatePicker, Radio } from 'antd';
+import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
-import { userService } from '../../services/user.service';
+import { useCreateUser } from 'src/hooks/useUser';
+import { User } from 'types/models/user';
 
 const { Title, Text } = Typography;
 
@@ -20,6 +21,7 @@ const Signup: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isCouple, setIsCouple] = useState(false);
   const navigate = useNavigate();
+  const { mutate: signupMutation } = useCreateUser();
 
   const onFinish = async (values: SignupFormValues) => {
     setLoading(true);
@@ -44,7 +46,7 @@ const Signup: React.FC = () => {
         phoneNumber: restValues.phoneNumber || null,
       };
 
-      await userService.create(userData);
+      signupMutation(userData as unknown as User);
       message.success('¡Cuenta creada exitosamente! Por favor inicia sesión.');
 
       // Redirect to login page after successful signup

@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
 import type { DashboardUserData } from '../services/user.service';
 import { giftService } from '../services/gift.service';
-import { PurchasedGiftsResponse } from 'shared/types/gift';
+import { PurchasedGiftsResponse } from 'types/api/gift';
 
 const { Title, Paragraph, Text } = Typography;
 
