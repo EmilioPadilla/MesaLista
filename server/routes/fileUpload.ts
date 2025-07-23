@@ -1,5 +1,6 @@
 import express from 'express';
 import multer from 'multer';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3 } from '../r2.js';
 import { v4 as uuid } from 'uuid';
 
@@ -24,7 +25,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       ContentType: file.mimetype,
     };
 
-    await s3.putObject(uploadParams).promise();
+    await s3.send(new PutObjectCommand(uploadParams));
 
     const publicUrl = `https://${process.env.R2_BUCKET_ID}/${key}`;
 
