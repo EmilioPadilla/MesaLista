@@ -1,21 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { EditOutlined, CalendarOutlined, UserOutlined, GiftOutlined, ShoppingOutlined, DownOutlined } from '@ant-design/icons';
 import { User } from '@prisma/client';
-import { Col, Button, Card, Divider, Typography } from 'antd';
+import { Col, Button, Card, Divider, Typography, Popconfirm, Popover, Input } from 'antd';
 import type { WeddingListWithGifts } from 'types/models/weddingList';
 import dayjs from 'dayjs';
 import { EditCoupleHeader } from './EditCoupleHeader';
 
 interface RegistryAdvisorProps {
+  onUpdateWeddingList: (data: WeddingListWithGifts) => void;
   userData: User;
   weddinglist: WeddingListWithGifts;
 }
 
 const { Title } = Typography;
 
-export const RegistryAdvisor = ({ userData, weddinglist }: RegistryAdvisorProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const RegistryAdvisor = ({ onUpdateWeddingList, userData, weddinglist }: RegistryAdvisorProps) => {
+  const [isEditHeaderOpen, setIsEditHeaderOpen] = useState(false);
+  const [isEditCountOpen, setIsEditCountOpen] = useState(false);
+  const [count, setCount] = useState(weddinglist?.invitationCount);
   const formattedWeddingDate = weddinglist?.weddingDate ? dayjs(weddinglist.weddingDate).format('MMM DD, YYYY') : '';
+
+  const confirmUpdateCount = () => {
+    setIsEditCountOpen(false);
+    onUpdateWeddingList({ ...weddinglist, invitationCount: count });
+  };
 
   return (
     <>
@@ -24,11 +32,11 @@ export const RegistryAdvisor = ({ userData, weddinglist }: RegistryAdvisorProps)
           <Title className="chamberi-heading" level={1}>
             {weddinglist?.coupleName || `${(userData as unknown as User).firstName} & ${(userData as unknown as User).spouseFirstName}`}
           </Title>
-          <Button type="link" icon={<DownOutlined />} className="text-gray-500" onClick={() => setIsOpen(!isOpen)}>
+          <Button type="link" icon={<DownOutlined />} className="text-gray-500" onClick={() => setIsEditHeaderOpen(!isEditHeaderOpen)}>
             Editar Foto y Nota
           </Button>
         </div>
-        <EditCoupleHeader isOpen={isOpen} weddinglist={weddinglist} formattedWeddingDate={formattedWeddingDate} />
+        <EditCoupleHeader isOpen={isEditHeaderOpen} weddinglist={weddinglist} formattedWeddingDate={formattedWeddingDate} />
       </Col>
 
       <Col span={24}>
@@ -48,7 +56,27 @@ export const RegistryAdvisor = ({ userData, weddinglist }: RegistryAdvisorProps)
               <Divider type="vertical" />
               <UserOutlined className="mr-1" />
               <span>{weddinglist?.invitationCount || 0} Invitados</span>
-              <EditOutlined className="ml-2 text-gray-400" />
+              <Popover
+                title="Modifica tu cantidad de invitados"
+                className="pop-delete"
+                trigger="click"
+                open={isEditCountOpen}
+                onOpenChange={setIsEditCountOpen}
+                content={
+                  <>
+                    <Input placeholder="Cantidad de invitados" value={count} onChange={(e) => setCount(Number(e.target.value))} />
+                    <div className="flex justify-end mt-2">
+                      <Button size="small" className="mr-2" type="default" onClick={() => setIsEditCountOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button size="small" type="primary" onClick={confirmUpdateCount}>
+                        Guardar
+                      </Button>
+                    </div>
+                  </>
+                }>
+                <EditOutlined className="ml-2 text-gray-400" />
+              </Popover>
             </div>
           </div>
 

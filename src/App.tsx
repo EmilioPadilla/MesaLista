@@ -21,11 +21,13 @@ import GiftLists from 'src/components/GiftList';
 import MyPurchases from 'components/MyPurchases';
 import antdThemeConfig from 'styles/config/antdThemeConfig';
 import { useEffect } from 'react';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 function App() {
   // Check if user is already authenticated every time the path changes
   let isAuthenticated = userService.isAuthenticated();
   const path = window.location.pathname;
+  const isLocalhost = window.location.hostname === 'localhost';
 
   useEffect(() => {
     isAuthenticated = userService.isAuthenticated();
@@ -58,6 +60,7 @@ function App() {
           <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} />} />
         </Routes>
       </BrowserRouter>
+      {isLocalhost && <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />}
     </ConfigProvider>
   );
 }

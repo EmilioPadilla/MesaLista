@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { Card, Typography, Button, Popconfirm, Tooltip } from 'antd';
+import { Card, Button, Popconfirm } from 'antd';
 import { DeleteOutlined, DragOutlined, EditOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import type { Gift } from 'types/models/gift';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
-
-const { Text, Title } = Typography;
 
 interface DragHandleProps {
   listeners: SyntheticListenerMap | undefined;
@@ -36,9 +34,8 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
     e.stopPropagation();
     if (onMove) onMove(gift.id);
   };
-  // Calculate how many have been purchased
-  const purchasedCount = gift.isPurchased ? 1 : 0; // This will need to be updated with actual data
-  const requestedCount = gift.quantity; // This will need to be updated with actual data
+  const purchasedCount = gift.isPurchased ? 1 : 0;
+  const requestedCount = gift.quantity;
 
   const handleEditImage = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -48,12 +45,12 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
 
   return (
     <Card
-      className={`transition-all duration-200 ant-card-no-boder h-full ${isHovered ? 'shadow-lg border-gray-300' : ''}`}
+      className={`transition-all duration-200 ant-card-no-border h-full ${isHovered ? 'shadow-xl border-gray-300' : ''}`}
       styles={{ body: { padding: '16px', display: 'flex', flexDirection: 'column' } }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       cover={
-        <div className="relative overflow-hidden" style={{ height: '200px' }}>
+        <div className="relative overflow-hidden" style={{ height: '200px', border: '24px solid #fff' }}>
           {gift.imageUrl && !imageError ? (
             <img src={gift.imageUrl} alt={gift.title} className="w-full h-full object-cover" onError={() => setImageError(true)} />
           ) : (
@@ -62,7 +59,6 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
               alt={gift.title}
               className="w-full h-full object-contain"
               onError={(e) => {
-                // If even the fallback fails, show a div with text
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
                 const parent = target.parentElement;
@@ -90,7 +86,7 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
                 description="Are you sure you want to delete this gift?"
                 onConfirm={handleDelete}
                 okText="Yes"
-                icon={<ExclamationCircleFilled color="red" />}
+                icon={<ExclamationCircleFilled />}
                 okButtonProps={{ danger: true }}
                 cancelText="No">
                 <Button icon={<DeleteOutlined />} size="small" danger className="bg-white hover:bg-red-50" />
@@ -99,26 +95,23 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
           )}
         </div>
       }>
-      <div className="flex flex-col flex-grow">
+      <div className="flex flex-col flex-grow text-center">
         <div className="mb-1">
-          <Text type="secondary" className="text-xs uppercase">
+          <span className="text-xs uppercase text-gray-400">
             {gift.categories && gift.categories.length > 0
-              ? gift.categories.map((categoryItem: any) => categoryItem.category.name).join(', ')
+              ? gift.categories.map((categoryItem: any) => categoryItem?.name).join(', ')
               : 'Uncategorized'}
-          </Text>
+          </span>
         </div>
-        <Title level={5} className="mb-1 line-clamp-2" style={{ minHeight: '48px' }}>
+        <span className="mb-1 line-clamp-2" style={{ minHeight: '36px' }}>
           {gift.title}
-        </Title>
-        <div className="">
-          <div className="flex justify-between items-center mb-2">
-            <Text strong className="text-lg">
-              ${gift.price.toFixed(2)}
-            </Text>
+        </span>
+        <div className="text-gray-400">
+          <div className="flex justify-center  items-center mb-2">
+            <span className="text-gray-500">${gift.price.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>{requestedCount} Requested</span>
-            <span>{purchasedCount} Gift Needed</span>
+          <div className="flex justify-around text-xs ">
+            <span>{requestedCount} Requested</span> <span className="text-gray-500">|</span> <span>{purchasedCount} Gift Needed</span>
           </div>
         </div>
       </div>

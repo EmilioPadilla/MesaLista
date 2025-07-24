@@ -77,7 +77,7 @@ async function main() {
         title: 'Juego de Vajilla',
         description: 'Juego de vajilla de porcelana para 8 personas',
         price: 250.0,
-        imageUrl: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/69e7f643-0b9b-4d81-ac37-4ab3888cf177-vajilla.webp',
+        imageUrl: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/b841ca59-825d-45f8-bd0d-9fc02407631c-vajilla.webp',
         weddingListId: weddingList.id,
       },
     }),
@@ -86,7 +86,7 @@ async function main() {
         title: 'Licuadora',
         description: 'Licuadora de alta potencia',
         price: 120.0,
-        imageUrl: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/69e7f643-0b9b-4d81-ac37-4ab3888cf177-licuadora.webp',
+        imageUrl: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/49d177d3-9355-469c-989c-151a5628b690-licuadora.webp',
         weddingListId: weddingList.id,
       },
     }),
@@ -95,7 +95,7 @@ async function main() {
         title: 'Juego de Toallas',
         description: 'Juego de toallas de baño de algodón',
         price: 80.0,
-        imageUrl: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/69e7f643-0b9b-4d81-ac37-4ab3888cf177-toallas.jpg',
+        imageUrl: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/4bbb1dd0-7191-4685-a015-e8045d9adebc-toallas.jpg',
         weddingListId: weddingList.id,
       },
     }),
@@ -113,7 +113,7 @@ async function main() {
         title: 'Cena en Islandia',
         description: 'Cena en Islandia para dos personas',
         price: 2500.0,
-        imageUrl: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/69e7f643-0b9b-4d81-ac37-4ab3888cf177-cenaIslandia.webp',
+        imageUrl: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/d1d77271-6394-49e1-a0f1-64898a0ad700-cenaIslandia.webp',
         weddingListId: weddingList.id,
       },
     }),
@@ -122,7 +122,7 @@ async function main() {
         title: 'Tour por Dolomitas',
         description: 'Tour por Dolomitas para dos personas',
         price: 1500.0,
-        imageUrl: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/69e7f643-0b9b-4d81-ac37-4ab3888cf177-dolomitas.jpg',
+        imageUrl: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/377defc3-1fba-4924-8f71-dbacf483c28d-dolomitas.jpg',
         weddingListId: weddingList.id,
       },
     }),
@@ -131,7 +131,7 @@ async function main() {
         title: 'Nespresso Vertuo Next',
         description: 'Nespresso Vertuo Next con espumador y 50 capsulas',
         price: 3500.0,
-        imageUrl: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/69e7f643-0b9b-4d81-ac37-4ab3888cf177-nespresso.avif',
+        imageUrl: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/56d85e37-d958-4f34-9d48-e8cc1abfc5be-nespresso.avif',
         weddingListId: weddingList.id,
       },
     }),
@@ -141,34 +141,34 @@ async function main() {
   await Promise.all([
     // Juego de Vajilla -> Cocina
     prisma.giftCategoryOnGift.create({
-      data: { giftId: gifts[0].id, categoryId: cocinaCategory.id },
+      data: { giftId: gifts[0].id, categoryId: cocinaCategory.id, weddingListId: weddingList.id },
     }),
     // Licuadora -> Electrodomésticos
     prisma.giftCategoryOnGift.create({
-      data: { giftId: gifts[1].id, categoryId: electroCategory.id },
+      data: { giftId: gifts[1].id, categoryId: electroCategory.id, weddingListId: weddingList.id },
     }),
     // Juego de Toallas -> Baño
     prisma.giftCategoryOnGift.create({
-      data: { giftId: gifts[2].id, categoryId: banoCategory.id },
+      data: { giftId: gifts[2].id, categoryId: banoCategory.id, weddingListId: weddingList.id },
     }),
     // TV -> Electrodomésticos
     prisma.giftCategoryOnGift.create({
-      data: { giftId: gifts[3].id, categoryId: electroCategory.id },
+      data: { giftId: gifts[3].id, categoryId: electroCategory.id, weddingListId: weddingList.id },
     }),
     // Cena en Islandia -> Viaje
     prisma.giftCategoryOnGift.create({
-      data: { giftId: gifts[4].id, categoryId: viajeCategory.id },
+      data: { giftId: gifts[4].id, categoryId: viajeCategory.id, weddingListId: weddingList.id },
     }),
     // Tour por Dolomitas -> Viaje
     prisma.giftCategoryOnGift.create({
-      data: { giftId: gifts[5].id, categoryId: viajeCategory.id },
+      data: { giftId: gifts[5].id, categoryId: viajeCategory.id, weddingListId: weddingList.id },
     }),
     // Nespresso -> Electrodomésticos + Cocina (example of multiple categories)
     prisma.giftCategoryOnGift.create({
-      data: { giftId: gifts[6].id, categoryId: electroCategory.id },
+      data: { giftId: gifts[6].id, categoryId: electroCategory.id, weddingListId: weddingList.id },
     }),
     prisma.giftCategoryOnGift.create({
-      data: { giftId: gifts[6].id, categoryId: cocinaCategory.id },
+      data: { giftId: gifts[6].id, categoryId: cocinaCategory.id, weddingListId: weddingList.id },
     }),
   ]);
 

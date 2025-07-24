@@ -282,7 +282,7 @@ components:
           type: number
         currency:
           type: string
-          default: "usd"
+          default: 'usd'
         status:
           type: string
           enum: [PENDING, COMPLETED, FAILED, CANCELLED]
@@ -308,7 +308,7 @@ components:
           description: Amount in cents
         currency:
           type: string
-          default: "usd"
+          default: 'usd'
 
     # Purchase Schemas
     Purchase:
@@ -619,7 +619,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   # Gift endpoints
-  /gifts:
+  /gift:
     get:
       summary: Get all gifts
       tags: [Gifts]
@@ -676,7 +676,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /gifts/{id}:
+  /gift/{id}:
     get:
       summary: Get gift by ID
       tags: [Gifts]
@@ -1057,6 +1057,467 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  # Wedding List endpoints
+  /wedding-list:
+    get:
+      summary: Get all wedding lists
+      tags: [WeddingLists]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of all wedding lists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WeddingList'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a wedding list
+      tags: [WeddingLists]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeddingList'
+      responses:
+        '201':
+          description: Wedding list created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeddingList'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /wedding-list/{coupleId}:
+    get:
+      summary: Get wedding list by couple ID
+      tags: [WeddingLists]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: coupleId
+          schema:
+            type: integer
+          required: true
+          description: Couple ID
+      responses:
+        '200':
+          description: Wedding list for couple
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeddingList'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Wedding list not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /wedding-list/{weddingListId}:
+    put:
+      summary: Update a wedding list
+      tags: [WeddingLists]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: weddingListId
+          schema:
+            type: integer
+          required: true
+          description: Wedding list ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeddingList'
+      responses:
+        '200':
+          description: Wedding list updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeddingList'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Wedding list not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /wedding-list/{weddingListId}/gifts:
+    get:
+      summary: Get gifts by wedding list
+      tags: [WeddingLists]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: weddingListId
+          schema:
+            type: integer
+          required: true
+          description: Wedding list ID
+      responses:
+        '200':
+          description: List of gifts in wedding list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Gift'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Wedding list not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /wedding-list/{weddingListId}/wedding-list-by-category:
+    get:
+      summary: Get categories in wedding list
+      tags: [WeddingLists]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: weddingListId
+          schema:
+            type: integer
+          required: true
+          description: Wedding list ID
+      responses:
+        '200':
+          description: List of categories in wedding list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Wedding list not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /wedding-list/{weddingListId}/reorder:
+    put:
+      summary: Reorder gifts in wedding list
+      tags: [WeddingLists]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: weddingListId
+          schema:
+            type: integer
+          required: true
+          description: Wedding list ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                giftIds:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: Gifts reordered successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Wedding list not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Gift purchase endpoints
+  /gift/purchase/{giftId}:
+    post:
+      summary: Purchase a gift
+      tags: [Gifts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: giftId
+          schema:
+            type: integer
+          required: true
+          description: Gift ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                message:
+                  type: string
+      responses:
+        '200':
+          description: Gift purchased successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Gift not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /gift/purchases/{purchaseId}:
+    patch:
+      summary: Update purchase status
+      tags: [Gifts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: purchaseId
+          schema:
+            type: integer
+          required: true
+          description: Purchase ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [PENDING, DELIVERED, THANKED]
+      responses:
+        '200':
+          description: Purchase status updated successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Purchase not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /gift/purchased/{coupleId}:
+    get:
+      summary: Get purchased gifts for a couple
+      tags: [Gifts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: coupleId
+          schema:
+            type: integer
+          required: true
+          description: Couple ID
+      responses:
+        '200':
+          description: List of purchased gifts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Gift'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No purchased gifts found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /gift/user-purchases/{userId}:
+    get:
+      summary: Get user purchases
+      tags: [Gifts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: User ID
+      responses:
+        '200':
+          description: List of user purchases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Purchase'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No purchases found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 tags:
   - name: Users
     description: User management operations
@@ -1064,6 +1525,8 @@ tags:
     description: Authentication operations
   - name: Gifts
     description: Gift management operations
+  - name: WeddingLists
+    description: Wedding list management operations
   - name: Cart
     description: Shopping cart operations
   - name: Payments

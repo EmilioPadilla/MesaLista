@@ -1,9 +1,10 @@
 import { Button, Form, Input, InputNumber, Modal, Checkbox, message, Select } from 'antd';
 import { useState, useEffect } from 'react';
-import { Gift } from '@prisma/client';
 import { useCreateGift, useGiftById, useUpdateGift } from 'hooks/useGift';
 import { useUploadFile } from 'hooks/useFiles';
 import { FileUpload } from '../core/FileUpload';
+import { useCategoriesByWeddingList } from 'hooks/useWeddingList';
+import { Gift } from 'types/models/gift';
 
 interface GiftModalProps {
   weddingListId?: number;
@@ -20,6 +21,7 @@ export const GiftModal = ({ weddingListId, giftId, open, onCancel, afterClose }:
 
   const isEditing = !!giftId;
   const { data: existingGift, isLoading: loadingGift } = useGiftById(giftId, { enabled: isEditing });
+  const { data: categories } = useCategoriesByWeddingList(weddingListId);
   const { mutate: createGift, isSuccess: createSuccess, isError: createError } = useCreateGift();
   const { mutate: updateGift, isSuccess: updateSuccess, isError: updateError } = useUpdateGift();
   const { mutate: uploadFile, data: imageData } = useUploadFile();
@@ -31,15 +33,22 @@ export const GiftModal = ({ weddingListId, giftId, open, onCancel, afterClose }:
   }, [uploadFiles]);
 
   const handleFinish = (values: any) => {
+    let categoriesPayload = values.categories;
+    if (Array.isArray(categoriesPayload)) {
+      categoriesPayload = categoriesPayload.map((cat: string) => ({ name: cat }));
+    }
+
     if (isEditing && giftId) {
       const updatedGiftData = {
         ...values,
+        categories: categoriesPayload,
         imageUrl: imageUrl || existingGift?.imageUrl,
       };
       updateGift({ id: giftId, data: updatedGiftData });
     } else {
       const newGift = {
         ...values,
+        categories: categoriesPayload,
         weddingListId,
         imageUrl,
         isPurchased: false,
@@ -63,6 +72,8 @@ export const GiftModal = ({ weddingListId, giftId, open, onCancel, afterClose }:
         price: existingGift.price,
         quantity: existingGift.quantity,
         isMostWanted: existingGift.isMostWanted,
+        // @ts-ignore
+        categories: existingGift.categories,
         description: existingGift.description,
       });
       setImageUrl(existingGift.imageUrl || undefined);
@@ -88,16 +99,7 @@ export const GiftModal = ({ weddingListId, giftId, open, onCancel, afterClose }:
       message.error('Error al actualizar el regalo');
     }
   }, [createSuccess, createError, updateSuccess, updateError]);
-
-  const categoryOptions = [
-    { value: 'Cocina', label: 'Cocina' },
-    { value: 'Electrodomésticos', label: 'Electrodomésticos' },
-    { value: 'Dormitorio', label: 'Dormitorio' },
-    { value: 'Baño', label: 'Baño' },
-    { value: 'Viaje', label: 'Viaje' },
-    { value: 'Decoración', label: 'Decoración' },
-    { value: 'Otros', label: 'Otros' },
-  ];
+  const categoryOptions = categories?.categories?.map((category: any) => ({ value: category.name, label: category.name }));
 
   return (
     <Modal
@@ -147,10 +149,11 @@ export const GiftModal = ({ weddingListId, giftId, open, onCancel, afterClose }:
             </Form.Item>
 
             {/* Category */}
-            <Form.Item className="!mb-2" name="category" label="Categoría">
+            <Form.Item className="!mb-2" name="categories" label="Categoría">
               <Select
-                mode="multiple"
+                mode="tags"
                 allowClear
+                optionFilterProp="label"
                 style={{ width: '100%' }}
                 placeholder="Selecciona de 1 a 3 categorías"
                 options={categoryOptions}

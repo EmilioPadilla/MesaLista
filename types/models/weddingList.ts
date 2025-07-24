@@ -55,4 +55,5 @@ export interface UpdateWeddingListRequest {
   coupleName?: string;
   weddingDate?: string;
   imageUrl?: string;
+  invitationCount?: number;
 }

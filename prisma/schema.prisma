@@ -46,6 +46,7 @@ model WeddingList {
   updatedAt     DateTime  @updatedAt @map("updated_at")
   couple        User      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   gifts         Gift[]
+  categoriesOnGifts GiftCategoryOnGift[]
 
   @@map("wedding_lists")
 }
@@ -82,12 +83,14 @@ model GiftCategory {
 }
 
 model GiftCategoryOnGift {
-  id           Int          @id @default(autoincrement())
-  giftId       Int          @map("gift_id")
-  categoryId   Int          @map("category_id")
-  createdAt    DateTime     @default(now()) @map("created_at")
-  gift         Gift         @relation(fields: [giftId], references: [id], onDelete: Cascade)
-  category     GiftCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  id             Int          @id @default(autoincrement())
+  giftId         Int          @map("gift_id")
+  categoryId     Int          @map("category_id")
+  weddingListId  Int          @map("wedding_list_id")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  gift           Gift         @relation(fields: [giftId], references: [id], onDelete: Cascade)
+  category       GiftCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  weddingList    WeddingList  @relation(fields: [weddingListId], references: [id], onDelete: Cascade)
 
   @@unique([giftId, categoryId])
   @@map("gift_categories_on_gifts")

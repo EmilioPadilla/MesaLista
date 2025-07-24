@@ -28,7 +28,7 @@ export const useWeddingListByCouple = (coupleId: number | undefined, options?: P
   return useQuery({
     queryKey: [queryKeys.weddingListByCouple, coupleId],
     queryFn: () => weddingListService.getWeddingListByCouple(coupleId!),
-    enabled: !!coupleId, // Only fetch if coupleId is provided
+    enabled: !!coupleId,
     ...options,
   });
 };
@@ -70,7 +70,7 @@ export const useUpdateWeddingList = () => {
     mutationFn: ({ id, data }: { id: number; data: Partial<UpdateWeddingListRequest> }) => weddingListService.updateWeddingList(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.weddingLists] });
-      queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple, variables.id] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple] });
     },
   });
 };
@@ -92,15 +92,43 @@ export const useCategoriesByWeddingList = (weddingListId?: number) => {
 /**
  * Hook to reorder gifts
  */
-export const useReorderGifts = () => {
+export const useReorderGifts = (coupleId?: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ weddingListId, giftOrders }: { weddingListId: number; giftOrders: Array<{ giftId: number; order: number }> }) =>
       weddingListService.reorderGifts(weddingListId, giftOrders),
-    onSuccess: () => {
-      // Invalidate and refetch wedding list data to get updated order
-      queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple] });
+    // Optimistic update logic
+    onMutate: async ({ giftOrders }) => {
+      // Find all queries for weddingListByCouple with this weddingListId as coupleId
+      const queryKey = [queryKeys.weddingListByCouple, coupleId];
+      // Get previous data for rollback
+      const previousWeddingList = queryClient.getQueryData<WeddingListWithGifts>(queryKey);
+      if (previousWeddingList) {
+        // Create a map from giftId to new order
+        const orderMap = new Map<number, number>(giftOrders.map((o) => [o.giftId, o.order]));
+        // Update the order field of each gift, do not reorder the array
+        const newGifts = previousWeddingList.gifts.map((gift) => ({
+          ...gift,
+          order: orderMap.get(gift.id) ?? gift.order,
+        }));
+        // Optimistically update the cache
+        queryClient.setQueryData<WeddingListWithGifts>(queryKey, {
+          ...previousWeddingList,
+          gifts: newGifts,
+        });
+      }
+      return { previousWeddingList, queryKey };
+    },
+    // Rollback on error
+    onError: (err, variables, context) => {
+      if (context?.previousWeddingList && context?.queryKey) {
+        queryClient.setQueryData(context.queryKey, context.previousWeddingList);
+      }
+    },
+    // Always refetch after mutation
+    onSettled: (_data, _error, variables) => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple, coupleId] });
     },
   });
 };

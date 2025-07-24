@@ -7,9 +7,10 @@ body {
   }
 
   .ant-card {
-    &.ant-card-no-boder {
+    &.ant-card-no-border {
       &.ant-card-bordered {
-        border: none !important;
+        border: 8px !important;
+        border-color: white !important;
       }
     }
   }

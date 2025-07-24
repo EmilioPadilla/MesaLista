@@ -7,6 +7,8 @@ import type { User } from '@prisma/client';
 import { GiftsList } from 'components/manageRegistry/GiftsList';
 import { useComponentMountControl } from 'hooks/useComponentMountControl';
 import { GiftModal } from 'components/manageRegistry/GiftModal';
+import { useUpdateWeddingList } from 'hooks/useWeddingList';
+import { WeddingListWithGifts } from 'types/models/weddingList';
 
 type OutletContextType = {
   userData?: User;
@@ -25,6 +27,12 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
     handleAfterClose: handleAfterCloseGiftModal,
   } = useComponentMountControl();
   const [editingGiftId, setEditingGiftId] = useState<number | undefined>();
+  const { mutate: updateWeddingList } = useUpdateWeddingList();
+
+  const handleUpdateWeddingList = (data: WeddingListWithGifts) => {
+    const { weddingDate, ...rest } = data;
+    updateWeddingList({ id: weddinglist?.id!, data: { ...rest, weddingDate: String(weddingDate) } });
+  };
 
   const userData = props?.userData || contextData?.userData;
   const isLoading = props?.isLoading !== undefined ? props?.isLoading : contextData?.isLoading;
@@ -43,7 +51,7 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
               <Row gutter={[16, 16]} className="mt-6">
                 {isCouple ? (
                   <>
-                    <RegistryAdvisor userData={userData} weddinglist={weddinglist!} />
+                    <RegistryAdvisor onUpdateWeddingList={handleUpdateWeddingList} userData={userData} weddinglist={weddinglist!} />
                     <GiftsList
                       weddingListData={weddinglist!}
                       onOpenGiftModal={(giftId: number | undefined) => {
@@ -84,7 +92,7 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
       )}
       {renderGiftModal && (
         <GiftModal
-          weddingListId={weddinglist?.coupleId}
+          weddingListId={weddinglist?.id}
           giftId={editingGiftId}
           open={showGiftModal}
           afterClose={handleAfterCloseGiftModal}

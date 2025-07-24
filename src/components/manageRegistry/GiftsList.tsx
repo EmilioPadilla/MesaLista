@@ -20,9 +20,14 @@ export const GiftsList = ({ weddingListData, onOpenGiftModal }: GiftsListProps) 
   const [gifts, setGifts] = useState<Gift[]>(weddingListData?.gifts || []);
 
   const { mutate: deleteGift } = useDeleteGift();
-  const { mutate: reorderGifts } = useReorderGifts();
+  const { mutate: reorderGifts } = useReorderGifts(weddingListData?.coupleId);
 
   const { data: weddingListCategories } = useCategoriesByWeddingList(weddingListData?.id);
+  useEffect(() => {
+    if (weddingListData) {
+      setGifts(weddingListData.gifts);
+    }
+  }, [weddingListData]);
 
   useEffect(() => {
     if (weddingListData) {
@@ -43,12 +48,17 @@ export const GiftsList = ({ weddingListData, onOpenGiftModal }: GiftsListProps) 
   }, [filter]);
 
   const handleReorderGifts = (reorderedGifts: Gift[]) => {
-    setGifts(reorderedGifts);
+    // Update each gift's order property to match its new index
+    const updatedGifts = reorderedGifts.map((gift, idx) => ({
+      ...gift,
+      order: idx,
+    }));
+    setGifts(updatedGifts);
 
     // Create the order updates array
-    const giftOrders = reorderedGifts.map((gift, index) => ({
+    const giftOrders = updatedGifts.map((gift) => ({
       giftId: gift.id,
-      order: index,
+      order: gift.order,
     }));
 
     // Persist the new order to the backend

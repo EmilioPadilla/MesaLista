@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Typography, Input, Card, Row, Col, Button, Avatar, Modal, Form, message, Spin } from 'antd';
-import { SearchOutlined, HeartOutlined, ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
+import { Typography, Input, Modal, Form, message, Button, Spin } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import { giftService } from '../services/gift.service';
-import type { Gift } from '@prisma/client';
-import type { WeddingListWithGifts } from 'types/models/weddingList';
+import type { Gift } from 'types/models/gift';
 import { useWeddingLists } from 'hooks/useWeddingList';
 
 const { Title, Paragraph, Text } = Typography;

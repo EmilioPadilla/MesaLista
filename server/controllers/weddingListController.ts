@@ -98,7 +98,20 @@ const weddingListController = {
         return res.status(404).json({ error: 'Wedding list not found' });
       }
 
-      res.json(weddingList);
+      // Transform categories to only include {id, name}
+      const transformedGifts = weddingList.gifts.map((gift: any) => ({
+        ...gift,
+        categories: Array.isArray(gift.categories)
+          ? gift.categories
+              .map((catRel: any) =>
+                catRel.category && catRel.category.id && catRel.category.name
+                  ? { id: catRel.category.id, name: catRel.category.name }
+                  : null,
+              )
+              .filter(Boolean)
+          : [],
+      }));
+      res.json({ ...weddingList, gifts: transformedGifts });
     } catch (error) {
       console.error('Error fetching wedding list:', error);
       res.status(500).json({ error: 'Failed to fetch wedding list' });
@@ -140,7 +153,7 @@ const weddingListController = {
   // Update a wedding list
   updateWeddingList: async (req: Request, res: Response) => {
     const { weddingListId } = req.params;
-    const { title, description, coupleName, weddingDate, imageUrl } = req.body as UpdateWeddingListRequest;
+    const { title, description, coupleName, weddingDate, imageUrl, invitationCount } = req.body as UpdateWeddingListRequest;
 
     if (!weddingListId) {
       return res.status(400).json({ error: 'Wedding list ID is required' });
@@ -155,6 +168,7 @@ const weddingListController = {
           ...(coupleName && { coupleName }),
           ...(weddingDate && { weddingDate: new Date(weddingDate) }),
           ...(imageUrl !== undefined && { imageUrl }),
+          ...(invitationCount !== undefined && { invitationCount }),
         },
       });
 
@@ -248,38 +262,21 @@ const weddingListController = {
     }
 
     try {
-      // Fetch all gifts from the wedding list with their categories
-      const gifts = await prisma.gift.findMany({
+      // Fetch unique categories directly from GiftCategoryOnGift using weddingListId
+      const categoriesOnGifts = await prisma.giftCategoryOnGift.findMany({
         where: { weddingListId: Number(weddingListId) },
-        include: {
-          categories: {
-            include: {
-              category: true,
-            },
-          },
-        },
+        include: { category: true },
       });
 
-      // Extract unique categories from all gifts
-      const categorySet = new Set<string>();
-      const categoryMap = new Map<string, number>();
-
-      gifts.forEach((gift: any) => {
-        gift.categories.forEach((giftCategory: any) => {
-          const categoryName = giftCategory.category.name;
-          if (!categorySet.has(categoryName)) {
-            categorySet.add(categoryName);
-            categoryMap.set(categoryName, giftCategory.category.id);
-          }
-        });
+      // Use a Map to ensure uniqueness by category id
+      const categoryMap = new Map<number, string>();
+      categoriesOnGifts.forEach((item) => {
+        if (item.category) {
+          categoryMap.set(item.category.id, item.category.name);
+        }
       });
 
-      // Convert to response format
-      const categories = Array.from(categorySet).map((name) => ({
-        id: categoryMap.get(name)!,
-        name,
-      }));
-
+      const categories = Array.from(categoryMap.entries()).map(([id, name]) => ({ id, name }));
       res.json({ categories });
     } catch (error) {
       console.error('Error fetching categories:', error);
