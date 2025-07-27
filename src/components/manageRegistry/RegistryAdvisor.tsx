@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { EditOutlined, CalendarOutlined, UserOutlined, GiftOutlined, ShoppingOutlined, DownOutlined } from '@ant-design/icons';
+import { EditOutlined, CalendarOutlined, UserOutlined, GiftOutlined, ShoppingOutlined, DownOutlined, UpOutlined } from '@ant-design/icons';
 import { User } from '@prisma/client';
-import { Col, Button, Card, Divider, Typography, Popconfirm, Popover, Input } from 'antd';
+import { Col, Button, Card, Divider, Typography, Popover, Input } from 'antd';
 import type { WeddingListWithGifts } from 'types/models/weddingList';
 import dayjs from 'dayjs';
 import { EditCoupleHeader } from './EditCoupleHeader';
@@ -32,7 +32,11 @@ export const RegistryAdvisor = ({ onUpdateWeddingList, userData, weddinglist }: 
           <Title className="chamberi-heading" level={1}>
             {weddinglist?.coupleName || `${(userData as unknown as User).firstName} & ${(userData as unknown as User).spouseFirstName}`}
           </Title>
-          <Button type="link" icon={<DownOutlined />} className="text-gray-500" onClick={() => setIsEditHeaderOpen(!isEditHeaderOpen)}>
+          <Button
+            type="link"
+            icon={isEditHeaderOpen ? <UpOutlined /> : <DownOutlined />}
+            className="text-gray-500"
+            onClick={() => setIsEditHeaderOpen(!isEditHeaderOpen)}>
             Editar Foto y Nota
           </Button>
         </div>

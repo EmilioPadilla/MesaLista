@@ -31,21 +31,23 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
   };
 
   const handleMove = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    e?.preventDefault();
+    e?.stopPropagation();
     if (onMove) onMove(gift.id);
   };
   const purchasedCount = gift.isPurchased ? 1 : 0;
   const requestedCount = gift.quantity;
 
-  const handleEditImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleEditGift = (e: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     onEdit(gift.id);
   };
 
   return (
     <Card
-      className={`transition-all duration-200 ant-card-no-border h-full ${isHovered ? 'shadow-xl border-gray-300' : ''}`}
+      onClick={handleEditGift}
+      className={`transition-all duration-200 ant-card-no-border h-full ${isHovered ? 'shadow-xl border-gray-300 cursor-pointer' : ''}`}
       styles={{ body: { padding: '16px', display: 'flex', flexDirection: 'column' } }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -70,27 +72,28 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
             />
           )}
           {isHovered && (
-            <div className="absolute top-2 right-2 flex space-x-2 gift-card-actions">
-              <Button icon={<EditOutlined />} size="small" className="bg-white hover:bg-gray-100" onClick={handleEditImage} />
+            <div className="absolute top-2 left-0 right-0 flex justify-between items-center gift-card-actions">
+              <div onClick={(e) => e.stopPropagation()}>
+                <Popconfirm
+                  title="Delete Gift"
+                  className="pop-delete ml-1"
+                  description="Are you sure you want to delete this gift?"
+                  onConfirm={handleDelete}
+                  okText="Yes"
+                  icon={<ExclamationCircleFilled />}
+                  okButtonProps={{ danger: true }}
+                  cancelText="No">
+                  <Button icon={<DeleteOutlined />} size="small" danger className="bg-white hover:bg-red-50" />
+                </Popconfirm>
+              </div>
               <Button
                 icon={<DragOutlined />}
                 size="small"
-                className="bg-white hover:bg-gray-100 cursor-grab"
+                className="bg-white hover:bg-gray-100 cursor-grab mr-1"
                 onClick={handleMove}
                 {...(dragHandleProps?.listeners || {})}
                 {...(dragHandleProps?.attributes || {})}
               />
-              <Popconfirm
-                title="Delete Gift"
-                className="pop-delete"
-                description="Are you sure you want to delete this gift?"
-                onConfirm={handleDelete}
-                okText="Yes"
-                icon={<ExclamationCircleFilled />}
-                okButtonProps={{ danger: true }}
-                cancelText="No">
-                <Button icon={<DeleteOutlined />} size="small" danger className="bg-white hover:bg-red-50" />
-              </Popconfirm>
             </div>
           )}
         </div>
