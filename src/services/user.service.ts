@@ -1,4 +1,4 @@
-import apiClient from './client';
+import apiClient, { CustomAxiosRequestConfig } from './client';
 import { user_endpoints } from './endpoints';
 import { User } from 'types/models/user';
 
@@ -22,6 +22,11 @@ export const userService = {
 
   getById: async (id: number): Promise<User> => {
     const response = await apiClient.get(user_endpoints.byId(id));
+    return response.data;
+  },
+
+  getBySlug: async (coupleSlug: string): Promise<User> => {
+    const response = await apiClient.get(user_endpoints.bySlug(coupleSlug), { skipAuth: true } as CustomAxiosRequestConfig);
     return response.data;
   },
 

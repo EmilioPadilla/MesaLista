@@ -9,6 +9,8 @@ router.post('/', userController.createUser); // Registration is public
 
 router.post('/login', userController.loginUser); // Login is public
 
+router.get('/slug/:coupleSlug', userController.getUserBySlug); // Get user by couple slug
+
 // Protected routes (authentication required)
 router.get('/me', authenticateToken, userController.getCurrentUser); // Get current user
 

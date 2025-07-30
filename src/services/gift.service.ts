@@ -1,6 +1,6 @@
 import apiClient from './client';
-import type { Gift, GiftPurchase } from '@prisma/client';
-import type { PurchasedGiftsResponse } from 'types/api/gift';
+import type { Gift, GiftPurchase } from 'types/models/gift';
+import { PurchasedGiftsResponse } from 'types/api/gift';
 import { gift_endpoints } from './endpoints';
 import { purchase_endpoints } from './endpoints';
 

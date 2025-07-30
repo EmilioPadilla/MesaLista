@@ -50,6 +50,7 @@ async function main() {
       lastName: 'Rosales',
       spouseFirstName: 'Emilio',
       spouseLastName: 'Padilla',
+      coupleSlug: 'sol-y-emilio',
       email: 'sol.emilio@example.com',
       password: await bcrypt.hash('couple123', saltRounds),
       phoneNumber: '+52 123 456 7890',

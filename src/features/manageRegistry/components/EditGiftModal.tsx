@@ -2,8 +2,8 @@ import { Button, Form, Input, InputNumber, Modal, Checkbox, message, Select } fr
 import { useState, useEffect } from 'react';
 import { useCreateGift, useGiftById, useUpdateGift } from 'hooks/useGift';
 import { useUploadFile } from 'hooks/useFiles';
-import { FileUpload } from '../core/FileUpload';
-import { useCategoriesByWeddingList } from 'hooks/useWeddingList';
+import { FileUpload } from 'components/core/FileUpload';
+import { useGetCategoriesByWeddingList } from 'hooks/useWeddingList';
 import { Gift } from 'types/models/gift';
 
 interface GiftModalProps {
@@ -21,7 +21,7 @@ export const GiftModal = ({ weddingListId, giftId, open, onCancel, afterClose }:
 
   const isEditing = !!giftId;
   const { data: existingGift, isLoading: loadingGift } = useGiftById(giftId, { enabled: isEditing });
-  const { data: categories } = useCategoriesByWeddingList(weddingListId);
+  const { data: categories } = useGetCategoriesByWeddingList(weddingListId);
   const { mutate: createGift, isSuccess: createSuccess, isError: createError } = useCreateGift();
   const { mutate: updateGift, isSuccess: updateSuccess, isError: updateError } = useUpdateGift();
   const { mutate: uploadFile, data: imageData } = useUploadFile();

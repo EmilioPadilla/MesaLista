@@ -1,7 +1,7 @@
 import React from 'react';
 import { Col } from 'antd';
-import { GiftCard } from './GiftCard';
-import { SortableItem } from '../core/SortableItem';
+import { GiftCard } from '../../../components/shared/GiftCard';
+import { SortableItem } from 'components/core/SortableItem';
 import type { Gift } from 'types/models/gift';
 
 interface SortableGiftItemProps {

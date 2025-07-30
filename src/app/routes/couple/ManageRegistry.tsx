@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Card, Spin, Row, Col, Button } from 'antd';
 import { useOutletContext } from 'react-router-dom';
-import { useWeddingListByCouple } from 'hooks/useWeddingList';
-import { RegistryAdvisor } from 'components/manageRegistry/RegistryAdvisor';
+import { useGetCategoriesByWeddingList, useWeddingListByCouple } from 'hooks/useWeddingList';
+import { RegistryAdvisor } from 'features/manageRegistry/components/RegistryAdvisor';
 import type { User } from '@prisma/client';
-import { GiftsList } from 'components/manageRegistry/GiftsList';
+import { GiftsList } from 'src/components/shared/GiftsList';
 import { useComponentMountControl } from 'hooks/useComponentMountControl';
-import { GiftModal } from 'components/manageRegistry/GiftModal';
+import { GiftModal } from 'src/features/manageRegistry/components/EditGiftModal';
 import { useUpdateWeddingList } from 'hooks/useWeddingList';
 import { WeddingListWithGifts } from 'types/models/weddingList';
 
@@ -20,12 +20,15 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
   // Use props if provided directly, otherwise use context from Outlet
   const contextData = useOutletContext<OutletContextType>();
   const { data: weddinglist } = useWeddingListByCouple(contextData?.userData?.id);
+  const { data: weddingListCategories } = useGetCategoriesByWeddingList(weddinglist?.id);
+
   const {
-    isOpen: showGiftModal,
-    setIsOpen: setShowGiftModal,
-    shouldRender: renderGiftModal,
-    handleAfterClose: handleAfterCloseGiftModal,
+    isOpen: showEditGiftModal,
+    setIsOpen: setShowEditGiftModal,
+    shouldRender: renderEditGiftModal,
+    handleAfterClose: handleAfterCloseEditGiftModal,
   } = useComponentMountControl();
+
   const [editingGiftId, setEditingGiftId] = useState<number | undefined>();
   const { mutate: updateWeddingList } = useUpdateWeddingList();
 
@@ -53,10 +56,11 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
                   <>
                     <RegistryAdvisor onUpdateWeddingList={handleUpdateWeddingList} userData={userData} weddinglist={weddinglist!} />
                     <GiftsList
+                      weddingListCategories={weddingListCategories}
                       weddingListData={weddinglist!}
                       onOpenGiftModal={(giftId: number | undefined) => {
                         setEditingGiftId(giftId);
-                        setShowGiftModal(true);
+                        setShowEditGiftModal(true);
                       }}
                     />
                   </>
@@ -90,14 +94,14 @@ const ManageRegistry: React.FC<OutletContextType> = (props?: OutletContextType) 
           )}
         </div>
       )}
-      {renderGiftModal && (
+      {renderEditGiftModal && (
         <GiftModal
           weddingListId={weddinglist?.id}
           giftId={editingGiftId}
-          open={showGiftModal}
-          afterClose={handleAfterCloseGiftModal}
+          open={showEditGiftModal}
+          afterClose={handleAfterCloseEditGiftModal}
           onCancel={() => {
-            setShowGiftModal(false);
+            setShowEditGiftModal(false);
             setEditingGiftId(undefined);
           }}
         />

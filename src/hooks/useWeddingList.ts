@@ -34,6 +34,21 @@ export const useWeddingListByCouple = (coupleId: number | undefined, options?: P
 };
 
 /**
+ * Hook to fetch a wedding list by couple slug
+ *
+ * @param coupleSlug Slug of the couple
+ * @param options React Query options
+ */
+export const useWeddingListBySlug = (coupleSlug: string | undefined, options?: Partial<UseQueryOptions<WeddingListWithGifts, Error>>) => {
+  return useQuery({
+    queryKey: [queryKeys.weddingListBySlug, coupleSlug],
+    queryFn: () => weddingListService.getWeddingListBySlug(coupleSlug!),
+    enabled: !!coupleSlug,
+    ...options,
+  });
+};
+
+/**
  * Hook to fetch gifts by wedding list ID
  *
  * @param weddingListId ID of the wedding list
@@ -81,7 +96,7 @@ export const useUpdateWeddingList = () => {
  * @param weddingListId ID of the wedding list
  * @param options React Query options
  */
-export const useCategoriesByWeddingList = (weddingListId?: number) => {
+export const useGetCategoriesByWeddingList = (weddingListId?: number) => {
   return useQuery({
     queryKey: [queryKeys.categoriesByWeddingList, weddingListId],
     queryFn: () => weddingListService.getCategoriesByWeddingList(weddingListId!),

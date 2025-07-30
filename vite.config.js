@@ -21,6 +21,7 @@ export default defineConfig({
       components: resolvePath('components'),
       core: resolvePath('components/core'),
       constants: resolvePath('constants'),
+      features: resolvePath('features'),
       hooks: resolvePath('hooks'),
       modules: resolvePath('modules'),
       routes: resolvePath('app/routes'),

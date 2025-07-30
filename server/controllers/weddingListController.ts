@@ -118,6 +118,65 @@ const weddingListController = {
     }
   },
 
+  // Get wedding list by couple slug
+  getWeddingListBySlug: async (req: Request, res: Response) => {
+    const { coupleSlug } = req.params;
+
+    if (!coupleSlug) {
+      return res.status(400).json({ error: 'Couple slug is required' });
+    }
+
+    try {
+      // First find the user by coupleSlug
+      const user = await prisma.user.findUnique({
+        where: { coupleSlug },
+        select: { id: true },
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: 'Couple not found' });
+      }
+
+      // Then find the wedding list by coupleId
+      const weddingList = await prisma.weddingList.findUnique({
+        where: { coupleId: user.id },
+        include: {
+          gifts: {
+            include: {
+              categories: {
+                include: {
+                  category: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!weddingList) {
+        return res.status(404).json({ error: 'Wedding list not found' });
+      }
+
+      // Transform categories to only include {id, name}
+      const transformedGifts = weddingList.gifts.map((gift: any) => ({
+        ...gift,
+        categories: Array.isArray(gift.categories)
+          ? gift.categories
+              .map((catRel: any) =>
+                catRel.category && catRel.category.id && catRel.category.name
+                  ? { id: catRel.category.id, name: catRel.category.name }
+                  : null,
+              )
+              .filter(Boolean)
+          : [],
+      }));
+      res.json({ ...weddingList, gifts: transformedGifts });
+    } catch (error) {
+      console.error('Error fetching wedding list by slug:', error);
+      res.status(500).json({ error: 'Failed to fetch wedding list' });
+    }
+  },
+
   // Create a wedding list
   createWeddingList: async (req: Request, res: Response) => {
     const { coupleId, title, description, coupleName, weddingDate, imageUrl } = req.body as CreateWeddingListRequest;

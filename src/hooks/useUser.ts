@@ -46,6 +46,17 @@ export const useUserById = (userId: number | undefined, options?: Partial<UseQue
 };
 
 /**
+ * Hook to fetch a user by couple slug
+ */
+export const useGetUserBySlug = (coupleSlug: string | undefined) => {
+  return useQuery({
+    queryKey: [queryKeys.userBySlug, coupleSlug],
+    queryFn: () => userService.getBySlug(coupleSlug!),
+    enabled: !!coupleSlug,
+  });
+};
+
+/**
  * Hook to login a user
  */
 export const useLogin = () => {

@@ -56,6 +56,14 @@ export const user_endpoints = {
   byId: (id: number) => `/user/${id}`,
 
   /**
+   * Get user by couple slug
+   * @method GET
+   * @access Public
+   * @param coupleSlug Couple slug
+   */
+  bySlug: (coupleSlug: string) => `/user/slug/${coupleSlug}`,
+
+  /**
    * Login user
    * @method POST
    * @access Public
@@ -108,6 +116,14 @@ export const weddingList_endpoints = {
    * @param coupleId Couple ID
    */
   getByCouple: (coupleId: number) => `/wedding-list/${coupleId}`,
+
+  /**
+   * Get wedding list by couple slug
+   * @method GET
+   * @access Public
+   * @param coupleSlug Couple slug
+   */
+  getBySlug: (coupleSlug: string) => `/wedding-list/slug/${coupleSlug}`,
 
   /**
    * Update a wedding list
@@ -185,6 +201,52 @@ export const purchase_endpoints = {
    * @param userId User ID
    */
   getUserPurchases: (userId: number) => `/gifts/user-purchases/${userId}`,
+};
+
+/**
+ * Cart endpoints
+ */
+export const cart_endpoints = {
+  /**
+   * Base cart endpoint
+   */
+  base: `/cart`,
+
+  /**
+   * Add item to cart
+   * @method POST
+   * @access Protected
+   * @requires JWT token
+   */
+  addItem: `/cart/add`,
+
+  /**
+   * Remove item from cart
+   * @method DELETE
+   * @method GET
+   * @method PUT
+   * @access Protected
+   * @requires JWT token
+   * @param giftId Gift ID
+   */
+  byId: (giftId: number) => `/cart/item/${giftId}`,
+
+  /**
+   Update details from Cart
+   @method PUT
+   @access Protected
+   @requires JWT token
+   @param giftId Gift ID
+   */
+  updateDetails: (giftId: number) => `/cart/${giftId}/details`,
+
+  /**
+   * Checkout cart
+   * @method POST
+   * @access Protected
+   * @requires JWT token
+   */
+  checkout: (giftId: number) => `/cart/${giftId}/checkout`,
 };
 
 /**

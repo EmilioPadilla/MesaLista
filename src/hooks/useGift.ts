@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
-import type { Gift } from '@prisma/client';
 import type { PurchasedGiftsResponse } from 'types/api/gift';
 import { giftService } from '../services/gift.service';
 import { queryKeys } from './queryKeys';
+import { Gift } from 'types/models/gift';
 
 /**
  * Hook to fetch a gift by ID

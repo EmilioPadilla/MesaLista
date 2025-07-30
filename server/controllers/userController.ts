@@ -83,6 +83,40 @@ export const userController = {
     }
   },
 
+  // Get user by couple slug
+  getUserBySlug: async (req: Request, res: Response) => {
+    const { coupleSlug } = req.params;
+
+    try {
+      const user = (await prisma.user.findUnique({
+        where: { coupleSlug },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          spouseFirstName: true,
+          spouseLastName: true,
+          coupleSlug: true,
+          imageUrl: true,
+          phoneNumber: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })) as UserResponse;
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.json(user);
+    } catch (error: unknown) {
+      console.error('Error fetching user by slug:', error);
+      res.status(500).json({ error: 'Failed to fetch user' });
+    }
+  },
+
   // Get user by ID
   getUserById: async (req: Request, res: Response) => {
     const { id } = req.params;

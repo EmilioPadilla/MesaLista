@@ -8,16 +8,16 @@ import Signup from 'routes/Signup';
 import Dashboard from 'routes/Dashboard';
 
 // Components
-import ManageRegistry from 'routes/ManageRegistry';
-import GiftRegistry from 'routes/GiftRegistry';
-import PurchasedGifts from 'routes/PurchasedGifts';
+import ManageRegistry from 'src/app/routes/couple/ManageRegistry';
+import PurchasedGifts from 'src/app/routes/guest/PurchasedGifts';
+import PublicRegistry from 'src/app/routes/guest/PublicRegistry';
 
 // Components
 import ProtectedRoute from 'components/ProtectedRoute';
 
 // Auth service
 import { userService } from 'services/user.service';
-import GiftLists from 'src/components/GiftList';
+import BuyGifts from 'src/app/routes/guest/BuyGifts';
 import MyPurchases from 'components/MyPurchases';
 import antdThemeConfig from 'styles/config/antdThemeConfig';
 import { useEffect } from 'react';
@@ -37,24 +37,28 @@ function App() {
     <ConfigProvider theme={antdThemeConfig}>
       <BrowserRouter>
         <Routes>
+          {/* Public registry view for guests */}
+          <Route path="/:coupleSlug" element={<PublicRegistry />}>
+            <Route path="regalos" element={<BuyGifts />} />
+          </Route>
           {/* Public routes */}
           <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
-          <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Signup />} />
+          <Route path="/registrar" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Signup />} />
 
-          {/* Protected routes */}
+          {/* Protected routes for couple */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />}>
               <Route index element={<ManageRegistry />} />
-              <Route path="gift-registry" element={<GiftRegistry />} />
-              <Route path="purchased-gifts" element={<PurchasedGifts />} />
+              <Route path="compras-realizadas" element={<PurchasedGifts />} />
+              <Route path="mis-compras" element={<MyPurchases />} />
               <Route path="messages" element={<div className="m-6 p-6 bg-white rounded-lg shadow">Mensajes (En desarrollo)</div>} />
-              <Route path="gift-lists" element={<GiftLists />} />
-              <Route path="my-purchases" element={<MyPurchases />} />
               <Route path="profile" element={<div className="m-6 p-6 bg-white rounded-lg shadow">Mi Perfil (En desarrollo)</div>} />
               <Route path="settings" element={<div className="m-6 p-6 bg-white rounded-lg shadow">Configuración (En desarrollo)</div>} />
             </Route>
-            {/* Add more protected routes here */}
           </Route>
+
+          {/* Protected routes for guest */}
+          <Route element={<ProtectedRoute />}></Route>
 
           {/* Redirect to login or dashboard based on auth status */}
           <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} />} />

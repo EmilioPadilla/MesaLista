@@ -4,10 +4,10 @@ import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
+router.get('/:id', giftController.getGiftById);
+
 // Apply authentication middleware to all gift routes
 router.use(authenticateToken);
-
-router.get('/:id', giftController.getGiftById);
 
 router.post('/', giftController.createGift);
 

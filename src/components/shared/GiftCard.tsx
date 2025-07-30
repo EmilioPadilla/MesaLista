@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card, Button, Popconfirm } from 'antd';
-import { DeleteOutlined, DragOutlined, EditOutlined, ExclamationCircleFilled } from '@ant-design/icons';
+import { DeleteOutlined, DragOutlined, ExclamationCircleFilled, ShopOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import type { Gift } from 'types/models/gift';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
@@ -11,14 +11,16 @@ interface DragHandleProps {
 }
 
 interface GiftCardProps {
+  isGuest?: boolean;
   gift: Gift;
   onDelete?: (giftId: number) => void;
   onMove?: (giftId: number) => void;
   onEdit: (giftId: number | undefined) => void;
+  onAddToCart?: (giftId: number) => void;
   dragHandleProps?: DragHandleProps;
 }
 
-export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEdit, dragHandleProps }) => {
+export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEdit, onAddToCart, dragHandleProps, isGuest = false }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -44,6 +46,12 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
     onEdit(gift.id);
   };
 
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (onAddToCart) onAddToCart(gift.id);
+  };
+
   return (
     <Card
       onClick={handleEditGift}
@@ -51,10 +59,27 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
       styles={{ body: { padding: '16px', display: 'flex', flexDirection: 'column' } }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      actions={
+        isGuest
+          ? [
+              <div className="flex justify-center items-center gift-card-actions">
+                <Button
+                  icon={<ShoppingCartOutlined />}
+                  type="primary"
+                  disabled={gift.isPurchased}
+                  size="small"
+                  className="bg-white w-3/5 hover:bg-gray-100 cursor-grab mr-1"
+                  onClick={handleAddToCart}>
+                  Agregar al carrito
+                </Button>
+              </div>,
+            ]
+          : undefined
+      }
       cover={
         <div className="relative overflow-hidden" style={{ height: '200px', border: '24px solid #fff' }}>
           {gift.imageUrl && !imageError ? (
-            <img src={gift.imageUrl} alt={gift.title} className="w-full h-full object-cover" onError={() => setImageError(true)} />
+            <img src={gift.imageUrl} alt={gift.title} className="w-full h-full object-contain" onError={() => setImageError(true)} />
           ) : (
             <img
               src="/images/gift_placeholder.png"
@@ -71,7 +96,7 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
               }}
             />
           )}
-          {isHovered && (
+          {!isGuest && isHovered && (
             <div className="absolute top-2 left-0 right-0 flex justify-between items-center gift-card-actions">
               <div onClick={(e) => e.stopPropagation()}>
                 <Popconfirm

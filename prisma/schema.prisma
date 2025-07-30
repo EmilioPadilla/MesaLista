@@ -15,6 +15,7 @@ model User {
   lastName      String
   spouseFirstName String?
   spouseLastName String?
+  coupleSlug    String?   @unique
   imageUrl      String?
   phoneNumber   String?
   role          UserRole  @default(GUEST)

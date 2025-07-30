@@ -12,6 +12,7 @@ export interface User {
   lastName: string;
   spouseFirstName: string;
   spouseLastName: string;
+  coupleSlug?: string;
   imageUrl?: string;
   phoneNumber?: string;
   role: UserRole;

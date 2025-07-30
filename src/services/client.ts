@@ -1,4 +1,9 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
+
+export interface CustomAxiosRequestConfig extends AxiosRequestConfig {
+  skipAuth?: boolean;
+}
+
 
 // Create an axios instance with default config
 const apiClient = axios.create({
@@ -13,6 +18,10 @@ const apiClient = axios.create({
 // Request interceptor for API calls
 apiClient.interceptors.request.use(
   (config) => {
+    // If skipAuth is set, do not add Authorization header
+    if ((config as any).skipAuth) {
+      return config;
+    }
     // Add auth token if available
     const token = localStorage.getItem('auth_token');
     if (token) {

@@ -1,4 +1,4 @@
-import apiClient from './client';
+import apiClient, { CustomAxiosRequestConfig } from './client';
 import type { CreateWeddingListRequest } from 'types/api/weddingList';
 import { api_endpoints } from './endpoints';
 import { WeddingListWithGifts } from 'types/models/weddingList';
@@ -11,6 +11,11 @@ export const weddingListService = {
 
   getWeddingListByCouple: async (coupleId: number): Promise<WeddingListWithGifts> => {
     const response = await apiClient.get(api_endpoints.weddingLists.getByCouple(coupleId));
+    return response.data;
+  },
+
+  getWeddingListBySlug: async (coupleSlug: string): Promise<WeddingListWithGifts> => {
+    const response = await apiClient.get(api_endpoints.weddingLists.getBySlug(coupleSlug), { skipAuth: true } as CustomAxiosRequestConfig);
     return response.data;
   },
 
@@ -30,7 +35,9 @@ export const weddingListService = {
   },
 
   getCategoriesByWeddingList: async (weddingListId: number): Promise<any> => {
-    const response = await apiClient.get(api_endpoints.weddingLists.getCategoriesByWeddingList(weddingListId));
+    const response = await apiClient.get(api_endpoints.weddingLists.getCategoriesByWeddingList(weddingListId), {
+      skipAuth: true,
+    } as CustomAxiosRequestConfig);
     return response.data;
   },
 
