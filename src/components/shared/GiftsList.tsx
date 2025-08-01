@@ -21,7 +21,7 @@ interface GiftsListProps {
 
 export const GiftsList = ({ isGuest = false, weddingListData, onOpenGiftModal, onAddToCart, weddingListCategories }: GiftsListProps) => {
   const [filter, setFilter] = useState('Todos');
-  const [sort, setSort] = useState('Más queridos');
+  const [sort, setSort] = useState('masQueridos');
   const [showPurchased, setShowPurchased] = useState(false);
   const [gifts, setGifts] = useState<Gift[]>(weddingListData?.gifts || []);
 
@@ -174,10 +174,7 @@ export const GiftsList = ({ isGuest = false, weddingListData, onOpenGiftModal, o
             Tus Regalos
           </Title>
         ) : (
-          <Checkbox
-            checked={showPurchased}
-            onChange={(e) => setShowPurchased(e.target.checked)}
-          >
+          <Checkbox checked={showPurchased} onChange={(e) => setShowPurchased(e.target.checked)}>
             Mostrar regalos comprados
           </Checkbox>
         )}

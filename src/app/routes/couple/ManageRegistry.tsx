@@ -6,7 +6,7 @@ import { RegistryAdvisor } from 'features/manageRegistry/components/RegistryAdvi
 import type { User } from '@prisma/client';
 import { GiftsList } from 'src/components/shared/GiftsList';
 import { useComponentMountControl } from 'hooks/useComponentMountControl';
-import { GiftModal } from 'src/features/manageRegistry/components/EditGiftModal';
+import { GiftModal } from 'src/features/manageRegistry/components/GiftModal';
 import { useUpdateWeddingList } from 'hooks/useWeddingList';
 import { WeddingListWithGifts } from 'types/models/weddingList';
 

@@ -30,6 +30,7 @@ export interface GiftPurchase {
   id: number;
   giftId: number;
   userId: number;
+  user: User;
   purchaseDate: Date;
   status: PurchaseStatus;
   message?: string;
@@ -66,11 +67,7 @@ export interface FormattedPurchase {
   giftName: string;
   price: number;
   purchaseDate: string;
-  purchasedBy: {
-    id: number;
-    name: string;
-    email: string;
-  };
+  purchasedBy: User;
   status: PurchaseStatus;
   message: string | null;
 }
@@ -80,11 +77,7 @@ export interface UserPurchase {
   giftName: string;
   price: number;
   purchaseDate: string;
-  couple: {
-    id: number;
-    name: string;
-    email: string;
-  };
+  couple: User;
   status: PurchaseStatus;
   message: string | null;
 }

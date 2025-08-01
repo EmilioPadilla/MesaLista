@@ -1,8 +1,12 @@
-import React, { useEffect } from 'react';
-import { Form, Input, Button, Card, Typography, message, Divider } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Form, Typography, message, Checkbox } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import { useLogin } from 'hooks/useUser';
+import { Button } from 'components/core/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/core/Card';
+import { Input } from 'components/core/Input';
+import { Separator } from 'components/core/Separator';
+import { Heart, Mail, Lock, ArrowLeft, Chrome, Facebook, Apple } from 'lucide-react';
 
 const { Title, Text } = Typography;
 
@@ -13,6 +17,7 @@ interface LoginFormValues {
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const { mutate: login, data: loginData, isSuccess: isLoginSuccess, isPending: isLoginPending } = useLogin();
 
@@ -21,52 +26,168 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
+    if (isLoginPending) {
+      setIsLoading(true);
+    }
+  }, [isLoginPending]);
+
+  useEffect(() => {
     if (isLoginSuccess) {
       message.success(`¡Bienvenido de nuevo, ${loginData?.name || loginData?.email}!`);
-      navigate('/dashboard');
+      navigate(`/${loginData?.coupleSlug}`);
     }
   }, [isLoginSuccess]);
 
+  const handleSocialLogin = (provider: string) => {
+    setIsLoading(true);
+
+    // Simulate social login
+    setTimeout(() => {
+      setIsLoading(false);
+      navigate('/home');
+    }, 1000);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md p-6 shadow-lg rounded-lg">
-        <div className="text-center mb-6">
-          <Title level={2} className="text-gray-800">
-            Bienvenido a MesaLista
-          </Title>
-          <Text className="text-gray-500">Inicia sesión en tu cuenta</Text>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-accent/20 flex items-center justify-center px-4 py-8">
+      {/* Background decorations */}
+      <div className="absolute top-10 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-20 right-20 w-40 h-40 bg-accent/20 rounded-full blur-2xl"></div>
 
-        <Form name="login" initialValues={{ remember: true }} onFinish={onFinish} layout="vertical" size="large">
-          <Form.Item
-            name="email"
-            rules={[
-              { required: true, message: '¡Por favor ingresa tu correo electrónico!' },
-              { type: 'email', message: '¡Por favor ingresa un correo electrónico válido!' },
-            ]}>
-            <Input prefix={<UserOutlined className="text-gray-400" />} placeholder="Correo electrónico" className="rounded-md" />
-          </Form.Item>
+      <div className="w-full max-w-md relative">
+        {/* Back button */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/')}
+          className="mb-6 flex items-center space-x-2 hover:shadow-md transition-all duration-200">
+          <ArrowLeft className="h-4 w-4" />
+          <span>Volver al inicio</span>
+        </Button>
 
-          <Form.Item name="password" rules={[{ required: true, message: '¡Por favor ingresa tu contraseña!' }]}>
-            <Input.Password prefix={<LockOutlined className="text-gray-400" />} placeholder="Contraseña" className="rounded-md" />
-          </Form.Item>
+        <Card className="shadow-2xl border-0 bg-card/95 backdrop-blur-sm">
+          <CardHeader className="text-center pb-6">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 shadow-lg">
+                <Heart className="h-8 w-8 text-primary" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl text-primary">Bienvenido de vuelta</CardTitle>
+            <CardDescription>Inicia sesión en tu cuenta de MesaLista</CardDescription>
+          </CardHeader>
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit" className="w-full rounded-md" loading={isLoginPending}>
-              Iniciar Sesión
+          <CardContent className="space-y-6">
+            {/* Social Login Options */}
+            <div className="space-y-3">
+              <Button
+                variant="outline"
+                className="w-full h-12 shadow-md hover:shadow-lg transition-all duration-200 border-primary/20 hover:border-primary/40"
+                onClick={() => handleSocialLogin('google')}
+                disabled={isLoading}>
+                <Chrome className="h-5 w-5 mr-3" />
+                Continuar con Google
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full h-12 shadow-md hover:shadow-lg transition-all duration-200 border-primary/20 hover:border-primary/40"
+                onClick={() => handleSocialLogin('facebook')}
+                disabled={isLoading}>
+                <Facebook className="h-5 w-5 mr-3 text-blue-600" />
+                Continuar con Facebook
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full h-12 shadow-md hover:shadow-lg transition-all duration-200 border-primary/20 hover:border-primary/40"
+                onClick={() => handleSocialLogin('apple')}
+                disabled={isLoading}>
+                <Apple className="h-5 w-5 mr-3" />
+                Continuar con Apple
+              </Button>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">O continúa con</span>
+              </div>
+            </div>
+
+            {/* Email/Password Form */}
+            <Form onFinish={onFinish} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold" htmlFor="email">
+                  Correo Electrónico
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Form.Item name="email" rules={[{ required: true, message: 'Por favor ingresa tu correo electrónico' }]}>
+                    <Input id="email" type="email" placeholder="tu@correo.com" className="pl-10 h-12 shadow-sm" />
+                  </Form.Item>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold" htmlFor="password">
+                  Contraseña
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Form.Item name="password" rules={[{ required: true, message: 'Por favor ingresa tu contraseña' }]}>
+                    <Input id="password" type="password" placeholder="••••••••" className="pl-10 pr-10 h-12 shadow-sm" />
+                  </Form.Item>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Form.Item name="remember" className="!mb-0" valuePropName="checked">
+                    <Checkbox />
+                  </Form.Item>
+                  <label htmlFor="remember" className="ml-2 text-sm cursor-pointer">
+                    Recordarme
+                  </label>
+                </div>
+                <Button variant="link" className="text-sm p-0 h-auto text-primary hover:text-primary/80">
+                  ¿Olvidaste tu contraseña?
+                </Button>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-12 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                disabled={isLoading}>
+                {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+              </Button>
+            </Form>
+
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                ¿No tienes una cuenta?{' '}
+                <Button variant="link" className="p-0 h-auto text-primary hover:text-primary/80" onClick={() => navigate('/signup')}>
+                  Regístrate aquí
+                </Button>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Footer */}
+        <div className="text-center mt-6 text-xs text-muted-foreground">
+          <p>Al iniciar sesión, aceptas nuestros</p>
+          <div className="space-x-2">
+            <Button variant="link" className="p-0 h-auto text-xs">
+              Términos de Servicio
             </Button>
-          </Form.Item>
-        </Form>
-
-        <Divider plain>O</Divider>
-
-        <div className="text-center">
-          <Text className="text-gray-500">¿No tienes una cuenta?</Text>
-          <Link to="/signup" className="ml-2 text-blue-600 hover:text-blue-800">
-            Regístrate ahora
-          </Link>
+            <span>y</span>
+            <Button variant="link" className="p-0 h-auto text-xs">
+              Política de Privacidad
+            </Button>
+          </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

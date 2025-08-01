@@ -30,10 +30,11 @@ const antdThemeConfig = {
       // marginLG: '14px',
     },
     Input: {
-      activeShadow: 'none',
-      activeBorderColor: cssValues.colors.orange,
+      activeBorderColor: cssValues.colors.oak,
+      colorBorder: cssValues.colors.white,
       hoverBorderColor: 'none',
       defaultHoverBorderColor: 'none',
+      colorPrimaryHover: cssValues.colors.oak,
     },
     InputNumber: {
       activeShadow: 'none',
@@ -65,7 +66,7 @@ const antdThemeConfig = {
   token: {
     fontFamily: cssValues.fonts.fontFamilySansSerif,
 
-    colorPrimary: cssValues.colors.black,
+    colorPrimary: cssValues.colors.oak,
     colorSecondary: cssValues.colors.pistaccio,
     colorLinkHover: cssValues.colors.gray400,
     colorLink: cssValues.colors.blueDark,

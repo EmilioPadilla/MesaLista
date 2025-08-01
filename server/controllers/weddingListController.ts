@@ -89,6 +89,11 @@ const weddingListController = {
                   category: true,
                 },
               },
+              purchases: {
+                include: {
+                  user: true,
+                },
+              },
             },
           },
         },

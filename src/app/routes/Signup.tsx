@@ -1,160 +1,377 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message, Divider, DatePicker, Radio } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
-import { Link, useNavigate } from 'react-router-dom';
-import { useCreateUser } from 'src/hooks/useUser';
-import { User } from 'types/models/user';
+import { useState } from 'react';
+import { Button } from 'components/core/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/core/Card';
+import { Input } from 'components/core/Input';
+import { Label } from 'components/core/Label';
+import { Separator } from 'components/core/Separator';
+import { Checkbox } from 'components/core/Checkbox';
+import { RadioGroup, RadioGroupItem } from 'components/core/RadioGroup';
+import { Heart, Mail, Lock, Eye, EyeOff, ArrowLeft, Chrome, Facebook, User, Users, Phone } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { UserRole } from 'types/models/user';
 
-const { Title, Text } = Typography;
-
-interface SignupFormValues {
+interface User {
+  id: string;
   name: string;
   email: string;
-  password: string;
-  confirmPassword: string;
-  phoneNumber?: string;
-  weddingDate?: string;
-  role: 'COUPLE' | 'GUEST';
+  type: UserRole;
+  avatar?: string;
 }
 
-const Signup: React.FC = () => {
-  const [loading, setLoading] = useState(false);
-  const [isCouple, setIsCouple] = useState(false);
+function Signup() {
   const navigate = useNavigate();
-  const { mutate: signupMutation } = useCreateUser();
+  const [step, setStep] = useState<'type' | 'details'>('type');
+  const [userType, setUserType] = useState<UserRole | ''>('');
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const onFinish = async (values: SignupFormValues) => {
-    setLoading(true);
-    try {
-      // Remove confirmPassword as it's not needed for the API call
-      const { confirmPassword, name, weddingDate, ...restValues } = values;
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
 
-      // Split name into firstName and lastName
-      const nameParts = name.trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || null;
+    if (!formData.firstName.trim()) newErrors.firstName = 'El nombre es requerido';
+    if (!formData.lastName.trim()) newErrors.lastName = 'El apellido es requerido';
 
-      // Create userData object that matches the Prisma User type
-      const userData = {
-        ...restValues,
-        firstName,
-        lastName,
-        spouseFirstName: null,
-        spouseLastName: null,
-        imageUrl: null,
-        updatedAt: new Date(),
-        phoneNumber: restValues.phoneNumber || null,
-      };
+    if (!formData.email) {
+      newErrors.email = 'El correo electrónico es requerido';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Correo electrónico inválido';
+    }
 
-      signupMutation(userData as unknown as User);
-      message.success('¡Cuenta creada exitosamente! Por favor inicia sesión.');
+    if (!formData.phone) {
+      newErrors.phone = 'El teléfono es requerido';
+    } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
+      newErrors.phone = 'Teléfono debe tener 10 dígitos';
+    }
 
-      // Redirect to login page after successful signup
-      navigate('/login');
-    } catch (error) {
-      console.error('Signup error:', error);
-      message.error('Error al crear la cuenta. Por favor intenta nuevamente.');
-    } finally {
-      setLoading(false);
+    if (!formData.password) {
+      newErrors.password = 'La contraseña es requerida';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'La contraseña debe tener al menos 8 caracteres';
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Las contraseñas no coinciden';
+    }
+
+    if (!agreeTerms) {
+      newErrors.terms = 'Debes aceptar los términos y condiciones';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+
+    setIsLoading(false);
+    navigate('/');
+  };
+
+  const handleSocialSignup = (provider: string) => {
+    setIsLoading(true);
+
+    // Simulate social signup
+    setTimeout(() => {
+      setIsLoading(false);
+      navigate('/');
+    }, 1000);
+  };
+
+  const handleContinue = () => {
+    if (userType) {
+      setStep('details');
     }
   };
 
-  const handleRoleChange = (e: any) => {
-    setIsCouple(e.target.value === 'COUPLE');
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md p-6 shadow-lg rounded-lg">
-        <div className="text-center mb-6">
-          <Title level={2} className="text-gray-800">
-            Crear una Cuenta
-          </Title>
-          <Text className="text-gray-500">Únete a MesaLista hoy</Text>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-accent/20 flex items-center justify-center px-4 py-8">
+      {/* Background decorations */}
+      <div className="absolute top-10 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-20 right-20 w-40 h-40 bg-accent/20 rounded-full blur-2xl"></div>
 
-        <Form name="signup" initialValues={{ role: 'GUEST' }} onFinish={onFinish} layout="vertical" size="large">
-          <Form.Item name="role" label="¿Cómo deseas registrarte?" rules={[{ required: true, message: '¡Por favor selecciona un rol!' }]}>
-            <Radio.Group onChange={handleRoleChange}>
-              <Radio value="COUPLE">Pareja de novios</Radio>
-              <Radio value="GUEST">Invitado</Radio>
-            </Radio.Group>
-          </Form.Item>
+      <div className="w-full max-w-md relative">
+        {/* Back button */}
+        <Button
+          variant="ghost"
+          onClick={() => (step === 'details' ? setStep('type') : navigate('/'))}
+          className="mb-6 flex items-center space-x-2 hover:shadow-md transition-all duration-200">
+          <ArrowLeft className="h-4 w-4" />
+          <span>{step === 'details' ? 'Volver' : 'Volver al inicio'}</span>
+        </Button>
 
-          <Form.Item name="name" rules={[{ required: true, message: '¡Por favor ingresa tu nombre!' }]}>
-            <Input prefix={<UserOutlined className="text-gray-400" />} placeholder="Nombre Completo" className="rounded-md" />
-          </Form.Item>
+        <Card className="shadow-2xl border-0 bg-card/95 backdrop-blur-sm">
+          <CardHeader className="text-center pb-6">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 shadow-lg">
+                <Heart className="h-8 w-8 text-primary" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl text-primary">{step === 'type' ? 'Únete a MesaLista' : 'Completa tu registro'}</CardTitle>
+            <CardDescription>
+              {step === 'type' ? 'Primero, dinos qué tipo de usuario eres' : 'Solo unos datos más y estarás listo'}
+            </CardDescription>
+          </CardHeader>
 
-          <Form.Item
-            name="email"
-            rules={[
-              { required: true, message: '¡Por favor ingresa tu correo electrónico!' },
-              { type: 'email', message: '¡Por favor ingresa un correo electrónico válido!' },
-            ]}>
-            <Input prefix={<MailOutlined className="text-gray-400" />} placeholder="Correo electrónico" className="rounded-md" />
-          </Form.Item>
+          <CardContent className="space-y-6">
+            {step === 'type' ? (
+              <>
+                {/* User Type Selection */}
+                <div className="space-y-4">
+                  <Label className="text-base">¿Cómo planeas usar MesaLista?</Label>
+                  <RadioGroup value={userType} onValueChange={(value) => setUserType(value as UserRole)}>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-muted/50 cursor-pointer transition-all duration-200 hover:shadow-md">
+                        <RadioGroupItem value="couple" id="couple" />
+                        <Label htmlFor="couple" className="flex items-center space-x-3 cursor-pointer flex-1">
+                          <div className="p-2 rounded-full bg-primary/10">
+                            <Users className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-base">Somos la pareja</p>
+                            <p className="text-sm text-muted-foreground">Queremos crear nuestra mesa de regalos</p>
+                          </div>
+                        </Label>
+                      </div>
 
-          {isCouple && (
-            <>
-              <Form.Item name="phoneNumber" rules={[{ required: true, message: '¡Por favor ingresa tu número de teléfono!' }]}>
-                <Input prefix={<PhoneOutlined className="text-gray-400" />} placeholder="Número de teléfono" className="rounded-md" />
-              </Form.Item>
+                      <div className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-muted/50 cursor-pointer transition-all duration-200 hover:shadow-md">
+                        <RadioGroupItem value="guest" id="guest" />
+                        <Label htmlFor="guest" className="flex items-center space-x-3 cursor-pointer flex-1">
+                          <div className="p-2 rounded-full bg-accent/40">
+                            <User className="h-5 w-5 text-accent-foreground" />
+                          </div>
+                          <div>
+                            <p className="text-base">Soy invitado</p>
+                            <p className="text-sm text-muted-foreground">Quiero comprar regalos para una pareja</p>
+                          </div>
+                        </Label>
+                      </div>
+                    </div>
+                  </RadioGroup>
+                </div>
 
-              <Form.Item
-                name="weddingDate"
-                label="Fecha de la boda"
-                rules={[{ required: true, message: '¡Por favor selecciona la fecha de tu boda!' }]}>
-                <DatePicker className="w-full rounded-md" placeholder="Selecciona una fecha" format="DD/MM/YYYY" />
-              </Form.Item>
-            </>
-          )}
+                <Button
+                  onClick={handleContinue}
+                  disabled={!userType}
+                  className="w-full h-12 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                  Continuar
+                </Button>
 
-          <Form.Item
-            name="password"
-            rules={[
-              { required: true, message: '¡Por favor ingresa tu contraseña!' },
-              { min: 8, message: '¡La contraseña debe tener al menos 8 caracteres!' },
-            ]}
-            hasFeedback>
-            <Input.Password prefix={<LockOutlined className="text-gray-400" />} placeholder="Contraseña" className="rounded-md" />
-          </Form.Item>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    ¿Ya tienes una cuenta?{' '}
+                    <Button variant="link" className="p-0 h-auto text-primary hover:text-primary/80" onClick={() => navigate('/login')}>
+                      Inicia sesión aquí
+                    </Button>
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Social Signup Options */}
+                <div className="space-y-3">
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 shadow-md hover:shadow-lg transition-all duration-200 border-primary/20 hover:border-primary/40"
+                    onClick={() => handleSocialSignup('google')}
+                    disabled={isLoading}>
+                    <Chrome className="h-5 w-5 mr-3" />
+                    Registrarse con Google
+                  </Button>
 
-          <Form.Item
-            name="confirmPassword"
-            dependencies={['password']}
-            hasFeedback
-            rules={[
-              { required: true, message: '¡Por favor confirma tu contraseña!' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('password') === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error('¡Las contraseñas no coinciden!'));
-                },
-              }),
-            ]}>
-            <Input.Password prefix={<LockOutlined className="text-gray-400" />} placeholder="Confirmar Contraseña" className="rounded-md" />
-          </Form.Item>
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 shadow-md hover:shadow-lg transition-all duration-200 border-primary/20 hover:border-primary/40"
+                    onClick={() => handleSocialSignup('facebook')}
+                    disabled={isLoading}>
+                    <Facebook className="h-5 w-5 mr-3 text-blue-600" />
+                    Registrarse con Facebook
+                  </Button>
+                </div>
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit" className="w-full rounded-md" loading={loading}>
-              Registrarse
-            </Button>
-          </Form.Item>
-        </Form>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">O regístrate con email</span>
+                  </div>
+                </div>
 
-        <Divider plain>O</Divider>
+                {/* Registration Form */}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">Nombre</Label>
+                      <Input
+                        id="firstName"
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                        placeholder="María"
+                        className={`h-12 shadow-sm ${errors.firstName ? 'border-destructive' : ''}`}
+                      />
+                      {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
+                    </div>
 
-        <div className="text-center">
-          <Text className="text-gray-500">¿Ya tienes una cuenta?</Text>
-          <Link to="/login" className="ml-2 text-blue-600 hover:text-blue-800">
-            Iniciar sesión
-          </Link>
-        </div>
-      </Card>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Apellido</Label>
+                      <Input
+                        id="lastName"
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                        placeholder="González"
+                        className={`h-12 shadow-sm ${errors.lastName ? 'border-destructive' : ''}`}
+                      />
+                      {errors.lastName && <p className="text-xs text-destructive">{errors.lastName}</p>}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Correo Electrónico</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="maria@correo.com"
+                        className={`pl-10 h-12 shadow-sm ${errors.email ? 'border-destructive' : ''}`}
+                      />
+                    </div>
+                    {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Teléfono</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="55 1234 5678"
+                        className={`pl-10 h-12 shadow-sm ${errors.phone ? 'border-destructive' : ''}`}
+                      />
+                    </div>
+                    {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Contraseña</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        placeholder="••••••••"
+                        className={`pl-10 pr-10 h-12 shadow-sm ${errors.password ? 'border-destructive' : ''}`}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-1 top-1 h-10 w-10"
+                        onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        placeholder="••••••••"
+                        className={`pl-10 pr-10 h-12 shadow-sm ${errors.confirmPassword ? 'border-destructive' : ''}`}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-1 top-1 h-10 w-10"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-start space-x-2">
+                      <Checkbox
+                        id="terms"
+                        checked={agreeTerms}
+                        onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
+                        className="mt-1"
+                      />
+                      <Label htmlFor="terms" className="text-sm cursor-pointer leading-relaxed">
+                        Acepto los{' '}
+                        <Button variant="link" className="p-0 h-auto text-primary text-sm">
+                          Términos de Servicio
+                        </Button>{' '}
+                        y la{' '}
+                        <Button variant="link" className="p-0 h-auto text-primary text-sm">
+                          Política de Privacidad
+                        </Button>
+                      </Label>
+                    </div>
+                    {errors.terms && <p className="text-sm text-destructive">{errors.terms}</p>}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full h-12 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                    disabled={isLoading}>
+                    {isLoading ? 'Creando cuenta...' : 'Crear Cuenta'}
+                  </Button>
+                </form>
+
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    ¿Ya tienes una cuenta?{' '}
+                    <Button variant="link" className="p-0 h-auto text-primary hover:text-primary/80" onClick={() => navigate('/login')}>
+                      Inicia sesión aquí
+                    </Button>
+                  </p>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Footer */}
+        {step === 'details' && (
+          <div className="text-center mt-6 text-xs text-muted-foreground">
+            <p>Tu información está protegida con cifrado de nivel bancario</p>
+          </div>
+        )}
+      </div>
     </div>
   );
-};
+}
 
 export default Signup;

@@ -13,6 +13,7 @@ import dayjs from 'dayjs';
 import { useGetUserBySlug } from 'hooks/useUser';
 import { useComponentMountControl } from 'src/hooks/useComponentMountControl';
 import { GiftDetailsModal } from 'src/features/buyRegistry/components/GiftDetailsModal';
+import { CartDrawer } from 'src/features/buyRegistry/components/CartDrawer';
 import { useAddGiftToCart, useGetCart } from 'hooks/useCart';
 
 const { Title, Text } = Typography;
@@ -35,6 +36,13 @@ const BuyGifts: React.FC<BuyGiftsProps> = () => {
     setIsOpen: setShowGiftDetailsModal,
     shouldRender: renderGiftDetailsModal,
     handleAfterClose: handleAfterCloseGiftDetailsModal,
+  } = useComponentMountControl();
+
+  const {
+    isOpen: showCartDrawer,
+    setIsOpen: setShowCartDrawer,
+    shouldRender: renderCartDrawer,
+    handleAfterClose: handleAfterCloseCartDrawer,
   } = useComponentMountControl();
 
   const [selectedGiftId, setSelectedGiftId] = useState<number | null>(null);
@@ -77,8 +85,7 @@ const BuyGifts: React.FC<BuyGiftsProps> = () => {
             icon={<ShoppingCartOutlined />}
             className="shadow-lg hover:shadow-xl transition-shadow duration-200"
             onClick={() => {
-              // TODO: Open cart modal or navigate to cart page
-              console.log('Cart clicked - items:', totalCartItems);
+              setShowCartDrawer(true);
             }}
           />
         </Badge>
@@ -145,6 +152,15 @@ const BuyGifts: React.FC<BuyGiftsProps> = () => {
             setShowGiftDetailsModal(false);
             setSelectedGift(null);
           }}
+        />
+      )}
+
+      {renderCartDrawer && (
+        <CartDrawer
+          open={showCartDrawer}
+          onClose={() => setShowCartDrawer(false)}
+          cartData={cartData}
+          sessionId={guestId || undefined}
         />
       )}
     </div>

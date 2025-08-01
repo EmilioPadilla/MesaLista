@@ -1,210 +1,223 @@
-import { Button, Form, Input, InputNumber, Modal, Checkbox, message, Select } from 'antd';
 import { useState, useEffect } from 'react';
-import { useCreateGift, useGiftById, useUpdateGift } from 'hooks/useGift';
-import { useUploadFile } from 'hooks/useFiles';
-import { FileUpload } from 'components/core/FileUpload';
-import { useGetCategoriesByWeddingList } from 'hooks/useWeddingList';
-import { Gift } from 'types/models/gift';
+import { Button } from 'components/core/Button';
+import { Input } from 'components/core/Input';
+import { Input as antdInput } from 'antd';
+import { Label } from 'components/core/Label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'components/core/Select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from 'components/core/Dialog';
+import { ImageWithFallback } from 'components/core/ImageFallback';
+import { X, Eye } from 'lucide-react';
+import { GiftItem } from 'app/routes/couple/v2ManageRegistry';
+import { GiftCategory } from 'types/models/gift';
 
-interface GiftModalProps {
-  weddingListId?: number;
-  giftId?: number;
-  open: boolean;
-  onCancel: () => void;
+interface EditGiftModalProps {
+  gift: GiftItem | null;
+  isOpen: boolean;
+  onClose: () => void;
   afterClose: () => void;
+  onSave: (updatedGift: GiftItem) => void;
 }
 
-export const GiftModal = ({ weddingListId, giftId, open, onCancel, afterClose }: GiftModalProps) => {
-  const [imageUrl, setImageUrl] = useState<string>();
-  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
-  const [form] = Form.useForm();
-
-  const isEditing = !!giftId;
-  const { data: existingGift, isLoading: loadingGift } = useGiftById(giftId, { enabled: isEditing });
-  const { data: categories } = useGetCategoriesByWeddingList(weddingListId);
-  const { mutate: createGift, isSuccess: createSuccess, isError: createError } = useCreateGift();
-  const { mutate: updateGift, isSuccess: updateSuccess, isError: updateError } = useUpdateGift();
-  const { mutate: uploadFile, data: imageData } = useUploadFile();
+export function EditGiftModal({ gift, isOpen, onClose, afterClose, onSave }: EditGiftModalProps) {
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    category: 'General',
+    priority: 'media' as 'alta' | 'media' | 'baja',
+    image: '',
+  });
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (uploadFiles.length > 0) {
-      uploadFile(uploadFiles[0]);
+    if (gift) {
+      setFormData({
+        name: gift.title,
+        description: gift.description!,
+        price: gift.price.toString(),
+        category: gift.categories![0].name!,
+        priority: gift.priority!,
+        image: gift.imageUrl!,
+      });
+      setImagePreview(gift.imageUrl!);
     }
-  }, [uploadFiles]);
+  }, [gift]);
 
-  const handleFinish = (values: any) => {
-    let categoriesPayload = values.categories;
-    if (Array.isArray(categoriesPayload)) {
-      categoriesPayload = categoriesPayload.map((cat: string) => ({ name: cat }));
-    }
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
 
-    if (isEditing && giftId) {
-      const updatedGiftData = {
-        ...values,
-        categories: categoriesPayload,
-        imageUrl: imageUrl || existingGift?.imageUrl,
-      };
-      updateGift({ id: giftId, data: updatedGiftData });
-    } else {
-      const newGift = {
-        ...values,
-        categories: categoriesPayload,
-        weddingListId,
-        imageUrl,
-        isPurchased: false,
-      };
-      createGift(newGift);
-    }
-    onCancel();
+    if (!formData.name.trim()) newErrors.name = 'El nombre es requerido';
+    if (!formData.price.trim()) newErrors.price = 'El precio es requerido';
+    if (parseInt(formData.price) <= 0) newErrors.price = 'El precio debe ser mayor a 0';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  useEffect(() => {
-    if (imageData) {
-      setImageUrl(imageData);
-    }
-  }, [imageData]);
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value;
+    setFormData({ ...formData, image: url });
+    setImagePreview(url);
+  };
 
-  // Load existing gift data when editing
-  useEffect(() => {
-    if (isEditing && existingGift && open) {
-      form.setFieldsValue({
-        title: existingGift.title,
-        price: existingGift.price,
-        quantity: existingGift.quantity,
-        isMostWanted: existingGift.isMostWanted,
-        // @ts-ignore
-        categories: existingGift.categories,
-        description: existingGift.description,
-      });
-      setImageUrl(existingGift.imageUrl || undefined);
-    } else if (!isEditing && open) {
-      // Reset form for new gift
-      form.resetFields();
-      setImageUrl(undefined);
-      setUploadFiles([]);
-    }
-  }, [isEditing, existingGift, open]);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
-  useEffect(() => {
-    if (createSuccess) {
-      message.success('Regalo agregado correctamente!');
-    }
-    if (createError) {
-      message.error('Error al agregar el regalo');
-    }
-    if (updateSuccess) {
-      message.success('Regalo actualizado correctamente!');
-    }
-    if (updateError) {
-      message.error('Error al actualizar el regalo');
-    }
-  }, [createSuccess, createError, updateSuccess, updateError]);
-  const categoryOptions = categories?.categories?.map((category: any) => ({ value: category.name, label: category.name }));
+    if (!validateForm() || !gift) return;
+
+    const updatedGift: GiftItem = {
+      ...gift,
+      title: formData.name,
+      description: formData.description,
+      price: parseInt(formData.price),
+      categories: [{ name: formData.category, id: gift.categories![0].id } as GiftCategory],
+      priority: formData.priority,
+      imageUrl: formData.image || gift.imageUrl,
+    };
+
+    onSave(updatedGift);
+    onClose();
+  };
+
+  const handleClose = () => {
+    setErrors({});
+    onClose();
+  };
+
+  if (!gift) return null;
 
   return (
-    <Modal
-      afterClose={afterClose}
-      destroyOnHidden
-      title={isEditing ? 'Editar Regalo' : 'Agregar Regalo'}
-      open={open}
-      onCancel={onCancel}
-      footer={null}
-      width={700}>
-      <Form<Gift>
-        form={form}
-        onFinish={handleFinish}
-        layout="vertical"
-        initialValues={{
-          title: '',
-          price: 0,
-          quantity: 1,
-          isMostWanted: false,
-          description: '',
-        }}>
-        <div className="flex gap-6">
-          {/* Left side - Image upload */}
-          <div className="w-1/3">
-            {imageUrl ? (
-              <img src={imageUrl} alt="Gift" className="max-h-full max-w-full object-contain" />
-            ) : (
-              <FileUpload
-                value={uploadFiles[0]}
-                onChange={(file: File | null) => {
-                  if (file) {
-                    setUploadFiles([file]);
-                  }
-                }}
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[600px] shadow-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl text-primary">Editar Regalo</DialogTitle>
+          <DialogDescription>Modifica los detalles de este regalo en tu mesa de regalos</DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Nombre del Regalo</Label>
+              <Input
+                id="edit-name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Ej. Juego de sábanas"
+                className={`shadow-sm ${errors.name ? 'border-destructive' : ''}`}
               />
+              {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-price">Precio (MXN)</Label>
+              <Input
+                id="edit-price"
+                type="number"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                placeholder="1500"
+                className={`shadow-sm ${errors.price ? 'border-destructive' : ''}`}
+              />
+              {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-category">Categoría</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                <SelectTrigger className="shadow-sm">
+                  <SelectValue placeholder="Seleccionar categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Hogar">Hogar</SelectItem>
+                  <SelectItem value="Cocina">Cocina</SelectItem>
+                  <SelectItem value="Baño">Baño</SelectItem>
+                  <SelectItem value="Decoración">Decoración</SelectItem>
+                  <SelectItem value="Electrónicos">Electrónicos</SelectItem>
+                  <SelectItem value="General">General</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-priority">Prioridad</Label>
+              <Select
+                value={formData.priority}
+                onValueChange={(value: 'alta' | 'media' | 'baja') => setFormData({ ...formData, priority: value })}>
+                <SelectTrigger className="shadow-sm">
+                  <SelectValue placeholder="Media" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alta">Alta</SelectItem>
+                  <SelectItem value="media">Media</SelectItem>
+                  <SelectItem value="baja">Baja</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-description">Descripción</Label>
+            <antdInput.TextArea
+              id="edit-description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Descripción detallada del regalo..."
+              className="shadow-sm"
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-image">URL de la Imagen</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="edit-image"
+                  value={formData.image}
+                  onChange={handleImageChange}
+                  placeholder="https://ejemplo.com/imagen.jpg"
+                  className="shadow-sm flex-1"
+                />
+                <Button type="button" variant="outline" size="sm" className="px-3" onClick={() => setImagePreview(formData.image)}>
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {imagePreview && (
+              <div className="space-y-2">
+                <Label>Vista Previa</Label>
+                <div className="relative w-full h-32 bg-muted rounded-lg overflow-hidden shadow-sm">
+                  <ImageWithFallback src={imagePreview} alt="Vista previa" className="w-full h-full object-cover" />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-1 right-1 h-6 w-6 p-0 bg-background/80 hover:bg-background"
+                    onClick={() => {
+                      setImagePreview('');
+                      setFormData({ ...formData, image: '' });
+                    }}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Right side - Form fields */}
-          <div className="w-2/3">
-            <Form.Item
-              className="!mb-2"
-              name="title"
-              label="Título"
-              rules={[{ required: true, message: 'Por favor ingresa el título del regalo' }]}>
-              <Input />
-            </Form.Item>
-
-            {/* Category */}
-            <Form.Item className="!mb-2" name="categories" label="Categoría">
-              <Select
-                mode="tags"
-                allowClear
-                optionFilterProp="label"
-                style={{ width: '100%' }}
-                placeholder="Selecciona de 1 a 3 categorías"
-                options={categoryOptions}
-                maxCount={3}
-              />
-            </Form.Item>
-
-            <div className="flex gap-4">
-              <Form.Item
-                name="price"
-                label="Precio ($)"
-                className="w-1/2 !mb-2"
-                rules={[{ required: true, message: 'Por favor ingresa el precio del regalo' }]}>
-                <InputNumber className="w-full" />
-              </Form.Item>
-
-              <Form.Item
-                name="quantity"
-                label="Cantidad"
-                className="w-1/2 !mb-2"
-                rules={[{ required: true, message: 'Por favor ingresa la cantidad' }]}>
-                <InputNumber className="w-full" min={1} />
-              </Form.Item>
-            </div>
-
-            {/* Most Wanted checkbox */}
-            <div className="mb-4">
-              <Form.Item className="!mb-0" name="isMostWanted" valuePropName="checked">
-                <Checkbox>Más Deseado</Checkbox>
-              </Form.Item>
-              <div className="text-gray-500 text-sm">¡Deja que tus invitados sepan cuáles son tus regalos imprescindibles!</div>
-            </div>
-
-            {/* Description */}
-            <Form.Item className="!mb-0" name="description" label="Descripción del artículo">
-              <Input.TextArea
-                placeholder="Opcional: Describe el artículo, qué harás con él o por qué lo quieres. ¡Diviértete con esto!"
-                rows={4}
-              />
-            </Form.Item>
-          </div>
-        </div>
-
-        {/* Footer buttons */}
-        <div className="flex justify-end mt-6 gap-2">
-          <Button onClick={onCancel}>Cancelar</Button>
-          <Button type="primary" htmlType="submit" loading={loadingGift}>
-            {isEditing ? 'Actualizar Regalo' : 'Agregar Regalo'}
-          </Button>
-        </div>
-      </Form>
-    </Modal>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Cancelar
+            </Button>
+            <Button type="submit" className="shadow-md hover:shadow-lg transition-all duration-200">
+              Guardar Cambios
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
-};
+}

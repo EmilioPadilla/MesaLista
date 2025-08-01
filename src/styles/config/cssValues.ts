@@ -22,6 +22,7 @@ const cssValues = {
     black: '#101418',
     transparent: 'transparent',
 
+    oak: '#d4704a',
     chai: '#d2a880',
     pistaccio: '#b3b792',
     gray: '#f3f4f5',

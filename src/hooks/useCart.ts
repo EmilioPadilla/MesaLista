@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@ta
 import { cartService } from '../services/cart.service';
 import { queryKeys } from './queryKeys';
 import type { CartItem } from 'types/models/cart';
+import { message } from 'antd';
 
 /**
  * Hook to fetch the current user's cart
@@ -26,6 +27,7 @@ export const useAddGiftToCart = (sessionId?: string) => {
   return useMutation({
     mutationFn: cartService.addToCart,
     onSuccess: () => {
+      message.success('¡Artículo agregado exitosamente!');
       queryClient.invalidateQueries({ queryKey: [queryKeys.cart, sessionId] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.cartItems] });
     },
@@ -66,8 +68,7 @@ export const useUpdateCartItemQuantity = () => {
 export const useUpdateCartDetails = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ cartItemId, details }: { cartItemId: number; details: CartItem }) => 
-      cartService.updateCartDetails(cartItemId, details),
+    mutationFn: ({ cartItemId, details }: { cartItemId: number; details: CartItem }) => cartService.updateCartDetails(cartItemId, details),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.cart] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.cartItems] });

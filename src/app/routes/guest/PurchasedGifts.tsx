@@ -70,7 +70,7 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
         <Space>
           <Avatar icon={<UserOutlined />} />
           <div>
-            <div>{purchasedBy.name}</div>
+            <div>{purchasedBy.firstName}</div>
             <div className="text-xs text-gray-500">{purchasedBy.email}</div>
           </div>
         </Space>
@@ -131,7 +131,7 @@ const PurchasedGifts: React.FC<PurchasedGiftsProps> = (props) => {
         <div className="flex items-start mb-4">
           <Avatar icon={<UserOutlined />} className="mr-3" />
           <div>
-            <Text strong>{record.purchasedBy.name}</Text>
+            <Text strong>{record.purchasedBy.firstName}</Text>
             <Text type="secondary" className="block">
               {record.purchasedBy.email}
             </Text>
