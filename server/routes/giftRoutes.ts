@@ -15,12 +15,4 @@ router.put('/:id', giftController.updateGift);
 
 router.delete('/:id', giftController.deleteGift);
 
-router.post('/purchase/:giftId', giftController.purchaseGift);
-
-router.patch('/purchases/:purchaseId', giftController.updatePurchaseStatus);
-
-router.get('/purchased/:coupleId', giftController.getPurchasedGifts);
-
-router.get('/user-purchases/:userId', giftController.getUserPurchases);
-
 export default router;

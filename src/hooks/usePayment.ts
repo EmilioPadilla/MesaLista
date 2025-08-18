@@ -40,6 +40,15 @@ export const useInitiatePayment = () => {
 };
 
 /**
+ * Hook to create Stripe checkout session
+ */
+export const useCreateCheckoutSession = () => {
+  return useMutation({
+    mutationFn: paymentService.createCheckoutSession,
+  });
+};
+
+/**
  * Hook to verify a payment
  */
 export const useVerifyPayment = () => {

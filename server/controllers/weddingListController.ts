@@ -89,11 +89,6 @@ const weddingListController = {
                   category: true,
                 },
               },
-              purchases: {
-                include: {
-                  user: true,
-                },
-              },
             },
           },
         },
@@ -302,13 +297,13 @@ const weddingListController = {
             },
           },
         },
-        orderBy: [{ order: priceOrder }, { createdAt: 'asc' }],
+        orderBy: [{ price: priceOrder }, { createdAt: 'asc' }],
       });
 
       // Format gifts to include category information
-      const formattedGifts = gifts.map((gift) => ({
+      const formattedGifts = gifts.map((gift: any) => ({
         ...gift,
-        categories: gift.categories.map((cat) => cat.category.name),
+        categories: gift.categories.map((cat: any) => cat.category.name),
       }));
 
       res.json(formattedGifts);
@@ -334,7 +329,7 @@ const weddingListController = {
 
       // Use a Map to ensure uniqueness by category id
       const categoryMap = new Map<number, string>();
-      categoriesOnGifts.forEach((item) => {
+      categoriesOnGifts.forEach((item: any) => {
         if (item.category) {
           categoryMap.set(item.category.id, item.category.name);
         }

@@ -1,5 +1,5 @@
 import { WeddingList } from '../models/weddingList.js';
-import { Gift, GiftCategory, GiftPurchaseWithRelations, FormattedPurchase, UserPurchase } from '../models/gift.js';
+import { GiftCategory } from '../models/gift.js';
 
 export interface GiftWithWeddingList {
   id: number;
@@ -20,22 +20,6 @@ export interface GiftWithWeddingList {
 
 export interface GiftWithWeddingListResponse extends Omit<GiftWithWeddingList, 'categories'> {
   categories: string[];
-}
-
-export interface PurchaseGiftResponse {
-  purchase: GiftPurchaseWithRelations;
-  gift: Gift;
-}
-
-export interface PurchasedGiftsResponse {
-  purchases: FormattedPurchase[];
-  totalAmount: number;
-  count: number;
-}
-
-export interface UserPurchasesResponse {
-  purchases: UserPurchase[];
-  count: number;
 }
 
 // Request types

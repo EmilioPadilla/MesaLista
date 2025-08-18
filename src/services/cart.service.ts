@@ -1,6 +1,7 @@
 import apiClient from './client';
 import { cart_endpoints } from './endpoints';
-import { Cart, CartItem } from 'types/models/cart';
+import type { CartDetailsRequest } from 'types/api/cart';
+import type { Cart } from 'types/models/cart';
 
 /**
  * Service for handling cart-related API calls
@@ -60,8 +61,8 @@ export const cartService = {
    * @param details New details
    * @returns Updated cart
    */
-  updateCartDetails: async (cartItemId: number, details: CartItem): Promise<Cart> => {
-    const response = await apiClient.patch(cart_endpoints.updateDetails(cartItemId), details);
+  updateCartDetails: async (cartItemId: number, details: CartDetailsRequest): Promise<Cart> => {
+    const response = await apiClient.put(cart_endpoints.updateDetails(cartItemId), details);
     return response.data;
   },
 

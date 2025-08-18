@@ -8,11 +8,12 @@ async function main() {
 
   // Clear existing data
   await prisma.giftCategoryOnGift.deleteMany();
-  await prisma.giftPurchase.deleteMany();
   await prisma.gift.deleteMany();
   await prisma.giftCategory.deleteMany();
   await prisma.weddingList.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.cart.deleteMany();
+  await prisma.cartItem.deleteMany();
 
   console.log('Deleted existing records');
 
@@ -22,11 +23,9 @@ async function main() {
     prisma.giftCategory.create({ data: { name: 'Electrodomésticos' } }),
     prisma.giftCategory.create({ data: { name: 'Viaje' } }),
     prisma.giftCategory.create({ data: { name: 'Baño' } }),
-    prisma.giftCategory.create({ data: { name: 'Decoración' } }),
-    prisma.giftCategory.create({ data: { name: 'Otros' } }),
   ]);
 
-  const [cocinaCategory, electroCategory, viajeCategory, banoCategory, decoracionCategory, otrosCategory] = categories;
+  const [cocinaCategory, electroCategory, viajeCategory, banoCategory] = categories;
   console.log(`Created ${categories.length} gift categories`);
 
   // Create users with hashed passwords
@@ -164,6 +163,7 @@ async function main() {
     prisma.giftCategoryOnGift.create({
       data: { giftId: gifts[5].id, categoryId: viajeCategory.id, weddingListId: weddingList.id },
     }),
+
     // Nespresso -> Electrodomésticos + Cocina (example of multiple categories)
     prisma.giftCategoryOnGift.create({
       data: { giftId: gifts[6].id, categoryId: electroCategory.id, weddingListId: weddingList.id },
@@ -197,37 +197,6 @@ async function main() {
     },
   });
 
-  // Create gift purchases with different statuses
-  const purchases = await Promise.all([
-    // PENDING purchase
-    prisma.giftPurchase.create({
-      data: {
-        giftId: gifts[0].id,
-        userId: guest.id,
-        message: '¡Felicidades por su boda! Espero que disfruten este regalo.',
-        status: 'PENDING',
-      },
-    }),
-    // DELIVERED purchase
-    prisma.giftPurchase.create({
-      data: {
-        giftId: gifts[1].id,
-        userId: guest2.id,
-        message: 'Les deseo mucha felicidad en su nueva vida juntos.',
-        status: 'DELIVERED',
-      },
-    }),
-    // THANKED purchase
-    prisma.giftPurchase.create({
-      data: {
-        giftId: gifts[2].id,
-        userId: guest.id,
-        message: 'Un pequeño detalle para su nuevo hogar.',
-        status: 'THANKED',
-      },
-    }),
-  ]);
-
   // Update the isPurchased status for the gifts
   await Promise.all([
     prisma.gift.update({
@@ -244,7 +213,7 @@ async function main() {
     }),
   ]);
 
-  console.log(`Created ${4} users, 1 wedding list, ${gifts.length} gifts, and ${purchases.length} gift purchases`);
+  console.log(`Created ${4} users, 1 wedding list and ${gifts.length} gifts`);
 }
 
 main()

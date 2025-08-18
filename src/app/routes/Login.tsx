@@ -166,7 +166,7 @@ const Login: React.FC = () => {
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 ¿No tienes una cuenta?{' '}
-                <Button variant="link" className="p-0 h-auto text-primary hover:text-primary/80" onClick={() => navigate('/signup')}>
+                <Button variant="link" className="p-0 h-auto text-primary hover:text-primary/80" onClick={() => navigate('/registro')}>
                   Regístrate aquí
                 </Button>
               </p>

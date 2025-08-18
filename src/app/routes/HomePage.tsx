@@ -42,7 +42,7 @@ export function HomePage({}: HomepageProps) {
         <Button
           size="lg"
           className="px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-          onClick={() => navigate('/signup')}>
+          onClick={() => navigate('/registro')}>
           <Heart className="mr-2 h-5 w-5" />
           Crear Mesa de Regalos
         </Button>
@@ -100,9 +100,9 @@ export function HomePage({}: HomepageProps) {
             <Button
               size="lg"
               className="px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-              onClick={() => navigate('/buy')}>
+              onClick={() => navigate('regalos')}>
               <Gift className="mr-2 h-5 w-5" />
-              Explorar Mesas de Regalos
+              Explorar Mesa de Regalos
             </Button>
             <Button
               size="lg"
@@ -149,7 +149,7 @@ export function HomePage({}: HomepageProps) {
               </Card>
               <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/20 text-center">
                 <CardContent className="p-6">
-                  <div className="text-3xl text-primary mb-2">{progress}%</div>
+                  <div className="text-3xl text-primary mb-2">{progress.toFixed(2)}%</div>
                   <div className="text-sm text-muted-foreground">Progreso completado</div>
                 </CardContent>
               </Card>
@@ -251,7 +251,7 @@ export function HomePage({}: HomepageProps) {
               size="lg"
               variant="secondary"
               className="px-8 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-0 bg-white hover:bg-white/95"
-              onClick={() => <Navigate to="/signup" />}>
+              onClick={() => navigate('/registro')}>
               <Heart className="mr-2 h-5 w-5" />
               Empezar Ahora - Es Gratis
             </Button>

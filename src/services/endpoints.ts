@@ -278,6 +278,13 @@ export const payment_endpoints = {
   initiate: `/payments/initiate`,
 
   /**
+   * Create Stripe checkout session
+   * @method POST
+   * @access Public
+   */
+  createCheckoutSession: `/payments/create-checkout-session`,
+
+  /**
    * Verify and complete a payment
    * @method POST
    * @access Public

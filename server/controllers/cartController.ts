@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import { AddToCartRequest, UpdateCartDetailsRequest, UpdateCartItemRequest } from 'types/models/cart.js';
+import { AddToCartRequest, UpdateCartDetailsRequest, UpdateCartItemRequest, CartItem } from 'types/models/cart.js';
 
 const prisma = new PrismaClient();
 
@@ -120,6 +120,24 @@ export default {
           },
         });
       }
+
+      // If everything was successful, update the totalAmount in cart
+      // Calculate total by summing the price * quantity for each cart item
+      const cartItems = await prisma.cartItem.findMany({
+        where: { cartId: cart.id },
+        include: { gift: true },
+      });
+
+      const totalAmount = cartItems.reduce((sum: number, item) => {
+        return sum + item.price * item.quantity;
+      }, 0);
+
+      await prisma.cart.update({
+        where: { id: cart.id },
+        data: {
+          totalAmount,
+        },
+      });
 
       // Return the updated cart with all items
       const updatedCart = await prisma.cart.findUnique({
@@ -240,9 +258,9 @@ export default {
         data: {
           inviteeName,
           inviteeEmail,
-          country,
           phoneNumber,
           message,
+          country,
         },
         include: {
           items: {
@@ -297,11 +315,11 @@ export default {
       }
 
       // Start a transaction to ensure all operations succeed or fail together
-      const result = await prisma.$transaction(async (prisma) => {
+      const result = await prisma.$transaction(async (tx: any) => {
         const purchaseIds: number[] = [];
 
         // Create a guest user or find by email
-        let guestUser = await prisma.user.findFirst({
+        let guestUser = await tx.user.findFirst({
           where: { email: cart.inviteeEmail || '' },
         });
 
@@ -312,7 +330,7 @@ export default {
           const firstName = nameParts[0] || 'Guest';
           const lastName = nameParts.slice(1).join(' ');
 
-          guestUser = await prisma.user.create({
+          guestUser = await tx.user.create({
             data: {
               firstName,
               lastName,
@@ -331,7 +349,7 @@ export default {
         // Process each cart item
         for (const item of cart.items) {
           // Check if the gift is still available
-          const gift = await prisma.gift.findUnique({
+          const gift = await tx.gift.findUnique({
             where: { id: item.giftId },
           });
 
@@ -340,26 +358,14 @@ export default {
           }
 
           // Mark the gift as purchased
-          await prisma.gift.update({
+          await tx.gift.update({
             where: { id: item.giftId },
             data: { isPurchased: true },
           });
-
-          // Create a purchase record
-          const purchase = await prisma.giftPurchase.create({
-            data: {
-              giftId: item.giftId,
-              userId: guestUser.id,
-              message: cart.message,
-              status: 'PENDING',
-            },
-          });
-
-          purchaseIds.push(purchase.id);
         }
 
         // Clear the cart after successful checkout
-        await prisma.cartItem.deleteMany({
+        await tx.cartItem.deleteMany({
           where: { cartId: Number(cartId) },
         });
 

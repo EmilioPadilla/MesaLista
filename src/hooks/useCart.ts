@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { cartService } from '../services/cart.service';
 import { queryKeys } from './queryKeys';
-import type { CartItem } from 'types/models/cart';
+import type { CartDetailsRequest } from 'types/api/cart';
 import { message } from 'antd';
 
 /**
@@ -42,6 +42,7 @@ export const useRemoveGiftFromCart = () => {
   return useMutation({
     mutationFn: cartService.removeFromCart,
     onSuccess: () => {
+      message.success('¡Artículo eliminado exitosamente!');
       queryClient.invalidateQueries({ queryKey: [queryKeys.cart] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.cartItems] });
     },
@@ -68,7 +69,8 @@ export const useUpdateCartItemQuantity = () => {
 export const useUpdateCartDetails = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ cartItemId, details }: { cartItemId: number; details: CartItem }) => cartService.updateCartDetails(cartItemId, details),
+    mutationFn: ({ cartItemId, details }: { cartItemId: number; details: CartDetailsRequest }) =>
+      cartService.updateCartDetails(cartItemId, details),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.cart] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.cartItems] });

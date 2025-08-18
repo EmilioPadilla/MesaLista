@@ -1,6 +1,5 @@
 import apiClient from './client';
-import type { Gift, GiftPurchase } from 'types/models/gift';
-import { PurchasedGiftsResponse } from 'types/api/gift';
+import type { Gift } from 'types/models/gift';
 import { gift_endpoints } from './endpoints';
 import { purchase_endpoints } from './endpoints';
 
@@ -23,32 +22,6 @@ export const giftService = {
 
   deleteGift: async (id: number): Promise<void> => {
     await apiClient.delete(gift_endpoints.byId(id));
-  },
-
-  // Gift purchase related functions
-  fetchPurchasedGifts: async (coupleId?: number): Promise<PurchasedGiftsResponse> => {
-    if (!coupleId) {
-      return { purchases: [], totalAmount: 0, count: 0 };
-    }
-    const response = await apiClient.get(purchase_endpoints.getPurchasedGifts(coupleId));
-    return response.data;
-  },
-
-  updatePurchaseStatus: async ({ purchaseId, status }: { purchaseId: number; status: string }): Promise<GiftPurchase> => {
-    const response = await apiClient.patch(purchase_endpoints.updateStatus(purchaseId), {
-      status: status.toUpperCase(),
-    });
-    return response.data;
-  },
-
-  getUserPurchases: async (userId: number): Promise<PurchasedGiftsResponse> => {
-    const response = await apiClient.get(purchase_endpoints.getUserPurchases(userId));
-    return response.data;
-  },
-
-  purchaseGift: async (giftId: number, message: string): Promise<GiftPurchase> => {
-    const response = await apiClient.post(purchase_endpoints.purchaseGift(giftId), { message });
-    return response.data;
   },
 };
 

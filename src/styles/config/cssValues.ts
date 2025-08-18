@@ -14,7 +14,7 @@ const cssValues = {
   },
 
   fonts: {
-    fontFamilySansSerif: '"Gordita", "Segoe UI", Roboto, Arial, sans-serif',
+    fontFamilySansSerif: '"Chamberi Headline", "Segoe UI", Roboto, Arial, sans-serif',
   },
 
   colors: {

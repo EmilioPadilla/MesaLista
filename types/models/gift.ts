@@ -1,12 +1,5 @@
-import type { User } from './user.js';
 import type { WeddingList } from './weddingList.js';
 import type { CartItem } from './cart.js';
-
-export enum PurchaseStatus {
-  PENDING = 'PENDING',
-  DELIVERED = 'DELIVERED',
-  THANKED = 'THANKED',
-}
 
 export interface Gift {
   id: number;
@@ -18,22 +11,9 @@ export interface Gift {
   isMostWanted: boolean;
   weddingListId: number;
   quantity: number;
-  order: number;
   categories?: GiftCategory[];
-  purchases?: GiftPurchase[];
+  order: number;
   cartItems?: CartItem[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface GiftPurchase {
-  id: number;
-  giftId: number;
-  userId: number;
-  user: User;
-  purchaseDate: Date;
-  status: PurchaseStatus;
-  message?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -55,29 +35,4 @@ export interface GiftCategoryOnGift {
 
 export interface GiftWithWeddingList extends Gift {
   weddingList: WeddingList;
-}
-
-export interface GiftPurchaseWithRelations {
-  gift: Gift;
-  user: User;
-}
-
-export interface FormattedPurchase {
-  id: number;
-  giftName: string;
-  price: number;
-  purchaseDate: string;
-  purchasedBy: User;
-  status: PurchaseStatus;
-  message: string | null;
-}
-
-export interface UserPurchase {
-  id: number;
-  giftName: string;
-  price: number;
-  purchaseDate: string;
-  couple: User;
-  status: PurchaseStatus;
-  message: string | null;
 }

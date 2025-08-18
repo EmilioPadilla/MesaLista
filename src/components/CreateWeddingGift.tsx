@@ -13,8 +13,6 @@ export const CreateWeddingGift: React.FC<CreateWeddingGiftProps> = ({ isModalVis
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = (values: any) => {
-    console.log('New gift:', values);
-    // In a real implementation, this would send a POST request to the API
     setIsModalVisible(false);
     form.resetFields();
     setLoading(false);

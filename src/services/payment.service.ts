@@ -16,6 +16,13 @@ export interface PaymentVerifyRequest {
   token?: string; // Required for Stripe
 }
 
+export interface CreateCheckoutSessionRequest {
+  cartId: number;
+  orderId: string;
+  successUrl: string;
+  cancelUrl: string;
+}
+
 export interface PaymentSummary {
   totalAmount: number;
   currency: string;
@@ -69,6 +76,17 @@ export const paymentService = {
    */
   initiatePayment: async (data: PaymentInitiateRequest): Promise<{ success: boolean; paymentId: string; approvalUrl: string; message: string }> => {
     const response = await apiClient.post(api_endpoints.payments.initiate, data);
+    return response.data;
+  },
+
+  /**
+   * Create Stripe checkout session
+   * 
+   * @param data Checkout session data
+   * @returns Checkout session response with URL
+   */
+  createCheckoutSession: async (data: CreateCheckoutSessionRequest): Promise<{ success: boolean; sessionId: string; url: string }> => {
+    const response = await apiClient.post(api_endpoints.payments.createCheckoutSession, data);
     return response.data;
   },
 

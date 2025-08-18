@@ -1,15 +1,8 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { PaymentType, InitiatePaymentRequest, VerifyPaymentRequest } from '../../types/index.js';
-import axios from 'axios';
 import Stripe from 'stripe';
 
 const prisma = new PrismaClient();
-
-// PayPal API configuration
-const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID || '';
-const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET || '';
-const PAYPAL_API = process.env.PAYPAL_MODE === 'production' ? 'https://api.paypal.com' : 'https://api.sandbox.paypal.com';
 
 // Stripe API configuration
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
@@ -17,51 +10,11 @@ const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 });
 
-// Helper function to get PayPal access token
-const getPayPalAccessToken = async () => {
-  const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
-  console.log(auth);
-  try {
-    const response = await axios({
-      method: 'post',
-      url: `${PAYPAL_API}/v1/oauth2/token`,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${auth}`,
-      },
-      data: 'grant_type=client_credentials',
-    });
-
-    return response.data.access_token;
-  } catch (error) {
-    console.error('Error getting PayPal access token:', error);
-    throw new Error('Failed to authenticate with PayPal');
-  }
-};
-
-// Helper function to calculate cart total
-const calculateCartTotal = async (cartId: number) => {
-  const cartItems = await prisma.cartItem.findMany({
-    where: { cartId },
-    include: { gift: true },
-  });
-
-  let total = 0;
-
-  for (const item of cartItems) {
-    // Use the stored price in cart item or fall back to gift price
-    const price = item.price || item.gift.price;
-    total += price * item.quantity;
-  }
-
-  return total;
-};
-
 export default {
-  // Initiate payment process
-  initiatePayment: async (req: Request, res: Response) => {
+  // Create Stripe checkout session
+  createCheckoutSession: async (req: Request, res: Response) => {
     try {
-      const { cartId, paymentType, returnUrl, cancelUrl }: InitiatePaymentRequest = req.body;
+      const { cartId, successUrl, cancelUrl } = req.body;
 
       if (!cartId) {
         return res.status(400).json({
@@ -94,300 +47,195 @@ export default {
         });
       }
 
-      // Calculate total amount
-      const totalAmount = await calculateCartTotal(cartId);
+      // Create line items for Stripe
+      const lineItems = cart.items.map((item: any) => {
+        const price = item.price || item.gift.price;
+        return {
+          price_data: {
+            currency: 'mxn',
+            product_data: {
+              name: item.gift.title,
+              description: item.gift.description || '',
+              images: item.gift.imageUrl ? [item.gift.imageUrl] : [],
+            },
+            unit_amount: Math.round(price * 100), // Convert to cents
+          },
+          quantity: item.quantity,
+        };
+      });
 
-      // Update cart with total amount
-      await prisma.cart.update({
-        where: { id: cartId },
-        data: {
-          totalAmount,
-          paymentType,
+      // Create Stripe checkout session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: lineItems,
+        mode: 'payment',
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        metadata: {
+          cartId: cartId.toString(),
+          guestName: cart.inviteeName || '',
+          guestEmail: cart.inviteeEmail || '',
+          guestPhone: cart.phoneNumber || '',
+        },
+        currency: 'mxn',
+        customer_email: cart.inviteeEmail || undefined,
+        billing_address_collection: 'required',
+        shipping_address_collection: {
+          allowed_countries: ['MX'],
         },
       });
 
-      // Process based on payment type
-      if (paymentType === PaymentType.PAYPAL) {
-        // Get PayPal access token
-        const accessToken = await getPayPalAccessToken();
-
-        // Create PayPal order
-        const response = await axios({
-          method: 'post',
-          url: `${PAYPAL_API}/v2/checkout/orders`,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-          },
-          data: {
-            intent: 'CAPTURE',
-            purchase_units: [
-              {
-                amount: {
-                  currency_code: 'USD',
-                  value: totalAmount.toFixed(2),
-                },
-                description: `Wedding gifts purchase from MesaLista`,
-              },
-            ],
-            application_context: {
-              return_url: returnUrl,
-              cancel_url: cancelUrl,
-              brand_name: 'MesaLista',
-              user_action: 'PAY_NOW',
-              shipping_preference: 'NO_SHIPPING',
-            },
-          },
-        });
-
-        const { id: paymentId, links } = response.data;
-        const approvalUrl = links.find((link: any) => link.rel === 'approve').href;
-
-        // Update cart with payment ID
-        await prisma.cart.update({
-          where: { id: cartId },
-          data: { paymentId },
-        });
-
-        return res.json({
-          success: true,
-          paymentId,
-          approvalUrl,
-          message: 'PayPal payment initiated',
-        });
-      } else if (paymentType === PaymentType.STRIPE) {
-        // Create Stripe checkout session
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ['card'],
-          line_items: cart.items.map((item) => {
-            return {
-              price_data: {
-                currency: 'usd',
-                product_data: {
-                  name: item.gift.title,
-                  description: item.gift.description || undefined,
-                  images: item.gift.imageUrl ? [item.gift.imageUrl] : undefined,
-                },
-                unit_amount: Math.round(item.price * 100), // Stripe uses cents
-              },
-              quantity: item.quantity,
-            };
-          }),
-          mode: 'payment',
-          success_url: `${returnUrl}?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: cancelUrl,
-          metadata: {
-            cartId: cartId.toString(),
-          },
-        });
-
-        // Update cart with payment ID (session ID)
-        await prisma.cart.update({
-          where: { id: cartId },
-          data: { paymentId: session.id },
-        });
-
-        return res.json({
-          success: true,
-          paymentId: session.id,
-          approvalUrl: session.url,
-          message: 'Stripe payment initiated',
-        });
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: 'Unsupported payment type',
-        });
-      }
+      res.json({
+        success: true,
+        sessionId: session.id,
+        url: session.url,
+      });
     } catch (error) {
-      console.error('Error initiating payment:', error);
+      console.error('Error creating checkout session:', error);
       res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to initiate payment',
+        message: error instanceof Error ? error.message : 'Failed to create checkout session',
       });
     }
   },
 
-  // Verify and complete payment
-  verifyPayment: async (req: Request, res: Response) => {
+  // Handle Stripe webhook events
+  handleStripePaymentIntent: async (req: Request, res: Response) => {
+    const sig = req.headers['stripe-signature'] as string;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+
+    let event;
+
     try {
-      const { paymentId, paymentType, payerId, token }: VerifyPaymentRequest = req.body;
-
-      if (!paymentId || !paymentType) {
-        return res.status(400).json({
-          success: false,
-          message: 'Payment ID and payment type are required',
-        });
-      }
-
-      // Find the cart by payment ID
-      const cart = await prisma.cart.findFirst({
-        where: { paymentId },
-        include: { items: true },
-      });
-
-      if (!cart) {
-        return res.status(404).json({
-          success: false,
-          message: 'Cart not found for this payment',
-        });
-      }
-
-      // Process based on payment type
-      if (paymentType === PaymentType.PAYPAL) {
-        if (!payerId) {
-          return res.status(400).json({
-            success: false,
-            message: 'PayPal payer ID is required',
-          });
-        }
-
-        // Get PayPal access token
-        const accessToken = await getPayPalAccessToken();
-
-        // Capture the payment
-        const response = await axios({
-          method: 'post',
-          url: `${PAYPAL_API}/v2/checkout/orders/${paymentId}/capture`,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
-
-        const captureData = response.data;
-
-        if (captureData.status !== 'COMPLETED') {
-          return res.status(400).json({
-            success: false,
-            message: `Payment not completed. Status: ${captureData.status}`,
-          });
-        }
-
-        // Extract payment details
-        const captureDetails = captureData.purchase_units[0].payments.captures[0];
-        const transactionFee = captureDetails.seller_receivable_breakdown?.paypal_fee?.value || 0;
-        const payerEmail = captureData.payer?.email_address;
-        const payerName = `${captureData.payer?.name?.given_name || ''} ${captureData.payer?.name?.surname || ''}`.trim();
-
-        // Create money bag record
-        const moneyBag = await prisma.moneyBag.create({
-          data: {
-            cartId: cart.id,
-            amount: parseFloat(captureDetails.amount.value),
-            currency: captureDetails.amount.currency_code,
-            paymentType: PaymentType.PAYPAL,
-            paymentId,
-            transactionFee: parseFloat(transactionFee),
-            paymentStatus: captureData.status,
-            payerEmail,
-            payerName,
-            metadata: JSON.stringify(captureData),
-          },
-        });
-
-        // Update cart as paid
-        await prisma.cart.update({
-          where: { id: cart.id },
-          data: {
-            isPaid: true,
-            paidAt: new Date(),
-          },
-        });
-
-        return res.json({
-          success: true,
-          moneyBagId: moneyBag.id,
-          cartId: cart.id,
-          message: 'Payment verified and completed successfully',
-        });
-      } else if (paymentType === PaymentType.STRIPE) {
-        if (!token) {
-          return res.status(400).json({
-            success: false,
-            message: 'Stripe session token is required',
-          });
-        }
-
-        // Retrieve the session
-        const session = await stripe.checkout.sessions.retrieve(paymentId);
-
-        if (session.payment_status !== 'paid') {
-          return res.status(400).json({
-            success: false,
-            message: `Payment not completed. Status: ${session.payment_status}`,
-          });
-        }
-
-        // Get payment intent details
-        if (!session.payment_intent) {
-          return res.status(400).json({
-            success: false,
-            message: 'Payment intent not found in session',
-          });
-        }
-
-        const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string);
-        const charge = paymentIntent.application_fee_amount;
-
-        // Create money bag record
-        const moneyBag = await prisma.moneyBag.create({
-          data: {
-            cartId: cart.id,
-            amount: session.amount_total || 0, // Convert from cents
-            currency: session.currency || 'MXN',
-            paymentType: PaymentType.STRIPE,
-            paymentId,
-            transactionFee: charge || 0, // Convert from cents
-            paymentStatus: 'COMPLETED',
-            payerEmail: session.customer_details?.email,
-            payerName: session.customer_details?.name,
-            metadata: JSON.stringify(session),
-          },
-        });
-
-        // Update cart as paid
-        await prisma.cart.update({
-          where: { id: cart.id },
-          data: {
-            isPaid: true,
-            paidAt: new Date(),
-          },
-        });
-
-        return res.json({
-          success: true,
-          moneyBagId: moneyBag.id,
-          cartId: cart.id,
-          message: 'Payment verified and completed successfully',
-        });
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: 'Unsupported payment type',
-        });
-      }
-    } catch (error) {
-      console.error('Error verifying payment:', error);
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to verify payment',
-      });
+      // req.body is already raw buffer when using express.raw middleware
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (err) {
+      console.error('Webhook signature verification failed:', err);
+      return res.status(400).send(`Webhook Error: ${err}`);
     }
+
+    // Handle the event
+    switch (event.type) {
+      case 'checkout.session.completed':
+        const session = event.data.object;
+
+        try {
+          // Get cart information from metadata
+          if (!session.metadata?.cartId) {
+            console.error('Missing metadata in checkout session');
+            return res.status(400).json({ error: 'Missing metadata' });
+          }
+
+          const cartId = parseInt(session.metadata.cartId);
+
+          // Update cart with payment information
+          await prisma.cart.update({
+            where: { id: cartId },
+            data: {
+              status: 'PAID',
+              paymentId: session.payment_intent as string,
+            },
+          });
+
+          // Create payment record
+          await prisma.payment.create({
+            data: {
+              cartId,
+              paymentId: session.payment_intent as string,
+              amount: (session.amount_total || 0) / 100, // Convert from cents
+              currency: session.currency || 'mxn',
+              paymentType: 'STRIPE',
+              transactionFee: 0, // Stripe fees would be calculated separately
+              status: 'PAID',
+              metadata: JSON.stringify(session.metadata), // Convert object to string
+            },
+          });
+
+          // Get cart items and mark the corresponding gifts as purchased
+          const cartItems = await prisma.cartItem.findMany({
+            where: { cartId },
+            select: { giftId: true },
+          });
+
+          const giftIds = cartItems.map((item: { giftId: number }) => item.giftId);
+
+          // Update all gifts as purchased in a single query
+          if (giftIds.length > 0) {
+            await prisma.gift.updateMany({
+              where: {
+                id: { in: giftIds },
+              },
+              data: {
+                isPurchased: true,
+              },
+            });
+          }
+        } catch (error) {
+          console.error('Error processing webhook:', error);
+          return res.status(500).json({ error: 'Failed to process payment' });
+        }
+        break;
+
+      case 'checkout.session.expired':
+        // Handle expired checkout session
+        const expiredSession = event.data.object;
+
+        if (!expiredSession.metadata?.cartId) {
+          console.error('Missing cartId in expired session metadata');
+          break;
+        }
+
+        const expiredOrderId = parseInt(expiredSession.metadata.cartId);
+
+        try {
+          await prisma.cart.update({
+            where: { id: expiredOrderId },
+            data: {
+              status: 'CANCELLED' as any,
+            },
+          });
+          console.log('Checkout session expired for order:', expiredOrderId);
+        } catch (error) {
+          console.error('Error handling expired session:', error);
+        }
+        break;
+        
+      // Handle additional event types
+      case 'charge.succeeded':
+        console.log('Charge succeeded event received:', event.id);
+        // We don't need to do anything special here as the checkout.session.completed
+        // event already handles the payment processing
+        break;
+        
+      case 'payment_intent.succeeded':
+        console.log('Payment intent succeeded event received:', event.id);
+        // This event is also handled by checkout.session.completed
+        break;
+        
+      case 'payment_intent.created':
+        console.log('Payment intent created event received:', event.id);
+        // This is an informational event that doesn't require action
+        break;
+
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    res.json({ received: true });
   },
 
   // Get payment summary
   getPaymentSummary: async (req: Request, res: Response) => {
     try {
-      const { id: moneyBagId } = req.params;
+      const { id: paymentId } = req.params;
 
-      if (!moneyBagId) {
-        return res.status(400).json({ error: 'Money bag ID is required' });
+      if (!paymentId) {
+        return res.status(400).json({ error: 'Payment ID is required' });
       }
 
       // Get money bag with cart and items
-      const moneyBag = await prisma.moneyBag.findUnique({
-        where: { id: Number(moneyBagId) },
+      const payment = await prisma.payment.findUnique({
+        where: { id: Number(paymentId) },
         include: {
           cart: {
             include: {
@@ -399,29 +247,20 @@ export default {
         },
       });
 
-      if (!moneyBag) {
+      if (!payment) {
         return res.status(404).json({ error: 'Payment record not found' });
       }
 
       // Format payment summary
       const summary = {
-        totalAmount: moneyBag.amount,
-        currency: moneyBag.currency,
-        itemCount: moneyBag.cart.items.length,
-        paymentStatus: moneyBag.paymentStatus,
-        paymentDate: moneyBag.createdAt.toISOString(),
-        paymentType: moneyBag.paymentType,
-        transactionId: moneyBag.paymentId,
-        payerName: moneyBag.payerName,
-        payerEmail: moneyBag.payerEmail,
-        transactionFee: moneyBag.transactionFee,
-        items: moneyBag.cart.items.map((item) => ({
-          id: item.id,
-          title: item.gift.title,
-          price: item.price,
-          quantity: item.quantity,
-          subtotal: item.price * item.quantity,
-        })),
+        totalAmount: payment.amount,
+        currency: payment.currency,
+        itemCount: payment.cart.items.length,
+        paymentStatus: payment.status,
+        paymentDate: payment.createdAt.toISOString(),
+        paymentType: payment.paymentType,
+        transactionId: payment.paymentId,
+        transactionFee: payment.transactionFee,
       };
 
       res.json(summary);
@@ -434,15 +273,14 @@ export default {
   // List all payments
   getAllPayments: async (_req: Request, res: Response) => {
     try {
-      const payments = await prisma.moneyBag.findMany({
+      const payments = await prisma.payment.findMany({
         orderBy: { createdAt: 'desc' },
         include: {
           cart: {
             select: {
               inviteeName: true,
               inviteeEmail: true,
-              isPaid: true,
-              paidAt: true,
+              status: true,
             },
           },
         },
@@ -453,12 +291,8 @@ export default {
         amount: payment.amount,
         currency: payment.currency,
         paymentType: payment.paymentType,
-        paymentStatus: payment.paymentStatus,
+        status: payment.status,
         paymentDate: payment.createdAt.toISOString(),
-        inviteeName: payment.cart.inviteeName,
-        inviteeEmail: payment.cart.inviteeEmail,
-        isPaid: payment.cart.isPaid,
-        paidAt: payment.cart.paidAt ? payment.cart.paidAt.toISOString() : null,
       }));
 
       res.json(formattedPayments);

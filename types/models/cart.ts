@@ -1,4 +1,14 @@
-import { Gift } from '@prisma/client';
+import { Gift } from 'types/models/gift.js';
+
+/**
+ * Cart status enum
+ */
+export enum CartStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  PAID = 'PAID',
+  CANCELLED = 'CANCELLED',
+}
 
 /**
  * Cart item interface
@@ -8,6 +18,7 @@ export interface CartItem {
   cartId: number;
   giftId: number;
   quantity: number;
+  price: number;
   createdAt: string;
   updatedAt: string;
   gift?: Gift;
@@ -24,6 +35,9 @@ export interface Cart {
   country?: string;
   phoneNumber?: string;
   message?: string;
+  paymentId?: string;
+  status: CartStatus;
+  totalAmount?: number;
   createdAt: string;
   updatedAt: string;
   items?: CartItem[];

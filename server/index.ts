@@ -14,6 +14,8 @@ import cartRoutes from './routes/cartRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import fileUploadRouter from './routes/fileUpload.js';
 import weddingListRoutes from './routes/weddingListRoutes.js';
+import bodyParser from 'body-parser';
+import paymentController from './controllers/paymentController.js';
 
 // Load environment variables
 dotenv.config();
@@ -40,6 +42,9 @@ app.use(
     maxAge: 86400, // Cache preflight requests for 24 hours
   }),
 );
+
+// Stripe webhook route FIRST, with raw body
+app.post('/api/payments/stripe-payment-intent', bodyParser.raw({ type: 'application/json' }), paymentController.handleStripePaymentIntent);
 
 app.use(express.json());
 
@@ -80,7 +85,7 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true })
 app.use('/api/user', userRoutes);
 app.use('/api/gift', giftRoutes);
 app.use('/api/cart', cartRoutes);
-app.use('/api/payment', paymentRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api/wedding-list', weddingListRoutes);
 app.use('/api/upload', fileUploadRouter);
 

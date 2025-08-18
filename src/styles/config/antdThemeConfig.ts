@@ -19,15 +19,11 @@ const antdThemeConfig = {
       itemSelectedBg: cssValues.colors.gray100,
     },
     Select: {
-      colorBorder: cssValues.colors.gray400,
-      activeBorderColor: cssValues.colors.orange,
+      activeBorderColor: cssValues.colors.oak,
+      colorBorder: cssValues.colors.white,
       optionSelectedBg: cssValues.colors.gray100,
       controlOutline: 'none',
       controlOutlineWidth: 0,
-    },
-    Form: {
-      // This is valid despite the TS warning in App.tsx
-      // marginLG: '14px',
     },
     Input: {
       activeBorderColor: cssValues.colors.oak,
@@ -45,7 +41,6 @@ const antdThemeConfig = {
     Button: {
       colorBorder: 'none',
       fontWeight: 500,
-      colorPrimaryHover: cssValues.colors.gray800,
     },
     Segmented: {
       itemColor: cssValues.colors.gray500,
@@ -70,7 +65,6 @@ const antdThemeConfig = {
     colorSecondary: cssValues.colors.pistaccio,
     colorLinkHover: cssValues.colors.gray400,
     colorLink: cssValues.colors.blueDark,
-    colorPrimaryHover: 'none',
     colorBorder: cssValues.colors.gray400,
 
     colorSuccess: cssValues.colors.success,

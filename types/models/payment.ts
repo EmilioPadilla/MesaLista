@@ -5,24 +5,30 @@ export enum PaymentType {
   PAYPAL = 'PAYPAL',
   STRIPE = 'STRIPE',
   BANK_TRANSFER = 'BANK_TRANSFER',
-  OTHER = 'OTHER'
 }
 
 /**
- * Money bag interface
+ * Payment status enum
  */
-export interface MoneyBag {
+export enum PaymentStatus {
+  PENDING = 'PENDING',
+  REIMBURSED = 'REIMBURSED',
+  PAID = 'PAID',
+  CANCELLED = 'CANCELLED',
+}
+
+/**
+ * Payment interface
+ */
+export interface Payment {
   id: number;
   cartId: number;
-  amount: number;
+  paymentId: string;
   currency: string;
   paymentType: PaymentType;
-  paymentId: string;
   transactionFee?: number;
-  paymentStatus: string;
-  payerEmail?: string;
-  payerName?: string;
-  metadata?: string;
+  amount: number;
+  status: PaymentStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -54,7 +60,7 @@ export interface VerifyPaymentRequest {
   paymentId: string;
   paymentType: PaymentType;
   payerId?: string; // For PayPal
-  token?: string;   // For Stripe
+  token?: string; // For Stripe
 }
 
 /**
@@ -62,7 +68,7 @@ export interface VerifyPaymentRequest {
  */
 export interface VerifyPaymentResponse {
   success: boolean;
-  moneyBagId?: number;
+  paymentId?: number;
   cartId?: number;
   message: string;
 }
@@ -74,7 +80,7 @@ export interface PaymentSummary {
   totalAmount: number;
   currency: string;
   itemCount: number;
-  paymentStatus: string;
+  status: PaymentStatus;
   paymentDate: string;
   paymentType: PaymentType;
   transactionId: string;

@@ -4,9 +4,7 @@ import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.post('/initiate', paymentController.initiatePayment);
-
-router.post('/verify', paymentController.verifyPayment);
+router.post('/create-checkout-session', paymentController.createCheckoutSession);
 
 router.get('/:id/summary', paymentController.getPaymentSummary);
 

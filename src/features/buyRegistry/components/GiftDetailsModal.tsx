@@ -1,7 +1,8 @@
 import { Button, Modal, Typography, Tag, Divider, Select } from 'antd';
-import { ShoppingCartOutlined } from '@ant-design/icons';
+import { DeleteOutlined, MinusOutlined, PlusOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useGiftById } from 'hooks/useGift';
 import { useState, useEffect } from 'react';
+import { CartItem } from 'types/models/cart';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -12,18 +13,39 @@ interface GiftDetailsModalProps {
   onCancel: () => void;
   afterClose: () => void;
   onAddToCart?: (giftId: number, quantity: number) => void;
+  cartItems?: CartItem[];
+  onUpdateCartQuantity?: (cartItemId: number, quantity: number) => void;
+  onRemoveFromCart?: (cartItemId: number) => void;
 }
 
-export const GiftDetailsModal = ({ giftId, open, onCancel, afterClose, onAddToCart }: GiftDetailsModalProps) => {
+export const GiftDetailsModal = ({
+  giftId,
+  open,
+  onCancel,
+  afterClose,
+  onAddToCart,
+  cartItems = [],
+  onUpdateCartQuantity,
+  onRemoveFromCart,
+}: GiftDetailsModalProps) => {
   const { data: gift, isLoading } = useGiftById(giftId, { enabled: !!giftId });
   const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
+
+  // Find if this gift is already in the cart
+  const cartItem = gift ? cartItems?.find((item) => item.gift?.id === gift.id) : undefined;
+  const isInCart = Boolean(cartItem);
 
   // Reset quantity when gift changes or modal opens
   useEffect(() => {
     if (gift && open) {
-      setSelectedQuantity(1);
+      // If in cart, set the initial quantity to match cart quantity
+      if (cartItem) {
+        setSelectedQuantity(cartItem.quantity);
+      } else {
+        setSelectedQuantity(1);
+      }
     }
-  }, [gift, open]);
+  }, [gift, open, cartItem]);
 
   const handleAddToCart = () => {
     if (gift && onAddToCart) {
@@ -32,19 +54,46 @@ export const GiftDetailsModal = ({ giftId, open, onCancel, afterClose, onAddToCa
     }
   };
 
+  const handleIncreaseQuantity = () => {
+    if (cartItem && onUpdateCartQuantity) {
+      onUpdateCartQuantity(cartItem.id as unknown as number, cartItem.quantity + 1);
+    }
+  };
+
+  const handleDecreaseQuantity = () => {
+    if (cartItem && onUpdateCartQuantity) {
+      onUpdateCartQuantity(cartItem.id as unknown as number, cartItem.quantity - 1);
+    }
+  };
+
+  const handleRemoveFromCart = () => {
+    if (cartItem && onRemoveFromCart) {
+      onRemoveFromCart(cartItem.id as unknown as number);
+      onCancel();
+    }
+  };
+
   // Generate quantity options based on gift.quantity
-  const quantityOptions = gift ? Array.from({ length: gift.quantity }, (_, i) => ({
-    label: (i + 1).toString(),
-    value: i + 1,
-  })) : [];
+  const quantityOptions = gift
+    ? Array.from({ length: gift.quantity }, (_, i) => ({
+        label: (i + 1).toString(),
+        value: i + 1,
+      }))
+    : [];
 
   if (!gift && !isLoading) {
     return null;
   }
 
+  const handleAfterClose = (openedDrawer: boolean) => {
+    if (!openedDrawer) {
+      afterClose?.();
+    }
+  };
+
   return (
     <Modal
-      afterClose={afterClose}
+      afterOpenChange={handleAfterClose}
       destroyOnHidden
       title={gift?.title || 'Gift Details'}
       open={open}
@@ -97,19 +146,7 @@ export const GiftDetailsModal = ({ giftId, open, onCancel, afterClose, onAddToCa
                   <Text className="text-gray-600">
                     Cantidad solicitada: <strong>{gift.quantity}</strong>
                   </Text>
-                  
-                  {/* Quantity selector */}
-                  <div className="mt-3">
-                    <Text className="text-gray-700 block mb-2">Cantidad a regalar:</Text>
-                    <Select
-                      value={selectedQuantity}
-                      onChange={setSelectedQuantity}
-                      options={quantityOptions}
-                      className="w-24"
-                      disabled={gift.isPurchased}
-                    />
-                  </div>
-                  
+
                   {gift.isMostWanted && (
                     <div className="mt-2">
                       <Tag color="gold">Regalo más deseado ⭐</Tag>
@@ -128,17 +165,38 @@ export const GiftDetailsModal = ({ giftId, open, onCancel, afterClose, onAddToCa
 
               {/* Action buttons */}
               <div className="mt-auto">
-                <div className="flex gap-3">
-                  <Button
-                    type="primary"
-                    size="large"
-                    icon={<ShoppingCartOutlined />}
-                    onClick={handleAddToCart}
-                    className="flex-1"
-                    disabled={gift.isPurchased}>
-                    {gift.isPurchased ? 'Ya comprado' : 'Agregar al carrito'}
+                {gift.isPurchased ? (
+                  <Button type="primary" size="large" disabled className="flex-1 w-full">
+                    Ya comprado
                   </Button>
-                </div>
+                ) : isInCart ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          icon={<MinusOutlined />}
+                          onClick={handleDecreaseQuantity}
+                          disabled={cartItem?.quantity ? cartItem.quantity <= 1 : true}
+                        />
+                        <span className="text-lg px-2">{cartItem?.quantity}</span>
+                        <Button
+                          icon={<PlusOutlined />}
+                          onClick={handleIncreaseQuantity}
+                          disabled={cartItem?.quantity ? cartItem.quantity >= (gift.quantity || 1) : false}
+                        />
+                      </div>
+                      <Button danger icon={<DeleteOutlined />} onClick={handleRemoveFromCart}>
+                        Eliminar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-3">
+                    <Button type="primary" size="large" icon={<ShoppingCartOutlined />} onClick={handleAddToCart} className="flex-1">
+                      Agregar al carrito
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

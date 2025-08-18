@@ -22,7 +22,6 @@ model User {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   weddingList   WeddingList?
-  purchases     GiftPurchase[]
   
   @@map("users")
 }
@@ -66,7 +65,6 @@ model Gift {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   weddingList   WeddingList @relation(fields: [weddingListId], references: [id], onDelete: Cascade)
-  purchases     GiftPurchase[]
   cartItems     CartItem[]
   categories    GiftCategoryOnGift[]
 
@@ -97,33 +95,27 @@ model GiftCategoryOnGift {
   @@map("gift_categories_on_gifts")
 }
 
-enum PurchaseStatus {
-  PENDING
-  DELIVERED
-  THANKED
-}
-
 enum PaymentType {
   PAYPAL
   STRIPE
   BANK_TRANSFER
-  OTHER
 }
 
-model GiftPurchase {
-  id            Int            @id @default(autoincrement())
-  giftId        Int            @map("gift_id")
-  userId        Int            @map("user_id")
-  purchaseDate  DateTime       @default(now()) @map("purchase_date")
-  status        PurchaseStatus @default(PENDING)
-  message       String?
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
-  gift          Gift           @relation(fields: [giftId], references: [id], onDelete: Cascade)
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("gift_purchases")
+enum PaymentStatus {
+  PENDING
+  REIMBURSED
+  PAID
+  CANCELLED
 }
+
+enum CartStatus {
+  PENDING
+  PROCESSING
+  PAID
+  CANCELLED
+}
+
+
 
 model Cart {
   id            Int            @id @default(autoincrement())
@@ -133,18 +125,18 @@ model Cart {
   country       String?
   phoneNumber   String?        @map("phone_number")
   message       String?        // Message to the couple
-  paymentType   PaymentType?   @map("payment_type")
   paymentId     String?        @map("payment_id") // External payment ID from PayPal or Stripe
-  isPaid        Boolean        @default(false) @map("is_paid")
-  paidAt        DateTime?      @map("paid_at")
+  status        CartStatus     @default(PENDING)
   totalAmount   Float?         @map("total_amount")
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
   items         CartItem[]
-  moneyBag      MoneyBag?      // One-to-one relation
+  payment       Payment?       // One-to-one relation
 
   @@map("carts")
 }
+
+
 
 model CartItem {
   id            Int            @id @default(autoincrement())
@@ -161,21 +153,19 @@ model CartItem {
   @@map("cart_items")
 }
 
-model MoneyBag {
+model Payment {
   id            Int            @id @default(autoincrement())
   cartId        Int            @unique @map("cart_id")
-  amount        Float          // Total payment amount
+  paymentId     String         @map("payment_id") // External payment ID from Stripe/PayPal
   currency      String         @default("USD")
   paymentType   PaymentType    @map("payment_type")
-  paymentId     String         @map("payment_id") // External payment ID
   transactionFee Float?        @map("transaction_fee")
-  paymentStatus String         @map("payment_status") // Status from payment provider
-  payerEmail    String?        @map("payer_email")
-  payerName     String?        @map("payer_name")
-  metadata      String?        // JSON string for additional payment data
+  amount        Float          // Total payment amount
+  status        PaymentStatus  @default(PENDING)
+  metadata      String?
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
   cart          Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
 
-  @@map("money_bags")
+  @@map("payments")
 }

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'c
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from 'components/core/Dialog';
 import { ImageWithFallback } from 'components/core/ImageFallback';
 import { X, Eye } from 'lucide-react';
-import { GiftItem } from 'app/routes/couple/v2ManageRegistry';
+import { GiftItem } from 'app/routes/couple/ManageRegistry';
 import { GiftCategory } from 'types/models/gift';
 
 interface EditGiftModalProps {
@@ -37,7 +37,7 @@ export function EditGiftModal({ gift, isOpen, onClose, afterClose, onSave }: Edi
         description: gift.description!,
         price: gift.price.toString(),
         category: gift.categories![0].name!,
-        priority: gift.priority!,
+        priority: gift.isMostWanted ? 'alta' : 'media',
         image: gift.imageUrl!,
       });
       setImagePreview(gift.imageUrl!);
@@ -72,7 +72,7 @@ export function EditGiftModal({ gift, isOpen, onClose, afterClose, onSave }: Edi
       description: formData.description,
       price: parseInt(formData.price),
       categories: [{ name: formData.category, id: gift.categories![0].id } as GiftCategory],
-      priority: formData.priority,
+      isMostWanted: formData.priority === 'alta',
       imageUrl: formData.image || gift.imageUrl,
     };
 
