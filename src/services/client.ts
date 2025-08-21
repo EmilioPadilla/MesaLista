@@ -5,9 +5,15 @@ export interface CustomAxiosRequestConfig extends AxiosRequestConfig {
 }
 
 
+// Determine if we're in a development environment (localhost)
+const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+// Use localhost in development, otherwise use the environment variable
+const API_URL = isDevelopment ? 'http://localhost:5001/api' : import.meta.env.VITE_API_URL;
+
 // Create an axios instance with default config
 const apiClient = axios.create({
-  baseURL: 'http://localhost:5001/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
