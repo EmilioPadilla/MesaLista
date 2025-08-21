@@ -10,11 +10,5 @@ cmds = [
   'npm run build:server'
 ]
 
-[phases.post-build]
-cmds = [
-  'npm run prisma:generate',
-  'npm run prisma:seed'
-]
-
 [start]
 cmd = 'node server/dist/server/index.js'
