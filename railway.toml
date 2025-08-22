@@ -7,3 +7,6 @@ healthcheckPath = "/health"
 healthcheckTimeout = 60
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
+
+[databases.postgresql]
+version = "14"

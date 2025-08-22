@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ['nodejs_22', 'npm-9_x']
+nixPkgs = ['nodejs_22', 'npm-9_x', 'postgresql']
 
 [phases.install]
 cmds = ['npm ci']
@@ -9,6 +9,7 @@ cmds = [
   'npm run build:client',
   'npm run build:server',
   'npx prisma generate',
+  'npx prisma migrate deploy',
   'npx tsx prisma/seed.ts'
 ]
 
