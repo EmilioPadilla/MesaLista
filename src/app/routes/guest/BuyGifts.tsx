@@ -221,9 +221,9 @@ export function BuyGifts() {
               </div>
             </div>
             <div className="flex items-center justify-center">
-              <div className="flex flex-col">
+              <div className="flex flex-col items-center justify-center">
                 <Title level={4}>{formattedWeddingDate}</Title>
-                <span>{note}</span>
+                <div className="whitespace-pre-line text-center">{note}</div>
               </div>
             </div>
           </div>
