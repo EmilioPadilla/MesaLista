@@ -149,18 +149,10 @@ export function OrderConfirmation() {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs">2</div>
-                    <div>
-                      <p className="text-sm">Preparación del envío</p>
-                      <p className="text-xs text-muted-foreground">1-2 días hábiles</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-muted-foreground text-xs">3</div>
                     <div>
-                      <p className="text-sm">Entrega a la pareja</p>
-                      <p className="text-xs text-muted-foreground">3-5 días hábiles</p>
+                      <p className="text-sm">Confirmación de la pareja</p>
+                      <p className="text-xs text-muted-foreground">¡Tan pronto como puedan!</p>
                     </div>
                   </div>
                 </div>
@@ -168,20 +160,25 @@ export function OrderConfirmation() {
                 <Separator />
 
                 <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start" size="sm">
+                  {/* <Button variant="outline" className="w-full justify-start" size="sm">
                     <Mail className="h-4 w-4 mr-2" />
                     Reenviar confirmación
-                  </Button>
+                  </Button> */}
 
-                  <Button variant="outline" className="w-full justify-start" size="sm">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start" 
+                    size="sm"
+                    onClick={() => window.print()}
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Descargar comprobante
                   </Button>
 
-                  <Button variant="outline" className="w-full justify-start" size="sm">
+                  {/* <Button variant="outline" className="w-full justify-start" size="sm">
                     <Share2 className="h-4 w-4 mr-2" />
                     Compartir regalo
-                  </Button>
+                  </Button> */}
                 </div>
               </CardContent>
             </Card>
@@ -208,7 +205,7 @@ export function OrderConfirmation() {
             </Card>
 
             {/* Actions */}
-            <div className="space-y-3">
+            <div className="space-y-3 print:hidden">
               <Button className="w-full" onClick={() => navigate(`/${coupleSlug}/regalos`)}>
                 Ver Más Regalos
               </Button>

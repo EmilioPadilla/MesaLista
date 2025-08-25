@@ -21,6 +21,9 @@ export interface CreateCheckoutSessionRequest {
   orderId: string;
   successUrl: string;
   cancelUrl: string;
+  shipping_address_collection: null | { enabled: false }[];
+  shipping_options: null;
+  phone_number_collection: { enabled: false };
 }
 
 export interface PaymentSummary {
@@ -59,7 +62,7 @@ export const paymentService = {
 
   /**
    * Get payment summary by ID
-   * 
+   *
    * @param id Payment ID
    * @returns Payment summary
    */
@@ -70,18 +73,20 @@ export const paymentService = {
 
   /**
    * Initiate a payment process
-   * 
+   *
    * @param data Payment initiation data
    * @returns Payment initiation response
    */
-  initiatePayment: async (data: PaymentInitiateRequest): Promise<{ success: boolean; paymentId: string; approvalUrl: string; message: string }> => {
+  initiatePayment: async (
+    data: PaymentInitiateRequest,
+  ): Promise<{ success: boolean; paymentId: string; approvalUrl: string; message: string }> => {
     const response = await apiClient.post(api_endpoints.payments.initiate, data);
     return response.data;
   },
 
   /**
    * Create Stripe checkout session
-   * 
+   *
    * @param data Checkout session data
    * @returns Checkout session response with URL
    */
@@ -92,7 +97,7 @@ export const paymentService = {
 
   /**
    * Verify and complete a payment
-   * 
+   *
    * @param data Payment verification data
    * @returns Payment verification response
    */

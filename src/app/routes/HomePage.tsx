@@ -247,14 +247,14 @@ export function HomePage({}: HomepageProps) {
             <p className="text-xl mb-8 text-primary-foreground/90 leading-relaxed">
               Crea tu mesa de regalos hoy y haz que tu boda sea aún más especial
             </p>
-            <Button
+            {/* <Button
               size="lg"
               variant="secondary"
               className="px-8 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-0 bg-white hover:bg-white/95"
               onClick={() => navigate('/registro')}>
               <Heart className="mr-2 h-5 w-5" />
               Empezar Ahora - Es Gratis
-            </Button>
+            </Button> */}
           </div>
         </section>
       )}

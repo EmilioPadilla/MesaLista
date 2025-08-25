@@ -51,7 +51,7 @@ function App() {
             }
           />
           <Route path="/login" element={isAuthenticated ? <Navigate to={`/${coupleSlug}`} /> : <Login />} />
-          <Route path="/registro" element={isAuthenticated ? <Navigate to={`/${coupleSlug}`} /> : <Signup />} />
+          {/* <Route path="/registro" element={isAuthenticated ? <Navigate to={`/${coupleSlug}`} /> : <Signup />} /> */}
 
           {/* Public registry view for guests */}
           <Route path="/:coupleSlug" element={<PublicRegistry />}>

@@ -61,7 +61,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
 
   // Regular header for non-checkout pages
   return (
-    <header className="bg-card border-b border-border shadow-lg backdrop-blur-sm">
+    <header className="bg-card border-b border-border shadow-lg backdrop-blur-sm print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div
@@ -126,11 +126,11 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   className="transition-all cursor-pointer duration-200 hover:shadow-md">
                   {viewType !== 'mobile' ? <span>Iniciar Sesión</span> : <LoginOutlined />}
                 </Button>
-                {viewType !== 'mobile' && (
+                {/* {viewType !== 'mobile' && (
                   <Button onClick={() => navigate('/registro')} className="transition-all cursor-pointer duration-200 hover:shadow-md">
                     <span>Registrarse</span>
                   </Button>
-                )}
+                )} */}
               </div>
             )}
           </div>

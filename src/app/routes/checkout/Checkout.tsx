@@ -76,6 +76,9 @@ export function Checkout() {
               cartId: cart.id,
               successUrl: `${baseUrl}/${coupleSlug}/confirmation?cartId=${cart.sessionId}`,
               cancelUrl: `${baseUrl}/${coupleSlug}/checkout`,
+              shipping_address_collection: null,
+              shipping_options: null,
+              phone_number_collection: { enabled: false },
               orderId: cart.id,
             },
             {
