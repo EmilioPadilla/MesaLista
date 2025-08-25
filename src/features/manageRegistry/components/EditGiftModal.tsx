@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Button } from 'components/core/Button';
-import { Input } from 'components/core/Input';
-import { Input as antdInput } from 'antd';
+import { Form, Input, Select, Checkbox } from 'antd';
 import { Label } from 'components/core/Label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'components/core/Select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from 'components/core/Dialog';
 import { ImageWithFallback } from 'components/core/ImageFallback';
 import { X, Eye } from 'lucide-react';
 import { GiftItem } from 'app/routes/couple/ManageRegistry';
 import { GiftCategory } from 'types/models/gift';
+import { useUpdateGift } from 'hooks/useGift';
 
 interface EditGiftModalProps {
   gift: GiftItem | null;
@@ -19,69 +18,52 @@ interface EditGiftModalProps {
 }
 
 export function EditGiftModal({ gift, isOpen, onClose, afterClose, onSave }: EditGiftModalProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    category: 'General',
-    priority: 'media' as 'alta' | 'media' | 'baja',
-    image: '',
-  });
+  const [form] = Form.useForm();
   const [imagePreview, setImagePreview] = useState<string>('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { mutate: updateGift, isSuccess: updateSuccess, isError: updateError } = useUpdateGift();
 
   useEffect(() => {
     if (gift) {
-      setFormData({
-        name: gift.title,
-        description: gift.description!,
-        price: gift.price.toString(),
-        category: gift.categories![0].name!,
-        priority: gift.isMostWanted ? 'alta' : 'media',
-        image: gift.imageUrl!,
+      form.setFieldsValue({
+        title: gift.title,
+        description: gift.description || '',
+        price: gift.price,
+        categories: gift.categories?.map((cat) => cat.name) || [],
+        isMostWanted: gift.isMostWanted,
+        imageUrl: gift.imageUrl || '',
       });
-      setImagePreview(gift.imageUrl!);
+      setImagePreview(gift.imageUrl || '');
     }
-  }, [gift]);
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.name.trim()) newErrors.name = 'El nombre es requerido';
-    if (!formData.price.trim()) newErrors.price = 'El precio es requerido';
-    if (parseInt(formData.price) <= 0) newErrors.price = 'El precio debe ser mayor a 0';
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  }, [gift, form]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const url = e.target.value;
-    setFormData({ ...formData, image: url });
+    form.setFieldValue('imageUrl', url);
     setImagePreview(url);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm() || !gift) return;
+  const handleFinish = (values: any) => {
+    if (!gift) return;
 
     const updatedGift: GiftItem = {
       ...gift,
-      title: formData.name,
-      description: formData.description,
-      price: parseInt(formData.price),
-      categories: [{ name: formData.category, id: gift.categories![0].id } as GiftCategory],
-      isMostWanted: formData.priority === 'alta',
-      imageUrl: formData.image || gift.imageUrl,
+      title: values.title,
+      description: values.description || '',
+      price: values.price,
+      categories:
+        values.categories?.map(
+          (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
+        ) || [],
+      isMostWanted: values.isMostWanted || false,
+      imageUrl: values.imageUrl || gift.imageUrl,
     };
 
-    onSave(updatedGift);
+    updateGift({ id: gift.id, data: updatedGift });
     onClose();
   };
 
   const handleClose = () => {
-    setErrors({});
+    form.resetFields();
     onClose();
   };
 
@@ -95,97 +77,69 @@ export function EditGiftModal({ gift, isOpen, onClose, afterClose, onSave }: Edi
           <DialogDescription>Modifica los detalles de este regalo en tu mesa de regalos</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <Form form={form} onFinish={handleFinish} layout="vertical" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Nombre del Regalo</Label>
-              <Input
-                id="edit-name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ej. Juego de sábanas"
-                className={`shadow-sm ${errors.name ? 'border-destructive' : ''}`}
-              />
-              {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-            </div>
+            <Form.Item
+              name="title"
+              label="Nombre del Regalo"
+              rules={[{ required: true, message: 'Por favor ingresa el título del regalo' }]}>
+              <Input placeholder="Ej. Juego de sábanas" className="shadow-sm" />
+            </Form.Item>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-price">Precio (MXN)</Label>
-              <Input
-                id="edit-price"
-                type="number"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                placeholder="1500"
-                className={`shadow-sm ${errors.price ? 'border-destructive' : ''}`}
-              />
-              {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
-            </div>
+            <Form.Item
+              name="price"
+              label="Precio (MXN)"
+              rules={[
+                { required: true, message: 'Por favor ingresa el precio' },
+                { type: 'number', min: 1, message: 'El precio debe ser mayor a 0' },
+              ]}>
+              <Input type="number" placeholder="1500" className="shadow-sm" />
+            </Form.Item>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-category">Categoría</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-                <SelectTrigger className="shadow-sm">
-                  <SelectValue placeholder="Seleccionar categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Hogar">Hogar</SelectItem>
-                  <SelectItem value="Cocina">Cocina</SelectItem>
-                  <SelectItem value="Baño">Baño</SelectItem>
-                  <SelectItem value="Decoración">Decoración</SelectItem>
-                  <SelectItem value="Electrónicos">Electrónicos</SelectItem>
-                  <SelectItem value="General">General</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-priority">Prioridad</Label>
+            <Form.Item name="categories" label="Categorías">
               <Select
-                value={formData.priority}
-                onValueChange={(value: 'alta' | 'media' | 'baja') => setFormData({ ...formData, priority: value })}>
-                <SelectTrigger className="shadow-sm">
-                  <SelectValue placeholder="Media" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="alta">Alta</SelectItem>
-                  <SelectItem value="media">Media</SelectItem>
-                  <SelectItem value="baja">Baja</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                mode="tags"
+                allowClear
+                optionFilterProp="label"
+                style={{ width: '100%' }}
+                placeholder="Selecciona de 1 a 3 categorías"
+                maxCount={3}
+                options={[
+                  { value: 'Hogar', label: 'Hogar' },
+                  { value: 'Cocina', label: 'Cocina' },
+                  { value: 'Baño', label: 'Baño' },
+                  { value: 'Decoración', label: 'Decoración' },
+                  { value: 'Electrónicos', label: 'Electrónicos' },
+                  { value: 'General', label: 'General' },
+                ]}
+              />
+            </Form.Item>
+
+            <Form.Item name="isMostWanted" label="Prioridad Alta" valuePropName="checked">
+              <Checkbox>Marcar como prioridad alta</Checkbox>
+            </Form.Item>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="edit-description">Descripción</Label>
-            <antdInput.TextArea
-              id="edit-description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Descripción detallada del regalo..."
-              className="shadow-sm"
-              rows={3}
-            />
-          </div>
+          <Form.Item name="description" label="Descripción">
+            <Input.TextArea placeholder="Descripción detallada del regalo..." className="shadow-sm" rows={3} />
+          </Form.Item>
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-image">URL de la Imagen</Label>
+            <Form.Item name="imageUrl" label="URL de la Imagen">
               <div className="flex gap-2">
-                <Input
-                  id="edit-image"
-                  value={formData.image}
-                  onChange={handleImageChange}
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                  className="shadow-sm flex-1"
-                />
-                <Button type="button" variant="outline" size="sm" className="px-3" onClick={() => setImagePreview(formData.image)}>
+                <Input onChange={handleImageChange} placeholder="https://ejemplo.com/imagen.jpg" className="shadow-sm flex-1" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="px-3"
+                  onClick={() => setImagePreview(form.getFieldValue('imageUrl') || '')}>
                   <Eye className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
+            </Form.Item>
 
             {imagePreview && (
               <div className="space-y-2">
@@ -199,7 +153,7 @@ export function EditGiftModal({ gift, isOpen, onClose, afterClose, onSave }: Edi
                     className="absolute top-1 right-1 h-6 w-6 p-0 bg-background/80 hover:bg-background"
                     onClick={() => {
                       setImagePreview('');
-                      setFormData({ ...formData, image: '' });
+                      form.setFieldValue('imageUrl', '');
                     }}>
                     <X className="h-3 w-3" />
                   </Button>
@@ -216,7 +170,7 @@ export function EditGiftModal({ gift, isOpen, onClose, afterClose, onSave }: Edi
               Guardar Cambios
             </Button>
           </DialogFooter>
-        </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
