@@ -879,21 +879,7 @@ async function main() {
     },
   });
 
-  // Update the isPurchased status for the first few gifts
-  await Promise.all([
-    prisma.gift.update({
-      where: { id: gifts[0].id },
-      data: { isPurchased: true },
-    }),
-    prisma.gift.update({
-      where: { id: gifts[1].id },
-      data: { isPurchased: true },
-    }),
-    prisma.gift.update({
-      where: { id: gifts[2].id },
-      data: { isPurchased: true },
-    }),
-  ]);
+  // Update the isPurchased status for the first few gift
 
   console.log(`Created ${4} users, 1 wedding list and ${gifts.length} gifts`);
 }
