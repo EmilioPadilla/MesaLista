@@ -1,4 +1,4 @@
-import { DeleteOutlined, DragOutlined, ExclamationCircleFilled, ShoppingCartOutlined, StarFilled } from '@ant-design/icons';
+import { DragOutlined, ExclamationCircleFilled, StarFilled } from '@ant-design/icons';
 import { Badge } from 'components/core/Badge';
 import { Button } from 'components/core/Button';
 import { Edit, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
@@ -112,7 +112,7 @@ export const V2GiftCard = ({
       ${gift.isPurchased ? 'opacity-75' : ''}`}>
       <CardHeader className="p-0">
         <div className="relative">
-          <ImageWithFallback src={gift.imageUrl} alt={gift.title} className="w-full h-48 object-contain rounded-t-lg" />
+          <ImageWithFallback src={gift.imageUrl} alt={gift.title} className="w-full h-40 object-contain rounded-t-lg" />
           {gift.isPurchased && (
             <div className="absolute top-2 right-2">
               <Badge className="bg-green-500 shadow-md">Comprado</Badge>
