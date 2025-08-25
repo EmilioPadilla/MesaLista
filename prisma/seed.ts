@@ -78,6 +78,22 @@ async function main() {
   const gifts = await Promise.all([
     prisma.gift.create({
       data: {
+        title: 'Regalo prueba',
+        description: 'Regalo de prueba',
+        price: 1.0,
+        weddingListId: weddingList.id,
+      },
+    }),
+    prisma.gift.create({
+      data: {
+        title: 'Regalo prueba 2',
+        description: 'Regalo de prueba 2',
+        price: 2.0,
+        weddingListId: weddingList.id,
+      },
+    }),
+    prisma.gift.create({
+      data: {
         title: 'Laguna Azul / Sky Lagoon',
         description: 'Un spa geotermal en medio de campos de lava. Aguas cálidas, vapor y vista volcánica… ¡Sí, por favor!',
         price: 3600.0,
