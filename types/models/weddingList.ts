@@ -39,6 +39,19 @@ export interface FormattedWeddingList {
   }[];
 }
 
+export interface WeddingListBrief {
+  id: number;
+  coupleName: string;
+  coupleSlug: string;
+  weddingLocation?: string;
+  weddingVenue?: string;
+  description?: string;
+  weddingDate: Date;
+  imageUrl: string;
+  totalGifts: number;
+  purchasedGifts: number;
+}
+
 export interface CreateWeddingListRequest {
   coupleId: number;
   title: string;

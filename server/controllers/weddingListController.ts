@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { CreateWeddingListRequest, FormattedWeddingList, UpdateWeddingListRequest } from 'types/models/weddingList.js';
+import { CreateWeddingListRequest, WeddingListBrief, UpdateWeddingListRequest } from 'types/models/weddingList.js';
 import { WhereClause } from 'types/clauses.js';
 
 const prisma = new PrismaClient();
@@ -10,15 +10,7 @@ const weddingListController = {
     try {
       const weddingLists = await prisma.weddingList.findMany({
         include: {
-          gifts: {
-            include: {
-              categories: {
-                include: {
-                  category: true,
-                },
-              },
-            },
-          },
+          gifts: true,
           couple: {
             select: {
               id: true,
@@ -28,6 +20,7 @@ const weddingListController = {
               spouseLastName: true,
               imageUrl: true,
               email: true,
+              coupleSlug: true,
               phoneNumber: true,
               role: true,
               createdAt: true,
@@ -41,25 +34,17 @@ const weddingListController = {
       });
 
       const formattedWeddingLists = weddingLists.map(
-        (list: any): FormattedWeddingList => ({
+        (list: any): WeddingListBrief => ({
           id: list.id,
           coupleName: list.coupleName,
           weddingDate: list.weddingDate.toISOString(),
-          imageUrl: list.imageUrl || 'https://via.placeholder.com/150',
-          gifts: list.gifts.map((gift: any) => ({
-            id: gift.id,
-            title: gift.title,
-            description: gift.description || undefined,
-            price: gift.price,
-            isPurchased: gift.isPurchased,
-            isMostWanted: gift.isMostWanted,
-            quantity: gift.quantity,
-            imageUrl: gift.imageUrl,
-            categories: gift.categories.map((cat: any) => cat.category.name),
-            weddingListId: gift.weddingListId,
-            createdAt: gift.createdAt.toISOString(),
-            updatedAt: gift.updatedAt.toISOString(),
-          })),
+          imageUrl: list.imageUrl,
+          weddingLocation: list.weddingLocation,
+          weddingVenue: list.weddingVenue,
+          coupleSlug: list.couple.coupleSlug,
+          description: list.description,
+          totalGifts: list.gifts.length,
+          purchasedGifts: list.gifts.filter((gift: any) => gift.isPurchased).length,
         }),
       );
 

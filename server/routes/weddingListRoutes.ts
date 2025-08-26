@@ -12,10 +12,10 @@ router.get('/slug/:coupleSlug', weddingListController.getWeddingListBySlug);
 
 router.get('/:weddingListId/wedding-list-by-category', weddingListController.getCategoriesInWeddingList);
 
+router.get('/', weddingListController.getAllWeddingLists);
+
 // Apply authentication middleware to all subsequent routes
 router.use(authenticateToken);
-
-router.get('/', weddingListController.getAllWeddingLists);
 
 router.post('/', weddingListController.createWeddingList);
 

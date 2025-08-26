@@ -1,7 +1,7 @@
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from 'components/core/Button';
-import { ArrowLeft, Gift, Heart, LogOut, User as UserIcon, Users } from 'lucide-react';
-import { message } from 'antd';
+import { ArrowLeft, Gift, Heart, LogOut, Search, User as UserIcon, Users } from 'lucide-react';
+import { message, Tooltip } from 'antd';
 import { userService } from 'services/user.service';
 import { useGetUserBySlug } from 'hooks/useUser';
 import { Separator } from 'components/core/Separator';
@@ -41,7 +41,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
               <Separator orientation="vertical" className="h-6" />
               <div className="flex items-center space-x-2">
                 <Heart className="h-6 w-6 text-primary" />
-                <span className="text-lg text-primary">MesaLista</span>
+                {viewType !== 'mobile' ? <span className="text-lg text-primary">MesaLista</span> : <></>}
               </div>
             </div>
 
@@ -70,27 +70,44 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
             <div className="p-1 rounded-full bg-primary/10">
               <Heart className="h-8 w-8 text-primary" />
             </div>
-            <span className="text-2xl text-primary bg-gradient-to-r from-primary to-primary/80 bg-clip-text">MesaLista</span>
+            {viewType !== 'mobile' ? (
+              <span className="text-2xl text-primary bg-gradient-to-r from-primary to-primary/80 bg-clip-text">MesaLista</span>
+            ) : (
+              <></>
+            )}
           </div>
 
           <div className="flex items-center space-x-4">
             <nav className="flex items-center space-x-2">
-              <Button
-                variant={currentPage === '/' || currentPage === `/${coupleSlug}` ? 'default' : 'ghost'}
-                onClick={() => navigate(coupleSlug ? `/${coupleSlug}` : '/')}
-                className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md">
-                <Heart className="h-4 w-4" />
-                {viewType !== 'mobile' ? <span>Inicio</span> : <></>}
-              </Button>
+              <Tooltip title={viewType === 'mobile' ? 'Inicio' : ''} placement="bottom">
+                <Button
+                  variant={currentPage === '/' || currentPage === `/${coupleSlug}` ? 'default' : 'ghost'}
+                  onClick={() => navigate(coupleSlug ? `/${coupleSlug}` : '/')}
+                  className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md">
+                  <Heart className="h-4 w-4" />
+                  {viewType !== 'mobile' ? <span>Inicio</span> : <></>}
+                </Button>
+              </Tooltip>
+              <Tooltip title={viewType === 'mobile' ? 'Buscar' : ''} placement="bottom">
+                <Button
+                  variant={currentPage === '/buscar' ? 'default' : 'ghost'}
+                  onClick={() => navigate('/buscar')}
+                  className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md">
+                  <Search className="h-4 w-4" />
+                  {viewType !== 'mobile' ? <span>Buscar</span> : <></>}
+                </Button>
+              </Tooltip>
 
               {userData?.role === 'COUPLE' && isAuthenticated && (
-                <Button
-                  variant={currentPage === `/${coupleSlug}/gestionar` ? 'default' : 'ghost'}
-                  onClick={() => navigate(`/${coupleSlug}/gestionar`)}
-                  className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md">
-                  <Users className="h-4 w-4" />
-                  <span>Gestionar</span>
-                </Button>
+                <Tooltip title={viewType === 'mobile' ? 'Gestionar' : ''} placement="bottom">
+                  <Button
+                    variant={currentPage === `/${coupleSlug}/gestionar` ? 'default' : 'ghost'}
+                    onClick={() => navigate(`/${coupleSlug}/gestionar`)}
+                    className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md">
+                    <Users className="h-4 w-4" />
+                    {viewType !== 'mobile' ? <span>Gestionar</span> : <></>}
+                  </Button>
+                </Tooltip>
               )}
 
               {userData && !isAuthenticated && (
@@ -113,10 +130,12 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   </div>
                   <span className="text-sm text-foreground">{userData?.firstName}</span>
                 </div>
-                <Button variant="ghost" size="sm" onClick={handleLogout} className="flex items-center space-x-1 cursor-pointer">
-                  <LogOut className="h-4 w-4" />
-                  <span>Salir</span>
-                </Button>
+                <Tooltip title={viewType === 'mobile' ? 'Salir' : ''} placement="bottom">
+                  <Button variant="ghost" size="sm" onClick={handleLogout} className="flex items-center space-x-1 cursor-pointer">
+                    <LogOut className="h-4 w-4" />
+                    {viewType !== 'mobile' ? <span>Salir</span> : <></>}
+                  </Button>
+                </Tooltip>
               </div>
             ) : (
               <div className="flex items-center space-x-2 cursor-pointer">
@@ -126,7 +145,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   className="transition-all cursor-pointer duration-200 hover:shadow-md">
                   {viewType !== 'mobile' ? <span>Iniciar Sesión</span> : <LoginOutlined />}
                 </Button>
-                {/* {viewType !== 'mobile' && (
+                {/* {(
                   <Button onClick={() => navigate('/registro')} className="transition-all cursor-pointer duration-200 hover:shadow-md">
                     <span>Registrarse</span>
                   </Button>

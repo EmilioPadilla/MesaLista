@@ -2,11 +2,12 @@ import { Button } from 'components/core/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/core/Card';
 import { Badge } from 'components/core/Badge';
 import { Heart, Gift, Users, Star, Shield, Sparkles, Plus, BarChart3 } from 'lucide-react';
-import { Navigate, useOutletContext, useNavigate } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useGetUserBySlug } from 'hooks/useUser';
 import { userService } from 'services/user.service';
 import { OutletContextType } from './guest/PublicRegistry';
 import { useWeddingListByCouple } from 'hooks/useWeddingList';
+import { Tooltip, Button as AntdButton } from 'antd';
 
 interface HomepageProps {}
 
@@ -39,21 +40,25 @@ export function HomePage({}: HomepageProps) {
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <Button
-          size="lg"
-          className="px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-          onClick={() => navigate('/registro')}>
-          <Heart className="mr-2 h-5 w-5" />
-          Crear Mesa de Regalos
-        </Button>
-        <Button
-          size="lg"
-          variant="outline"
+        <Tooltip trigger={['click', 'hover']} title="¡Funcionalidad disponible pronto!">
+          <AntdButton
+            type="primary"
+            size="large"
+            disabled
+            className="px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+            onClick={() => navigate('/registro')}>
+            <Heart className="mr-2 h-5 w-5" />
+            Crear Mesa de Regalos
+          </AntdButton>
+        </Tooltip>
+        <AntdButton
+          size="large"
+          variant="outlined"
           className="px-8 py-4 shadow-md hover:shadow-lg transition-all duration-300 border-primary/30 hover:border-primary/50"
-          onClick={() => navigate('/buy')}>
+          onClick={() => navigate('/buscar')}>
           <Gift className="mr-2 h-5 w-5" />
-          Ver Regalos Disponibles
-        </Button>
+          Buscar Mesa de Regalos
+        </AntdButton>
       </div>
     </>
   );
@@ -102,13 +107,13 @@ export function HomePage({}: HomepageProps) {
               className="px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               onClick={() => navigate('regalos')}>
               <Gift className="mr-2 h-5 w-5" />
-              Explorar Mesa de Regalos
+              Explorar Mesa de Regalos de Pareja
             </Button>
             <Button
               size="lg"
               variant="outline"
               className="px-8 py-4 shadow-md hover:shadow-lg transition-all duration-300 border-primary/30 hover:border-primary/50"
-              onClick={() => navigate('/buy')}>
+              onClick={() => navigate('/buscar')}>
               <Heart className="mr-2 h-5 w-5" />
               Buscar por Pareja
             </Button>
@@ -247,14 +252,17 @@ export function HomePage({}: HomepageProps) {
             <p className="text-xl mb-8 text-primary-foreground/90 leading-relaxed">
               Crea tu mesa de regalos hoy y haz que tu boda sea aún más especial
             </p>
-            {/* <Button
-              size="lg"
-              variant="secondary"
-              className="px-8 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-0 bg-white hover:bg-white/95"
-              onClick={() => navigate('/registro')}>
-              <Heart className="mr-2 h-5 w-5" />
-              Empezar Ahora - Es Gratis
-            </Button> */}
+            <Tooltip trigger={['click', 'hover']} title="¡Funcionalidad disponible pronto!">
+              <AntdButton
+                size="large"
+                type="primary"
+                disabled
+                className="px-8 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-0 !bg-white !hover:bg-white/95"
+                onClick={() => navigate('/registro')}>
+                <Heart className="mr-2 h-5 w-5" />
+                Empezar Ahora - Es Gratis
+              </AntdButton>
+            </Tooltip>
           </div>
         </section>
       )}

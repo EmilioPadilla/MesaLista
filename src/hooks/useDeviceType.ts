@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export type DeviceType = 'desktop' | 'small-desktop' | 'small-tablet' | 'tablet' | 'mobile';
+export type DeviceType = 'desktop' | 'small-desktop' | 'small-tablet' | 'tablet' | 'mobile' | 'large-mobile';
 
 /**
  * Custom hook to detect device type based on window width
@@ -11,7 +11,7 @@ export const useDeviceType = (): DeviceType => {
 
   useEffect(() => {
     function handleResize() {
-      if (window.innerWidth < 480) {
+      if (window.innerWidth < 600) {
         setDeviceType('mobile');
       } else if (window.innerWidth < 768) {
         setDeviceType('small-tablet');

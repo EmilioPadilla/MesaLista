@@ -24,6 +24,7 @@ import { BuyGifts } from 'src/app/routes/guest/BuyGifts';
 import { Checkout } from 'routes/checkout/Checkout';
 import { OrderConfirmation } from 'routes/checkout/OrderConfirmation';
 import { ManageRegistry } from 'src/app/routes/couple/ManageRegistry';
+import { SearchPage } from 'src/app/routes/SearchPage';
 
 function App() {
   // Check if user is already authenticated every time the path changes
@@ -51,6 +52,15 @@ function App() {
             }
           />
           <Route path="/login" element={isAuthenticated ? <Navigate to={`/${coupleSlug}`} /> : <Login />} />
+          <Route
+            path="/buscar"
+            element={
+              <>
+                <TopNav />
+                <SearchPage />
+              </>
+            }
+          />
           {/* <Route path="/registro" element={isAuthenticated ? <Navigate to={`/${coupleSlug}`} /> : <Signup />} /> */}
 
           {/* Public registry view for guests */}

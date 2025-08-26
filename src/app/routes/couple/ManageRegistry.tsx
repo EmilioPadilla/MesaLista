@@ -153,10 +153,6 @@ export const ManageRegistry = () => {
     setGifts(gifts.filter((gift) => gift.id !== giftId));
   };
 
-  const updateGift = (updatedGift: GiftItem) => {
-    setGifts(gifts.map((g) => (g.id === updatedGift.id ? updatedGift : g)));
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -277,8 +273,7 @@ export const ManageRegistry = () => {
           gift={editingGift}
           isOpen={showEditGiftModal}
           onClose={() => setShowEditGiftModal(false)}
-          onSave={updateGift}
-          afterClose={handleAfterCloseEditGiftModal}
+          weddingListId={weddinglist?.id}
         />
       )}
     </div>
