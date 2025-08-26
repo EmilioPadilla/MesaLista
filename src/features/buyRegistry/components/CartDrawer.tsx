@@ -7,6 +7,7 @@ import { Card, CardContent } from 'components/core/Card';
 import { Button } from 'components/core/Button';
 import { useNavigate } from 'react-router-dom';
 import { useRemoveGiftFromCart, useUpdateCartItemQuantity } from 'hooks/useCart';
+import { ImageWithFallback } from 'src/components/core/ImageFallback';
 
 interface CartDrawerProps {
   open: boolean;
@@ -74,7 +75,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData,
                 <Card key={item.id}>
                   <CardContent className="p-4">
                     <div className="flex gap-4">
-                      <img src={item.gift?.imageUrl || ''} alt={item.gift?.title} className="w-16 h-16 object-cover rounded-md" />
+                      <img
+                        src={item.gift?.imageUrl || '/images/gift_placeholder.png'}
+                        alt={item.gift?.title}
+                        className="w-16 h-16 object-cover rounded-md"
+                      />
                       <div className="flex-1 min-w-0">
                         <h4 className="truncate">{item.gift?.title}</h4>
                         <p className="text-sm text-muted-foreground">${item.gift?.price}</p>

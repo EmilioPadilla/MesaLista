@@ -91,7 +91,11 @@ export function OrderConfirmation() {
                 <div className="space-y-3">
                   {cartData?.items?.map((item: any) => (
                     <div key={item.id} className="flex gap-4 p-3 bg-muted/30 rounded-lg">
-                      <img src={item?.gift?.imageUrl} alt={item?.gift?.title} className="w-16 h-16 object-cover rounded-md" />
+                      <img
+                        src={item?.gift?.imageUrl || '/images/gift_placeholder.png'}
+                        alt={item?.gift?.title}
+                        className="w-16 h-16 object-cover rounded-md"
+                      />
                       <div className="flex-1">
                         <h4 className="text-sm mb-1">{item?.gift?.title}</h4>
                         <div className="flex justify-between items-center">
@@ -165,12 +169,7 @@ export function OrderConfirmation() {
                     Reenviar confirmación
                   </Button> */}
 
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start" 
-                    size="sm"
-                    onClick={() => window.print()}
-                  >
+                  <Button variant="outline" className="w-full justify-start" size="sm" onClick={() => window.print()}>
                     <Download className="h-4 w-4 mr-2" />
                     Descargar comprobante
                   </Button>
