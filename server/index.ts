@@ -43,9 +43,6 @@ app.use(
   }),
 );
 
-// Stripe webhook route FIRST, with raw body
-app.post('/api/payments/stripe-payment-intent', bodyParser.raw({ type: 'application/json' }), paymentController.handleStripePaymentIntent);
-
 app.use(express.json());
 
 // Serve static files from the React app build directory
