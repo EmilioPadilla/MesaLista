@@ -101,22 +101,33 @@ export default {
 
   // Handle Stripe webhook events
   handleStripePaymentIntent: async (req: Request, res: Response) => {
+    console.log('🔔 Webhook received at:', new Date().toISOString());
+    console.log('📋 Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('📦 Body type:', typeof req.body);
+    console.log('📦 Body length:', req.body?.length || 'undefined');
+    
     const sig = req.headers['stripe-signature'] as string;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+    
+    console.log('🔐 Webhook secret configured:', !!webhookSecret);
+    console.log('✍️ Signature present:', !!sig);
 
     let event;
 
     try {
       // req.body is already raw buffer when using express.raw middleware
       event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+      console.log('✅ Webhook signature verified successfully');
+      console.log('📨 Event type:', event.type);
     } catch (err) {
-      console.error('Webhook signature verification failed:', err);
+      console.error('❌ Webhook signature verification failed:', err);
       return res.status(400).send(`Webhook Error: ${err}`);
     }
 
     // Handle the event
     switch (event.type) {
       case 'checkout.session.completed':
+        console.log('Checkout session completed:', event.data.object);
         const session = event.data.object;
 
         try {
@@ -199,19 +210,19 @@ export default {
           console.error('Error handling expired session:', error);
         }
         break;
-        
+
       // Handle additional event types
       case 'charge.succeeded':
         console.log('Charge succeeded event received:', event.id);
         // We don't need to do anything special here as the checkout.session.completed
         // event already handles the payment processing
         break;
-        
+
       case 'payment_intent.succeeded':
         console.log('Payment intent succeeded event received:', event.id);
         // This event is also handled by checkout.session.completed
         break;
-        
+
       case 'payment_intent.created':
         console.log('Payment intent created event received:', event.id);
         // This is an informational event that doesn't require action
