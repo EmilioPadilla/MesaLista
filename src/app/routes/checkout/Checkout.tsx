@@ -184,7 +184,11 @@ export function Checkout() {
                 <div className="space-y-3">
                   {cart?.items?.map((item: any) => (
                     <div key={item.id} className="flex gap-3">
-                      <img src={item.gift?.imageUrl || ''} alt={item.gift?.title} className="w-12 h-12 object-cover rounded-md" />
+                      <img
+                        src={item.gift?.imageUrl || '/images/gift_placeholder.png'}
+                        alt={item.gift?.title}
+                        className="w-12 h-12 object-cover rounded-md"
+                      />
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm truncate">{item.gift?.title}</h4>
                         <p className="text-xs text-muted-foreground">Cantidad: {item.quantity}</p>

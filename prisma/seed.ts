@@ -102,7 +102,7 @@ Emilio & Mariana`,
       data: {
         title: 'Regalo prueba 2',
         description: 'Regalo de prueba 2',
-        price: 2.0,
+        price: 9.0,
         weddingListId: weddingList.id,
       },
     }),
