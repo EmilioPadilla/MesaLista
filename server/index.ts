@@ -82,9 +82,15 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true })
 app.use('/api/user', userRoutes);
 app.use('/api/gift', giftRoutes);
 app.use('/api/cart', cartRoutes);
-app.use('/api/payments', paymentRoutes);
 app.use('/api/wedding-list', weddingListRoutes);
 app.use('/api/upload', fileUploadRouter);
+
+// Stripe webhook route - defined after other routes to avoid conflicts
+// Note: This bypasses express.json() by using bodyParser.raw directly
+app.post('/api/payments/stripe-payment-intent', bodyParser.raw({ type: 'application/json' }), paymentController.handleStripePaymentIntent);
+
+// Mount payment routes last to avoid route conflicts
+app.use('/api/payments', paymentRoutes);
 
 // Special case for login (to maintain /api/login endpoint)
 app.post('/api/login', (req, res, next) => {
