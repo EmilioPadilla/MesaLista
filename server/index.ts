@@ -43,10 +43,25 @@ app.use(
   }),
 );
 
-// Stripe webhook route MUST be before express.json() to preserve raw body
-app.post('/api/payments/stripe-payment-intent', bodyParser.raw({ type: 'application/json' }), paymentController.handleStripePaymentIntent);
+// Stripe webhook route with conditional body parsing
+app.use('/api/payments/stripe-payment-intent', (req, res, next) => {
+  // Skip JSON parsing for webhook route
+  if (req.method === 'POST') {
+    return bodyParser.raw({ type: 'application/json' })(req, res, next);
+  }
+  next();
+});
 
-app.use(express.json());
+app.post('/api/payments/stripe-payment-intent', paymentController.handleStripePaymentIntent);
+
+// Apply JSON parsing to all other routes
+app.use((req, res, next) => {
+  // Skip JSON parsing for webhook route
+  if (req.path === '/api/payments/stripe-payment-intent') {
+    return next();
+  }
+  express.json()(req, res, next);
+});
 
 // Serve static files from the React app build directory
 const distPath = path.resolve(__dirname, '../../../dist');
