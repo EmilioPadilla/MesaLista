@@ -39,10 +39,8 @@ export const useUpdateGift = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<Gift> }) => giftService.updateGift(id, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [queryKeys.gifts, variables.id] });
-      // We don't know the wedding list ID here, so invalidate all gifts
-      queryClient.invalidateQueries({ queryKey: [queryKeys.giftsByWeddingList] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple] });
     },
   });
 };

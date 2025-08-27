@@ -14,6 +14,7 @@ interface GiftModalProps {
   afterClose: () => void;
 }
 
+// @deprecated
 export const GiftModal = ({ weddingListId, giftId, open, onCancel, afterClose }: GiftModalProps) => {
   const [imageUrl, setImageUrl] = useState<string>();
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);

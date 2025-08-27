@@ -2,7 +2,7 @@ import { Button } from 'components/core/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/core/Card';
 import { Badge } from 'components/core/Badge';
 import { Separator } from 'components/core/Separator';
-import { CheckCircle, Heart, Mail, Package, Truck, Calendar, Share2, Download, Home } from 'lucide-react';
+import { CheckCircle, Heart, Package, Download, Home } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGetCart } from 'src/hooks/useCart';
 import { useOutletContext } from 'react-router-dom';
