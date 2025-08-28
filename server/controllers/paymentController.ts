@@ -78,6 +78,7 @@ export default {
           guestPhone: cart.phoneNumber || '',
         },
         currency: 'mxn',
+        locale: 'es-419',
         customer_email: cart.inviteeEmail || undefined,
       });
 
