@@ -8,7 +8,7 @@ import { DownOutlined, SearchOutlined, ShoppingCartOutlined, UpOutlined } from '
 import { useAddGiftToCart, useGetCart, useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'src/hooks/useCart';
 import { useComponentMountControl } from 'src/hooks/useComponentMountControl';
 import { useWeddingListBySlug, useGetCategoriesByWeddingList } from 'src/hooks/useWeddingList';
-import { GuestContext } from './PublicRegistry';
+import { OutletContextType } from './PublicRegistry';
 import { GiftDetailsModal } from 'src/features/buyRegistry/components/GiftDetailsModal';
 import { CartDrawer } from 'src/features/buyRegistry/components/CartDrawer';
 import { SortOption, FilterOption, GiftItem } from 'routes/couple/ManageRegistry';
@@ -20,9 +20,10 @@ import dayjs from 'dayjs';
 const { Title } = Typography;
 
 export function BuyGifts() {
-  const contextData = useOutletContext<GuestContext>();
+  const contextData = useOutletContext<OutletContextType>();
   const [isHeaderOpen, setIsHeaderOpen] = useState(true);
   const { coupleSlug, guestId } = contextData;
+  console.log(guestId);
   const [sortBy, setSortBy] = useState<SortOption>('original');
   const [filterBy, setFilterBy] = useState<FilterOption>();
   const [gifts, setGifts] = useState<GiftItem[]>();

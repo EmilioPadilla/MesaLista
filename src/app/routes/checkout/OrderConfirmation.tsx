@@ -6,18 +6,27 @@ import { CheckCircle, Heart, Package, Download, Home } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGetCart } from 'src/hooks/useCart';
 import { useOutletContext } from 'react-router-dom';
-import { GuestContext } from '../guest/PublicRegistry';
+import { OutletContextType } from '../guest/PublicRegistry';
 import { useWeddingListBySlug } from 'src/hooks/useWeddingList';
+import { useEffect } from 'react';
 
 export function OrderConfirmation() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const cartId = searchParams.get('cartId');
-  const contextData = useOutletContext<GuestContext>();
-  const { coupleSlug } = contextData;
+  const contextData = useOutletContext<OutletContextType>();
+  const { coupleSlug, regenerateGuestId } = contextData;
 
   const { data: weddinglist } = useWeddingListBySlug(coupleSlug);
   const { data: cartData, isLoading: isLoadingCart, error: cartError } = useGetCart(cartId || '');
+
+  // Handle guest ID regeneration when cart is paid
+  useEffect(() => {
+    if (cartData?.status === 'PAID') {
+      localStorage.removeItem('guestId');
+      regenerateGuestId();
+    }
+  }, [cartData?.status]);
 
   if (isLoadingCart) {
     return (
@@ -52,10 +61,6 @@ export function OrderConfirmation() {
         return 'Método de Pago';
     }
   };
-
-  if (cartData?.status === 'PAID') {
-    localStorage.removeItem('guestId');
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-primary/5">

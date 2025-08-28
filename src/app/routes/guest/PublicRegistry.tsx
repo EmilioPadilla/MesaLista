@@ -1,6 +1,6 @@
 import { Layout } from 'antd';
 import { Content, Footer } from 'antd/es/layout/layout';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Outlet, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { TopNav } from 'src/app/modules/navigation/topnav/TopNav';
@@ -15,15 +15,18 @@ function getOrCreateGuestId() {
   return guestId;
 }
 
+// Utility to regenerate guest ID
+function regenerateGuestId() {
+  const newGuestId = uuidv4();
+  localStorage.setItem('guestId', newGuestId);
+  return newGuestId;
+}
+
 export type OutletContextType = {
   guestId: string | null;
   coupleSlug: string | undefined;
+  regenerateGuestId: () => void;
 };
-
-export interface GuestContext {
-  guestId: string | null;
-  coupleSlug: string | undefined;
-}
 
 export default function PublicRegistry() {
   const { coupleSlug } = useParams();
@@ -33,13 +36,18 @@ export default function PublicRegistry() {
     setGuestId(getOrCreateGuestId());
   }, []);
 
+  const handleRegenerateGuestId = useCallback(() => {
+    const newGuestId = regenerateGuestId();
+    setGuestId(newGuestId);
+  }, []);
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Layout>
         <TopNav coupleSlug={coupleSlug} />
         <Content>
           {/* Child routes will be rendered here */}
-          <Outlet context={{ guestId, coupleSlug }} />
+          <Outlet context={{ guestId, coupleSlug, regenerateGuestId: handleRegenerateGuestId }} />
         </Content>
         <Footer className="text-center">MesaLista {new Date().getFullYear()} - Tu plataforma para listas de regalos de boda</Footer>
       </Layout>

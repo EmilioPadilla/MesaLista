@@ -101,33 +101,21 @@ export default {
 
   // Handle Stripe webhook events
   handleStripePaymentIntent: async (req: Request, res: Response) => {
-    console.log('🔔 Webhook received at:', new Date().toISOString());
-    console.log('📋 Headers:', JSON.stringify(req.headers, null, 2));
-    console.log('📦 Body type:', typeof req.body);
-    console.log('📦 Body length:', req.body?.length || 'undefined');
-    
     const sig = req.headers['stripe-signature'] as string;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
-    
-    console.log('🔐 Webhook secret configured:', !!webhookSecret);
-    console.log('✍️ Signature present:', !!sig);
 
     let event;
 
     try {
       // req.body is already raw buffer when using express.raw middleware
       event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-      console.log('✅ Webhook signature verified successfully');
-      console.log('📨 Event type:', event.type);
     } catch (err) {
-      console.error('❌ Webhook signature verification failed:', err);
       return res.status(400).send(`Webhook Error: ${err}`);
     }
 
     // Handle the event
     switch (event.type) {
       case 'checkout.session.completed':
-        console.log('Checkout session completed:', event.data.object);
         const session = event.data.object;
 
         try {

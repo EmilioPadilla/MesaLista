@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from 'components/core/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/core/Card';
 import { Label } from 'components/core/Label';
@@ -8,14 +8,14 @@ import { User, ShoppingBag } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
 import { useGetCart } from 'src/hooks/useCart';
 import { useCreateCheckoutSession } from 'src/hooks/usePayment';
-import { GuestContext } from '../guest/PublicRegistry';
+import { OutletContextType } from '../guest/PublicRegistry';
 import { message } from 'antd';
 import { useUpdateCartDetails } from 'src/hooks/useCart';
 
 const { TextArea } = Input;
 
 export function Checkout() {
-  const contextData = useOutletContext<GuestContext>();
+  const contextData = useOutletContext<OutletContextType>();
   const { guestId, coupleSlug } = contextData;
 
   const { data: cart } = useGetCart(guestId || undefined);
@@ -30,6 +30,11 @@ export function Checkout() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Scroll to top when component loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const cartTotal = cart?.items?.reduce((sum: number, item: any) => sum + (item.gift?.price || 0) * item.quantity, 0) || 0;
   const finalTotal = cartTotal;

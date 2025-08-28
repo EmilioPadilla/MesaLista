@@ -47,11 +47,11 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
 
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
               <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs">1</div>
-              <span>Información</span>
+              {viewType !== 'mobile' ? <span>Información</span> : <></>}
               <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-xs">2</div>
-              <span>Pago</span>
+              {viewType !== 'mobile' ? <span>Pago</span> : <></>}
               <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-xs">3</div>
-              <span>Confirmación</span>
+              {viewType !== 'mobile' ? <span>Confirmación</span> : <></>}
             </div>
           </div>
         </div>
