@@ -79,10 +79,6 @@ export default {
         },
         currency: 'mxn',
         customer_email: cart.inviteeEmail || undefined,
-        billing_address_collection: 'required',
-        shipping_address_collection: {
-          allowed_countries: ['MX'],
-        },
       });
 
       res.json({

@@ -21,9 +21,6 @@ export interface CreateCheckoutSessionRequest {
   orderId: string;
   successUrl: string;
   cancelUrl: string;
-  shipping_address_collection: null | { enabled: false }[];
-  shipping_options: null;
-  phone_number_collection: { enabled: false };
 }
 
 export interface PaymentSummary {
