@@ -220,9 +220,6 @@ export function SearchPage() {
                         <Gift className="h-4 w-4 mr-2" />
                         Ver Regalos
                       </Button>
-                      <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-all duration-200">
-                        <Eye className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
                 </CardContent>

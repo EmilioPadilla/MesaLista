@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from 'components/core/Card';
 import { Filter, Gift as GiftIcon, ArrowUpDown } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
-import { Button, Spin, Select, Col, Row, Input, Switch, Badge, Card as AntdCard, Typography } from 'antd';
+import { Button, Spin, Select, Col, Row, Input, Switch, Badge, Card as AntdCard, Typography, Image } from 'antd';
 import type { Gift, GiftCategory } from 'types/models/gift';
 import { DownOutlined, SearchOutlined, ShoppingCartOutlined, UpOutlined } from '@ant-design/icons';
 import { useAddGiftToCart, useGetCart, useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'src/hooks/useCart';
@@ -13,7 +12,7 @@ import { GiftDetailsModal } from 'src/features/buyRegistry/components/GiftDetail
 import { CartDrawer } from 'src/features/buyRegistry/components/CartDrawer';
 import { SortOption, FilterOption, GiftItem } from 'routes/couple/ManageRegistry';
 import { Label } from '@radix-ui/react-label';
-import { V2GiftCard } from 'src/components/shared/V2GiftCard';
+import { GiftCard } from 'src/components/shared/GiftCard';
 import { Collapsible } from 'src/components/core/Collapsible';
 import dayjs from 'dayjs';
 
@@ -23,7 +22,6 @@ export function BuyGifts() {
   const contextData = useOutletContext<OutletContextType>();
   const [isHeaderOpen, setIsHeaderOpen] = useState(true);
   const { coupleSlug, guestId } = contextData;
-  console.log(guestId);
   const [sortBy, setSortBy] = useState<SortOption>('original');
   const [filterBy, setFilterBy] = useState<FilterOption>();
   const [gifts, setGifts] = useState<GiftItem[]>();
@@ -217,7 +215,7 @@ export function BuyGifts() {
             <div>
               <div className="flex flex-col items-center">
                 <div className="relative w-96 bg-gray-100 rounded-md mb-4 overflow-hidden">
-                  <img src={weddinglist?.imageUrl} alt="Couple Image" className="w-full h-full object-cover" />
+                  <Image src={weddinglist?.imageUrl} alt="Couple Image" className="w-full h-full object-cover" />
                 </div>
               </div>
             </div>
@@ -232,81 +230,81 @@ export function BuyGifts() {
       </Collapsible>
 
       {/* Filters */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtros
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-            <div className="col-span-4 relative">
-              <Label className="text-sm">Buscar:</Label>
-              <Input
-                prefix={<SearchOutlined />}
-                placeholder="Buscar regalos..."
-                className="!rounded-md !shadow-sm pl-6"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+      <AntdCard
+        className="!mb-8"
+        // cover={
+        //   <div className="flex items-center gap-2">
+        //     <Filter className="h-5 w-5" />
+        //     Filtros
+        //   </div>
+        // }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+          <div className="col-span-4 relative">
+            <Label className="text-sm">Buscar:</Label>
+            <Input
+              prefix={<SearchOutlined />}
+              placeholder="Buscar regalos..."
+              className="!rounded-md !shadow-sm pl-6"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="col-span-2 space-y-2 sm:space-y-0">
+            <Label className="text-sm">Ordenar por:</Label>
+            <div className="flex items-center w-full">
+              <Select
+                suffixIcon={<ArrowUpDown size={14} />}
+                className="w-full !rounded-md !shadow-sm pl-6"
+                value={sortBy}
+                onChange={(value: SortOption) => setSortBy(value)}
+                options={[
+                  { value: 'original', label: 'Orden Original' },
+                  { value: 'name', label: 'Nombre A-Z' },
+                  { value: 'price-asc', label: 'Precio (menor)' },
+                  { value: 'price-desc', label: 'Precio (mayor)' },
+                  { value: 'status', label: 'Estado' },
+                ]}
               />
             </div>
+          </div>
 
-            <div className="col-span-2 space-y-2 sm:space-y-0">
-              <Label className="text-sm">Ordenar por:</Label>
-              <div className="flex items-center w-full">
-                <Select
-                  suffixIcon={<ArrowUpDown size={14} />}
-                  className="w-full !rounded-md !shadow-sm pl-6"
-                  value={sortBy}
-                  onChange={(value: SortOption) => setSortBy(value)}
-                  options={[
-                    { value: 'original', label: 'Orden Original' },
-                    { value: 'name', label: 'Nombre A-Z' },
-                    { value: 'price-asc', label: 'Precio (menor)' },
-                    { value: 'price-desc', label: 'Precio (mayor)' },
-                    { value: 'status', label: 'Estado' },
-                  ]}
-                />
-              </div>
-            </div>
-
-            <div className="col-span-4 space-y-2 sm:space-y-0">
-              <Label className="text-sm">Filtrar por:</Label>
-              <div className="flex items-center w-full">
-                <Select
-                  suffixIcon={<Filter size={14} />}
-                  className="w-full !rounded-md !shadow-sm pl-6"
-                  value={filterBy}
-                  mode="multiple"
-                  allowClear
-                  placeholder="Selecciona un filtro"
-                  onChange={(value: FilterOption) => setFilterBy(value)}
-                  options={[
-                    { value: 'mostWanted', label: 'Más deseados' },
-                    ...(weddingListCategories?.categories?.map((category: GiftCategory) => ({
-                      value: category.name,
-                      label: category.name,
-                    })) || []),
-                  ]}
-                />
-              </div>
-            </div>
-            <div className="col-span-2 space-y-2 sm:space-y-0">
-              <Label className="text-sm">Mostrar regalos comprados</Label>
-              <div className="flex items-center mt-2">
-                <Switch checked={showPurchased} className={showPurchased ? 'hover:!bg-primary' : ''} onChange={setShowPurchased} />
-              </div>
+          <div className="col-span-4 space-y-2 sm:space-y-0">
+            <Label className="text-sm">Filtrar por:</Label>
+            <div className="flex items-center w-full">
+              <Select
+                suffixIcon={<Filter size={14} />}
+                className="w-full !rounded-md !shadow-sm pl-6"
+                value={filterBy}
+                mode="multiple"
+                allowClear
+                placeholder="Selecciona una categoría"
+                onChange={(value: FilterOption) => setFilterBy(value)}
+                options={[
+                  { value: 'mostWanted', label: 'Más deseados' },
+                  ...(weddingListCategories?.categories?.map((category: GiftCategory) => ({
+                    value: category.name,
+                    label: category.name,
+                  })) || []),
+                ]}
+              />
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="col-span-2 space-y-2 sm:space-y-0">
+            <Label className="text-sm">Mostrar regalos comprados</Label>
+            <div className="flex items-center mt-2">
+              <Switch checked={showPurchased} className={showPurchased ? 'hover:!bg-primary' : ''} onChange={setShowPurchased} />
+            </div>
+          </div>
+        </div>
+      </AntdCard>
 
       {/* Gift Grid */}
       <Row gutter={[24, 24]} className="min-h-[200px]">
         {filteredAndSortedGifts.map((gift) => (
           <Col xs={24} sm={12} md={8} lg={6} key={gift.id}>
-            <V2GiftCard
+            <GiftCard
               gift={gift}
               isGuest
               cartItems={cartData?.items || []}

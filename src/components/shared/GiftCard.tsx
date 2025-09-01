@@ -1,28 +1,61 @@
+import { DragOutlined, ExclamationCircleFilled, StarFilled } from '@ant-design/icons';
+import { Edit, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { GiftItem } from 'routes/couple/ManageRegistry';
 import { useState } from 'react';
-import { Card, Button, Popconfirm } from 'antd';
-import { DeleteOutlined, DragOutlined, ExclamationCircleFilled, ShopOutlined, ShoppingCartOutlined } from '@ant-design/icons';
-import type { Gift } from 'types/models/gift';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
+import { Image, Popconfirm, Tag, Button, Card } from 'antd';
+import { useDeviceType } from 'src/hooks/useDeviceType';
+import { CartItem } from 'types/models/cart';
 
-interface DragHandleProps {
+export interface DragHandleProps {
   listeners: SyntheticListenerMap | undefined;
   attributes: DraggableAttributes;
 }
 
 interface GiftCardProps {
   isGuest?: boolean;
-  gift: Gift;
-  onDelete?: (giftId: number) => void;
-  onMove?: (giftId: number) => void;
-  onEdit: (giftId: number | undefined) => void;
-  onAddToCart?: (giftId: number) => void;
+  gift: GiftItem;
+  onDelete?: (id: number) => void;
+  onEdit?: (giftId: number | undefined) => void;
+  onMove?: (giftId: number | undefined) => void;
   dragHandleProps?: DragHandleProps;
+  cartItems?: CartItem[];
+  onAddToCart?: (giftId: number) => void;
+  onUpdateCartQuantity?: (cartItemId: number, quantity: number) => void;
+  onRemoveFromCart?: (cartItemId: number) => void;
 }
 
-export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEdit, onAddToCart, dragHandleProps, isGuest = false }) => {
+export const GiftCard = ({
+  gift,
+  onDelete,
+  onEdit,
+  onMove,
+  dragHandleProps,
+  isGuest = false,
+  cartItems = [],
+  onAddToCart,
+  onUpdateCartQuantity,
+  onRemoveFromCart,
+}: GiftCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [imageError, setImageError] = useState(false);
+  const deviceType = useDeviceType();
+
+  // Find if this gift is in the cart
+  const cartItem = cartItems?.find((item) => item.gift?.id === gift.id);
+  const isInCart = Boolean(cartItem);
+
+  const handleEditGift = (e: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    onEdit?.(gift.id);
+  };
+
+  const handleMove = (e: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (onMove) onMove(gift.id);
+  };
 
   const handleDelete = (e?: React.MouseEvent) => {
     e?.preventDefault();
@@ -32,116 +65,171 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onDelete, onMove, onEd
     }
   };
 
-  const handleMove = (e: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    if (onMove) onMove(gift.id);
-  };
-  const purchasedCount = gift.isPurchased ? 1 : 0;
-  const requestedCount = gift.quantity;
-
-  const handleEditGift = (e: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    onEdit(gift.id);
-  };
-
   const handleAddToCart = (e: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
-    if (onAddToCart) onAddToCart(gift.id);
+    if (onAddToCart) {
+      onAddToCart(gift.id);
+    }
+  };
+
+  const handleIncreaseQuantity = (e: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (cartItem && onUpdateCartQuantity) {
+      onUpdateCartQuantity(cartItem.id as unknown as number, cartItem.quantity + 1);
+    }
+  };
+
+  const handleDecreaseQuantity = (e: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (cartItem && onUpdateCartQuantity) {
+      onUpdateCartQuantity(cartItem.id as unknown as number, cartItem.quantity - 1);
+    }
+  };
+
+  const handleRemoveFromCart = (e: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (cartItem && onRemoveFromCart) {
+      onRemoveFromCart(cartItem.id as unknown as number);
+    }
   };
 
   return (
     <Card
+      key={gift.id}
       onClick={handleEditGift}
-      className={`transition-all duration-200 ant-card-no-border h-full ${isHovered ? 'shadow-xl border-gray-300 cursor-pointer' : ''}`}
-      styles={{ body: { padding: '16px', display: 'flex', flexDirection: 'column' } }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      actions={
-        isGuest
-          ? [
-              <div className="flex justify-center items-center gift-card-actions">
-                <Button
-                  icon={<ShoppingCartOutlined />}
-                  type="primary"
-                  disabled={gift.isPurchased}
-                  size="small"
-                  className="bg-white w-3/5 hover:bg-gray-100 cursor-grab mr-1"
-                  onClick={handleAddToCart}>
-                  Agregar al carrito
-                </Button>
-              </div>,
-            ]
-          : undefined
-      }
+      className={`relative shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col 
+      ${isHovered ? 'cursor-pointer' : ''}
+      ${gift.isPurchased ? 'opacity-75' : ''}`}
+      styles={{
+        body: {
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+        },
+      }}
       cover={
-        <div className="relative overflow-hidden" style={{ height: '200px', border: '24px solid #fff' }}>
-          {gift.imageUrl && !imageError ? (
-            <img src={gift.imageUrl} alt={gift.title} className="w-full h-full object-contain" onError={() => setImageError(true)} />
-          ) : (
-            <img
-              src="/images/gift_placeholder.png"
+        <div className="relative">
+          <div className="flex items-center justify-center w-full h-full object-contain">
+            <Image
+              src={gift.imageUrl}
+              preview={false}
+              fallback="/images/gift_placeholder.png"
               alt={gift.title}
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const parent = target.parentElement;
-                if (parent) {
-                  parent.innerHTML =
-                    '<div class="w-full h-full bg-gray-100 flex items-center justify-center"><span class="text-gray-500">No Image</span></div>';
-                }
-              }}
+              className="w-full flex items-center justify-center !h-40 rounded-t-lg"
             />
+          </div>
+          {gift.isPurchased && (
+            <div className="absolute top-2 right-2">
+              <Tag bordered={false} className="shadow-md backdrop-blur-sm !rounded-lg font-bold !bg-green-500">
+                Comprado
+              </Tag>
+            </div>
           )}
-          {!isGuest && isHovered && (
-            <div className="absolute top-2 left-0 right-0 flex justify-between items-center gift-card-actions">
-              <div onClick={(e) => e.stopPropagation()}>
-                <Popconfirm
-                  title="Delete Gift"
-                  className="pop-delete ml-1"
-                  description="Are you sure you want to delete this gift?"
-                  onConfirm={handleDelete}
-                  okText="Yes"
-                  icon={<ExclamationCircleFilled />}
-                  okButtonProps={{ danger: true }}
-                  cancelText="No">
-                  <Button icon={<DeleteOutlined />} size="small" danger className="bg-white hover:bg-red-50" />
-                </Popconfirm>
-              </div>
+          {gift.isMostWanted && (
+            <div className="absolute top-2 left-2">
+              <Tag bordered={false} className="shadow-md backdrop-blur-sm !rounded-lg font-bold !bg-yellow-500">
+                <StarFilled />
+              </Tag>
+            </div>
+          )}
+          {(isHovered || deviceType === 'mobile') && !isGuest && (
+            <div className="absolute top-2 left-2 flex justify-between items-center gift-card-actions">
               <Button
-                icon={<DragOutlined />}
                 size="small"
-                className="bg-white hover:bg-gray-100 cursor-grab mr-1"
+                className="cursor-grab mr-1"
                 onClick={handleMove}
                 {...(dragHandleProps?.listeners || {})}
-                {...(dragHandleProps?.attributes || {})}
-              />
+                {...(dragHandleProps?.attributes || {})}>
+                <DragOutlined color="black" />
+              </Button>
             </div>
           )}
         </div>
       }>
-      <div className="flex flex-col flex-grow text-center">
-        <div className="mb-1">
-          <span className="text-xs uppercase text-gray-400">
-            {gift.categories && gift.categories.length > 0
-              ? gift.categories.map((categoryItem: any) => categoryItem?.name).join(', ')
-              : 'Uncategorized'}
-          </span>
-        </div>
-        <span className="mb-1 line-clamp-2" style={{ minHeight: '36px' }}>
-          {gift.title}
-        </span>
-        <div className="text-gray-400">
-          <div className="flex justify-center  items-center mb-2">
-            <span className="text-gray-500">${gift.price.toFixed(2)}</span>
+      <div className="flex-grow flex flex-col h-full">
+        <div className="space-y-2 flex-grow flex flex-col">
+          <div className="flex justify-between items-start">
+            <div className="text-xl font-bold">{gift.title}</div>
+            {!gift.isPurchased && !isGuest && (
+              <div className="flex gap-1">
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={handleEditGift}
+                  className="hover:shadow-md hover:cursor-pointer transition-all duration-200">
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <div onClick={(e) => e.stopPropagation()}>
+                  <Popconfirm
+                    title="Delete Gift"
+                    className="pop-delete ml-1"
+                    description="Are you sure you want to delete this gift?"
+                    onConfirm={handleDelete}
+                    okText="Yes"
+                    icon={<ExclamationCircleFilled />}
+                    okButtonProps={{ danger: true }}
+                    cancelText="No">
+                    <Button size="small" variant="text" className="hover:shadow-md hover:cursor-pointer transition-all duration-200">
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </Popconfirm>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="flex justify-around text-xs ">
-            <span>{requestedCount} Requested</span> <span className="text-gray-500">|</span> <span>{purchasedCount} Gift Needed</span>
+
+          <p className="text-sm text-muted-foreground line-clamp-2">{gift.description}</p>
+
+          <div className="flex justify-between items-center">
+            <div>
+              {gift.categories?.map((category) => (
+                <Tag key={category.id} bordered={false} className="shadow-sm !bg-white font-bold">
+                  {category.name}
+                </Tag>
+              ))}
+            </div>
+            <span className="text-lg text-primary">${gift.price.toLocaleString()}</span>
           </div>
         </div>
+
+        {/* Cart Controls - Moved to bottom with mt-auto to push it to the bottom */}
+        {isGuest && !gift.isPurchased && (
+          <div className="mt-auto pt-4">
+            {!isInCart ? (
+              <Button className="w-full h-full" onClick={handleAddToCart} type="primary">
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Agregar al carrito
+              </Button>
+            ) : (
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleDecreaseQuantity}
+                      disabled={cartItem?.quantity ? cartItem.quantity <= 1 : true}>
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <span className="w-8 text-center">{cartItem?.quantity}</span>
+                    <Button variant="outlined" size="small" onClick={handleIncreaseQuantity}>
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <Button variant="text" size="small" onClick={handleRemoveFromCart} className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Card>
   );

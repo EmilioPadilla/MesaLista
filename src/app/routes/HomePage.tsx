@@ -1,17 +1,12 @@
-import { Button } from 'components/core/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/core/Card';
-import { Badge } from 'components/core/Badge';
 import { Heart, Gift, Users, Star, Shield, Sparkles, Plus, BarChart3 } from 'lucide-react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useGetUserBySlug } from 'hooks/useUser';
 import { userService } from 'services/user.service';
 import { OutletContextType } from './guest/PublicRegistry';
 import { useWeddingListByCouple } from 'hooks/useWeddingList';
-import { Tooltip, Button as AntdButton } from 'antd';
+import { Tooltip, Button, Card, Tag } from 'antd';
 
-interface HomepageProps {}
-
-export function HomePage({}: HomepageProps) {
+export const HomePage = () => {
   const contextData = useOutletContext<OutletContextType>();
   const { data: userData } = useGetUserBySlug(contextData?.coupleSlug);
   const { data: weddinglist } = useWeddingListByCouple(userData?.id);
@@ -25,9 +20,9 @@ export function HomePage({}: HomepageProps) {
   const unknownUserHero = () => (
     <>
       <div className="flex justify-center mb-8">
-        <Badge variant="secondary" className="px-6 py-3 shadow-md backdrop-blur-sm border border-primary/20">
+        <Tag bordered={false} className="!px-4 !py-2 shadow-md backdrop-blur-sm !rounded-lg font-bold !bg-white">
           ✨ La mesa de regalos más querida de México
-        </Badge>
+        </Tag>
       </div>
 
       <h1 className="text-5xl md:text-7xl mb-6 text-primary bg-gradient-to-r from-primary to-primary/70 bg-clip-text">
@@ -40,25 +35,20 @@ export function HomePage({}: HomepageProps) {
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <Tooltip trigger={['click', 'hover']} title="¡Funcionalidad disponible pronto!">
-          <AntdButton
-            type="primary"
-            size="large"
-            disabled
-            className="px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            onClick={() => navigate('/registro')}>
+        <Tooltip trigger={['click']} title="¡Funcionalidad disponible pronto!">
+          <Button type="primary" size="large" className="px-8 py-4 hover:-translate-y-1">
             <Heart className="mr-2 h-5 w-5" />
             Crear Mesa de Regalos
-          </AntdButton>
+          </Button>
         </Tooltip>
-        <AntdButton
+        <Button
           size="large"
           variant="outlined"
-          className="px-8 py-4 shadow-md hover:shadow-lg transition-all duration-300 border-primary/30 hover:border-primary/50"
+          className="px-8 py-4 hover:-translate-y-1 !border-primary !text-primary"
           onClick={() => navigate('/buscar')}>
           <Gift className="mr-2 h-5 w-5" />
           Buscar Mesa de Regalos
-        </AntdButton>
+        </Button>
       </div>
     </>
   );
@@ -66,9 +56,9 @@ export function HomePage({}: HomepageProps) {
   const userHero = () => (
     <>
       <div className="flex justify-center mb-8">
-        <Badge variant="secondary" className="px-6 py-3 shadow-md backdrop-blur-sm border border-primary/20">
+        <div className="px-4 py-2 shadow-md backdrop-blur-sm border border-primary/20 rounded-lg">
           👋 Bienvenido {isAuthenticated ? `de vuelta ${userData?.firstName}` : ' invitad@'}!
-        </Badge>
+        </div>
       </div>
 
       <h1 className="text-4xl md:text-6xl mb-6 text-primary">
@@ -85,16 +75,17 @@ export function HomePage({}: HomepageProps) {
         {isAuthenticated ? (
           <>
             <Button
-              size="lg"
-              className="px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              size="large"
+              type="primary"
+              className="px-8 py-4 hover:-translate-y-1 !bg-primary"
               onClick={() => navigate('gestionar')}>
               <BarChart3 className="mr-2 h-5 w-5" />
               Ver Mi Mesa de Regalos
             </Button>
             <Button
-              size="lg"
-              variant="outline"
-              className="px-8 py-4 shadow-md hover:shadow-lg transition-all duration-300 border-primary/30 hover:border-primary/50"
+              size="large"
+              variant="outlined"
+              className="px-8 py-4 hover:-translate-y-1 !border-primary !text-primary"
               onClick={() => navigate('gestionar')}>
               <Plus className="mr-2 h-5 w-5" />
               Agregar Regalos
@@ -102,17 +93,13 @@ export function HomePage({}: HomepageProps) {
           </>
         ) : (
           <>
-            <Button
-              size="lg"
-              className="px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-              onClick={() => navigate('regalos')}>
+            <Button size="large" type="primary" className="px-8 py-4 hover:-translate-y-1 !bg-primary" onClick={() => navigate('regalos')}>
               <Gift className="mr-2 h-5 w-5" />
               Explorar Mesa de Regalos de Pareja
             </Button>
             <Button
-              size="lg"
-              variant="outline"
-              className="px-8 py-4 shadow-md hover:shadow-lg transition-all duration-300 border-primary/30 hover:border-primary/50"
+              size="large"
+              className="px-8 py-4 hover:-translate-y-1 !border-primary !text-primary"
               onClick={() => navigate('/buscar')}>
               <Heart className="mr-2 h-5 w-5" />
               Buscar por Pareja
@@ -140,23 +127,17 @@ export function HomePage({}: HomepageProps) {
           <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl mb-8 text-center text-primary">Resumen de tu Mesa de Regalos</h2>
             <div className="grid md:grid-cols-3 gap-6">
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/20 text-center">
-                <CardContent className="p-6">
-                  <div className="text-3xl text-primary mb-2">{totalGifts}</div>
-                  <div className="text-sm text-muted-foreground">Regalos en tu lista</div>
-                </CardContent>
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/20 text-center !rounded-2xl">
+                <div className="text-3xl text-primary mb-2">{totalGifts}</div>
+                <div className="text-sm text-muted-foreground">Regalos en tu lista</div>
               </Card>
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-accent/20 text-center">
-                <CardContent className="p-6">
-                  <div className="text-3xl text-green-600 mb-2">{purchasedGifts}</div>
-                  <div className="text-sm text-muted-foreground">Regalos comprados</div>
-                </CardContent>
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-accent/20 text-center !rounded-2xl">
+                <div className="text-3xl text-green-600 mb-2">{purchasedGifts}</div>
+                <div className="text-sm text-muted-foreground">Regalos comprados</div>
               </Card>
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/20 text-center">
-                <CardContent className="p-6">
-                  <div className="text-3xl text-primary mb-2">{progress.toFixed(2)}%</div>
-                  <div className="text-sm text-muted-foreground">Progreso completado</div>
-                </CardContent>
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/20 text-center !rounded-2xl">
+                <div className="text-3xl text-primary mb-2">{progress.toFixed(2)}%</div>
+                <div className="text-sm text-muted-foreground">Progreso completado</div>
               </Card>
             </div>
           </div>
@@ -174,40 +155,40 @@ export function HomePage({}: HomepageProps) {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-card to-secondary/30">
-              <CardHeader className="text-center mb-6">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-card to-secondary/30 !rounded-2xl">
+              <div className="text-center">
                 <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mb-4 shadow-md">
                   <Sparkles className="h-8 w-8 text-primary" />
                 </div>
-                <CardTitle className="text-primary">Fácil de Crear</CardTitle>
-                <CardDescription className="text-muted-foreground leading-relaxed">
+                <div className="text-primary">Fácil de Crear</div>
+                <div className="text-muted-foreground leading-relaxed">
                   Configura tu mesa de regalos en minutos. Añade productos, organiza categorías y personaliza tu lista a tu gusto.
-                </CardDescription>
-              </CardHeader>
+                </div>
+              </div>
             </Card>
 
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-card to-accent/20">
-              <CardHeader className="text-center mb-6">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-card to-accent/20 !rounded-2xl">
+              <div className="text-center">
                 <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mb-4 shadow-md">
                   <Shield className="h-8 w-8 text-primary" />
                 </div>
-                <CardTitle className="text-primary">Compras Seguras</CardTitle>
-                <CardDescription className="text-muted-foreground leading-relaxed">
+                <div className="text-primary">Compras Seguras</div>
+                <div className="text-muted-foreground leading-relaxed">
                   Tus invitados pueden comprar con confianza. Procesamos pagos de forma segura y enviamos directamente a tu hogar.
-                </CardDescription>
-              </CardHeader>
+                </div>
+              </div>
             </Card>
 
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-card to-secondary/30">
-              <CardHeader className="text-center mb-6">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-card to-secondary/30 !rounded-2xl">
+              <div className="text-center">
                 <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mb-4 shadow-md">
                   <Users className="h-8 w-8 text-primary" />
                 </div>
-                <CardTitle className="text-primary">Gestión Completa</CardTitle>
-                <CardDescription className="text-muted-foreground leading-relaxed">
+                <div className="text-primary">Gestión Completa</div>
+                <div className="text-muted-foreground leading-relaxed">
                   Ve estadísticas de tu mesa, administra regalos, y mantente al día con las compras de tus invitados.
-                </CardDescription>
-              </CardHeader>
+                </div>
+              </div>
             </Card>
           </div>
         </div>
@@ -252,20 +233,15 @@ export function HomePage({}: HomepageProps) {
             <p className="text-xl mb-8 text-primary-foreground/90 leading-relaxed">
               Crea tu mesa de regalos hoy y haz que tu boda sea aún más especial
             </p>
-            <Tooltip trigger={['click', 'hover']} title="¡Funcionalidad disponible pronto!">
-              <AntdButton
-                size="large"
-                type="primary"
-                disabled
-                className="px-8 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-0 !bg-white !hover:bg-white/95"
-                onClick={() => navigate('/registro')}>
+            <Tooltip trigger={['click']} title="¡Funcionalidad disponible pronto!">
+              <Button size="large" type="default" className="px-8 py-4 transition-all duration-300 transform hover:-translate-y-1 border-0">
                 <Heart className="mr-2 h-5 w-5" />
                 Empezar Ahora - Es Gratis
-              </AntdButton>
+              </Button>
             </Tooltip>
           </div>
         </section>
       )}
     </div>
   );
-}
+};

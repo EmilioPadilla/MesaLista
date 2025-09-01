@@ -1,5 +1,5 @@
 import React from 'react';
-import { Drawer, Button as AntdButton } from 'antd';
+import { Drawer, Button as AntdButton, Image } from 'antd';
 import { CloseCircleOutlined } from '@ant-design/icons';
 import type { Cart, CartItem } from 'types/models/cart';
 import { GiftIcon, Minus, Package, Plus, ShoppingCart, Trash2 } from 'lucide-react';
@@ -7,7 +7,6 @@ import { Card, CardContent } from 'components/core/Card';
 import { Button } from 'components/core/Button';
 import { useNavigate } from 'react-router-dom';
 import { useRemoveGiftFromCart, useUpdateCartItemQuantity } from 'hooks/useCart';
-import { ImageWithFallback } from 'src/components/core/ImageFallback';
 
 interface CartDrawerProps {
   open: boolean;
@@ -75,10 +74,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData,
                 <Card key={item.id}>
                   <CardContent className="p-4">
                     <div className="flex gap-4">
-                      <img
-                        src={item.gift?.imageUrl || '/images/gift_placeholder.png'}
+                      <Image
+                        src={item.gift?.imageUrl}
+                        fallback="/images/gift_placeholder.png"
+                        preview={false}
                         alt={item.gift?.title}
-                        className="w-16 h-16 object-cover rounded-md"
+                        className="!w-16 !h-16 rounded-md"
                       />
                       <div className="flex-1 min-w-0">
                         <h4 className="truncate">{item.gift?.title}</h4>

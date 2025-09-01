@@ -16,7 +16,7 @@ import ProtectedRoute from 'components/ProtectedRoute';
 // Auth service
 import { userService } from 'services/user.service';
 import antdThemeConfig from 'styles/config/antdThemeConfig';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { HomePage } from 'routes/HomePage';
 import { TopNav } from 'src/app/modules/navigation/topnav/TopNav';
@@ -27,14 +27,14 @@ import { ManageRegistry } from 'src/app/routes/couple/ManageRegistry';
 import { SearchPage } from 'src/app/routes/SearchPage';
 
 function App() {
-  // Check if user is already authenticated every time the path changes
-  let isAuthenticated = userService.isAuthenticated();
+  // Use state to properly track authentication status
+  const [isAuthenticated, setIsAuthenticated] = useState(userService.isAuthenticated());
   const path = window.location.pathname;
   const isLocalhost = window.location.hostname === 'localhost';
   const coupleSlug = window.location.pathname.split('/')[1];
 
   useEffect(() => {
-    isAuthenticated = userService.isAuthenticated();
+    setIsAuthenticated(userService.isAuthenticated());
   }, [path]);
 
   return (

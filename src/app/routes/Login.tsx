@@ -67,9 +67,7 @@ const Login: React.FC = () => {
         <Card className="shadow-2xl border-0 bg-card/95 backdrop-blur-sm">
           <CardHeader className="text-center pb-6">
             <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 shadow-lg">
-                <Heart className="h-8 w-8 text-primary" />
-              </div>
+              <img src="/svg/MesaLista_isologo.svg" alt="logo" className="h-32 w-32" />
             </div>
             <CardTitle className="text-2xl text-primary">Bienvenido de vuelta</CardTitle>
             <CardDescription>Inicia sesión en tu cuenta de MesaLista</CardDescription>
@@ -77,7 +75,7 @@ const Login: React.FC = () => {
 
           <CardContent className="space-y-6">
             {/* Social Login Options */}
-            <div className="space-y-3">
+            {/* <div className="space-y-3">
               <Button
                 variant="outline"
                 className="w-full h-12 shadow-md hover:shadow-lg transition-all duration-200 border-primary/20 hover:border-primary/40"
@@ -113,7 +111,7 @@ const Login: React.FC = () => {
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">O continúa con</span>
               </div>
-            </div>
+            </div> */}
 
             {/* Email/Password Form */}
             <Form onFinish={onFinish} className="space-y-4">

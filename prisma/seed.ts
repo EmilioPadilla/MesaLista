@@ -32,15 +32,15 @@ async function main() {
   const saltRounds = 10;
 
   // Create admin user
-  const admin = await prisma.user.create({
-    data: {
-      firstName: 'Admin',
-      lastName: 'User',
-      email: 'admin@example.com',
-      password: await bcrypt.hash('admin123', saltRounds),
-      role: 'ADMIN',
-    },
-  });
+  // const admin = await prisma.user.create({
+  //   data: {
+  //     firstName: 'Admin',
+  //     lastName: 'User',
+  //     email: 'admin@example.com',
+  //     password: await bcrypt.hash('admin123', saltRounds),
+  //     role: 'ADMIN',
+  //   },
+  // });
 
   // Create a couple
   const couple = await prisma.user.create({
@@ -50,10 +50,10 @@ async function main() {
       spouseFirstName: 'Emilio',
       spouseLastName: 'Padilla',
       coupleSlug: 'sol-y-emilio',
-      email: 'sol.emilio@example.com',
+      email: 'sol.emilio@mesalista.com',
       imageUrl:
         'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/4a6987b6-9bcf-440e-89fa-9093d0dc67c8-EmilioandMarianaFullAlbum-143.jpg',
-      password: await bcrypt.hash('couple123', saltRounds),
+      password: await bcrypt.hash('Noviembre29!$', saltRounds),
       phoneNumber: '+52 123 456 7890',
       role: 'COUPLE',
     },
