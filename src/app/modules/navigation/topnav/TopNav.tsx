@@ -81,18 +81,18 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                 <Button
                   type={currentPage === '/' || currentPage === `/${coupleSlug}` ? 'primary' : 'text'}
                   onClick={() => navigate(coupleSlug ? `/${coupleSlug}` : '/')}
-                  className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-sm">
+                  className="flex items-center justify-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-sm">
                   <Heart className="h-4 w-4" />
-                  {viewType !== 'mobile' ? <span>Inicio</span> : <></>}
+                  {viewType !== 'mobile' && <span>Inicio</span>}
                 </Button>
               </Tooltip>
               <Tooltip title={viewType === 'mobile' ? 'Buscar' : ''} placement="bottom">
                 <Button
                   type={currentPage === '/buscar' ? 'primary' : 'text'}
                   onClick={() => navigate('/buscar')}
-                  className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-sm">
+                  className="flex items-center justify-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-sm">
                   <Search className="h-4 w-4" />
-                  {viewType !== 'mobile' ? <span>Buscar</span> : <></>}
+                  {viewType !== 'mobile' && <span>Buscar</span>}
                 </Button>
               </Tooltip>
 
@@ -103,7 +103,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                     onClick={() => navigate(`/${coupleSlug}/gestionar`)}
                     className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-sm">
                     <Users className="h-4 w-4" />
-                    {viewType !== 'mobile' ? <span>Gestionar</span> : <></>}
+                    {viewType !== 'mobile' && <span>Gestionar</span>}
                   </Button>
                 </Tooltip>
               )}
@@ -114,7 +114,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   onClick={() => navigate(`/${coupleSlug}/regalos`)}
                   className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-sm">
                   <Gift className="h-4 w-4" />
-                  {viewType !== 'mobile' ? <span>Regalos</span> : <></>}
+                  {viewType !== 'mobile' && <span>Regalos</span>}
                 </Button>
               )}
             </nav>
@@ -135,7 +135,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                     onClick={handleLogout}
                     className="flex items-center space-x-1 cursor-pointer !rounded-lg !text-sm">
                     <LogOut className="h-4 w-4" />
-                    {viewType !== 'mobile' ? <span>Salir</span> : <></>}
+                    {viewType !== 'mobile' && <span>Salir</span>}
                   </Button>
                 </Tooltip>
               </div>
