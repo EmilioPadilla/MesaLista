@@ -6,7 +6,7 @@ import { Collapsible } from 'components/core/Collapsible';
 import { ImageWithFallback } from 'src/components/core/ImageFallback';
 import { Plus, X } from 'lucide-react';
 import { UploadOutlined, CaretDownFilled } from '@ant-design/icons';
-import { Checkbox, Form, Input, Upload, Select as AntdSelect, message } from 'antd';
+import { Checkbox, Form, Input, Upload, Select as AntdSelect, message, Image } from 'antd';
 import { useForm } from 'antd/es/form/Form';
 import { UploadChangeParam } from 'antd/es/upload';
 import { useCreateGift } from 'src/hooks/useGift';
@@ -188,8 +188,8 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
                   <div className="space-y-2">
                     <Label>Vista Previa</Label>
                     <div className="relative flex items-center justify-center">
-                      <div className="w-64 h-64 bg-muted rounded-lg overflow-hidden shadow-sm">
-                        <ImageWithFallback src={imageState.url} alt="Vista previa" className="w-full h-full object-contain" />
+                      <div className="w-64 h-64 bg-muted rounded-lg flex items-center justify-center">
+                        <Image src={imageState.url} alt="Vista previa" className="w-full h-full object-contain" />
                       </div>
                       <Button
                         type="button"

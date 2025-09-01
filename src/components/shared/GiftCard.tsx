@@ -115,13 +115,14 @@ export const GiftCard = ({
       }}
       cover={
         <div className="relative">
-          <div className="flex items-center justify-center w-full h-full object-contain">
+          <div className="flex items-center justify-center h-40 overflow-hidden rounded-t-lg">
             <Image
               src={gift.imageUrl}
               preview={false}
               fallback="/images/gift_placeholder.png"
               alt={gift.title}
-              className="w-full flex items-center justify-center !h-40 rounded-t-lg"
+              className="max-w-full max-h-full object-contain rounded-t-lg"
+              style={{ width: 'auto', height: 'auto' }}
             />
           </div>
           {gift.isPurchased && (
