@@ -27,4 +27,4 @@ dist-ssr
 /src/generated/prisma
 
 # Builds
-tsconfig.app.tsbuildinfo
+

@@ -170,8 +170,12 @@ export const ManageRegistry = () => {
 
       <Tabs defaultValue="gifts" className="w-full">
         <TabsList className="grid w-full grid-cols-2 shadow-sm">
-          <TabsTrigger value="gifts">Lista de Regalos</TabsTrigger>
-          <TabsTrigger value="stats">Estadísticas Detalladas</TabsTrigger>
+          <TabsTrigger className="cursor-pointer" value="gifts">
+            Lista de Regalos
+          </TabsTrigger>
+          <TabsTrigger className="cursor-pointer" value="stats">
+            Estadísticas Detalladas
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="gifts" className="space-y-6">

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from 'components/core/Card';
+import { Card } from 'antd';
 import { Package, TrendingUp, Target, DollarSign } from 'lucide-react';
 
 interface StatsCardsProps {
@@ -17,56 +17,52 @@ interface StatsCardsProps {
 export const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm">Total de Regalos</CardTitle>
-          <Package className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
+      <Card
+        title="Total de Regalos"
+        extra={<Package className="h-4 w-4 text-muted-foreground" />}
+        className="shadow-md hover:shadow-lg transition-shadow duration-200">
+        <div>
           <div className="text-2xl text-primary">{stats.totalItems}</div>
           <p className="text-xs text-muted-foreground mt-1">
             {stats.purchasedItems} comprados, {stats.totalItems - stats.purchasedItems} pendientes
           </p>
-        </CardContent>
+        </div>
       </Card>
 
-      <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm">Progreso</CardTitle>
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
+      <Card
+        title="Progreso"
+        extra={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+        className="shadow-md hover:shadow-lg transition-shadow duration-200">
+        <div>
           <div className="text-2xl text-green-600">{Math.round((stats.purchasedItems / stats.totalItems) * 100)}%</div>
           <div className="w-full bg-muted rounded-full h-2 mt-2">
             <div
               className="bg-green-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(stats.purchasedItems / stats.totalItems) * 100}%` }}></div>
           </div>
-        </CardContent>
+        </div>
       </Card>
 
-      <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm">Rango de Precios</CardTitle>
-          <Target className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-lg text-primary">
+      <Card
+        title="Rango de Precios"
+        extra={<Target className="h-4 w-4 text-muted-foreground" />}
+        className="shadow-md hover:shadow-lg transition-shadow duration-200">
+        <div>
+          <div className="text-2xl text-primary">
             ${stats.minPrice.toLocaleString()} - ${stats.maxPrice.toLocaleString()}
           </div>
           <p className="text-xs text-muted-foreground mt-1">Promedio: ${stats.averagePrice.toLocaleString()}</p>
-        </CardContent>
+        </div>
       </Card>
 
-      <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm">Valor Total</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
+      <Card
+        title="Valor Total"
+        extra={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+        className="shadow-md hover:shadow-lg transition-shadow duration-200">
+        <div>
           <div className="text-2xl text-primary">${stats.totalValue.toLocaleString()}</div>
           <p className="text-xs text-muted-foreground mt-1">Comprado: ${stats.purchasedValue.toLocaleString()}</p>
-        </CardContent>
+        </div>
       </Card>
     </div>
   );
