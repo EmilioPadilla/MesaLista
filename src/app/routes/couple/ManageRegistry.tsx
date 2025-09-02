@@ -223,7 +223,8 @@ export const ManageRegistry = () => {
           gift={editingGift}
           isOpen={showEditGiftModal}
           onClose={() => setShowEditGiftModal(false)}
-          afterClose={handleAfterCloseEditGiftModal}
+          // TODO: this is causing that the onSuccess of uploadFile is not being called
+          // afterClose={handleAfterCloseEditGiftModal}
           weddingListId={weddinglist?.id}
         />
       )}

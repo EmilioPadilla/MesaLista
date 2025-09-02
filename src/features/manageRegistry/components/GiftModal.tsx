@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Form, Input, Select, Checkbox, message, Modal, Upload, Image, Button } from 'antd';
+import { Form, Input, Select, Checkbox, message, Modal, Upload, Button, Image } from 'antd';
 import { X } from 'lucide-react';
 import { GiftItem } from 'app/routes/couple/ManageRegistry';
 import { GiftCategory } from 'types/models/gift';
@@ -9,15 +9,14 @@ import { UploadOutlined } from '@ant-design/icons';
 import { UploadChangeParam } from 'antd/es/upload';
 import { useUploadFile } from 'hooks/useFiles';
 
-interface EditGiftModalProps {
+interface GiftModalProps {
   gift: GiftItem | null;
   isOpen: boolean;
   onClose: () => void;
-  afterClose: () => void;
   weddingListId?: number;
 }
 
-export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: EditGiftModalProps) {
+export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalProps) {
   const [form] = Form.useForm();
   const [imageState, setImageState] = useState<{
     file: File | null;
@@ -25,31 +24,7 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
     name: string | undefined;
   }>({ file: null, url: undefined, name: undefined });
   const { mutate: updateGift, isSuccess: updateSuccess, isError: updateError } = useUpdateGift();
-
-  const { mutate: uploadFile } = useUploadFile({
-    onSuccess: (data) => {
-      const formValues = form.getFieldsValue();
-      if (!gift) return;
-      const updatedGift: GiftItem = {
-        ...gift,
-        title: formValues.title,
-        description: formValues.description || '',
-        price: formValues.price,
-        categories:
-          formValues.categories?.map(
-            (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
-          ) || [],
-        isMostWanted: formValues.isMostWanted || false,
-        imageUrl: data,
-      };
-
-      updateGift({ id: gift.id, data: updatedGift });
-    },
-    onError: () => {
-      message.error('Error al actualizar el regalo');
-    },
-  });
-
+  const { mutate: uploadFile } = useUploadFile();
   const { data: categories } = useGetCategoriesByWeddingList(weddingListId);
   const categoryOptions = categories?.categories?.map((category: any) => ({ value: category.name, label: category.name }));
 
@@ -94,23 +69,39 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
     if (!gift) return;
 
     if (imageState.file) {
-      uploadFile(imageState.file);
-    } else {
-      const updatedGift: GiftItem = {
-        ...gift,
-        title: values.title,
-        description: values.description || '',
-        price: values.price,
-        categories:
-          values.categories?.map(
-            (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
-          ) || [],
-        isMostWanted: values.isMostWanted || false,
-        imageUrl: values.imageUrl || gift.imageUrl,
-      };
+      uploadFile(imageState.file, {
+        onSuccess: (data) => {
+          const updatedGift: GiftItem = {
+            ...gift,
+            title: values.title,
+            description: values.description || '',
+            price: values.price,
+            categories:
+              values.categories?.map(
+                (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
+              ) || [],
+            isMostWanted: values.isMostWanted || false,
+            imageUrl: data,
+          };
 
-      updateGift({ id: gift.id, data: updatedGift });
+          updateGift({ id: gift.id, data: updatedGift });
+        },
+      });
     }
+    const updatedGift: GiftItem = {
+      ...gift,
+      title: values.title,
+      description: values.description || '',
+      price: values.price,
+      categories:
+        values.categories?.map(
+          (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
+        ) || [],
+      isMostWanted: values.isMostWanted || false,
+      imageUrl: values.imageUrl || gift.imageUrl,
+    };
+
+    updateGift({ id: gift.id, data: updatedGift });
     onClose();
   };
 
@@ -122,7 +113,7 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
   if (!gift) return null;
 
   return (
-    <Modal title="Editar Regalo" open={isOpen} onCancel={handleClose} footer={null} width={700} afterClose={afterClose}>
+    <Modal title="Editar Regalo" open={isOpen} onCancel={handleClose} footer={null} width={700}>
       <Form form={form} onFinish={handleFinish} layout="vertical" className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Form.Item name="title" label="Nombre del Regalo" rules={[{ required: true, message: 'Por favor ingresa el título del regalo' }]}>
@@ -154,7 +145,7 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
               mode="tags"
               allowClear
               optionFilterProp="label"
-              className="w-full shadow-sm"
+              style={{ width: '100%' }}
               placeholder="Selecciona de 1 a 3 categorías"
               maxCount={3}
               options={categoryOptions}
@@ -199,11 +190,12 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
             <div className="space-y-2">
               <label>Vista Previa</label>
               <div className="relative flex items-center justify-center">
-                <div className="w-64 h-64 flex items-center justify-center bg-muted rounded-lg overflow-hidden shadow-sm">
-                  <Image src={imageState.url} alt="Vista previa" className="w-full h-full object-contain" />
+                <div className="w-64 h-64 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                  <Image src={imageState.url} alt="Vista previa" preview={false} />
                 </div>
                 <div className="absolute top-2 right-2">
                   <Button
+                    type="default"
                     icon={<X />}
                     className="flex items-center justify-center cursor-pointer h-6 w-6 p-0 bg-background/80 hover:bg-background shadow-md"
                     onClick={() => {
@@ -216,7 +208,7 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
-          <Button variant="outlined" onClick={handleClose}>
+          <Button type="default" onClick={handleClose}>
             Cancelar
           </Button>
           <Button type="primary" htmlType="submit" className="shadow-md hover:shadow-lg transition-all duration-200">
