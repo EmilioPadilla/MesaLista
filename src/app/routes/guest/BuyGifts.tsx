@@ -15,6 +15,9 @@ import { Label } from '@radix-ui/react-label';
 import { GiftCard } from 'src/components/shared/GiftCard';
 import { Collapsible } from 'src/components/core/Collapsible';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 const { Title } = Typography;
 
@@ -35,8 +38,7 @@ export function BuyGifts() {
   const { data: weddingListCategories } = useGetCategoriesByWeddingList(weddinglist?.id);
   const { mutate: updateCartQuantity } = useUpdateCartItemQuantity();
   const { mutate: removeFromCart } = useRemoveGiftFromCart();
-
-  const formattedWeddingDate = weddinglist?.weddingDate ? dayjs(weddinglist.weddingDate).format('MMM DD, YYYY') : '';
+  const formattedWeddingDate = weddinglist?.weddingDate ? dayjs.utc(weddinglist.weddingDate).format('MMM DD, YYYY') : '';
   const note = weddinglist?.description || '';
 
   const {
