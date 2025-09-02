@@ -25,7 +25,31 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
     name: string | undefined;
   }>({ file: null, url: undefined, name: undefined });
   const { mutate: updateGift, isSuccess: updateSuccess, isError: updateError } = useUpdateGift();
-  const { mutate: uploadFile } = useUploadFile();
+
+  const { mutate: uploadFile } = useUploadFile({
+    onSuccess: (data) => {
+      const formValues = form.getFieldsValue();
+      if (!gift) return;
+      const updatedGift: GiftItem = {
+        ...gift,
+        title: formValues.title,
+        description: formValues.description || '',
+        price: formValues.price,
+        categories:
+          formValues.categories?.map(
+            (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
+          ) || [],
+        isMostWanted: formValues.isMostWanted || false,
+        imageUrl: data,
+      };
+
+      updateGift({ id: gift.id, data: updatedGift });
+    },
+    onError: () => {
+      message.error('Error al actualizar el regalo');
+    },
+  });
+
   const { data: categories } = useGetCategoriesByWeddingList(weddingListId);
   const categoryOptions = categories?.categories?.map((category: any) => ({ value: category.name, label: category.name }));
 
@@ -70,39 +94,23 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
     if (!gift) return;
 
     if (imageState.file) {
-      uploadFile(imageState.file, {
-        onSuccess: (data) => {
-          const updatedGift: GiftItem = {
-            ...gift,
-            title: values.title,
-            description: values.description || '',
-            price: values.price,
-            categories:
-              values.categories?.map(
-                (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
-              ) || [],
-            isMostWanted: values.isMostWanted || false,
-            imageUrl: data,
-          };
+      uploadFile(imageState.file);
+    } else {
+      const updatedGift: GiftItem = {
+        ...gift,
+        title: values.title,
+        description: values.description || '',
+        price: values.price,
+        categories:
+          values.categories?.map(
+            (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
+          ) || [],
+        isMostWanted: values.isMostWanted || false,
+        imageUrl: values.imageUrl || gift.imageUrl,
+      };
 
-          updateGift({ id: gift.id, data: updatedGift });
-        },
-      });
+      updateGift({ id: gift.id, data: updatedGift });
     }
-    const updatedGift: GiftItem = {
-      ...gift,
-      title: values.title,
-      description: values.description || '',
-      price: values.price,
-      categories:
-        values.categories?.map(
-          (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
-        ) || [],
-      isMostWanted: values.isMostWanted || false,
-      imageUrl: values.imageUrl || gift.imageUrl,
-    };
-
-    updateGift({ id: gift.id, data: updatedGift });
     onClose();
   };
 

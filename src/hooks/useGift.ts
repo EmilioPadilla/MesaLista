@@ -28,6 +28,7 @@ export const useCreateGift = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.giftsByWeddingList, variables.weddingListId] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.categoriesByWeddingList] });
     },
   });
 };

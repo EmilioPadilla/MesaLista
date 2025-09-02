@@ -9,11 +9,15 @@ import { fileService } from 'services/files.service';
  */
 export const useUploadFile = (options?: Partial<UseMutationOptions<any, Error, File>>) => {
   const queryClient = useQueryClient();
+  const { onSuccess, ...restOptions } = options || {};
   return useMutation({
     mutationFn: (file: File) => fileService.uploadFile(file),
-    onSuccess: () => {
+    onSuccess: (data, variables, context) => {
+      if (onSuccess) {
+        onSuccess(data, variables, context);
+      }
       queryClient.invalidateQueries({ queryKey: [queryKeys.uploadFile] });
     },
-    ...options,
+    ...restOptions,
   });
 };
