@@ -31,11 +31,17 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(userService.isAuthenticated());
   const path = window.location.pathname;
   const isLocalhost = window.location.hostname === 'localhost';
-  const coupleSlug = window.location.pathname.split('/')[1];
+  const coupleSlug = window.location.pathname.split('/')[1] ?? null;
 
+  // Listen for authentication changes
   useEffect(() => {
-    setIsAuthenticated(userService.isAuthenticated());
-  }, [path]);
+    const handleAuthChange = () => {
+      setIsAuthenticated(userService.isAuthenticated());
+    };
+
+    // Check authentication status on mount
+    handleAuthChange();
+  }, []);
 
   return (
     <ConfigProvider theme={antdThemeConfig}>
@@ -51,7 +57,7 @@ function App() {
               </>
             }
           />
-          <Route path="/login" element={isAuthenticated ? <Navigate to={`/${coupleSlug}`} /> : <Login />} />
+          <Route path="/login" element={isAuthenticated && coupleSlug ? <Navigate to={`/${coupleSlug}`} /> : <Login />} />
           <Route
             path="/buscar"
             element={
