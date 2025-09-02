@@ -1,211 +1,221 @@
-import { Button, Form, Input, InputNumber, Modal, Checkbox, message, Select } from 'antd';
 import { useState, useEffect } from 'react';
-import { useCreateGift, useGiftById, useUpdateGift } from 'hooks/useGift';
-import { useUploadFile } from 'hooks/useFiles';
-import { FileUpload } from 'components/core/FileUpload';
+import { Form, Input, Select, Checkbox, message, Modal, Upload, Image, Button } from 'antd';
+import { X } from 'lucide-react';
+import { GiftItem } from 'app/routes/couple/ManageRegistry';
+import { GiftCategory } from 'types/models/gift';
+import { useUpdateGift } from 'hooks/useGift';
 import { useGetCategoriesByWeddingList } from 'hooks/useWeddingList';
-import { Gift } from 'types/models/gift';
+import { UploadOutlined } from '@ant-design/icons';
+import { UploadChangeParam } from 'antd/es/upload';
+import { useUploadFile } from 'hooks/useFiles';
 
-interface GiftModalProps {
-  weddingListId?: number;
-  giftId?: number;
-  open: boolean;
-  onCancel: () => void;
+interface EditGiftModalProps {
+  gift: GiftItem | null;
+  isOpen: boolean;
+  onClose: () => void;
   afterClose: () => void;
+  weddingListId?: number;
 }
 
-// @deprecated
-export const GiftModal = ({ weddingListId, giftId, open, onCancel, afterClose }: GiftModalProps) => {
-  const [imageUrl, setImageUrl] = useState<string>();
-  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
+export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: EditGiftModalProps) {
   const [form] = Form.useForm();
-
-  const isEditing = !!giftId;
-  const { data: existingGift, isLoading: loadingGift } = useGiftById(giftId, { enabled: isEditing });
-  const { data: categories } = useGetCategoriesByWeddingList(weddingListId);
-  const { mutate: createGift, isSuccess: createSuccess, isError: createError } = useCreateGift();
+  const [imageState, setImageState] = useState<{
+    file: File | null;
+    url: string | undefined;
+    name: string | undefined;
+  }>({ file: null, url: undefined, name: undefined });
   const { mutate: updateGift, isSuccess: updateSuccess, isError: updateError } = useUpdateGift();
-  const { mutate: uploadFile, data: imageData } = useUploadFile();
+  const { mutate: uploadFile } = useUploadFile();
+  const { data: categories } = useGetCategoriesByWeddingList(weddingListId);
+  const categoryOptions = categories?.categories?.map((category: any) => ({ value: category.name, label: category.name }));
 
   useEffect(() => {
-    if (uploadFiles.length > 0) {
-      uploadFile(uploadFiles[0]);
-    }
-  }, [uploadFiles]);
-
-  const handleFinish = (values: any) => {
-    let categoriesPayload = values.categories;
-    if (Array.isArray(categoriesPayload)) {
-      categoriesPayload = categoriesPayload.map((cat: string) => ({ name: cat }));
-    }
-
-    if (isEditing && giftId) {
-      const updatedGiftData = {
-        ...values,
-        categories: categoriesPayload,
-        imageUrl: imageUrl || existingGift?.imageUrl,
-      };
-      updateGift({ id: giftId, data: updatedGiftData });
-    } else {
-      const newGift = {
-        ...values,
-        categories: categoriesPayload,
-        weddingListId,
-        imageUrl,
-        isPurchased: false,
-      };
-      createGift(newGift);
-    }
-    onCancel();
-  };
-
-  useEffect(() => {
-    if (imageData) {
-      setImageUrl(imageData);
-    }
-  }, [imageData]);
-
-  // Load existing gift data when editing
-  useEffect(() => {
-    if (isEditing && existingGift && open) {
+    if (gift) {
       form.setFieldsValue({
-        title: existingGift.title,
-        price: existingGift.price,
-        quantity: existingGift.quantity,
-        isMostWanted: existingGift.isMostWanted,
-        // @ts-ignore
-        categories: existingGift.categories,
-        description: existingGift.description,
+        title: gift.title,
+        description: gift.description || '',
+        price: gift.price,
+        categories: gift.categories?.map((cat: any) => cat.name),
+        isMostWanted: gift.isMostWanted,
+        imageUrl: gift.imageUrl || '',
       });
-      setImageUrl(existingGift.imageUrl || undefined);
-    } else if (!isEditing && open) {
-      // Reset form for new gift
-      form.resetFields();
-      setImageUrl(undefined);
-      setUploadFiles([]);
+      setImageState({ file: null, url: gift.imageUrl || '', name: gift.imageUrl || '' });
     }
-  }, [isEditing, existingGift, open]);
+  }, [gift, form]);
 
   useEffect(() => {
-    if (createSuccess) {
-      message.success('Regalo agregado correctamente!');
-    }
-    if (createError) {
-      message.error('Error al agregar el regalo');
-    }
     if (updateSuccess) {
       message.success('Regalo actualizado correctamente!');
     }
     if (updateError) {
       message.error('Error al actualizar el regalo');
     }
-  }, [createSuccess, createError, updateSuccess, updateError]);
-  const categoryOptions = categories?.categories?.map((category: any) => ({ value: category.name, label: category.name }));
+  }, [updateSuccess, updateError]);
+
+  const handleImageChange = (info: UploadChangeParam) => {
+    if (info.fileList && info.fileList[0]) {
+      const file = info.fileList[0];
+      const localUrl = URL.createObjectURL(file.originFileObj as Blob);
+      setImageState({
+        name: file.name,
+        file: file.originFileObj as File,
+        url: localUrl,
+      });
+    } else {
+      setImageState({ name: '', file: null, url: '' });
+    }
+  };
+
+  const handleFinish = (values: any) => {
+    if (!gift) return;
+
+    if (imageState.file) {
+      uploadFile(imageState.file, {
+        onSuccess: (data) => {
+          const updatedGift: GiftItem = {
+            ...gift,
+            title: values.title,
+            description: values.description || '',
+            price: values.price,
+            categories:
+              values.categories?.map(
+                (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
+              ) || [],
+            isMostWanted: values.isMostWanted || false,
+            imageUrl: data,
+          };
+
+          updateGift({ id: gift.id, data: updatedGift });
+        },
+      });
+    }
+    const updatedGift: GiftItem = {
+      ...gift,
+      title: values.title,
+      description: values.description || '',
+      price: values.price,
+      categories:
+        values.categories?.map(
+          (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
+        ) || [],
+      isMostWanted: values.isMostWanted || false,
+      imageUrl: values.imageUrl || gift.imageUrl,
+    };
+
+    updateGift({ id: gift.id, data: updatedGift });
+    onClose();
+  };
+
+  const handleClose = () => {
+    form.resetFields();
+    onClose();
+  };
+
+  if (!gift) return null;
 
   return (
-    <Modal
-      afterClose={afterClose}
-      destroyOnHidden
-      title={isEditing ? 'Editar Regalo' : 'Agregar Regalo'}
-      open={open}
-      onCancel={onCancel}
-      footer={null}
-      width={700}>
-      <Form<Gift>
-        form={form}
-        onFinish={handleFinish}
-        layout="vertical"
-        initialValues={{
-          title: '',
-          price: 0,
-          quantity: 1,
-          isMostWanted: false,
-          description: '',
-        }}>
-        <div className="flex gap-6">
-          {/* Left side - Image upload */}
-          <div className="w-1/3">
-            {imageUrl ? (
-              <img src={imageUrl} alt="Gift" className="max-h-full max-w-full object-contain" />
-            ) : (
-              <FileUpload
-                value={uploadFiles[0]}
-                onChange={(file: File | null) => {
-                  if (file) {
-                    setUploadFiles([file]);
+    <Modal title="Editar Regalo" open={isOpen} onCancel={handleClose} footer={null} width={700} afterClose={afterClose}>
+      <Form form={form} onFinish={handleFinish} layout="vertical" className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Form.Item name="title" label="Nombre del Regalo" rules={[{ required: true, message: 'Por favor ingresa el título del regalo' }]}>
+            <Input placeholder="Ej. Juego de sábanas" className="shadow-sm" />
+          </Form.Item>
+
+          <Form.Item
+            name="price"
+            label="Precio (MXN)"
+            rules={[
+              { required: true, message: 'Por favor ingresa el precio' },
+              {
+                validator: (_, value) => {
+                  const numValue = Number(value);
+                  if (isNaN(numValue) || numValue <= 0) {
+                    return Promise.reject(new Error('El precio debe ser mayor a 0'));
                   }
-                }}
-              />
-            )}
-          </div>
-
-          {/* Right side - Form fields */}
-          <div className="w-2/3">
-            <Form.Item
-              className="!mb-2"
-              name="title"
-              label="Título"
-              rules={[{ required: true, message: 'Por favor ingresa el título del regalo' }]}>
-              <Input />
-            </Form.Item>
-
-            {/* Category */}
-            <Form.Item className="!mb-2" name="categories" label="Categoría">
-              <Select
-                mode="tags"
-                allowClear
-                optionFilterProp="label"
-                style={{ width: '100%' }}
-                placeholder="Selecciona de 1 a 3 categorías"
-                options={categoryOptions}
-                maxCount={3}
-              />
-            </Form.Item>
-
-            <div className="flex gap-4">
-              <Form.Item
-                name="price"
-                label="Precio ($)"
-                className="w-1/2 !mb-2"
-                rules={[{ required: true, message: 'Por favor ingresa el precio del regalo' }]}>
-                <InputNumber className="w-full" />
-              </Form.Item>
-
-              <Form.Item
-                name="quantity"
-                label="Cantidad"
-                className="w-1/2 !mb-2"
-                rules={[{ required: true, message: 'Por favor ingresa la cantidad' }]}>
-                <InputNumber className="w-full" min={1} />
-              </Form.Item>
-            </div>
-
-            {/* Most Wanted checkbox */}
-            <div className="mb-4">
-              <Form.Item className="!mb-0" name="isMostWanted" valuePropName="checked">
-                <Checkbox>Más Deseado</Checkbox>
-              </Form.Item>
-              <div className="text-gray-500 text-sm">¡Deja que tus invitados sepan cuáles son tus regalos imprescindibles!</div>
-            </div>
-
-            {/* Description */}
-            <Form.Item className="!mb-0" name="description" label="Descripción del artículo">
-              <Input.TextArea
-                placeholder="Opcional: Describe el artículo, qué harás con él o por qué lo quieres. ¡Diviértete con esto!"
-                rows={4}
-              />
-            </Form.Item>
-          </div>
+                  return Promise.resolve();
+                },
+              },
+            ]}>
+            <Input type="number" placeholder="1500" className="shadow-sm" />
+          </Form.Item>
         </div>
 
-        {/* Footer buttons */}
-        <div className="flex justify-end mt-6 gap-2">
-          <Button onClick={onCancel}>Cancelar</Button>
-          <Button type="primary" htmlType="submit" loading={loadingGift}>
-            {isEditing ? 'Actualizar Regalo' : 'Agregar Regalo'}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Form.Item name="categories" label="Categorías">
+            <Select
+              mode="tags"
+              allowClear
+              optionFilterProp="label"
+              className="w-full shadow-sm"
+              placeholder="Selecciona de 1 a 3 categorías"
+              maxCount={3}
+              options={categoryOptions}
+            />
+          </Form.Item>
+
+          <Form.Item name="isMostWanted" label="Prioridad Alta" valuePropName="checked">
+            <Checkbox>Marcar como prioridad alta</Checkbox>
+          </Form.Item>
+        </div>
+
+        <Form.Item name="description" label="Descripción">
+          <Input.TextArea placeholder="Descripción detallada del regalo..." className="shadow-sm" rows={3} />
+        </Form.Item>
+
+        {/* Image Upload Section */}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="image">Imagen del Regalo</label>
+            <div className="flex gap-2">
+              <div className="relative w-full">
+                <Upload
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  listType="picture"
+                  maxCount={1}
+                  beforeUpload={(_file) => {
+                    // Return false to prevent actual upload since we're just previewing
+                    return false;
+                  }}
+                  showUploadList={false}>
+                  <Button type="primary" className="w-full">
+                    <UploadOutlined /> Seleccionar Imagen
+                  </Button>
+                </Upload>
+                {imageState.file && <span className="ml-3 text-sm">{imageState.name}</span>}
+              </div>
+            </div>
+          </div>
+
+          {imageState.url && (
+            <div className="space-y-2">
+              <label>Vista Previa</label>
+              <div className="relative flex items-center justify-center">
+                <div className="w-64 h-64 flex items-center justify-center bg-muted rounded-lg overflow-hidden shadow-sm">
+                  <Image src={imageState.url} alt="Vista previa" className="w-full h-full object-contain" />
+                </div>
+                <div className="absolute top-2 right-2">
+                  <Button
+                    icon={<X />}
+                    className="flex items-center justify-center cursor-pointer h-6 w-6 p-0 bg-background/80 hover:bg-background shadow-md"
+                    onClick={() => {
+                      setImageState({ name: '', file: null, url: '' });
+                    }}></Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2 mt-6">
+          <Button variant="outlined" onClick={handleClose}>
+            Cancelar
+          </Button>
+          <Button type="primary" htmlType="submit" className="shadow-md hover:shadow-lg transition-all duration-200">
+            Guardar Cambios
           </Button>
         </div>
       </Form>
     </Modal>
   );
-};
+}

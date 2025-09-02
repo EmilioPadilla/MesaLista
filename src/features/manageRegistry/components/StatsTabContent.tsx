@@ -33,9 +33,7 @@ export const StatsTabContent: React.FC<StatsTabContentProps> = ({ stats }) => {
             <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
               <div className="text-2xl text-green-700">{stats.priceRanges.low}</div>
               <div className="text-sm text-green-600">Regalos &lt; $1,000</div>
-              <div className="text-xs text-green-500 mt-1">
-                {Math.round((stats.priceRanges.low / stats.totalItems) * 100)}% del total
-              </div>
+              <div className="text-xs text-green-500 mt-1">{Math.round((stats.priceRanges.low / stats.totalItems) * 100)}% del total</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg border border-yellow-200">
               <div className="text-2xl text-yellow-700">{stats.priceRanges.medium}</div>
@@ -47,9 +45,7 @@ export const StatsTabContent: React.FC<StatsTabContentProps> = ({ stats }) => {
             <div className="p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200">
               <div className="text-2xl text-red-700">{stats.priceRanges.high}</div>
               <div className="text-sm text-red-600">Regalos &gt; $5,000</div>
-              <div className="text-xs text-red-500 mt-1">
-                {Math.round((stats.priceRanges.high / stats.totalItems) * 100)}% del total
-              </div>
+              <div className="text-xs text-red-500 mt-1">{Math.round((stats.priceRanges.high / stats.totalItems) * 100)}% del total</div>
             </div>
           </div>
 
@@ -62,13 +58,6 @@ export const StatsTabContent: React.FC<StatsTabContentProps> = ({ stats }) => {
                   <div className="text-sm text-muted-foreground">{category}</div>
                 </div>
               ))}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="text-lg text-primary">Distribución por Prioridad</h4>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="p-3 bg-red-50 rounded-lg border border-red-200"></div>
             </div>
           </div>
         </CardContent>

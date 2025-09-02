@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from 'components/core/Card';
-import { Button } from 'components/core/Button';
-import { Label } from 'components/core/Label';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { Collapsible } from 'components/core/Collapsible';
-import { ImageWithFallback } from 'src/components/core/ImageFallback';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Eye, ExternalLink } from 'lucide-react';
 import { UploadOutlined, CaretDownFilled } from '@ant-design/icons';
-import { Checkbox, Form, Input, Upload, Select as AntdSelect, message, Image } from 'antd';
+import { Checkbox, Form, Input, Upload, Select as AntdSelect, message, Image, Button, Card } from 'antd';
 import { useForm } from 'antd/es/form/Form';
 import { UploadChangeParam } from 'antd/es/upload';
 import { useCreateGift } from 'src/hooks/useGift';
@@ -20,7 +17,15 @@ interface AddGiftFormProps {
 
 export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categoryOptions = [], onGiftCreated }) => {
   const [form] = useForm();
-  const [showAddGiftModal, setShowAddGiftModal] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+
+  // Extract coupleSlug from current URL path
+  const coupleSlug = location.pathname.split('/')[1];
+
+  // Check URL query parameter to determine initial modal state
+  const shouldShowModal = searchParams.get('addGift') === 'true';
+  const [showAddGiftModal, setShowAddGiftModal] = useState(shouldShowModal);
   const [imageState, setImageState] = useState<{
     file: File | null;
     url: string | undefined;
@@ -29,6 +34,12 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
 
   const { mutate: createGift, isSuccess: createSuccess, isError: createError } = useCreateGift();
   const { mutate: uploadFile } = useUploadFile();
+
+  // Update modal state when URL parameter changes
+  useEffect(() => {
+    const shouldShow = searchParams.get('addGift') === 'true';
+    setShowAddGiftModal(shouldShow);
+  }, [searchParams]);
 
   useEffect(() => {
     if (createSuccess) {
@@ -41,6 +52,14 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
       message.error('Error al agregar el regalo');
     }
   }, [createSuccess, createError]);
+
+  const handleCloseModal = () => {
+    setShowAddGiftModal(false);
+    // Remove the query parameter from URL
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.delete('addGift');
+    setSearchParams(newSearchParams);
+  };
 
   const handleAddGift = (values: any) => {
     let categoriesPayload = values.categories;
@@ -89,27 +108,40 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
 
   return (
     <>
-      <span
-        className="cursor-pointer flex items-center !mb-0 flex text-gray-300 hover:text-gray-400 transition-colors"
-        onClick={() => setShowAddGiftModal(!showAddGiftModal)}>
-        {showAddGiftModal ? <CaretDownFilled className="h-5 w-5" /> : <Plus className="h-5 w-5" />}{' '}
-        {showAddGiftModal ? 'Ocultar' : 'Agregar'} Nuevo Regalo
-      </span>
+      <div className="flex justify-between items-center !mb-0">
+        {/* Button to take user to see the list of gifts as a guest */}
+        <Button
+          type="default"
+          icon={<Eye className="h-4 w-4" />}
+          onClick={() => window.open(`/${coupleSlug}/regalos`, '_blank')}
+          className="mt-2 group">
+          Ver como Invitado <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+        </Button>
+
+        <div className="flex items-center">
+          {showAddGiftModal ? (
+            <Button
+              type="text"
+              className="cursor-pointer flex items-center !mb-0 mt-2 flex text-gray-300 hover:text-gray-400 transition-colors"
+              onClick={handleCloseModal}>
+              <CaretDownFilled className="h-5 w-5" /> Ocultar Nuevo Regalo
+            </Button>
+          ) : (
+            <Button type="primary" onClick={() => setShowAddGiftModal(true)} className="!mb-0 mt-2">
+              <Plus className="h-5 w-5" /> Agregar Nuevo Regalo
+            </Button>
+          )}
+        </div>
+      </div>
       <Collapsible isOpen={showAddGiftModal}>
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5" />
-              Agregar Nuevo Regalo
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <Card className="shadow-lg" title="Agregar Nuevo Regalo">
+          <div className="space-y-4">
             <Form form={form} onFinish={handleAddGift} layout="vertical" className="space-y-4" validateTrigger="onSubmit">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Nombre del Regalo</Label>
                   <Form.Item
                     name="title"
+                    label="Nombre del Regalo"
                     className="!mb-0"
                     rules={[{ required: true, message: 'Por favor, ingresa el nombre del regalo' }]}>
                     <Input id="title" placeholder="Ej. Juego de sábanas" className="shadow-sm" />
@@ -117,9 +149,9 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="price">Precio (MXN)</Label>
                   <Form.Item
                     name="price"
+                    label="Precio (MXN)"
                     className="!mb-0"
                     rules={[{ required: true, message: 'Por favor, ingresa el precio del regalo' }]}>
                     <Input id="price" type="number" placeholder="1500" className="shadow-sm" />
@@ -127,9 +159,9 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
                 </div>
 
                 <div className="space-y-2 ">
-                  <Label htmlFor="categories">Categoría</Label>
                   <Form.Item
                     name="categories"
+                    label="Categoría"
                     className="!mb-0"
                     rules={[{ required: true, message: 'Por favor, selecciona una categoría' }]}>
                     <AntdSelect
@@ -153,8 +185,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descripción</Label>
-                <Form.Item name="description" className="!mb-0">
+                <Form.Item name="description" label="Descripción" className="!mb-0">
                   <Input.TextArea id="description" placeholder="Descripción detallada del regalo..." className="shadow-sm" />
                 </Form.Item>
               </div>
@@ -162,7 +193,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
               {/* Image Upload Section */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="image">Imagen del Regalo</Label>
+                  <label htmlFor="image">Imagen del Regalo</label>
                   <div className="flex gap-2">
                     <div className="relative w-full">
                       <Upload
@@ -175,7 +206,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
                           return false;
                         }}
                         showUploadList={false}>
-                        <Button type="button" className="w-full">
+                        <Button type="primary" className="w-full">
                           <UploadOutlined /> Seleccionar Imagen
                         </Button>
                       </Upload>
@@ -186,31 +217,31 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
 
                 {imageState.url && (
                   <div className="space-y-2">
-                    <Label>Vista Previa</Label>
+                    <label>Vista Previa</label>
                     <div className="relative flex items-center justify-center">
                       <div className="w-64 h-64 bg-muted rounded-lg flex items-center justify-center">
-                        <Image src={imageState.url} alt="Vista previa" className="w-full h-full object-contain" />
+                        <Image src={imageState.url} alt="Vista previa" />
                       </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="absolute cursor-pointer top-2 right-2 h-6 w-6 p-0 bg-background/80 hover:bg-background shadow-md"
-                        onClick={() => {
-                          setImageState({ name: '', file: null, url: '' });
-                        }}>
-                        <X className="h-3 w-3 text-black" />
-                      </Button>
+                      <div className="absolute top-2 right-2">
+                        <Button
+                          type="default"
+                          icon={<X />}
+                          className="flex items-center justify-center cursor-pointer h-6 w-6 p-0 bg-background/80 hover:bg-background shadow-md"
+                          onClick={() => {
+                            setImageState({ name: '', file: null, url: '' });
+                          }}></Button>
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
 
-              <Button type="submit" className="w-full shadow-md hover:shadow-lg transition-all duration-200">
+              <Button htmlType="submit" type="primary" className="w-full shadow-md hover:shadow-lg transition-all duration-200">
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Regalo
               </Button>
             </Form>
-          </CardContent>
+          </div>
         </Card>
       </Collapsible>
     </>

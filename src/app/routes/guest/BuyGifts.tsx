@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Filter, Gift as GiftIcon, ArrowUpDown } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
-import { Button, Spin, Select, Col, Row, Input, Switch, Badge, Card as AntdCard, Typography, Image } from 'antd';
+import { Button, Spin, Select, Col, Row, Input, Switch, Badge, Card, Typography, Image } from 'antd';
 import type { Gift, GiftCategory } from 'types/models/gift';
 import { DownOutlined, SearchOutlined, ShoppingCartOutlined, UpOutlined } from '@ant-design/icons';
 import { useAddGiftToCart, useGetCart, useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'src/hooks/useCart';
@@ -210,7 +210,7 @@ export function BuyGifts() {
         </Button>
       </div>
       <Collapsible isOpen={isHeaderOpen}>
-        <AntdCard className="mt-4 mb-4" variant="borderless">
+        <Card className="mt-4 mb-4" variant="borderless">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <div className="flex flex-col items-center">
@@ -226,19 +226,11 @@ export function BuyGifts() {
               </div>
             </div>
           </div>
-        </AntdCard>
+        </Card>
       </Collapsible>
 
       {/* Filters */}
-      <AntdCard
-        className="!mb-8"
-        // cover={
-        //   <div className="flex items-center gap-2">
-        //     <Filter className="h-5 w-5" />
-        //     Filtros
-        //   </div>
-        // }
-      >
+      <Card className="!mb-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           <div className="col-span-4 relative">
             <Label className="text-sm">Buscar:</Label>
@@ -298,7 +290,7 @@ export function BuyGifts() {
             </div>
           </div>
         </div>
-      </AntdCard>
+      </Card>
 
       {/* Gift Grid */}
       <Row gutter={[24, 24]} className="min-h-[200px]">

@@ -1,21 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Card, CardContent } from 'components/core/Card';
-import { Label } from 'components/core/Label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from 'components/core/Tabs';
-import { ArrowUpDown, Filter } from 'lucide-react';
-import { Row, Spin, Select } from 'antd';
+import { Spin } from 'antd';
 import { useComponentMountControl } from 'hooks/useComponentMountControl';
 import { useGetCategoriesByWeddingList, useReorderGifts, useWeddingListByCouple } from 'src/hooks/useWeddingList';
 import { OutletContextPrivateType } from 'routes/Dashboard';
 import { useOutletContext } from 'react-router-dom';
-import { EditGiftModal } from 'src/features/manageRegistry/components/EditGiftModal';
-import { GiftCategory, Gift as GiftInterface } from 'types/models/gift';
-import { DraggableList } from 'components/core/DraggableList';
-import { SortableGiftItem } from 'features/manageRegistry/components/SortableGiftItem';
+import { Gift as GiftInterface } from 'types/models/gift';
 import { useDeleteGift } from 'src/hooks/useGift';
 import { StatsCards } from 'src/features/manageRegistry/components/StatsCards';
 import { AddGiftForm } from 'src/features/manageRegistry/components/AddGiftForm';
 import { StatsTabContent } from 'src/features/manageRegistry/components/StatsTabContent';
+import { GiftsList } from 'src/components/shared/GiftsList';
+import { GiftModal } from 'src/features/manageRegistry/components/GiftModal';
 
 export interface GiftItem extends GiftInterface {
   purchasedBy?: string;
@@ -36,6 +32,7 @@ export const ManageRegistry = () => {
   const [editingGift, setEditingGift] = useState<GiftItem | null>(null);
   // Using 'original' as default to maintain original order
   const [sortBy, setSortBy] = useState<SortOption>('original');
+  const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
 
   useEffect(() => {
@@ -112,9 +109,17 @@ export const ManageRegistry = () => {
       filtered = filtered.filter((gift) => gift.categories && gift.categories.some((categoryItem: any) => categoryItem.name === filterBy));
     }
 
+    // Apply search term filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(
+        (gift) => gift.title.toLowerCase().includes(searchLower) || gift.description?.toLowerCase().includes(searchLower),
+      );
+    }
+
     // Apply sorting
     return sortGifts(filtered);
-  }, [gifts, filterBy, sortBy]);
+  }, [gifts, filterBy, sortBy, searchTerm]);
 
   if (!gifts || !weddinglist)
     return (
@@ -183,82 +188,23 @@ export const ManageRegistry = () => {
             }}
           />
 
-          {/* Sort and Filter Controls */}
-          <Card className="shadow-md">
-            <CardContent className="pt-6">
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="space-y-2 sm:space-y-0">
-                    <Label className="text-sm">Ordenar por:</Label>
-                    <div className="flex items-center w-[180px]">
-                      <Select
-                        suffixIcon={<ArrowUpDown size={14} />}
-                        className="w-full !rounded-md !shadow-sm pl-6"
-                        value={sortBy}
-                        onChange={(value: SortOption) => setSortBy(value)}
-                        options={[
-                          { value: 'original', label: 'Orden Original' },
-                          { value: 'name', label: 'Nombre A-Z' },
-                          { value: 'price-asc', label: 'Precio (menor)' },
-                          { value: 'price-desc', label: 'Precio (mayor)' },
-                          { value: 'status', label: 'Estado' },
-                        ]}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 sm:space-y-0">
-                    <Label className="text-sm">Filtrar por:</Label>
-                    <div className="flex items-center w-[180px]">
-                      <Select
-                        suffixIcon={<Filter size={14} />}
-                        className="w-full !rounded-md !shadow-sm pl-6"
-                        value={filterBy}
-                        onChange={(value: FilterOption) => setFilterBy(value)}
-                        options={[
-                          { value: 'all', label: 'Todos' },
-                          { value: 'purchased', label: 'Comprados' },
-                          { value: 'pending', label: 'Pendientes' },
-                          { value: 'mostWanted', label: 'Más Querido' },
-                          ...(weddingListCategories?.categories?.map((category: GiftCategory) => ({
-                            value: category.name,
-                            label: category.name,
-                          })) || []),
-                        ]}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-sm text-muted-foreground">
-                  Mostrando {filteredAndSortedGifts.length} de {gifts.length} regalos
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Gift List */}
-          <DraggableList
-            items={filteredAndSortedGifts}
-            getItemId={(gift) => gift.id}
+          {/* Gift List with Search, Sort and Filter */}
+          <GiftsList
+            gifts={gifts}
+            filteredAndSortedGifts={filteredAndSortedGifts}
+            searchTerm={searchTerm}
+            sortBy={sortBy}
+            filterBy={filterBy}
+            weddingListCategories={weddingListCategories}
+            onSearchChange={setSearchTerm}
+            onSortChange={setSortBy}
+            onFilterChange={setFilterBy}
             onReorder={handleReorderGifts}
-            renderContainer={(children) => (
-              <Row gutter={[24, 24]} className="min-h-[200px] flex-wrap">
-                {children}
-              </Row>
-            )}
-            renderItem={(gift) => (
-              <SortableGiftItem
-                newModel
-                key={gift.id}
-                gift={gift}
-                onDelete={() => handleDeleteGift(gift.id)}
-                onEdit={() => {
-                  setEditingGift(gift);
-                  setShowEditGiftModal(true);
-                }}
-              />
-            )}
+            onDelete={handleDeleteGift}
+            onEdit={(gift) => {
+              setEditingGift(gift);
+              setShowEditGiftModal(true);
+            }}
           />
         </TabsContent>
 
@@ -269,10 +215,11 @@ export const ManageRegistry = () => {
 
       {/* Edit Gift Modal */}
       {renderEditGiftModal && (
-        <EditGiftModal
+        <GiftModal
           gift={editingGift}
           isOpen={showEditGiftModal}
           onClose={() => setShowEditGiftModal(false)}
+          afterClose={handleAfterCloseEditGiftModal}
           weddingListId={weddinglist?.id}
         />
       )}

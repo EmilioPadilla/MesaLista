@@ -86,7 +86,7 @@ export const HomePage = () => {
               size="large"
               variant="outlined"
               className="px-8 py-4 hover:-translate-y-1 !border-primary !text-primary"
-              onClick={() => navigate('gestionar')}>
+              onClick={() => navigate('gestionar?addGift=true')}>
               <Plus className="mr-2 h-5 w-5" />
               Agregar Regalos
             </Button>
