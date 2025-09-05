@@ -18,21 +18,15 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   },
-  withCredentials: false // Set to true if using cookies for auth
+  withCredentials: true // Enable cookies for session-based auth
 });
 
 // Request interceptor for API calls
 apiClient.interceptors.request.use(
   (config) => {
-    // If skipAuth is set, do not add Authorization header
-    if ((config as any).skipAuth) {
-      return config;
-    }
-    // Add auth token if available
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // No need to add Authorization header since we use HttpOnly cookies
+    // Just ensure withCredentials is set for this request
+    config.withCredentials = true;
     return config;
   },
   (error) => {

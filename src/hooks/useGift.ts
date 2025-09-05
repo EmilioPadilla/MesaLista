@@ -42,6 +42,7 @@ export const useUpdateGift = () => {
     mutationFn: ({ id, data }: { id: number; data: Partial<Gift> }) => giftService.updateGift(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.categoriesByWeddingList] });
     },
   });
 };

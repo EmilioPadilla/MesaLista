@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Checkbox, Tooltip } from 'antd';
 import { Button } from 'components/core/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/core/Card';
 import { Input } from 'components/core/Input';
 import { Label } from 'components/core/Label';
 import { Separator } from 'components/core/Separator';
-import { Checkbox } from 'components/core/Checkbox';
 import { RadioGroup, RadioGroupItem } from 'components/core/RadioGroup';
-import { Heart, Mail, Lock, Eye, EyeOff, ArrowLeft, Chrome, Facebook, User, Users, Phone } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Heart, Mail, Lock, Eye, EyeOff, ArrowLeft, Chrome, Facebook, User, Users, Phone, Apple } from 'lucide-react';
+import { GoogleOutlined } from '@ant-design/icons';
+import { userService } from 'services/user.service';
 import { UserRole } from 'types/models/user';
+import { useIsAuthenticated } from 'hooks/useUser';
 
 interface User {
   id: string;
@@ -22,6 +25,38 @@ function Signup() {
   const navigate = useNavigate();
   const [step, setStep] = useState<'type' | 'details'>('type');
   const [userType, setUserType] = useState<UserRole | ''>('');
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // Use the useIsAuthenticated hook to check authentication status
+  const { data: isAuthenticated = false, isLoading: isAuthLoading } = useIsAuthenticated();
+
+  // Check if user is already authenticated and redirect if needed
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        if (isAuthenticated) {
+          console.log('Signup page - Auth check:', isAuthenticated);
+          // Get current user to determine where to redirect
+          const user = await userService.getCurrentUser();
+          if (user?.coupleSlug) {
+            navigate(`/${user.coupleSlug}`);
+          } else {
+            navigate('/');
+          }
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        // If error, user is not authenticated, so stay on signup page
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    if (!isAuthLoading) {
+      checkAuthStatus();
+    }
+  }, [navigate, isAuthenticated, isAuthLoading]);
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -29,6 +64,7 @@ function Signup() {
     phone: '',
     password: '',
     confirmPassword: '',
+    termsAccepted: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -99,6 +135,15 @@ function Signup() {
     }
   };
 
+  // Show loading while checking authentication
+  if (isCheckingAuth || isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-primary">Cargando...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-accent/20 flex items-center justify-center px-4 py-8">
       {/* Background decorations */}
@@ -148,19 +193,20 @@ function Signup() {
                           </div>
                         </Label>
                       </div>
-
-                      <div className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-muted/50 cursor-pointer transition-all duration-200 hover:shadow-md">
-                        <RadioGroupItem value="guest" id="guest" />
-                        <Label htmlFor="guest" className="flex items-center space-x-3 cursor-pointer flex-1">
-                          <div className="p-2 rounded-full bg-accent/40">
-                            <User className="h-5 w-5 text-accent-foreground" />
-                          </div>
-                          <div>
-                            <p className="text-base">Soy invitado</p>
-                            <p className="text-sm text-muted-foreground">Quiero comprar regalos para una pareja</p>
-                          </div>
-                        </Label>
-                      </div>
+                      <Tooltip title="¡Funcionalidad disponible pronto!" trigger={['click']}>
+                        <div className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-muted/50 cursor-pointer transition-all duration-200 hover:shadow-md">
+                          <RadioGroupItem value="guest" id="guest" disabled />
+                          <Label htmlFor="guest" className="flex items-center space-x-3 cursor-pointer flex-1">
+                            <div className="p-2 rounded-full bg-accent/40">
+                              <User className="h-5 w-5 text-accent-foreground" />
+                            </div>
+                            <div>
+                              <p className="text-base">Soy invitado</p>
+                              <p className="text-sm text-muted-foreground">Quiero comprar regalos para una pareja</p>
+                            </div>
+                          </Label>
+                        </div>
+                      </Tooltip>
                     </div>
                   </RadioGroup>
                 </div>
@@ -190,17 +236,17 @@ function Signup() {
                     className="w-full h-12 shadow-md hover:shadow-lg transition-all duration-200 border-primary/20 hover:border-primary/40"
                     onClick={() => handleSocialSignup('google')}
                     disabled={isLoading}>
-                    <Chrome className="h-5 w-5 mr-3" />
+                    <GoogleOutlined className="h-5 w-5 mr-3 text-blue-500" />
                     Registrarse con Google
                   </Button>
 
                   <Button
                     variant="outline"
                     className="w-full h-12 shadow-md hover:shadow-lg transition-all duration-200 border-primary/20 hover:border-primary/40"
-                    onClick={() => handleSocialSignup('facebook')}
+                    onClick={() => handleSocialSignup('apple')}
                     disabled={isLoading}>
-                    <Facebook className="h-5 w-5 mr-3 text-blue-600" />
-                    Registrarse con Facebook
+                    <Apple className="h-5 w-5 mr-3" />
+                    Registrarse con Apple
                   </Button>
                 </div>
 
@@ -321,14 +367,16 @@ function Signup() {
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex items-start space-x-2">
+                    <div className="flex items-center space-x-2">
                       <Checkbox
                         id="terms"
-                        checked={agreeTerms}
-                        onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
-                        className="mt-1"
+                        checked={formData.termsAccepted}
+                        onChange={(e) => setFormData({ ...formData, termsAccepted: e.target.checked })}
+                        className="rounded-sm"
                       />
-                      <Label htmlFor="terms" className="text-sm cursor-pointer leading-relaxed">
+                      <Label
+                        htmlFor="terms"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                         Acepto los{' '}
                         <Button variant="link" className="p-0 h-auto text-primary text-sm">
                           Términos de Servicio

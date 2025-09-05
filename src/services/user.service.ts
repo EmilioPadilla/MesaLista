@@ -32,18 +32,11 @@ export const userService = {
 
   login: async (email: string, password: string): Promise<LoginResponse> => {
     try {
-      const response = await apiClient.post<LoginResponse>(user_endpoints.login, { email, password });
+      // Send credentials with cookies enabled
+      const response = await apiClient.post<LoginResponse>(user_endpoints.login, { email, password }, { withCredentials: true });
 
-      // Store the token in localStorage for future API calls
-      if (response.data.token) {
-        localStorage.setItem('auth_token', response.data.token);
-
-        // Set token expiration time (24 hours from now)
-        const expirationTime = new Date();
-        expirationTime.setHours(expirationTime.getHours() + 24);
-        localStorage.setItem('auth_token_expiration', expirationTime.toISOString());
-      }
-
+      // No need to store token - it's now in HttpOnly cookie
+      // The backend handles session creation and cookie setting
       return response.data;
     } catch (error) {
       console.error('Login error details:', error);
@@ -51,32 +44,14 @@ export const userService = {
     }
   },
 
-  logout: () => {
-    // Remove the token and expiration from localStorage
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_token_expiration');
-  },
-
-  isAuthenticated: (): boolean => {
-    const token = localStorage.getItem('auth_token');
-    const expirationTimeStr = localStorage.getItem('auth_token_expiration');
-
-    // If there's no token, user is not authenticated
-    if (!token) return false;
-
-    // Check if token has expired
-    if (expirationTimeStr) {
-      const expirationTime = new Date(expirationTimeStr);
-      const currentTime = new Date();
-
-      // If token has expired, logout the user and return false
-      if (currentTime > expirationTime) {
-        userService.logout();
-        return false;
-      }
+  logout: async (): Promise<void> => {
+    try {
+      // Call backend logout endpoint to invalidate session
+      await apiClient.post(user_endpoints.logout, {}, { withCredentials: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Continue with logout even if backend call fails
     }
-
-    return true;
   },
 
   create: async (userData: Omit<User, 'id' | 'createdAt'> & { password: string }): Promise<User> => {

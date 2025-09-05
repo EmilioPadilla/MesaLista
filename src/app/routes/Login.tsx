@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Typography, message, Checkbox } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { useLogin } from 'hooks/useUser';
+import { useLogin, useIsAuthenticated } from 'hooks/useUser';
 import { Button } from 'components/core/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/core/Card';
 import { Input } from 'components/core/Input';
 import { Separator } from 'components/core/Separator';
 import { Heart, Mail, Lock, ArrowLeft, Chrome, Facebook, Apple } from 'lucide-react';
-
+import { userService } from 'services/user.service';
+// PGPASSWORD=RzXOlCpwkRTxAJbxngQGqtPXogREUuks psql -h maglev.proxy.rlwy.net -U postgres -p 38276 -d railway
 const { Title, Text } = Typography;
 
 interface LoginFormValues {
@@ -18,6 +19,36 @@ interface LoginFormValues {
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // Use the useIsAuthenticated hook to check authentication status
+  const { data: isAuthenticated = false, isLoading: isAuthLoading } = useIsAuthenticated();
+
+  // Check if user is already authenticated and redirect if needed
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        if (isAuthenticated) {
+          // Get current user to determine where to redirect
+          const user = await userService.getCurrentUser();
+          if (user?.coupleSlug) {
+            navigate(`/${user.coupleSlug}`);
+          } else {
+            navigate('/');
+          }
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        // If error, user is not authenticated, so stay on login page
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    if (!isAuthLoading) {
+      checkAuthStatus();
+    }
+  }, [navigate, isAuthenticated, isAuthLoading]);
 
   const { mutate: login, data: loginData, isSuccess: isLoginSuccess, isPending: isLoginPending } = useLogin();
 
@@ -33,7 +64,6 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     if (isLoginSuccess) {
-      message.success(`¡Bienvenido de nuevo, ${loginData?.name || loginData?.email}!`);
       navigate(`/${loginData?.coupleSlug}`);
     }
   }, [isLoginSuccess]);
@@ -47,6 +77,15 @@ const Login: React.FC = () => {
       navigate('/home');
     }, 1000);
   };
+
+  // Show loading while checking authentication
+  if (isCheckingAuth || isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-primary">Cargando...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-accent/20 flex items-center justify-center px-4 py-8">

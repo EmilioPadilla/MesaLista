@@ -1,13 +1,13 @@
 import express from 'express';
 import giftController from '../controllers/giftController.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateSession } from '../middleware/auth.js';
 
 const router = express.Router();
 
 router.get('/:id', giftController.getGiftById);
 
 // Apply authentication middleware to all gift routes
-router.use(authenticateToken);
+router.use(authenticateSession);
 
 router.post('/', giftController.createGift);
 

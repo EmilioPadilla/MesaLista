@@ -1,6 +1,6 @@
 import express from 'express';
 import userController from '../controllers/userController.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateSession } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -11,15 +11,18 @@ router.post('/login', userController.loginUser); // Login is public
 
 router.get('/slug/:coupleSlug', userController.getUserBySlug); // Get user by couple slug
 
+// Logout route
+router.post('/logout', userController.logoutUser); // Logout is public but requires session
+
 // Protected routes (authentication required)
-router.get('/me', authenticateToken, userController.getCurrentUser); // Get current user
+router.get('/me', authenticateSession, userController.getCurrentUser); // Get current user
 
-router.get('/', authenticateToken, userController.getAllUsers);
+router.get('/', authenticateSession, userController.getAllUsers);
 
-router.get('/:id', authenticateToken, userController.getUserById);
+router.get('/:id', authenticateSession, userController.getUserById);
 
-router.put('/:id', authenticateToken, userController.updateUser);
+router.put('/:id', authenticateSession, userController.updateUser);
 
-router.delete('/:id', authenticateToken, userController.deleteUser);
+router.delete('/:id', authenticateSession, userController.deleteUser);
 
 export default router;

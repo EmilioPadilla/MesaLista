@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import { generateToken } from '../middleware/auth.js';
+import { createSessionAndSetCookie, logoutSession } from '../middleware/auth.js';
 import prisma from '../lib/prisma.js';
 import {
   UserBase,
@@ -55,6 +55,7 @@ export const userController = {
           firstName: true,
           lastName: true,
           spouseFirstName: true,
+          coupleSlug: true,
           spouseLastName: true,
           imageUrl: true,
           phoneNumber: true,
@@ -293,16 +294,19 @@ export const userController = {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      // Generate JWT token
-      const token = generateToken(user.id, user.email);
+      // Create session and set HttpOnly cookie
+      const userAgent = req.get('User-Agent') || 'Unknown';
+      const ipAddress = req.ip || req.connection.remoteAddress;
 
-      // Return user data without password
+      const session = await createSessionAndSetCookie(res, user.id, userAgent, ipAddress);
+
+      // Return user data without password or token (token is now in HttpOnly cookie)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: passwordHash, ...userWithoutPassword } = user;
 
       const response: UserLoginResponse = {
         ...(userWithoutPassword as UserBase),
-        token,
+        token: '', // No longer needed since we use HttpOnly cookies
         message: 'Login successful',
       };
 
@@ -310,6 +314,17 @@ export const userController = {
     } catch (error: unknown) {
       console.error('Error during login:', error);
       res.status(500).json({ error: 'Login failed' });
+    }
+  },
+
+  // Logout user
+  logoutUser: async (req: Request, res: Response) => {
+    try {
+      await logoutSession(req, res);
+      res.json({ message: 'Logout successful' });
+    } catch (error: unknown) {
+      console.error('Error during logout:', error);
+      res.status(500).json({ error: 'Logout failed' });
     }
   },
 

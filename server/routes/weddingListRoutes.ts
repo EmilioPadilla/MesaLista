@@ -1,6 +1,6 @@
 import express from 'express';
 import weddingListController from '../controllers/weddingListController.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateSession } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ router.get('/:weddingListId/wedding-list-by-category', weddingListController.get
 router.get('/', weddingListController.getAllWeddingLists);
 
 // Apply authentication middleware to all subsequent routes
-router.use(authenticateToken);
+router.use(authenticateSession);
 
 router.post('/', weddingListController.createWeddingList);
 

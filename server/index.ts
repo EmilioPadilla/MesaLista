@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -23,6 +24,9 @@ dotenv.config();
 // Initialize Prisma client
 const prisma = new PrismaClient();
 
+// Import session cleanup
+import SessionCleanupJob from './lib/sessionCleanup.js';
+
 // Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,16 +36,21 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '8080', 10);
 
 // Middleware
-// For development, allow all origins
+// For development, allow specific origins with credentials
 app.use(
   cors({
-    origin: '*', // Allow all origins in development
+    origin: process.env.NODE_ENV === 'production' 
+      ? process.env.FRONTEND_URL || 'https://mesalista.com' 
+      : ['http://localhost:5173', 'http://127.0.0.1:5173'], // Development origins
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,
     maxAge: 86400, // Cache preflight requests for 24 hours
   }),
 );
+
+// Cookie parser middleware (must be before routes that use cookies)
+app.use(cookieParser());
 
 // Stripe webhook route with conditional body parsing
 app.use('/api/payments/stripe-payment-intent', (req, res, next) => {
@@ -143,6 +152,8 @@ prisma
   .$connect()
   .then(() => {
     console.log('✅ Database connected successfully');
+    // Start session cleanup job after database connection
+    SessionCleanupJob.start();
   })
   .catch((error: any) => {
     console.warn('⚠️ Database connection failed, but server will continue:', error.message);
@@ -164,6 +175,8 @@ server.on('error', (error) => {
 
 // Handle shutdown
 process.on('SIGINT', async () => {
+  console.log('Shutting down server...');
+  SessionCleanupJob.stop();
   await prisma.$disconnect();
   process.exit(0);
 });

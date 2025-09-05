@@ -5,6 +5,31 @@ import { queryKeys } from './queryKeys';
 import { User } from 'types/models/user';
 
 /**
+ * Hook to check if the user is authenticated
+ *
+ * @param options React Query options
+ */
+export const useIsAuthenticated = (options?: Partial<UseQueryOptions<boolean, Error>>) => {
+  return useQuery({
+    queryKey: [queryKeys.isAuthenticated],
+    queryFn: async () => {
+      try {
+        // Try to get current user - if successful, user is authenticated
+        const user = await userService.getCurrentUser();
+        message.success(`Bienvenidos de vuelta, ${user.firstName} y ${user.spouseFirstName}!`);
+        return true;
+      } catch (error) {
+        // If getCurrentUser fails, user is not authenticated
+        return false;
+      }
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    ...options,
+  });
+};
+
+/**
  * Hook to fetch the current authenticated user
  *
  * @param options React Query options
@@ -13,6 +38,7 @@ export const useCurrentUser = (options?: Partial<UseQueryOptions<User, Error>>) 
   return useQuery({
     queryKey: [queryKeys.currentUser],
     queryFn: () => userService.getCurrentUser(),
+    retry: 2,
     ...options,
   });
 };
@@ -66,6 +92,7 @@ export const useLogin = () => {
     onSuccess: () => {
       // After login, we should refresh the current user data
       queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.isAuthenticated] });
     },
     onError: (error) => {
       console.error('Login error:', error);

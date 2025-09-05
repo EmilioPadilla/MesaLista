@@ -1,6 +1,6 @@
 import express from 'express';
 import paymentController from '../controllers/paymentController.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateSession } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -8,6 +8,6 @@ router.post('/create-checkout-session', paymentController.createCheckoutSession)
 
 router.get('/:id/summary', paymentController.getPaymentSummary);
 
-router.get('/', authenticateToken, paymentController.getAllPayments);
+router.get('/', authenticateSession, paymentController.getAllPayments);
 
 export default router;

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Navigate, Outlet, useOutletContext } from 'react-router-dom';
-import { userService } from '../services/user.service';
 import { OutletContextType } from 'routes/guest/PublicRegistry';
 import { Spin } from 'antd';
+import { useIsAuthenticated } from 'hooks/useUser';
 
 interface ProtectedRouteProps {
   redirectPath?: string;
@@ -10,25 +10,10 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ redirectPath = '/login' }) => {
   const contextData = useOutletContext<OutletContextType>();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    // Check authentication status once when component mounts
-    const checkAuth = () => {
-      try {
-        const authStatus = userService.isAuthenticated();
-        setIsAuthenticated(authStatus);
-      } catch (error) {
-        console.error('Error checking authentication:', error);
-        setIsAuthenticated(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
+  const { data: isAuthenticated = false, isLoading } = useIsAuthenticated();
 
   // Show loading state while checking authentication
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Spin size="large" />

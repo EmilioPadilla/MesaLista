@@ -149,7 +149,8 @@ export function SearchPage() {
             {filteredRegistries?.map((registry) => (
               <Card
                 key={registry.id}
-                className="group cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm overflow-hidden">
+                className="group cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm overflow-hidden"
+                onClick={() => navigate(`/${registry.coupleSlug}/regalos`)}>
                 <div className="relative">
                   <img
                     src={registry.imageUrl}

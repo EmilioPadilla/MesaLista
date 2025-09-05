@@ -1,7 +1,6 @@
 import { Heart, Gift, Users, Star, Shield, Sparkles, Plus, BarChart3 } from 'lucide-react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import { useGetUserBySlug } from 'hooks/useUser';
-import { userService } from 'services/user.service';
+import { useGetUserBySlug, useIsAuthenticated } from 'hooks/useUser';
 import { OutletContextType } from './guest/PublicRegistry';
 import { useWeddingListByCouple } from 'hooks/useWeddingList';
 import { Tooltip, Button, Card, Tag } from 'antd';
@@ -10,7 +9,7 @@ export const HomePage = () => {
   const contextData = useOutletContext<OutletContextType>();
   const { data: userData } = useGetUserBySlug(contextData?.coupleSlug);
   const { data: weddinglist } = useWeddingListByCouple(userData?.id);
-  const isAuthenticated = userService.isAuthenticated();
+  const { data: isAuthenticated = false } = useIsAuthenticated();
   const navigate = useNavigate();
 
   const purchasedGifts = weddinglist?.gifts.filter((gift) => gift.isPurchased).length;

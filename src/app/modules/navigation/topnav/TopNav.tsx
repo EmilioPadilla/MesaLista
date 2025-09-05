@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Gift, Heart, LogOut, Search, User as UserIcon, Users } from 'lucide-react';
 import { message, Tooltip, Button, Divider } from 'antd';
-import { userService } from 'services/user.service';
-import { useGetUserBySlug } from 'hooks/useUser';
+import { useGetUserBySlug, useIsAuthenticated, useLogout } from 'hooks/useUser';
 import { useDeviceType } from 'hooks/useDeviceType';
 import { LoginOutlined } from '@ant-design/icons';
 
@@ -12,12 +11,14 @@ interface TopNavProps {
 
 export const TopNav = ({ coupleSlug }: TopNavProps) => {
   const { data: userData } = useGetUserBySlug(coupleSlug);
-  const isAuthenticated = userService.isAuthenticated();
+  const { data: isAuthenticated = false } = useIsAuthenticated();
   const currentPage = window.location.pathname;
   const navigate = useNavigate();
   const viewType = useDeviceType();
+  const { logout } = useLogout();
+
   const handleLogout = () => {
-    userService.logout();
+    logout();
     message.success('Has cerrado sesión exitosamente');
     navigate('/');
   };
@@ -147,11 +148,14 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   className="transition-all cursor-pointer duration-200 hover:shadow-md !rounded-lg !text-sm">
                   {viewType !== 'mobile' ? <span>Iniciar Sesión</span> : <LoginOutlined />}
                 </Button>
-                {/* {(
-                  <Button onClick={() => navigate('/registro')} className="transition-all cursor-pointer duration-200 hover:shadow-md">
+                {
+                  <Button
+                    type="text"
+                    onClick={() => navigate('/registro')}
+                    className="transition-all cursor-pointer duration-200 hover:shadow-md !rounded-lg !text-sm">
                     <span>Registrarse</span>
                   </Button>
-                )} */}
+                }
               </div>
             )}
           </div>

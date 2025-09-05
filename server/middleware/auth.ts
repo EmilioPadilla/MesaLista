@@ -1,69 +1,143 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { SessionService, SessionData } from '../lib/sessionService.js';
 
-// Secret key for JWT signing - in production, this should be in an environment variable
-const JWT_SECRET = 'your-secret-key'; // TODO: Move to environment variable
-
-// Interface for decoded token
-interface DecodedToken {
+// Interface for user data attached to request
+interface AuthenticatedUser {
   userId: number;
   email: string;
-  iat?: number;
-  exp?: number;
+  firstName: string;
+  lastName: string;
+  role: string;
 }
 
-// Extend Express Request interface to include user
+// Extend Express Request interface to include user and session
 declare global {
   namespace Express {
     interface Request {
-      user?: DecodedToken;
+      user?: AuthenticatedUser;
+      session?: SessionData;
     }
   }
 }
 
-// Generate JWT token
-export const generateToken = (userId: number, email: string): string => {
-  return jwt.sign(
-    { userId, email },
-    JWT_SECRET,
-    { expiresIn: '24h' } // Token expires in 24 hours
-  );
+// Cookie configuration
+export const COOKIE_CONFIG = {
+  name: 'session_token',
+  options: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+    sameSite: 'strict' as const,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+    path: '/',
+  },
 };
 
-// Middleware to authenticate token
-export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  // Get token from header
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN format
-  
-  if (!token) {
-    return res.status(401).json({ error: 'Access denied. No token provided.' });
-  }
-  
+// Middleware to authenticate session token from cookies
+export const authenticateSession = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
-    req.user = decoded;
+    // Get token from cookie
+    const token = req.cookies[COOKIE_CONFIG.name];
+    
+    if (!token) {
+      return res.status(401).json({ error: 'Access denied. No session token provided.' });
+    }
+    
+    // Validate session
+    const session = await SessionService.validateSession(token);
+    
+    if (!session) {
+      // Clear invalid cookie
+      res.clearCookie(COOKIE_CONFIG.name);
+      return res.status(401).json({ error: 'Invalid or expired session.' });
+    }
+    
+    // Attach user and session data to request
+    req.user = {
+      userId: session.user.id,
+      email: session.user.email,
+      firstName: session.user.firstName,
+      lastName: session.user.lastName,
+      role: session.user.role,
+    };
+    req.session = session;
+    
     next();
   } catch (error) {
-    return res.status(403).json({ error: 'Invalid token.' });
+    console.error('Session authentication error:', error);
+    return res.status(500).json({ error: 'Authentication failed.' });
   }
 };
 
-// Optional middleware that doesn't require authentication but adds user info if token exists
-export const optionalAuthenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
-      req.user = decoded;
-    } catch (error) {
-      // Token is invalid, but we don't return an error since this is optional
-      console.warn('Invalid token provided in optional auth');
+// Optional middleware that doesn't require authentication but adds user info if session exists
+export const optionalAuthenticateSession = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.cookies[COOKIE_CONFIG.name];
+    
+    if (token) {
+      const session = await SessionService.validateSession(token);
+      
+      if (session) {
+        req.user = {
+          userId: session.user.id,
+          email: session.user.email,
+          firstName: session.user.firstName,
+          lastName: session.user.lastName,
+          role: session.user.role,
+        };
+        req.session = session;
+      } else {
+        // Clear invalid cookie
+        res.clearCookie(COOKIE_CONFIG.name);
+      }
     }
+    
+    next();
+  } catch (error) {
+    console.warn('Optional session authentication error:', error);
+    // Don't return error for optional auth, just continue without user
+    next();
   }
-  
-  next();
+};
+
+// Utility function to create session and set cookie
+export const createSessionAndSetCookie = async (
+  res: Response,
+  userId: number,
+  userAgent: string,
+  ipAddress?: string
+): Promise<SessionData> => {
+  try {
+    const session = await SessionService.createSession({
+      userId,
+      userAgent,
+      ipAddress,
+    });
+    
+    // Set secure HttpOnly cookie
+    res.cookie(COOKIE_CONFIG.name, session.token, COOKIE_CONFIG.options);
+    
+    return session;
+  } catch (error) {
+    console.error('Error creating session:', error);
+    throw new Error('Failed to create session');
+  }
+};
+
+// Utility function to logout (clear session and cookie)
+export const logoutSession = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const token = req.cookies[COOKIE_CONFIG.name];
+    
+    if (token) {
+      // Invalidate session in database
+      await SessionService.invalidateSession(token);
+    }
+    
+    // Clear cookie
+    res.clearCookie(COOKIE_CONFIG.name);
+  } catch (error) {
+    console.error('Error during logout:', error);
+    // Still clear cookie even if database operation fails
+    res.clearCookie(COOKIE_CONFIG.name);
+  }
 };

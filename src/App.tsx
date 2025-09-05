@@ -13,10 +13,7 @@ import PublicRegistry from 'src/app/routes/guest/PublicRegistry';
 // Components
 import ProtectedRoute from 'components/ProtectedRoute';
 
-// Auth service
-import { userService } from 'services/user.service';
 import antdThemeConfig from 'styles/config/antdThemeConfig';
-import { useEffect, useState } from 'react';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { HomePage } from 'routes/HomePage';
 import { TopNav } from 'src/app/modules/navigation/topnav/TopNav';
@@ -27,21 +24,7 @@ import { ManageRegistry } from 'src/app/routes/couple/ManageRegistry';
 import { SearchPage } from 'src/app/routes/SearchPage';
 
 function App() {
-  // Use state to properly track authentication status
-  const [isAuthenticated, setIsAuthenticated] = useState(userService.isAuthenticated());
-  const path = window.location.pathname;
   const isLocalhost = window.location.hostname === 'localhost';
-  const coupleSlug = window.location.pathname.split('/')[1] ?? null;
-
-  // Listen for authentication changes
-  useEffect(() => {
-    const handleAuthChange = () => {
-      setIsAuthenticated(userService.isAuthenticated());
-    };
-
-    // Check authentication status on mount
-    handleAuthChange();
-  }, []);
 
   return (
     <ConfigProvider theme={antdThemeConfig}>
@@ -57,7 +40,7 @@ function App() {
               </>
             }
           />
-          <Route path="/login" element={isAuthenticated && coupleSlug ? <Navigate to={`/${coupleSlug}`} /> : <Login />} />
+          <Route path="/login" element={<Login />} />
           <Route
             path="/buscar"
             element={
@@ -67,7 +50,7 @@ function App() {
               </>
             }
           />
-          {/* <Route path="/registro" element={isAuthenticated ? <Navigate to={`/${coupleSlug}`} /> : <Signup />} /> */}
+          <Route path="/registro" element={<Signup />} />
 
           {/* Public registry view for guests */}
           <Route path="/:coupleSlug" element={<PublicRegistry />}>
@@ -88,7 +71,7 @@ function App() {
           </Route>
 
           {/* Redirect to login or dashboard based on auth status */}
-          <Route path="*" element={<Navigate to={isAuthenticated ? '/:coupleSlug' : '/'} />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
       {isLocalhost && <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />}

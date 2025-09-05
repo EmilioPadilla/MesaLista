@@ -69,6 +69,13 @@ export const user_endpoints = {
    * @access Public
    */
   login: `/user/login`,
+
+  /**
+   * Logout user
+   * @method POST
+   * @access Public
+   */
+  logout: `/user/logout`,
 };
 
 /**
