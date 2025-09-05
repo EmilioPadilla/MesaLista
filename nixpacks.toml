@@ -9,7 +9,6 @@ cmds = [
   'npm run build:client',
   'npm run build:server',
   'npx prisma generate',
-  'npx prisma migrate deploy'
 ]
 
 [start]
