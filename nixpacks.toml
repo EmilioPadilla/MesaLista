@@ -8,8 +8,8 @@ cmds = ['npm ci']
 cmds = [
   'npm run build:client',
   'npm run build:server',
-  'npx prisma generate',
+  'npx prisma generate'
 ]
 
 [start]
-cmd = 'node server/dist/server/index.js'
+cmd = 'npx prisma migrate deploy &&node server/dist/server/index.js'
