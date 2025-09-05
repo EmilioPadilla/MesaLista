@@ -40,7 +40,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData,
             </div>
             <CloseCircleOutlined onClick={onClose} />
           </div>
-          <p className="text-sm text-gray-500">Revisa tus regalos seleccionados antes de proceder al pago</p>
+          <p className="text-md text-gray-500">Revisa tus regalos seleccionados antes de proceder al pago</p>
         </>
       }
       placement="right"
@@ -83,7 +83,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData,
                       />
                       <div className="flex-1 min-w-0">
                         <h4 className="truncate">{item.gift?.title}</h4>
-                        <p className="text-sm text-muted-foreground">${item.gift?.price}</p>
+                        <p className="text-md text-muted-foreground">${item.gift?.price}</p>
 
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center space-x-2">

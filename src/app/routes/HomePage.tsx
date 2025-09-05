@@ -128,15 +128,15 @@ export const HomePage = () => {
             <div className="grid md:grid-cols-3 gap-6">
               <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/20 text-center !rounded-2xl">
                 <div className="text-3xl text-primary mb-2">{totalGifts}</div>
-                <div className="text-sm text-muted-foreground">Regalos en tu lista</div>
+                <div className="!text-md text-muted-foreground">Regalos en tu lista</div>
               </Card>
               <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-accent/20 text-center !rounded-2xl">
                 <div className="text-3xl text-green-600 mb-2">{purchasedGifts}</div>
-                <div className="text-sm text-muted-foreground">Regalos comprados</div>
+                <div className="!text-md text-muted-foreground">Regalos comprados</div>
               </Card>
               <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/20 text-center !rounded-2xl">
                 <div className="text-3xl text-primary mb-2">{progress.toFixed(2)}%</div>
-                <div className="text-sm text-muted-foreground">Progreso completado</div>
+                <div className="!text-md text-muted-foreground">Progreso completado</div>
               </Card>
             </div>
           </div>

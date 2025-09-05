@@ -155,7 +155,7 @@ const Login: React.FC = () => {
             {/* Email/Password Form */}
             <Form onFinish={onFinish} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold" htmlFor="email">
+                <label className="!text-base font-semibold" htmlFor="email">
                   Correo Electrónico
                 </label>
                 <div className="relative">
@@ -167,7 +167,7 @@ const Login: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold" htmlFor="password">
+                <label className="!text-base font-semibold" htmlFor="password">
                   Contraseña
                 </label>
                 <div className="relative">
@@ -183,11 +183,11 @@ const Login: React.FC = () => {
                   <Form.Item name="remember" className="!mb-0" valuePropName="checked">
                     <Checkbox />
                   </Form.Item>
-                  <label htmlFor="remember" className="ml-2 text-sm cursor-pointer">
+                  <label htmlFor="remember" className="ml-2 !text-base cursor-pointer">
                     Recordarme
                   </label>
                 </div>
-                <Button variant="link" className="text-sm p-0 h-auto text-primary hover:text-primary/80">
+                <Button variant="link" className="!text-base p-0 h-auto text-primary hover:text-primary/80">
                   ¿Olvidaste tu contraseña?
                 </Button>
               </div>
@@ -201,7 +201,7 @@ const Login: React.FC = () => {
             </Form>
 
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">
+              <p className="!text-base text-muted-foreground">
                 ¿No tienes una cuenta?{' '}
                 <Button variant="link" className="p-0 h-auto text-primary hover:text-primary/80" onClick={() => navigate('/registro')}>
                   Regístrate aquí

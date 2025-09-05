@@ -185,7 +185,7 @@ export const GiftCard = ({
             )}
           </div>
 
-          <p className="text-sm text-muted-foreground line-clamp-2">{gift.description}</p>
+          <p className="!text-md text-muted-foreground line-clamp-2">{gift.description}</p>
 
           <div className="flex justify-between items-center">
             <div>

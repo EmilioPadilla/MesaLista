@@ -235,7 +235,7 @@ export function BuyGifts() {
       <Card className="!mb-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           <div className="col-span-4 relative">
-            <Label className="text-sm">Buscar:</Label>
+            <Label className="text-md">Buscar:</Label>
             <Input
               prefix={<SearchOutlined />}
               placeholder="Buscar regalos..."
@@ -246,7 +246,7 @@ export function BuyGifts() {
           </div>
 
           <div className="col-span-2 space-y-2 sm:space-y-0">
-            <Label className="text-sm">Ordenar por:</Label>
+            <Label className="text-md">Ordenar por:</Label>
             <div className="flex items-center w-full">
               <Select
                 suffixIcon={<ArrowUpDown size={14} />}
@@ -265,7 +265,7 @@ export function BuyGifts() {
           </div>
 
           <div className="col-span-4 space-y-2 sm:space-y-0">
-            <Label className="text-sm">Filtrar por:</Label>
+            <Label className="text-md">Filtrar por:</Label>
             <div className="flex items-center w-full">
               <Select
                 suffixIcon={<Filter size={14} />}
@@ -286,7 +286,7 @@ export function BuyGifts() {
             </div>
           </div>
           <div className="col-span-2 space-y-2 sm:space-y-0">
-            <Label className="text-sm">Mostrar regalos comprados</Label>
+            <Label className="text-md">Mostrar regalos comprados</Label>
             <div className="flex items-center mt-2">
               <Switch checked={showPurchased} className={showPurchased ? 'hover:!bg-primary' : ''} onChange={setShowPurchased} />
             </div>

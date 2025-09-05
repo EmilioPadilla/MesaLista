@@ -102,11 +102,11 @@ export function OrderConfirmation() {
                         className="w-16 h-16 object-cover rounded-md"
                       />
                       <div className="flex-1">
-                        <h4 className="text-sm mb-1">{item?.gift?.title}</h4>
+                        <h4 className="!text-md mb-1">{item?.gift?.title}</h4>
                         <div className="flex justify-between items-center">
                           <div className="text-right">
                             <p className="text-xs text-muted-foreground">Cantidad: {item?.quantity}</p>
-                            <p className="text-sm">${item?.gift?.price * item?.quantity}</p>
+                            <p className="!text-md">${item?.gift?.price * item?.quantity}</p>
                           </div>
                         </div>
                       </div>
@@ -117,7 +117,7 @@ export function OrderConfirmation() {
                 <Separator />
 
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between !text-md">
                     <span>Subtotal:</span>
                     <span>${cartData?.totalAmount}</span>
                   </div>
@@ -152,7 +152,7 @@ export function OrderConfirmation() {
                   <div className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">1</div>
                     <div>
-                      <p className="text-sm">Confirmación por correo</p>
+                      <p className="!text-md">Confirmación por correo</p>
                       <p className="text-xs text-muted-foreground">Te enviamos los detalles a tu email</p>
                     </div>
                   </div>
@@ -160,7 +160,7 @@ export function OrderConfirmation() {
                   <div className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-muted-foreground text-xs">3</div>
                     <div>
-                      <p className="text-sm">Confirmación de la pareja</p>
+                      <p className="!text-md">Confirmación de la pareja</p>
                       <p className="text-xs text-muted-foreground">¡Tan pronto como puedan!</p>
                     </div>
                   </div>
@@ -193,15 +193,15 @@ export function OrderConfirmation() {
                 <CardTitle>Información de Pago</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between !text-md">
                   <span>Método de pago:</span>
                   <span>{getPaymentMethodName(cartData?.paymentMethod)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between !text-md">
                   <span>Estado:</span>
                   <Badge className="bg-green-500">Aprobado</Badge>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between !text-md">
                   <span>Fecha:</span>
                   <span>{new Date().toLocaleDateString('es-MX')}</span>
                 </div>

@@ -120,7 +120,7 @@ export function SearchPage() {
               </div>
             </div>
 
-            <div className="text-sm text-muted-foreground">
+            <div className="!text-md text-muted-foreground">
               Se encontraron <span className="text-primary">{filteredRegistries?.length || 0}</span> mesa(s) de regalos
             </div>
           </CardContent>
@@ -165,7 +165,7 @@ export function SearchPage() {
                   <div className="absolute bottom-4 left-4 right-4">
                     <div className="bg-card/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
                       <h3 className="text-card-foreground mb-1">{registry.coupleName}</h3>
-                      <div className="flex items-center text-sm text-muted-foreground">
+                      <div className="flex items-center !text-md text-muted-foreground">
                         <Calendar className="h-3 w-3 mr-1" />
                         {formatDate(registry.weddingDate.toString())}
                       </div>
@@ -176,29 +176,29 @@ export function SearchPage() {
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <div className="flex items-center space-x-2 !text-md text-muted-foreground">
                         <Users className="h-4 w-4" />
                         <span>{registry.coupleName}</span>
                       </div>
                       {registry.weddingLocation && (
-                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                        <div className="flex items-center space-x-2 !text-md text-muted-foreground">
                           <MapPin className="h-4 w-4" />
                           <span>{registry.weddingLocation}</span>
                         </div>
                       )}
                       {registry.weddingVenue && (
-                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                        <div className="flex items-center space-x-2 !text-md text-muted-foreground">
                           <span className="text-xs">📍 {registry.weddingVenue}</span>
                         </div>
                       )}
                     </div>
 
                     {registry.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 whitespace-pre-line">{registry.description}</p>
+                      <p className="!text-md text-muted-foreground line-clamp-2 whitespace-pre-line">{registry.description}</p>
                     )}
 
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center justify-between !text-md">
                         <span className="text-muted-foreground">Progreso de regalos</span>
                         <span className="text-primary">{getProgressPercentage(registry.purchasedGifts, registry.totalGifts)}%</span>
                       </div>

@@ -129,7 +129,7 @@ export function Checkout() {
                       placeholder="Ej. Juan Pérez"
                       className={`shadow-sm ${errors.name ? 'border-destructive' : ''}`}
                     />
-                    {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+                    {errors.name && <p className="text-md text-destructive">{errors.name}</p>}
                   </div>
 
                   <div className="space-y-2">
@@ -142,7 +142,7 @@ export function Checkout() {
                       placeholder="juan@correo.com"
                       className={`shadow-sm ${errors.email ? 'border-destructive' : ''}`}
                     />
-                    {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                    {errors.email && <p className="text-md text-destructive">{errors.email}</p>}
                   </div>
                 </div>
 
@@ -155,7 +155,7 @@ export function Checkout() {
                     placeholder="55 1234 5678"
                     className={`shadow-sm ${errors.phone ? 'border-destructive' : ''}`}
                   />
-                  {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+                  {errors.phone && <p className="text-md text-destructive">{errors.phone}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -192,9 +192,9 @@ export function Checkout() {
                         className="w-12 h-12 object-cover rounded-md"
                       />
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm truncate">{item.gift?.title}</h4>
+                        <h4 className="text-md truncate">{item.gift?.title}</h4>
                         <p className="text-xs text-muted-foreground">Cantidad: {item.quantity}</p>
-                        <p className="text-sm">${((item.gift?.price || 0) * item.quantity).toLocaleString()}</p>
+                        <p className="text-md">${((item.gift?.price || 0) * item.quantity).toLocaleString()}</p>
                       </div>
                     </div>
                   ))}
@@ -203,7 +203,7 @@ export function Checkout() {
                 <Separator />
 
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-md">
                     <span>Subtotal:</span>
                     <span>${cartTotal.toLocaleString()}</span>
                   </div>

@@ -41,7 +41,7 @@ export const GiftsList = ({
       <Card className="shadow-md !mb-4">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
           <div className="col-span-4">
-            <label className="text-sm">Buscar:</label>
+            <label className="text-md">Buscar:</label>
             <Input
               prefix={<SearchOutlined />}
               placeholder="Buscar regalos..."
@@ -52,7 +52,7 @@ export const GiftsList = ({
           </div>
 
           <div className="col-span-3">
-            <label className="text-sm">Ordenar por:</label>
+            <label className="text-md">Ordenar por:</label>
             <Select
               suffixIcon={<ArrowUpDown size={14} />}
               className="w-full !rounded-md !shadow-sm"
@@ -69,7 +69,7 @@ export const GiftsList = ({
           </div>
 
           <div className="col-span-3">
-            <label className="text-sm">Filtrar por:</label>
+            <label className="text-md">Filtrar por:</label>
             <Select
               suffixIcon={<Filter size={14} />}
               className="w-full !rounded-md !shadow-sm"
@@ -88,7 +88,7 @@ export const GiftsList = ({
             />
           </div>
 
-          <div className="col-span-2 text-sm text-muted-foreground text-right">
+          <div className="col-span-2 text-md text-muted-foreground text-right">
             {filteredAndSortedGifts.length} de {gifts.length}
           </div>
         </div>

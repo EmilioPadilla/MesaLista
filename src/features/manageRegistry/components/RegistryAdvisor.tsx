@@ -130,7 +130,7 @@ export const RegistryAdvisor = ({ onUpdateWeddingList, userData, weddinglist }: 
                   La herramienta de Balance de Precios de MesaLista asegura que tengas suficientes regalos en cada rango de precio.
                 </div>
               </div>
-              <div className="text-gray-400 text-sm">Siguiente Consejo</div>
+              <div className="text-gray-400 text-md">Siguiente Consejo</div>
             </div>
           </div> */}
 

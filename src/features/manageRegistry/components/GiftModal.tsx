@@ -181,7 +181,7 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
                     <UploadOutlined /> Seleccionar Imagen
                   </Button>
                 </Upload>
-                {imageState.file && <span className="ml-3 text-sm">{imageState.name}</span>}
+                {imageState.file && <span className="ml-3 !text-md">{imageState.name}</span>}
               </div>
             </div>
           </div>

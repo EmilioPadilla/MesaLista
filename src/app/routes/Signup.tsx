@@ -189,7 +189,7 @@ function Signup() {
                           </div>
                           <div>
                             <p className="text-base">Somos la pareja</p>
-                            <p className="text-sm text-muted-foreground">Queremos crear nuestra mesa de regalos</p>
+                            <p className="!text-md text-muted-foreground">Queremos crear nuestra mesa de regalos</p>
                           </div>
                         </Label>
                       </div>
@@ -202,7 +202,7 @@ function Signup() {
                             </div>
                             <div>
                               <p className="text-base">Soy invitado</p>
-                              <p className="text-sm text-muted-foreground">Quiero comprar regalos para una pareja</p>
+                              <p className="!text-md text-muted-foreground">Quiero comprar regalos para una pareja</p>
                             </div>
                           </Label>
                         </div>
@@ -219,7 +219,7 @@ function Signup() {
                 </Button>
 
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="!text-md text-muted-foreground">
                     ¿Ya tienes una cuenta?{' '}
                     <Button variant="link" className="p-0 h-auto text-primary hover:text-primary/80" onClick={() => navigate('/login')}>
                       Inicia sesión aquí
@@ -300,7 +300,7 @@ function Signup() {
                         className={`pl-10 h-12 shadow-sm ${errors.email ? 'border-destructive' : ''}`}
                       />
                     </div>
-                    {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                    {errors.email && <p className="!text-md text-destructive">{errors.email}</p>}
                   </div>
 
                   <div className="space-y-2">
@@ -315,7 +315,7 @@ function Signup() {
                         className={`pl-10 h-12 shadow-sm ${errors.phone ? 'border-destructive' : ''}`}
                       />
                     </div>
-                    {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+                    {errors.phone && <p className="!text-md text-destructive">{errors.phone}</p>}
                   </div>
 
                   <div className="space-y-2">
@@ -339,7 +339,7 @@ function Signup() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
-                    {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                    {errors.password && <p className="!text-md text-destructive">{errors.password}</p>}
                   </div>
 
                   <div className="space-y-2">
@@ -363,7 +363,7 @@ function Signup() {
                         {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
-                    {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+                    {errors.confirmPassword && <p className="!text-md text-destructive">{errors.confirmPassword}</p>}
                   </div>
 
                   <div className="space-y-2">
@@ -376,18 +376,18 @@ function Signup() {
                       />
                       <Label
                         htmlFor="terms"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        className="!text-md font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                         Acepto los{' '}
-                        <Button variant="link" className="p-0 h-auto text-primary text-sm">
+                        <Button variant="link" className="p-0 h-auto text-primary !text-md">
                           Términos de Servicio
                         </Button>{' '}
                         y la{' '}
-                        <Button variant="link" className="p-0 h-auto text-primary text-sm">
+                        <Button variant="link" className="p-0 h-auto text-primary !text-md">
                           Política de Privacidad
                         </Button>
                       </Label>
                     </div>
-                    {errors.terms && <p className="text-sm text-destructive">{errors.terms}</p>}
+                    {errors.terms && <p className="!text-md text-destructive">{errors.terms}</p>}
                   </div>
 
                   <Button
@@ -399,7 +399,7 @@ function Signup() {
                 </form>
 
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="!text-md text-muted-foreground">
                     ¿Ya tienes una cuenta?{' '}
                     <Button variant="link" className="p-0 h-auto text-primary hover:text-primary/80" onClick={() => navigate('/login')}>
                       Inicia sesión aquí
