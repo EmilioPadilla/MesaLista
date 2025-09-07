@@ -11,7 +11,62 @@ import {
   UserResponse,
   UserUpdateRequest,
 } from '../../types/api/user.js';
+import { UserRole } from '../../types/models/user.js';
 import { User } from 'types/models/user.js';
+
+/**
+ * Generates a slug from first names and checks for uniqueness
+ * If the slug already exists, it will try with last names
+ * @param firstName First name of the user
+ * @param spouseFirstName First name of the spouse
+ * @param lastName Last name of the user (used if first name slug exists)
+ * @param spouseLastName Last name of the spouse (used if first name slug exists)
+ * @returns A unique slug for the couple
+ */
+async function generateCoupleSlug(
+  firstName: string,
+  spouseFirstName: string,
+  lastName: string,
+  spouseLastName: string
+): Promise<string> {
+  // Helper function to normalize text for slugs
+  const normalizeForSlug = (text: string): string => {
+    return text
+      .toLowerCase()
+      .normalize('NFD') // Normalize to decomposed form
+      .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+      .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
+      .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+  };
+
+  // Generate the initial slug from first names
+  const firstNameSlug = `${normalizeForSlug(firstName)}-y-${normalizeForSlug(spouseFirstName)}`;
+  
+  // Check if this slug already exists
+  const existingWithFirstNameSlug = await prisma.user.findUnique({
+    where: { coupleSlug: firstNameSlug },
+  });
+
+  if (!existingWithFirstNameSlug) {
+    return firstNameSlug;
+  }
+
+  // If first name slug exists, try with first names and last names
+  const fullNameSlug = `${normalizeForSlug(firstName)}-${normalizeForSlug(lastName)}-y-${normalizeForSlug(spouseFirstName)}-${normalizeForSlug(spouseLastName)}`;
+  
+  // Check if this slug already exists
+  const existingWithFullNameSlug = await prisma.user.findUnique({
+    where: { coupleSlug: fullNameSlug },
+  });
+
+  if (!existingWithFullNameSlug) {
+    return fullNameSlug;
+  }
+
+  // If both slugs exist, add a random number to ensure uniqueness
+  const randomSuffix = Math.floor(Math.random() * 1000);
+  return `${firstNameSlug}-${randomSuffix}`;
+}
 
 export const userController = {
   // Get all users
@@ -164,35 +219,81 @@ export const userController = {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      // Determine user role
-      const userRole = role === 'COUPLE' ? 'COUPLE' : 'GUEST';
-
-      const user = await prisma.user.create({
-        data: {
-          email,
+      // Determine user role (now supporting ADMIN role as well)
+      let userRole: UserRole = 'GUEST';
+      if (role === 'COUPLE') {
+        userRole = 'COUPLE';
+      } else if (role === 'ADMIN') {
+        userRole = 'ADMIN';
+      }
+      
+      // Generate a unique couple slug if this is a COUPLE user
+      let coupleSlug: string | undefined;
+      if (userRole === 'COUPLE' && firstName && spouseFirstName) {
+        coupleSlug = await generateCoupleSlug(
           firstName,
+          spouseFirstName || firstName, // Fallback to firstName if spouseFirstName is not provided
           lastName,
-          spouseFirstName,
-          spouseLastName,
-          password: hashedPassword,
-          phoneNumber,
-          role: userRole,
-        },
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          spouseFirstName: true,
-          spouseLastName: true,
-          imageUrl: true,
-          phoneNumber: true,
-          role: true,
-          createdAt: true,
-        },
+          spouseLastName || lastName // Fallback to lastName if spouseLastName is not provided
+        );
+      }
+
+      // Use a transaction to ensure both user and wedding list (if applicable) are created together
+      const result = await prisma.$transaction(async (prisma) => {
+        // Create the user
+        const user = await prisma.user.create({
+          data: {
+            email,
+            firstName,
+            lastName,
+            spouseFirstName,
+            spouseLastName,
+            password: hashedPassword,
+            phoneNumber,
+            role: userRole,
+            coupleSlug, // Add the generated coupleSlug
+          },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            spouseFirstName: true,
+            spouseLastName: true,
+            coupleSlug: true, // Include coupleSlug in the response
+            imageUrl: true,
+            phoneNumber: true,
+            role: true,
+            createdAt: true,
+          },
+        });
+
+        // If the user is a COUPLE, automatically create a wedding list
+        if (userRole === 'COUPLE') {
+          // Calculate a default wedding date (1 year from now)
+          const weddingDate = new Date();
+          weddingDate.setFullYear(weddingDate.getFullYear() + 1);
+          
+          // Create a wedding list for the couple
+          const weddingList = await prisma.weddingList.create({
+            data: {
+              coupleId: user.id,
+              title: `Lista de ${firstName} y ${spouseFirstName || ''}`.trim(),
+              coupleName: `${firstName} y ${spouseFirstName || ''}`.trim(),
+              weddingDate,
+              description: 'Nuestra lista de regalos',
+            },
+          });
+          
+          // Return both user and wedding list
+          return { user, weddingList };
+        }
+        
+        // If not a COUPLE, just return the user
+        return { user };
       });
 
-      res.status(201).json(user);
+      res.status(201).json(result.user);
     } catch (error: unknown) {
       console.error('Error creating user:', error);
 

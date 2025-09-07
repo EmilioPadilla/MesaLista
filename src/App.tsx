@@ -1,4 +1,3 @@
-// No React import needed with modern JSX transform
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 

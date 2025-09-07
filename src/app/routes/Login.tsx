@@ -106,7 +106,7 @@ const Login: React.FC = () => {
         <Card className="shadow-2xl border-0 bg-card/95 backdrop-blur-sm">
           <CardHeader className="text-center pb-6">
             <div className="flex justify-center mb-4">
-              <img src="/svg/MesaLista_isologo.svg" alt="logo" className="h-32 w-32" />
+              <img src="/svg/MesaLista_isologo.svg" alt="logo" className="h-22 w-32" />
             </div>
             <CardTitle className="text-2xl text-primary">Bienvenido de vuelta</CardTitle>
             <CardDescription>Inicia sesión en tu cuenta de MesaLista</CardDescription>
