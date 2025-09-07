@@ -115,15 +115,26 @@ export const GiftCard = ({
       }}
       cover={
         <div className="relative">
-          <div className="flex items-center justify-center h-40 overflow-hidden rounded-t-lg">
-            <Image
-              src={gift.imageUrl}
-              preview={false}
-              fallback="/images/gift_placeholder.png"
-              alt={gift.title}
-              className="max-w-full max-h-full object-contain rounded-t-lg"
-              style={{ width: 'auto', height: 'auto' }}
-            />
+          <div className="h-40 overflow-hidden rounded-t-lg">
+            {gift.imageUrl ? (
+              <div
+                className="w-full h-full bg-cover bg-no-repeat rounded-t-lg"
+                style={{
+                  backgroundImage: `url(${gift.imageUrl})`,
+                  backgroundPosition: `center ${(gift as any).imagePosition ?? 50}%`,
+                  backgroundSize: 'cover',
+                }}
+              />
+            ) : (
+              <div
+                className="w-full h-full bg-cover bg-no-repeat rounded-t-lg"
+                style={{
+                  backgroundImage: `url(/images/gift_placeholder.png)`,
+                  backgroundPosition: 'center 50%',
+                  backgroundSize: 'cover',
+                }}
+              />
+            )}
           </div>
           {gift.isPurchased && (
             <div className="absolute top-2 right-2">

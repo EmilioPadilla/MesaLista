@@ -59,6 +59,7 @@ model Gift {
   description   String?
   price         Float
   imageUrl      String?
+  imagePosition Float?    @default(50) @map("image_position") // Percentage (0-100) for vertical positioning
   isPurchased   Boolean   @default(false)
   isMostWanted    Boolean   @default(false)
   weddingListId Int       @map("wedding_list_id")

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Checkbox, Tooltip, Card, Input, message } from 'antd';
+import { Checkbox, Tooltip, Card, Input, message, Form, Button as AntDButton } from 'antd';
 import { Button } from 'components/core/Button';
 import { Label } from 'components/core/Label';
 import { Separator } from 'components/core/Separator';
@@ -237,7 +237,7 @@ function Signup() {
             </div>
 
             {/* Registration Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <Form onFinish={handleSubmit} className="space-y-4">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
@@ -378,13 +378,14 @@ function Signup() {
                 {errors.terms && <p className="!text-md text-destructive">{errors.terms}</p>}
               </div>
 
-              <Button
-                type="submit"
+              <AntDButton
+                type="primary"
+                htmlType="submit"
                 className="w-full h-12 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 disabled={isLoading || isCreatingUser || isLoggingIn}>
                 {isLoading || isCreatingUser ? 'Creando cuenta...' : isLoggingIn ? 'Iniciando sesión...' : 'Crear Cuenta'}
-              </Button>
-            </form>
+              </AntDButton>
+            </Form>
 
             <div className="text-center">
               <p className="!text-md text-muted-foreground">

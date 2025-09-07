@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Form, Input, Select, Checkbox, message, Modal, Upload, Button, Image } from 'antd';
+import { Form, Input, Select, Checkbox, message, Modal, Upload, Button, Image, Slider } from 'antd';
 import { X } from 'lucide-react';
 import { GiftItem } from 'app/routes/couple/ManageRegistry';
 import { GiftCategory } from 'types/models/gift';
@@ -23,13 +23,14 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
     url: string | undefined;
     name: string | undefined;
   }>({ file: null, url: undefined, name: undefined });
+  const [imagePosition, setImagePosition] = useState<number>(50);
   const { mutate: updateGift, isSuccess: updateSuccess, isError: updateError } = useUpdateGift();
   const { mutate: uploadFile } = useUploadFile();
   const { data: categories } = useGetCategoriesByWeddingList(weddingListId);
   const categoryOptions = categories?.categories?.map((category: any) => ({ value: category.name, label: category.name }));
 
   useEffect(() => {
-    if (gift) {
+    if (gift && isOpen) {
       form.setFieldsValue({
         title: gift.title,
         description: gift.description || '',
@@ -39,8 +40,9 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
         imageUrl: gift.imageUrl || '',
       });
       setImageState({ file: null, url: gift.imageUrl || '', name: gift.imageUrl || '' });
+      setImagePosition((gift as any).imagePosition || 50);
     }
-  }, [gift, form]);
+  }, [gift, isOpen]);
 
   useEffect(() => {
     if (updateSuccess) {
@@ -82,6 +84,7 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
               ) || [],
             isMostWanted: values.isMostWanted || false,
             imageUrl: data,
+            imagePosition,
           };
 
           updateGift({ id: gift.id, data: updatedGift });
@@ -99,6 +102,7 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
         ) || [],
       isMostWanted: values.isMostWanted || false,
       imageUrl: values.imageUrl || gift.imageUrl,
+      imagePosition,
     };
 
     updateGift({ id: gift.id, data: updatedGift });
@@ -106,7 +110,7 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
   };
 
   const handleClose = () => {
-    form.resetFields();
+    // Don't reset fields here - let the useEffect handle proper data loading
     onClose();
   };
 
@@ -187,11 +191,18 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
           </div>
 
           {imageState.url && (
-            <div className="space-y-2">
+            <div className="space-y-4">
               <label>Vista Previa</label>
               <div className="relative flex items-center justify-center">
-                <div className="w-64 h-64 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-                  <Image src={imageState.url} alt="Vista previa" preview={false} />
+                <div className="w-64 h-40 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                  <div 
+                    className="w-full h-full bg-cover bg-no-repeat rounded-lg"
+                    style={{
+                      backgroundImage: `url(${imageState.url})`,
+                      backgroundPosition: `center ${imagePosition}%`,
+                      backgroundSize: 'cover'
+                    }}
+                  />
                 </div>
                 <div className="absolute top-2 right-2">
                   <Button
@@ -200,8 +211,32 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
                     className="flex items-center justify-center cursor-pointer h-6 w-6 p-0 bg-background/80 hover:bg-background shadow-md"
                     onClick={() => {
                       setImageState({ name: '', file: null, url: '' });
+                      setImagePosition(50);
                     }}></Button>
                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label>Posición de la imagen</label>
+                <div className="px-2">
+                  <Slider
+                    min={0}
+                    max={100}
+                    value={imagePosition}
+                    onChange={(value) => setImagePosition(value)}
+                    tooltip={{
+                      formatter: (value) => `${value}%`
+                    }}
+                    marks={{
+                      0: 'Arriba',
+                      50: 'Centro',
+                      100: 'Abajo'
+                    }}
+                  />
+                </div>
+                <p className="text-sm text-gray-500">
+                  Ajusta qué parte de la imagen será visible en la tarjeta del regalo
+                </p>
               </div>
             </div>
           )}

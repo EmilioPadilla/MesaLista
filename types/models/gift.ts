@@ -7,6 +7,7 @@ export interface Gift {
   description?: string | null;
   price: number;
   imageUrl?: string;
+  imagePosition?: number;
   isPurchased: boolean;
   isMostWanted: boolean;
   weddingListId: number;

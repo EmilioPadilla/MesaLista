@@ -46,7 +46,7 @@ export const giftController = {
 
   // Create a new gift
   createGift: async (req: Request, res: Response) => {
-    const { title, description, price, imageUrl, categories, weddingListId, quantity, isMostWanted } = req.body as any;
+    const { title, description, price, imageUrl, imagePosition, categories, weddingListId, quantity, isMostWanted } = req.body as any;
 
     if (!title || !price || !weddingListId) {
       return res.status(400).json({ error: 'Title, price, and wedding list ID are required' });
@@ -67,6 +67,7 @@ export const giftController = {
           description,
           price: Number(price),
           imageUrl,
+          imagePosition: imagePosition ? Number(imagePosition) : 50,
           quantity: quantity ? Number(quantity) : 1,
           isMostWanted: Boolean(isMostWanted),
           weddingListId: Number(weddingListId),
@@ -134,7 +135,7 @@ export const giftController = {
   // Update a gift
   updateGift: async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { title, description, price, imageUrl, category, categories, quantity, isMostWanted } = req.body as any;
+    const { title, description, price, imageUrl, imagePosition, category, categories, quantity, isMostWanted } = req.body as any;
 
     if (!id) {
       return res.status(400).json({ error: 'Gift ID is required' });
@@ -149,6 +150,7 @@ export const giftController = {
           ...(description !== undefined && { description }),
           ...(price && { price: Number(price) }),
           ...(imageUrl !== undefined && { imageUrl }),
+          ...(imagePosition !== undefined && { imagePosition: Number(imagePosition) }),
           ...(quantity && { quantity: Number(quantity) }),
           ...(isMostWanted !== undefined && { isMostWanted: Boolean(isMostWanted) }),
         },
