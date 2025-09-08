@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Filter, Gift as GiftIcon, ArrowUpDown } from 'lucide-react';
+import { Filter, Gift as GiftIcon, ArrowUpDown, MapPin } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
-import { Button, Spin, Select, Col, Row, Input, Switch, Badge, Card, Typography, Image } from 'antd';
+import { Button, Spin, Select, Col, Row, Input, Switch, Badge, Card, Typography, Tooltip } from 'antd';
 import type { Gift, GiftCategory } from 'types/models/gift';
-import { DownOutlined, SearchOutlined, ShoppingCartOutlined, UpOutlined } from '@ant-design/icons';
+import { PlusCircleOutlined, SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useAddGiftToCart, useGetCart, useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'src/hooks/useCart';
 import { useComponentMountControl } from 'src/hooks/useComponentMountControl';
 import { useWeddingListBySlug, useGetCategoriesByWeddingList } from 'src/hooks/useWeddingList';
@@ -13,9 +13,10 @@ import { CartDrawer } from 'src/features/buyRegistry/components/CartDrawer';
 import { SortOption, FilterOption, GiftItem } from 'routes/couple/ManageRegistry';
 import { Label } from '@radix-ui/react-label';
 import { GiftCard } from 'src/components/shared/GiftCard';
-import { Collapsible } from 'src/components/core/Collapsible';
 import dayjs from 'dayjs';
+import { motion } from 'motion/react';
 import utc from 'dayjs/plugin/utc';
+import { useDeviceType } from 'src/hooks/useDeviceType';
 
 dayjs.extend(utc);
 
@@ -23,7 +24,6 @@ const { Title } = Typography;
 
 export function BuyGifts() {
   const contextData = useOutletContext<OutletContextType>();
-  const [isHeaderOpen, setIsHeaderOpen] = useState(true);
   const { coupleSlug, guestId } = contextData;
   const [sortBy, setSortBy] = useState<SortOption>('original');
   const [filterBy, setFilterBy] = useState<FilterOption>();
@@ -31,6 +31,7 @@ export function BuyGifts() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGift, setSelectedGift] = useState<Gift | null>(null);
   const [showPurchased, setShowPurchased] = useState(false);
+  const deviceType = useDeviceType();
 
   const { mutate: addGiftToCart } = useAddGiftToCart(guestId || undefined);
   const { data: cartData } = useGetCart(guestId || undefined);
@@ -178,7 +179,7 @@ export function BuyGifts() {
   const cartItemCount = cartData?.items?.length || 0;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
       {/* Floating Cart Button */}
       <div className="fixed top-[80px] right-[20px] z-50">
         <Badge count={cartItemCount} showZero={false}>
@@ -195,170 +196,177 @@ export function BuyGifts() {
         </Badge>
       </div>
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div>
-          <h1 className="text-3xl mb-2 text-primary">Mesa de Regalos - {weddinglist?.coupleName}</h1>
-          <p className="text-muted-foreground">Encuentra el regalo perfecto para esta pareja especial</p>
-        </div>
-      </div>
+      <section className="relative bg-white">
+        {/* Fixed height container that matches the middle screenshot */}
+        <div className="h-[600px] md:h-[650px] relative overflow-hidden">
+          {/* Background image container */}
+          <div className="absolute inset-0 z-0">
+            <img
+              src={weddinglist?.imageUrl}
+              alt="Romantic couple wedding portrait"
+              className="w-full h-full object-cover opacity-40"
+              // preview={false}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-white/10" />
+          </div>
 
-      <div className="flex justify-center">
-        <Button
-          type="link"
-          icon={isHeaderOpen ? <UpOutlined /> : <DownOutlined />}
-          className="text-gray-500"
-          onClick={() => setIsHeaderOpen(!isHeaderOpen)}>
-          {isHeaderOpen ? 'Ocultar Foto y Nota' : 'Ver Foto y Nota'}
-        </Button>
-      </div>
-      <Collapsible isOpen={isHeaderOpen}>
-        <Card className="mt-4 mb-4" variant="borderless">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="flex flex-col items-center">
-                <div className="relative w-96 bg-gray-100 rounded-md mb-4 overflow-hidden">
-                  <Image src={weddinglist?.imageUrl} alt="Couple Image" className="w-full h-full object-cover" />
+          {/* Content container with fixed height */}
+          <div className="relative z-10 h-full flex items-center justify-center px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto text-center w-full">
+              <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+                <Badge className="mb-6 px-6 py-2 text-foreground border border-border/30 text-base font-bold">Mesa de Regalos</Badge>
+
+                <h1 className="text-5xl md:text-7xl font-semibold tracking-tight text-foreground mb-4 leading-tight font-bold">
+                  {weddinglist?.coupleName}
+                </h1>
+                <p className="text-2xl md:text-3xl text-muted-foreground mb-8 font-bold">{formattedWeddingDate}</p>
+                <div className="flex items-center justify-center space-x-2 text-lg text-muted-foreground mb-12">
+                  <MapPin className="h-5 w-5" />
+                  <span className="font-extrabold">{weddinglist?.weddingLocation}</span>
                 </div>
+                {deviceType !== 'mobile' ? (
+                  <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-extrabold">{note}</p>
+                ) : (
+                  <Tooltip title={note} trigger={['click']}>
+                    <Button type="text" icon={<PlusCircleOutlined />} />
+                  </Tooltip>
+                )}
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Filters */}
+        <Card className="!mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+            <div className="col-span-4 relative">
+              <Label className="text-md">Buscar:</Label>
+              <Input
+                prefix={<SearchOutlined />}
+                placeholder="Buscar regalos..."
+                className="!rounded-md !shadow-sm pl-6"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div className="col-span-2 space-y-2 sm:space-y-0">
+              <Label className="text-md">Ordenar por:</Label>
+              <div className="flex items-center w-full">
+                <Select
+                  suffixIcon={<ArrowUpDown size={14} />}
+                  className="w-full !rounded-md !shadow-sm pl-6"
+                  value={sortBy}
+                  onChange={(value: SortOption) => setSortBy(value)}
+                  options={[
+                    { value: 'original', label: 'Orden Original' },
+                    { value: 'name', label: 'Nombre A-Z' },
+                    { value: 'price-asc', label: 'Precio (menor)' },
+                    { value: 'price-desc', label: 'Precio (mayor)' },
+                    { value: 'status', label: 'Estado' },
+                  ]}
+                />
               </div>
             </div>
-            <div className="flex items-center justify-center">
-              <div className="flex flex-col items-center justify-center">
-                <Title level={4}>{formattedWeddingDate}</Title>
-                <div className="whitespace-pre-line text-center">{note}</div>
+
+            <div className="col-span-4 space-y-2 sm:space-y-0">
+              <Label className="text-md">Filtrar por:</Label>
+              <div className="flex items-center w-full">
+                <Select
+                  suffixIcon={<Filter size={14} />}
+                  className="w-full !rounded-md !shadow-sm pl-6"
+                  value={filterBy}
+                  mode="multiple"
+                  allowClear
+                  placeholder="Selecciona una categoría"
+                  onChange={(value: FilterOption) => setFilterBy(value)}
+                  options={[
+                    { value: 'mostWanted', label: 'Más deseados' },
+                    ...(weddingListCategories?.categories?.map((category: GiftCategory) => ({
+                      value: category.name,
+                      label: category.name,
+                    })) || []),
+                  ]}
+                />
+              </div>
+            </div>
+            <div className="col-span-2 space-y-2 sm:space-y-0">
+              <Label className="text-md">Mostrar regalos comprados</Label>
+              <div className="flex items-center mt-2">
+                <Switch checked={showPurchased} className={showPurchased ? 'hover:!bg-primary' : ''} onChange={setShowPurchased} />
               </div>
             </div>
           </div>
         </Card>
-      </Collapsible>
 
-      {/* Filters */}
-      <Card className="!mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-          <div className="col-span-4 relative">
-            <Label className="text-md">Buscar:</Label>
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder="Buscar regalos..."
-              className="!rounded-md !shadow-sm pl-6"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="col-span-2 space-y-2 sm:space-y-0">
-            <Label className="text-md">Ordenar por:</Label>
-            <div className="flex items-center w-full">
-              <Select
-                suffixIcon={<ArrowUpDown size={14} />}
-                className="w-full !rounded-md !shadow-sm pl-6"
-                value={sortBy}
-                onChange={(value: SortOption) => setSortBy(value)}
-                options={[
-                  { value: 'original', label: 'Orden Original' },
-                  { value: 'name', label: 'Nombre A-Z' },
-                  { value: 'price-asc', label: 'Precio (menor)' },
-                  { value: 'price-desc', label: 'Precio (mayor)' },
-                  { value: 'status', label: 'Estado' },
-                ]}
+        {/* Gift Grid */}
+        <Row gutter={[24, 24]} className="min-h-[200px]">
+          {filteredAndSortedGifts.map((gift) => (
+            <Col xs={24} sm={12} md={8} lg={6} key={gift.id}>
+              <GiftCard
+                gift={gift}
+                isGuest
+                cartItems={cartData?.items || []}
+                onAddToCart={(giftId) => {
+                  handleAddToCart(giftId);
+                }}
+                onUpdateCartQuantity={(cartItemId, quantity) => {
+                  updateCartQuantity({ cartItemId, quantity });
+                }}
+                onRemoveFromCart={(cartItemId) => {
+                  removeFromCart(cartItemId);
+                }}
+                onEdit={() => {
+                  setSelectedGift(gift);
+                  setShowGiftDetailsModal(true);
+                }}
               />
-            </div>
+            </Col>
+          ))}
+        </Row>
+
+        {filteredAndSortedGifts.length === 0 && (
+          <div className="text-center py-12">
+            <GiftIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-lg text-muted-foreground mb-2">No se encontraron regalos</p>
+            <p className="text-muted-foreground">Intenta ajustar tus filtros de búsqueda</p>
           </div>
+        )}
 
-          <div className="col-span-4 space-y-2 sm:space-y-0">
-            <Label className="text-md">Filtrar por:</Label>
-            <div className="flex items-center w-full">
-              <Select
-                suffixIcon={<Filter size={14} />}
-                className="w-full !rounded-md !shadow-sm pl-6"
-                value={filterBy}
-                mode="multiple"
-                allowClear
-                placeholder="Selecciona una categoría"
-                onChange={(value: FilterOption) => setFilterBy(value)}
-                options={[
-                  { value: 'mostWanted', label: 'Más deseados' },
-                  ...(weddingListCategories?.categories?.map((category: GiftCategory) => ({
-                    value: category.name,
-                    label: category.name,
-                  })) || []),
-                ]}
-              />
-            </div>
-          </div>
-          <div className="col-span-2 space-y-2 sm:space-y-0">
-            <Label className="text-md">Mostrar regalos comprados</Label>
-            <div className="flex items-center mt-2">
-              <Switch checked={showPurchased} className={showPurchased ? 'hover:!bg-primary' : ''} onChange={setShowPurchased} />
-            </div>
-          </div>
-        </div>
-      </Card>
+        {renderCartDrawer && (
+          <CartDrawer
+            open={showCartDrawer}
+            onClose={() => setShowCartDrawer(false)}
+            cartData={cartData}
+            sessionId={guestId}
+            coupleSlug={coupleSlug || ''}
+            afterOpenChange={handleAfterClose}
+          />
+        )}
 
-      {/* Gift Grid */}
-      <Row gutter={[24, 24]} className="min-h-[200px]">
-        {filteredAndSortedGifts.map((gift) => (
-          <Col xs={24} sm={12} md={8} lg={6} key={gift.id}>
-            <GiftCard
-              gift={gift}
-              isGuest
-              cartItems={cartData?.items || []}
-              onAddToCart={(giftId) => {
-                handleAddToCart(giftId);
-              }}
-              onUpdateCartQuantity={(cartItemId, quantity) => {
-                updateCartQuantity({ cartItemId, quantity });
-              }}
-              onRemoveFromCart={(cartItemId) => {
-                removeFromCart(cartItemId);
-              }}
-              onEdit={() => {
-                setSelectedGift(gift);
-                setShowGiftDetailsModal(true);
-              }}
-            />
-          </Col>
-        ))}
-      </Row>
-
-      {filteredAndSortedGifts.length === 0 && (
-        <div className="text-center py-12">
-          <GiftIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-lg text-muted-foreground mb-2">No se encontraron regalos</p>
-          <p className="text-muted-foreground">Intenta ajustar tus filtros de búsqueda</p>
-        </div>
-      )}
-
-      {renderCartDrawer && (
-        <CartDrawer
-          open={showCartDrawer}
-          onClose={() => setShowCartDrawer(false)}
-          cartData={cartData}
-          sessionId={guestId}
-          coupleSlug={coupleSlug || ''}
-          afterOpenChange={handleAfterClose}
-        />
-      )}
-
-      {renderGiftDetailsModal && (
-        <GiftDetailsModal
-          weddingListId={weddinglist?.id}
-          giftId={selectedGift?.id}
-          open={showGiftDetailsModal}
-          afterClose={handleAfterCloseGiftDetailsModal}
-          onAddToCart={handleAddToCart}
-          cartItems={cartData?.items || []}
-          onUpdateCartQuantity={(cartItemId, quantity) => {
-            updateCartQuantity({ cartItemId, quantity });
-          }}
-          onRemoveFromCart={(cartItemId) => {
-            removeFromCart(cartItemId);
-          }}
-          onCancel={() => {
-            setShowGiftDetailsModal(false);
-            setSelectedGift(null);
-          }}
-        />
-      )}
+        {renderGiftDetailsModal && (
+          <GiftDetailsModal
+            weddingListId={weddinglist?.id}
+            giftId={selectedGift?.id}
+            open={showGiftDetailsModal}
+            afterClose={handleAfterCloseGiftDetailsModal}
+            onAddToCart={handleAddToCart}
+            cartItems={cartData?.items || []}
+            onUpdateCartQuantity={(cartItemId, quantity) => {
+              updateCartQuantity({ cartItemId, quantity });
+            }}
+            onRemoveFromCart={(cartItemId) => {
+              removeFromCart(cartItemId);
+            }}
+            onCancel={() => {
+              setShowGiftDetailsModal(false);
+              setSelectedGift(null);
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }
