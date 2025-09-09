@@ -49,7 +49,7 @@ function App() {
               </>
             }
           />
-          <Route path="/registro" element={<Signup />} />
+          {/* <Route path="/registro" element={<Signup />} /> */}
 
           {/* Public registry view for guests */}
           <Route path="/:coupleSlug" element={<PublicRegistry />}>

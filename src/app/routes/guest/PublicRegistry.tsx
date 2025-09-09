@@ -49,7 +49,7 @@ export default function PublicRegistry() {
           {/* Child routes will be rendered here */}
           <Outlet context={{ guestId, coupleSlug, regenerateGuestId: handleRegenerateGuestId }} />
         </Content>
-        <Footer className="text-center">MesaLista {new Date().getFullYear()} - Tu plataforma para listas de regalos de boda</Footer>
+        {/* <Footer className="text-center">MesaLista {new Date().getFullYear()} - Tu plataforma para listas de regalos de boda</Footer> */}
       </Layout>
     </Layout>
   );

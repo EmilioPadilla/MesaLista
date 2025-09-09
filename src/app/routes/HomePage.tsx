@@ -1,9 +1,10 @@
-import { Heart, Gift, Users, Star, Shield, Sparkles, Plus, BarChart3 } from 'lucide-react';
+import { Heart, Gift, Users, Star, Shield, Sparkles, Plus, BarChart3, CheckCircle, ArrowRight } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useGetUserBySlug, useIsAuthenticated } from 'hooks/useUser';
 import { OutletContextType } from './guest/PublicRegistry';
 import { useWeddingListByCouple } from 'hooks/useWeddingList';
-import { Tooltip, Button, Card, Tag } from 'antd';
+import { Tooltip, Button, Card, Divider } from 'antd';
 
 export const HomePage = () => {
   const contextData = useOutletContext<OutletContextType>();
@@ -16,21 +17,39 @@ export const HomePage = () => {
   const totalGifts = weddinglist?.gifts.length;
   const progress = (purchasedGifts! / totalGifts!) * 100;
 
+  const faqs = [
+    {
+      question: '¿Puedo cambiar de plan después de crear mi mesa?',
+      answer:
+        '¡Por supuesto! Puedes actualizar tu plan en cualquier momento desde tu panel de control. Los cambios se aplican inmediatamente.',
+    },
+    {
+      question: '¿Hay costos ocultos o comisiones adicionales?',
+      answer:
+        'No hay costos ocultos. Nuestros precios son transparentes y solo pagas la tarifa del plan que elijas. No cobramos comisiones por las compras.',
+    },
+    {
+      question: '¿Qué pasa si mi boda se pospone?',
+      answer:
+        'Entendemos que las fechas pueden cambiar. Ofrecemos flexibilidad total para ajustar las fechas de tu evento sin costo adicional.',
+    },
+    {
+      question: '¿Puedo usar MesaLista para otros eventos además de bodas?',
+      answer:
+        '¡Definitivamente! Nuestros planes funcionan perfectamente para baby showers, aniversarios, quinceañeras y cualquier celebración especial.',
+    },
+    {
+      question: '¿Ofrecen soporte en español?',
+      answer:
+        'Sí, todo nuestro soporte está disponible en español. Nuestro equipo está ubicado en México y entiende perfectamente las tradiciones locales.',
+    },
+  ];
+
   const unknownUserHero = () => (
     <>
-      <div className="flex justify-center mb-8">
-        <Tag bordered={false} className="!px-4 !py-2 shadow-md backdrop-blur-sm !rounded-lg font-bold !bg-white">
-          ✨ La mesa de regalos más querida de México
-        </Tag>
-      </div>
-
-      <h1 className="text-5xl md:text-7xl mb-6 text-primary bg-gradient-to-r from-primary to-primary/70 bg-clip-text">
-        Mesa<span className="text-accent-foreground">Lista</span>
-      </h1>
-
-      <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-muted-foreground leading-relaxed">
-        Crea la mesa de regalos perfecta para tu boda. Tus invitados podrán elegir el regalo ideal y tú tendrás todo organizado en un solo
-        lugar.
+      <h1 className="text-6xl md:text-8xl font-semibold tracking-tight text-foreground mb-8 leading-tight">MesaLista</h1>
+      <p className="text-2xl md:text-3xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light">
+        La forma más elegante de crear y gestionar tu mesa de regalos de boda.
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -60,7 +79,7 @@ export const HomePage = () => {
         </div>
       </div>
 
-      <h1 className="text-4xl md:text-6xl mb-6 text-primary">
+      <h1 className="text-4xl md:text-6xl mb-6">
         {isAuthenticated ? '¡Tu mesa de regalos te está esperando!' : '¡Encuentra el regalo perfecto!'}
       </h1>
 
@@ -112,135 +131,356 @@ export const HomePage = () => {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-secondary/30 via-background to-accent/20 py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5"></div>
-        <div className="absolute top-10 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-20 w-40 h-40 bg-accent/20 rounded-full blur-2xl"></div>
+      <section className="relative bg-white py-20 px-4 sm:px-6 lg:px-8 min-h-[90vh] flex items-center">
+        <div className="max-w-7xl mx-auto text-center">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+            <div className="relative max-w-7xl mx-auto text-center">{!userData ? unknownUserHero() : userHero()}</div>
+          </motion.div>
 
-        <div className="relative max-w-7xl mx-auto text-center">{!userData ? unknownUserHero() : userHero()}</div>
+          {userData?.role === 'COUPLE' && isAuthenticated && (
+            <section className="py-16 px-4 sm:px-6 lg:px-8">
+              <div className="max-w-4xl mx-auto">
+                <h2 className="text-2xl mb-8 text-center ">Resumen de tu Mesa de Regalos</h2>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/20 text-center !rounded-2xl">
+                    <div className="text-3xl text-primary mb-2">{totalGifts}</div>
+                    <div className="!text-md text-muted-foreground">Regalos en tu lista</div>
+                  </Card>
+                  <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-accent/20 text-center !rounded-2xl">
+                    <div className="text-3xl text-green-600 mb-2">{purchasedGifts}</div>
+                    <div className="!text-md text-muted-foreground">Regalos comprados</div>
+                  </Card>
+                  <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/20 text-center !rounded-2xl">
+                    <div className="text-3xl text-primary mb-2">{progress.toFixed(2)}%</div>
+                    <div className="!text-md text-muted-foreground">Progreso completado</div>
+                  </Card>
+                </div>
+              </div>
+            </section>
+          )}
+
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.5 }}
+            className="relative">
+            <div className="rounded-3xl overflow-hidden shadow-2xl mx-auto max-w-6xl mt-20">
+              <img src="/images/HP.JPG" alt="Elegant wedding table setting" className="w-full h-[500px] object-cover" />
+            </div>
+          </motion.div>
+        </div>
       </section>
 
-      {/* Quick Stats for Couples */}
-      {userData?.role === 'COUPLE' && isAuthenticated && (
-        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-secondary/10">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl mb-8 text-center text-primary">Resumen de tu Mesa de Regalos</h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/20 text-center !rounded-2xl">
-                <div className="text-3xl text-primary mb-2">{totalGifts}</div>
-                <div className="!text-md text-muted-foreground">Regalos en tu lista</div>
-              </Card>
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-accent/20 text-center !rounded-2xl">
-                <div className="text-3xl text-green-600 mb-2">{purchasedGifts}</div>
-                <div className="!text-md text-muted-foreground">Regalos comprados</div>
-              </Card>
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/20 text-center !rounded-2xl">
-                <div className="text-3xl text-primary mb-2">{progress.toFixed(2)}%</div>
-                <div className="!text-md text-muted-foreground">Progreso completado</div>
-              </Card>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Features Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-secondary/20">
+      {/* Features Section - Apple Product Grid Style */}
+      <section className="bg-[#f5f5f7] py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl mb-6 text-primary">¿Por qué elegir MesaLista?</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Hacemos que organizar tu mesa de regalos sea tan especial como tu gran día
+          <motion.div
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}>
+            <h2 className="text-5xl md:text-6xl font-semibold text-foreground mb-6 tracking-tight">Diseñado para ser simple.</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-light leading-relaxed">
+              Cada detalle ha sido cuidadosamente pensado para hacer que tu experiencia sea perfecta.
             </p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-3 gap-12">
+            {[
+              {
+                title: 'Pagos seguros',
+                description: 'Stripe y PayPal integrados con encriptación de nivel bancario para transacciones completamente seguras.',
+                icon: Shield,
+                image:
+                  'https://images.unsplash.com/photo-1732044790214-2930623d3edc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwa2l0Y2hlbiUyMGFwcGxpYW5jZXN8ZW58MXx8fHwxNzU3MTY2ODIwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+              },
+              {
+                title: 'Estadísticas completas',
+                description: 'Ve el progreso de tu mesa en tiempo real con análisis detallados y reportes comprensivos.',
+                icon: Sparkles,
+                image:
+                  'https://images.unsplash.com/photo-1681997963595-5e462b76d19c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBob21lJTIwZGVjb3IlMjBwcm9kdWN0c3xlbnwxfHx8fDE3NTcxNjY4MjV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+              },
+              {
+                title: 'Soporte dedicado',
+                description: 'Preguntas frecuentes detalladas y soporte personalizado cuando lo necesites.',
+                icon: CheckCircle,
+                image:
+                  'https://images.unsplash.com/photo-1653543540821-2bddbfe144f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmF2ZWwlMjBleHBlcmllbmNlJTIwY291cGxlJTIwaG9uZXltb29ufGVufDF8fHx8MTc1NzE2NjgyOXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+              },
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: index * 0.2 }}
+                viewport={{ once: true }}
+                className="text-center">
+                <div className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-lg transition-all duration-300">
+                  <div className="rounded-2xl overflow-hidden mb-8">
+                    <img src={feature.image} alt={feature.title} className="w-full h-64 object-cover" />
+                  </div>
+                  <div className="mb-6">
+                    <feature.icon className="h-8 w-8 text-[#d4704a] mx-auto" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-foreground mb-4 tracking-tight">{feature.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed font-light">{feature.description}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
+        </div>
+      </section>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-card to-secondary/30 !rounded-2xl">
-              <div className="text-center">
-                <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mb-4 shadow-md">
-                  <Sparkles className="h-8 w-8 text-primary" />
-                </div>
-                <div className="text-primary">Fácil de Crear</div>
-                <div className="text-muted-foreground leading-relaxed">
-                  Configura tu mesa de regalos en minutos. Añade productos, organiza categorías y personaliza tu lista a tu gusto.
-                </div>
-              </div>
-            </Card>
+      {/* How it Works Section */}
+      <section className="bg-white py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}>
+            <h2 className="text-5xl md:text-6xl font-semibold text-foreground mb-6 tracking-tight">Así de fácil.</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-light leading-relaxed">
+              Tres pasos para tener tu mesa de regalos perfecta.
+            </p>
+          </motion.div>
 
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-card to-accent/20 !rounded-2xl">
-              <div className="text-center">
-                <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mb-4 shadow-md">
-                  <Shield className="h-8 w-8 text-primary" />
-                </div>
-                <div className="text-primary">Compras Seguras</div>
-                <div className="text-muted-foreground leading-relaxed">
-                  Tus invitados pueden comprar con confianza. Procesamos pagos de forma segura y enviamos directamente a tu hogar.
-                </div>
-              </div>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-card to-secondary/30 !rounded-2xl">
-              <div className="text-center">
-                <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mb-4 shadow-md">
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-                <div className="text-primary">Gestión Completa</div>
-                <div className="text-muted-foreground leading-relaxed">
-                  Ve estadísticas de tu mesa, administra regalos, y mantente al día con las compras de tus invitados.
-                </div>
-              </div>
-            </Card>
+          <div className="grid md:grid-cols-3 gap-16">
+            {[
+              {
+                step: '01',
+                title: 'Crea tu cuenta',
+                description: 'Regístrate en menos de 2 minutos y personaliza tu perfil de pareja.',
+              },
+              {
+                step: '02',
+                title: 'Agrega tus regalos',
+                description: 'Selecciona productos de nuestro catálogo o agrega los tuyos propios.',
+              },
+              {
+                step: '03',
+                title: 'Comparte con invitados',
+                description: 'Envía el enlace a tus invitados y deja que elijan sus regalos favoritos.',
+              },
+            ].map((step, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: index * 0.2 }}
+                viewport={{ once: true }}
+                className="text-center">
+                <div className="text-6xl font-light text-[#d4704a] mb-6 tracking-tight">{step.step}</div>
+                <h3 className="text-2xl font-semibold text-foreground mb-4 tracking-tight">{step.title}</h3>
+                <p className="text-muted-foreground leading-relaxed font-light">{step.description}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Testimonial Section */}
-      <section className="bg-gradient-to-r from-secondary/40 via-accent/20 to-secondary/40 py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-12 shadow-2xl border border-primary/10">
-            <div className="flex justify-center mb-6">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-6 w-6 text-yellow-400 fill-current" />
-              ))}
+      <section className="bg-[#f5f5f7] py-24 px-4 sm:px-6 lg:px-8">
+        <motion.div
+          className="max-w-4xl mx-auto text-center"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}>
+          <blockquote className="text-3xl md:text-4xl font-light text-foreground mb-12 leading-relaxed tracking-tight">
+            "MesaLista transformó completamente nuestra experiencia de boda. Elegante, simple y perfecto."
+          </blockquote>
+
+          <div className="flex items-center justify-center space-x-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#d4704a]/20 to-[#d4704a]/10 rounded-full flex items-center justify-center">
+              <Heart className="h-8 w-8 text-[#d4704a]" />
             </div>
-
-            <blockquote className="text-2xl mb-8 text-primary italic leading-relaxed">
-              "MesaLista hizo que organizar nuestra mesa de regalos fuera súper fácil. Nuestros invitados amaron la experiencia y nosotros
-              pudimos enfocarnos en disfrutar nuestro día especial."
-            </blockquote>
-
-            <div className="flex items-center justify-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center shadow-md">
-                <Heart className="h-6 w-6 text-primary" />
-              </div>
-              <div className="text-left">
-                <p className="text-primary">María y Carlos</p>
-                <p className="text-muted-foreground">Bodas Guadalajara 2024</p>
-              </div>
+            <div className="text-left">
+              <p className="text-lg font-medium text-foreground">María y Carlos</p>
+              <p className="text-muted-foreground">Ciudad de México, 2024</p>
             </div>
           </div>
+        </motion.div>
+
+        <div className="py-24">
+          <Divider />
         </div>
+
+        {/* FAQ Section */}
+        <section className="px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              className="text-center mb-16"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}>
+              <h2 className="text-4xl mb-6 text-primary">Preguntas Frecuentes</h2>
+              <p className="text-xl text-muted-foreground">Resolvemos tus dudas más comunes sobre nuestros planes</p>
+            </motion.div>
+
+            <div className="space-y-6">
+              {faqs.map((faq, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}>
+                  <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/30">
+                    <div className="p-6">
+                      <h3 className="text-lg mb-3">{faq.question}</h3>
+                      <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
       </section>
 
       {/* CTA Section */}
-      {!userData && (
-        <section className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent_50%)]"></div>
-
-          <div className="relative max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl mb-6 text-primary-foreground">¿Listos para comenzar?</h2>
-            <p className="text-xl mb-8 text-primary-foreground/90 leading-relaxed">
-              Crea tu mesa de regalos hoy y haz que tu boda sea aún más especial
+      {!isAuthenticated ? (
+        <section className="bg-white py-24 px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="max-w-4xl mx-auto text-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}>
+            <h2 className="text-5xl md:text-6xl font-semibold text-foreground mb-8 tracking-tight">Comienza hoy.</h2>
+            <p className="text-xl text-muted-foreground mb-12 font-light leading-relaxed">Crea tu mesa de regalos perfecta en minutos.</p>
+            <Button
+              size="large"
+              type="primary"
+              className="px-12 py-4 text-lg bg-[#007aff] hover:bg-[#0051d0] text-white rounded-full border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+              onClick={() => navigate('registro')}>
+              Empezar gratis
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </motion.div>
+        </section>
+      ) : (
+        <section className="bg-white py-24 px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="max-w-4xl mx-auto text-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}>
+            <h2 className="text-5xl md:text-6xl font-semibold text-foreground mb-8 tracking-tight">Visita tu Mesa de Regalos.</h2>
+            <p className="text-xl text-muted-foreground mb-12 font-light leading-relaxed">
+              Accede a tu mesa de regalos y comienza a gestionar tus invitados.
             </p>
-            <Tooltip trigger={['click']} title="¡Funcionalidad disponible pronto!">
-              <Button size="large" type="default" className="px-8 py-4 transition-all duration-300 transform hover:-translate-y-1 border-0">
-                <Heart className="mr-2 h-5 w-5" />
-                Empezar Ahora - Es Gratis
-              </Button>
-            </Tooltip>
-          </div>
+            <Button
+              size="large"
+              type="primary"
+              className="px-12 py-4 text-lg bg-[#007aff] hover:bg-[#0051d0] text-white rounded-full border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+              onClick={() => navigate('regalos')}>
+              Visitar
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </motion.div>
         </section>
       )}
+
+      {/* Footer - Minimal Apple Style */}
+      <footer className="bg-[#f5f5f7] border-t border-border/30 py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <div className="space-y-6">
+              <div className="flex items-center space-x-2">
+                <img src="/svg/MesaLista_isologo.svg" alt="Logo" className="h-10 w-30" />
+              </div>
+              <p className="text-muted-foreground font-light leading-relaxed">La plataforma de mesas de regalos más elegante de México.</p>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-medium text-foreground">Producto</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a
+                    onClick={() => navigate('regalos')}
+                    className="text-muted-foreground hover:text-foreground transition-colors font-light">
+                    Explorar Regalos
+                  </a>
+                </li>
+                <li>
+                  <a onClick={() => navigate('')} className="text-muted-foreground hover:text-foreground transition-colors font-light">
+                    Planes
+                  </a>
+                </li>
+                {/* <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
+                    Características
+                  </a>
+                </li> */}
+              </ul>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-medium text-foreground">Soporte</h4>
+              <ul className="space-y-2 text-sm">
+                {/* <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
+                    Centro de Ayuda
+                  </a>
+                </li> */}
+                <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
+                    Contacto
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
+                    FAQ
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-medium text-foreground">Empresa</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
+                    Acerca de
+                  </a>
+                </li>
+                {/* <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
+                    Carreras
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
+                    Prensa
+                  </a>
+                </li> */}
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-border/30 pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div className="flex flex-wrap gap-6 text-sm text-muted-foreground font-light">
+              <a href="#" className="hover:text-foreground transition-colors">
+                Privacidad
+              </a>
+              <a href="#" className="hover:text-foreground transition-colors">
+                Términos
+              </a>
+              <a href="#" className="hover:text-foreground transition-colors">
+                Cookies
+              </a>
+            </div>
+            <p className="text-sm text-muted-foreground font-light">© 2025 MesaLista. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
