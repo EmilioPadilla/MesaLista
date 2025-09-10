@@ -48,11 +48,13 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
             </div>
 
             <div className="flex items-center space-x-2 !text-md text-muted-foreground">
-              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs">1</div>
+              <div className="w-8 h-8 bg-[#d4704a] rounded-full flex items-center justify-center text-white text-sm font-medium">1</div>
               {viewType !== 'mobile' ? <span>Información</span> : <></>}
-              <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-xs">2</div>
+              <div className="w-8 h-0.5 bg-border"></div>
+              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-medium">2</div>
               {viewType !== 'mobile' ? <span>Pago</span> : <></>}
-              <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-xs">3</div>
+              <div className="w-8 h-0.5 bg-border"></div>
+              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-medium">3</div>
               {viewType !== 'mobile' ? <span>Confirmación</span> : <></>}
             </div>
           </div>
@@ -148,14 +150,12 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   className="transition-all cursor-pointer duration-200 hover:shadow-md !rounded-lg !text-md">
                   {viewType !== 'mobile' ? <span>Iniciar Sesión</span> : <LoginOutlined />}
                 </Button>
-                {
-                  <Button
+                {/* <Button
                     type="text"
                     onClick={() => navigate('/registro')}
                     className="transition-all cursor-pointer duration-200 hover:shadow-md !rounded-lg !text-md">
                     <span>Registrarse</span>
-                  </Button>
-                }
+                  </Button> */}
               </div>
             )}
           </div>

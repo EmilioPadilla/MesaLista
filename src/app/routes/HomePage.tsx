@@ -354,14 +354,17 @@ export const HomePage = () => {
             viewport={{ once: true }}>
             <h2 className="text-5xl md:text-6xl font-semibold text-foreground mb-8 tracking-tight">Comienza hoy.</h2>
             <p className="text-xl text-muted-foreground mb-12 font-light leading-relaxed">Crea tu mesa de regalos perfecta en minutos.</p>
-            <Button
-              size="large"
-              type="primary"
-              className="px-12 py-4 text-lg bg-[#007aff] hover:bg-[#0051d0] text-white rounded-full border-0 shadow-lg hover:shadow-xl transition-all duration-300"
-              onClick={() => navigate('registro')}>
-              Empezar gratis
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Tooltip trigger={['click']} title="¡Funcionalidad disponible pronto!">
+              <Button
+                size="large"
+                type="primary"
+                className="px-12 py-4 text-lg bg-[#007aff] hover:bg-[#0051d0] text-white rounded-full border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+                // onClick={() => navigate('registro')}
+              >
+                Empezar gratis
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Tooltip>
           </motion.div>
         </section>
       ) : (
