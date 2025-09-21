@@ -9,6 +9,7 @@ import { useOutletContext } from 'react-router-dom';
 import { OutletContextType } from '../guest/PublicRegistry';
 import { useWeddingListBySlug } from 'src/hooks/useWeddingList';
 import { useEffect } from 'react';
+import { useCapturePayPalPayment } from 'src/hooks/usePayment';
 
 export function OrderConfirmation() {
   const navigate = useNavigate();
@@ -19,6 +20,26 @@ export function OrderConfirmation() {
 
   const { data: weddinglist } = useWeddingListBySlug(coupleSlug);
   const { data: cartData, isLoading: isLoadingCart, error: cartError } = useGetCart(cartId || '');
+  const { mutate: capturePayPalPayment } = useCapturePayPalPayment();
+
+  // Handle PayPal payment capture
+  useEffect(() => {
+    const paypalOrderId = searchParams.get('token'); // PayPal returns 'token' parameter
+    const payerId = searchParams.get('PayerID');
+
+    if (paypalOrderId && payerId && cartData && cartData.status !== 'PAID') {
+      // Capture the PayPal payment
+      capturePayPalPayment(
+        { orderId: paypalOrderId },
+        {
+          onError: (error) => {
+            // Redirect back to checkout on error
+            navigate(`/${coupleSlug}/checkout`);
+          },
+        },
+      );
+    }
+  }, [searchParams, cartData, capturePayPalPayment, navigate, coupleSlug]);
 
   // Handle guest ID regeneration when cart is paid
   useEffect(() => {
@@ -26,7 +47,7 @@ export function OrderConfirmation() {
       localStorage.removeItem('guestId');
       regenerateGuestId();
     }
-  }, [cartData?.status]);
+  }, [cartData?.status, regenerateGuestId]);
 
   if (isLoadingCart) {
     return (

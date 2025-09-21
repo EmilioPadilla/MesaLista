@@ -39,9 +39,10 @@ const PORT = parseInt(process.env.PORT || '8080', 10);
 // For development, allow specific origins with credentials
 app.use(
   cors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? process.env.FRONTEND_URL || 'https://mesalista.com' 
-      : ['http://localhost:5173', 'http://127.0.0.1:5173'], // Development origins
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? process.env.FRONTEND_URL || 'https://mesalista.com'
+        : ['http://localhost:5173', 'http://127.0.0.1:5173'], // Development origins
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,
@@ -71,6 +72,10 @@ app.use((req, res, next) => {
   }
   express.json()(req, res, next);
 });
+
+// PayPal routes (after JSON parsing middleware)
+app.post('/api/payments/create-paypal-order', paymentController.createPayPalOrder);
+app.post('/api/payments/capture-paypal-payment', paymentController.capturePayPalPayment);
 
 // Serve static files from the React app build directory
 const distPath = path.resolve(__dirname, '../../../dist');

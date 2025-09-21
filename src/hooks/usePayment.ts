@@ -60,3 +60,25 @@ export const useVerifyPayment = () => {
     },
   });
 };
+
+/**
+ * Hook to create PayPal order
+ */
+export const useCreatePayPalOrder = () => {
+  return useMutation({
+    mutationFn: paymentService.createPayPalOrder,
+  });
+};
+
+/**
+ * Hook to capture PayPal payment
+ */
+export const useCapturePayPalPayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: paymentService.capturePayPalPayment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.payments] });
+    },
+  });
+};

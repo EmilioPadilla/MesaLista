@@ -18,15 +18,24 @@ export const HomePage = () => {
   const progress = (purchasedGifts! / totalGifts!) * 100;
 
   const faqs = [
+    // {
+    //   question: '¿Puedo cambiar de plan después de crear mi mesa?',
+    //   answer:
+    //     '¡Por supuesto! Puedes actualizar tu plan en cualquier momento desde tu panel de control. Los cambios se aplican inmediatamente.',
+    // },
+    // {
+    //   question: '¿Hay costos ocultos o comisiones adicionales?',
+    //   answer:
+    //     'No hay costos ocultos. Nuestros precios son transparentes y solo pagas la tarifa del plan que elijas. No cobramos comisiones por las compras.',
+    // },
     {
-      question: '¿Puedo cambiar de plan después de crear mi mesa?',
+      question: '¿Cuándo estará disponible el servicio para mi evento?',
       answer:
-        '¡Por supuesto! Puedes actualizar tu plan en cualquier momento desde tu panel de control. Los cambios se aplican inmediatamente.',
+        'Actualmente, estamos trabajando en la implementación de nuevos servicios y estamos en el proceso de lanzamiento. ¡Te invitamos a que te sigas al perfil de MesaLista para estar al tanto de los nuevos desarrollos!',
     },
     {
-      question: '¿Hay costos ocultos o comisiones adicionales?',
-      answer:
-        'No hay costos ocultos. Nuestros precios son transparentes y solo pagas la tarifa del plan que elijas. No cobramos comisiones por las compras.',
+      question: '¿Qué tipo de pagos aceptas?',
+      answer: 'Actualmente, aceptamos pagos por medio de PayPal y Stripe.',
     },
     {
       question: '¿Qué pasa si mi boda se pospone?',
@@ -192,22 +201,19 @@ export const HomePage = () => {
                 title: 'Pagos seguros',
                 description: 'Stripe y PayPal integrados con encriptación de nivel bancario para transacciones completamente seguras.',
                 icon: Shield,
-                image:
-                  'https://images.unsplash.com/photo-1732044790214-2930623d3edc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwa2l0Y2hlbiUyMGFwcGxpYW5jZXN8ZW58MXx8fHwxNzU3MTY2ODIwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+                image: '/images/payments.png',
               },
               {
                 title: 'Estadísticas completas',
                 description: 'Ve el progreso de tu mesa en tiempo real con análisis detallados y reportes comprensivos.',
                 icon: Sparkles,
-                image:
-                  'https://images.unsplash.com/photo-1681997963595-5e462b76d19c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBob21lJTIwZGVjb3IlMjBwcm9kdWN0c3xlbnwxfHx8fDE3NTcxNjY4MjV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+                image: '/images/statistics.png',
               },
               {
                 title: 'Soporte dedicado',
                 description: 'Preguntas frecuentes detalladas y soporte personalizado cuando lo necesites.',
                 icon: CheckCircle,
-                image:
-                  'https://images.unsplash.com/photo-1653543540821-2bddbfe144f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmF2ZWwlMjBleHBlcmllbmNlJTIwY291cGxlJTIwaG9uZXltb29ufGVufDF8fHx8MTc1NzE2NjgyOXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+                image: '/images/greatSupport.png',
               },
             ].map((feature, index) => (
               <motion.div

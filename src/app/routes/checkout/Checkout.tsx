@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Button } from 'components/core/Button';
-import { CardHeader, CardTitle } from 'components/core/Card';
-import { Separator } from 'components/core/Separator';
-import { User, ShoppingBag, ArrowRight, CheckCircle } from 'lucide-react';
+import { User, ArrowRight, CheckCircle } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
 import { useGetCart } from 'src/hooks/useCart';
-import { useCreateCheckoutSession } from 'src/hooks/usePayment';
+import { useCreateCheckoutSession, useCreatePayPalOrder, useCapturePayPalPayment } from 'src/hooks/usePayment';
 import { OutletContextType } from '../guest/PublicRegistry';
-import { message, Card as AntCard, Input, Button as AntButton } from 'antd';
+import { message, Input, Button } from 'antd';
 import { useUpdateCartDetails } from 'src/hooks/useCart';
 import { motion } from 'motion/react';
 import { useWeddingListBySlug } from 'src/hooks/useWeddingList';
@@ -21,6 +18,7 @@ export function Checkout() {
   const { data: cart } = useGetCart(guestId || undefined);
   const { mutate: updateCartDetails } = useUpdateCartDetails();
   const { mutate: createCheckoutSession, isPending: isCreatingSession } = useCreateCheckoutSession();
+  const { mutate: createPayPalOrder, isPending: isCreatingPayPalOrder } = useCreatePayPalOrder();
   const { data: weddinglist } = useWeddingListBySlug(coupleSlug);
 
   const coupleName = weddinglist?.coupleName;
@@ -98,6 +96,55 @@ export function Checkout() {
               onError: (error) => {
                 console.error('Error creating checkout session:', error);
                 message.error('Error al crear la sesión de pago');
+              },
+            },
+          );
+        },
+      },
+    );
+  };
+
+  const handlePayPalPayment = () => {
+    if (!validateForm()) return;
+
+    if (!cart?.id) {
+      message.error('No se encontró el carrito');
+      return;
+    }
+
+    const baseUrl = window.location.origin;
+
+    // Update cart details first, then create PayPal order
+    updateCartDetails(
+      {
+        cartItemId: cart.id,
+        details: {
+          inviteeName: guestInfo.name,
+          inviteeEmail: guestInfo.email,
+          phoneNumber: guestInfo.phone,
+          message: guestInfo.message,
+        },
+      },
+      {
+        onSuccess: () => {
+          createPayPalOrder(
+            {
+              cartId: cart.id,
+              successUrl: `${baseUrl}/${coupleSlug}/confirmation?cartId=${cart.sessionId}`,
+              cancelUrl: `${baseUrl}/${coupleSlug}/checkout`,
+            },
+            {
+              onSuccess: (paypalResponse) => {
+                if (paypalResponse.success && paypalResponse.approvalUrl) {
+                  // Redirect to PayPal for approval
+                  window.location.href = paypalResponse.approvalUrl;
+                } else {
+                  message.error('Error al crear la orden de PayPal');
+                }
+              },
+              onError: (error) => {
+                console.error('Error creating PayPal order:', error);
+                message.error('Error al crear la orden de PayPal');
               },
             },
           );
@@ -250,10 +297,32 @@ export function Checkout() {
 
                 <Button
                   disabled={isCreatingSession}
-                  className="w-full mt-8 bg-[#d4704a] hover:bg-[#d4704a] text-white rounded-full h-12 text-base font-medium border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="w-full mt-8 bg-white hover:bg-white hover:!text-black text-black !rounded-full h-12 text-base font-bold border-0 shadow-lg hover:!shadow-xl transition-all duration-300"
                   onClick={handleContinue}>
-                  {isCreatingSession ? 'Redirigiendo a pago...' : 'Pagar con Stripe'}
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  {isCreatingSession ? (
+                    <span>Redirigiendo a pago...</span>
+                  ) : (
+                    <div className="flex items-center">
+                      <span className="mb-1 mr-2">Pagar con</span>
+                      <img src="/images/stripe_logo.png" alt="Stripe" className="h-7 w-14" />
+                    </div>
+                  )}
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+
+                <Button
+                  disabled={isCreatingPayPalOrder}
+                  className="w-full mt-4 bg-white hover:bg-white hover:!text-black text-black !rounded-full h-12 text-base font-bold border-0 shadow-lg hover:!shadow-xl transition-all duration-300"
+                  onClick={handlePayPalPayment}>
+                  {isCreatingPayPalOrder ? (
+                    <span>Redirigiendo a PayPal...</span>
+                  ) : (
+                    <div className="flex items-center">
+                      <span className="mb-1 mr-2">Pagar con</span>
+                      <img src="/images/paypal_logo.png" alt="PayPal" className="h-6 w-22" />
+                    </div>
+                  )}
+                  <ArrowRight className="h-5 w-5" />
                 </Button>
 
                 <div className="mt-6 space-y-2">

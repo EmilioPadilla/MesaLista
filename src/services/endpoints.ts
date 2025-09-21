@@ -313,6 +313,20 @@ export const payment_endpoints = {
    * @requires JWT token
    */
   getAll: `/payments`,
+
+  /**
+   * Create PayPal order
+   * @method POST
+   * @access Public
+   */
+  createPayPalOrder: `/payments/create-paypal-order`,
+
+  /**
+   * Capture PayPal payment
+   * @method POST
+   * @access Public
+   */
+  capturePayPalPayment: `/payments/capture-paypal-payment`,
 };
 
 /**

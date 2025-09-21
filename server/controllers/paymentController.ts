@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import Stripe from 'stripe';
+import axios from 'axios';
 
 const prisma = new PrismaClient();
 
@@ -9,6 +10,38 @@ const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 });
+
+// PayPal API configuration
+const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID || '';
+const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET || '';
+// Use https://api-m.paypal.com for production
+// Use https://api-m.sandbox.paypal.com for sandbox
+const PAYPAL_BASE_URL = 'https://api-m.paypal.com';
+
+// PayPal access token cache
+let paypalAccessToken: string | null = null;
+let tokenExpiry: number = 0;
+
+// Get PayPal access token
+const getPayPalAccessToken = async (): Promise<string> => {
+  if (paypalAccessToken && Date.now() < tokenExpiry) {
+    return paypalAccessToken;
+  }
+
+  const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
+
+  const response = await axios.post(`${PAYPAL_BASE_URL}/v1/oauth2/token`, 'grant_type=client_credentials', {
+    headers: {
+      'Authorization': `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+
+  paypalAccessToken = response.data.access_token;
+  tokenExpiry = Date.now() + response.data.expires_in * 1000 - 60000; // Refresh 1 minute early
+
+  return paypalAccessToken!;
+};
 
 export default {
   // Create Stripe checkout session
@@ -295,6 +328,229 @@ export default {
     } catch (error) {
       console.error('Error getting payments:', error);
       res.status(500).json({ error: 'Failed to get payments' });
+    }
+  },
+
+  // Create PayPal order
+  createPayPalOrder: async (req: Request, res: Response) => {
+    try {
+      const { cartId, successUrl, cancelUrl } = req.body;
+
+      if (!cartId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cart ID is required',
+        });
+      }
+
+      // Get cart with items
+      const cart = await prisma.cart.findUnique({
+        where: { id: cartId },
+        include: {
+          items: {
+            include: { gift: true },
+          },
+        },
+      });
+
+      if (!cart) {
+        return res.status(404).json({
+          success: false,
+          message: 'Cart not found',
+        });
+      }
+
+      if (!cart.items || cart.items.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cart is empty',
+        });
+      }
+
+      // Calculate total amount
+      const totalAmount = cart.items.reduce((sum: number, item: any) => {
+        const price = item.price || item.gift.price;
+        return sum + price * item.quantity;
+      }, 0);
+
+      // Create PayPal order
+      const accessToken = await getPayPalAccessToken();
+
+      const orderData = {
+        intent: 'CAPTURE',
+        purchase_units: [
+          {
+            amount: {
+              currency_code: 'MXN',
+              value: totalAmount.toFixed(2),
+            },
+            description: `Regalos para ${cart.inviteeName || 'la pareja'}`,
+            custom_id: cartId.toString(),
+          },
+        ],
+        application_context: {
+          return_url: successUrl,
+          cancel_url: cancelUrl,
+          brand_name: 'MesaLista',
+          landing_page: 'BILLING',
+          user_action: 'PAY_NOW',
+          shipping_preference: 'NO_SHIPPING',
+        },
+      };
+
+      const orderResponse = await axios.post(`${PAYPAL_BASE_URL}/v2/checkout/orders`, orderData, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (orderResponse.status === 201) {
+        const order = orderResponse.data;
+        // Find the approval URL
+        const approvalUrl = order.links?.find((link: any) => link.rel === 'approve')?.href;
+
+        res.json({
+          success: true,
+          orderId: order.id,
+          approvalUrl: approvalUrl,
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: 'Failed to create PayPal order',
+        });
+      }
+    } catch (error) {
+      console.error('Error creating PayPal order:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to create PayPal order',
+      });
+    }
+  },
+
+  // Capture PayPal payment
+  capturePayPalPayment: async (req: Request, res: Response) => {
+    try {
+      const { orderId } = req.body;
+
+      if (!orderId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Order ID is required',
+        });
+      }
+
+      // Capture the payment
+      const accessToken = await getPayPalAccessToken();
+
+      const captureResponse = await axios.post(
+        `${PAYPAL_BASE_URL}/v2/checkout/orders/${orderId}/capture`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (captureResponse.status === 201) {
+        const captureResult = captureResponse.data;
+
+        // Get cart ID from the order's custom_id
+        const customId = captureResult.purchase_units?.[0]?.payments?.captures?.[0]?.custom_id;
+        const cartId = customId ? parseInt(customId) : null;
+
+        if (!cartId) {
+          return res.status(400).json({
+            success: false,
+            message: 'Cart ID not found in order',
+          });
+        }
+
+        // Get cart information
+        const cart = await prisma.cart.findUnique({
+          where: { id: cartId },
+          include: {
+            items: {
+              include: { gift: true },
+            },
+          },
+        });
+
+        if (!cart) {
+          return res.status(404).json({
+            success: false,
+            message: 'Cart not found',
+          });
+        }
+
+        // Update cart status
+        await prisma.cart.update({
+          where: { id: cartId },
+          data: {
+            status: 'PAID',
+            paymentId: captureResult.id,
+          },
+        });
+
+        // Create payment record
+        const captureDetails = captureResult.purchase_units?.[0]?.payments?.captures?.[0];
+        const amount = parseFloat(captureDetails?.amount?.value || '0');
+
+        await prisma.payment.create({
+          data: {
+            cartId,
+            paymentId: captureResult.id || '',
+            amount: amount,
+            currency: captureDetails?.amount?.currency_code || 'MXN',
+            paymentType: 'PAYPAL',
+            transactionFee: 0, // PayPal fees would be calculated separately
+            status: 'PAID',
+            metadata: JSON.stringify(captureResult),
+          },
+        });
+
+        // Get cart items and mark the corresponding gifts as purchased
+        const cartItems = await prisma.cartItem.findMany({
+          where: { cartId },
+          select: { giftId: true },
+        });
+
+        const giftIds = cartItems.map((item: { giftId: number }) => item.giftId);
+
+        // Update all gifts as purchased in a single query
+        if (giftIds.length > 0) {
+          await prisma.gift.updateMany({
+            where: {
+              id: { in: giftIds },
+            },
+            data: {
+              isPurchased: true,
+            },
+          });
+        }
+
+        res.json({
+          success: true,
+          cartId: cartId,
+          paymentId: captureResult.id,
+          message: 'Payment captured successfully',
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: 'Failed to capture PayPal payment',
+        });
+      }
+    } catch (error) {
+      console.error('Error capturing PayPal payment:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to capture PayPal payment',
+      });
     }
   },
 };

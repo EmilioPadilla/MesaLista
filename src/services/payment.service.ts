@@ -23,6 +23,16 @@ export interface CreateCheckoutSessionRequest {
   cancelUrl: string;
 }
 
+export interface CreatePayPalOrderRequest {
+  cartId: number;
+  successUrl: string;
+  cancelUrl: string;
+}
+
+export interface CapturePayPalPaymentRequest {
+  orderId: string;
+}
+
 export interface PaymentSummary {
   totalAmount: number;
   currency: string;
@@ -100,6 +110,28 @@ export const paymentService = {
    */
   verifyPayment: async (data: PaymentVerifyRequest): Promise<{ success: boolean; moneyBagId: number; cartId: number; message: string }> => {
     const response = await apiClient.post(api_endpoints.payments.verify, data);
+    return response.data;
+  },
+
+  /**
+   * Create PayPal order
+   *
+   * @param data PayPal order data
+   * @returns PayPal order response with approval URL
+   */
+  createPayPalOrder: async (data: CreatePayPalOrderRequest): Promise<{ success: boolean; orderId: string; approvalUrl: string }> => {
+    const response = await apiClient.post(api_endpoints.payments.createPayPalOrder, data);
+    return response.data;
+  },
+
+  /**
+   * Capture PayPal payment
+   *
+   * @param data PayPal capture data
+   * @returns PayPal capture response
+   */
+  capturePayPalPayment: async (data: CapturePayPalPaymentRequest): Promise<{ success: boolean; cartId: number; paymentId: string; message: string }> => {
+    const response = await apiClient.post(api_endpoints.payments.capturePayPalPayment, data);
     return response.data;
   },
 };

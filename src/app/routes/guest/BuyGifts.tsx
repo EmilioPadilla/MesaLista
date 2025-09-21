@@ -219,13 +219,13 @@ export function BuyGifts() {
                 <h1 className="text-5xl md:text-7xl font-semibold tracking-tight text-foreground mb-4 leading-tight font-bold">
                   {weddinglist?.coupleName}
                 </h1>
-                <p className="text-2xl md:text-3xl text-muted-foreground mb-8 font-bold">{formattedWeddingDate}</p>
-                <div className="flex items-center justify-center space-x-2 text-lg text-muted-foreground mb-12">
+                <p className="text-2xl md:text-3xl mb-8 font-bold">{formattedWeddingDate}</p>
+                <div className="flex items-center justify-center space-x-2 text-lg mb-12">
                   <MapPin className="h-5 w-5" />
                   <span className="font-extrabold">{weddinglist?.weddingLocation}</span>
                 </div>
                 {deviceType !== 'mobile' ? (
-                  <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-extrabold">{note}</p>
+                  <p className="text-xl max-w-3xl mx-auto leading-relaxed font-extrabold">{note}</p>
                 ) : (
                   <Tooltip title={note} trigger={['click']}>
                     <Button type="text" icon={<PlusCircleOutlined />} />
