@@ -224,13 +224,9 @@ export function BuyGifts() {
                   <MapPin className="h-5 w-5" />
                   <span className="font-extrabold">{weddinglist?.weddingLocation}</span>
                 </div>
-                {deviceType !== 'mobile' ? (
-                  <p className="text-xl max-w-3xl mx-auto leading-relaxed font-extrabold">{note}</p>
-                ) : (
-                  <Tooltip title={note} trigger={['click']}>
-                    <Button type="text" icon={<PlusCircleOutlined />} />
-                  </Tooltip>
-                )}
+                <p className={`${deviceType !== 'mobile' ? 'text-xl max-w-3xl' : 'text-lg'} mx-auto leading-relaxed font-extrabold`}>
+                  {note}
+                </p>
               </motion.div>
             </div>
           </div>

@@ -31,6 +31,7 @@ export function Checkout() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'stripe' | 'paypal' | null>(null);
 
   // Scroll to top when component loads
   useEffect(() => {
@@ -151,6 +152,15 @@ export function Checkout() {
         },
       },
     );
+  };
+
+  const handlePayment = () => {
+    if (!selectedPaymentMethod) return;
+    if (selectedPaymentMethod === 'stripe') {
+      handleContinue();
+    } else {
+      handlePayPalPayment();
+    }
   };
 
   return (
@@ -295,35 +305,63 @@ export function Checkout() {
                   </div>
                 </div>
 
-                <Button
-                  disabled={isCreatingSession}
-                  className="w-full mt-8 bg-white hover:bg-white hover:!text-black text-black !rounded-full h-12 text-base font-bold border-0 shadow-lg hover:!shadow-xl transition-all duration-300"
-                  onClick={handleContinue}>
-                  {isCreatingSession ? (
-                    <span>Redirigiendo a pago...</span>
-                  ) : (
-                    <div className="flex items-center">
-                      <span className="mb-1 mr-2">Pagar con</span>
-                      <img src="/images/stripe_logo.png" alt="Stripe" className="h-7 w-14" />
-                    </div>
-                  )}
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
+                {/* Payment Method Selection */}
+                <div className="mt-8 space-y-4">
+                  <h4 className="text-lg font-semibold text-foreground">Método de pago</h4>
 
-                <Button
-                  disabled={isCreatingPayPalOrder}
-                  className="w-full mt-4 bg-white hover:bg-white hover:!text-black text-black !rounded-full h-12 text-base font-bold border-0 shadow-lg hover:!shadow-xl transition-all duration-300"
-                  onClick={handlePayPalPayment}>
-                  {isCreatingPayPalOrder ? (
-                    <span>Redirigiendo a PayPal...</span>
-                  ) : (
-                    <div className="flex items-center">
-                      <span className="mb-1 mr-2">Pagar con</span>
-                      <img src="/images/paypal_logo.png" alt="PayPal" className="h-6 w-22" />
-                    </div>
-                  )}
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
+                  {/* Payment Method Buttons */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      onClick={() => setSelectedPaymentMethod('stripe')}
+                      className={`p-4 !rounded-2xl !border-2 transition-all duration-300 cursor-pointer ${
+                        selectedPaymentMethod === 'stripe'
+                          ? '!border-[#d4704a] !bg-[#d4704a]/5 !shadow-md'
+                          : '!border-border/30 !bg-white hover:!border-[#d4704a]/50'
+                      }`}>
+                      <div className="flex flex-col items-center space-y-2">
+                        <span className="text-sm font-bold text-foreground">Tarjeta de débito o crédito</span>
+                      </div>
+                    </Button>
+
+                    <Button
+                      onClick={() => setSelectedPaymentMethod('paypal')}
+                      className={`p-4 !rounded-2xl !border-2 transition-all duration-300 cursor-pointer ${
+                        selectedPaymentMethod === 'paypal'
+                          ? '!border-[#d4704a] !bg-[#d4704a]/5 !shadow-md'
+                          : '!border-border/30 !bg-white hover:!border-[#d4704a]/50'
+                      }`}>
+                      <div className="flex flex-col items-center space-y-2">
+                        <img src="/images/paypal_logo.png" alt="PayPal" className="h-5 w-18" />
+                      </div>
+                    </Button>
+                  </div>
+
+                  {/* Single Payment Button */}
+                  <Button
+                    disabled={!selectedPaymentMethod || isCreatingSession || isCreatingPayPalOrder}
+                    className="w-full bg-white hover:bg-white hover:!text-black text-black !rounded-full h-12 text-base font-bold shadow-lg hover:!shadow-xl transition-all duration-300 !border !border-gray-200 "
+                    onClick={handlePayment}>
+                    {isCreatingSession || isCreatingPayPalOrder ? (
+                      <span>{selectedPaymentMethod === 'stripe' ? 'Redirigiendo a pago...' : 'Redirigiendo a PayPal...'}</span>
+                    ) : !selectedPaymentMethod ? (
+                      <span>Selecciona un método de pago</span>
+                    ) : (
+                      <div className="flex items-center justify-center">
+                        {selectedPaymentMethod === 'stripe' ? (
+                          <>
+                            <span>Continuar al pago</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="mr-2">Continuar con</span>
+                            <img src="/images/paypal_logo.png" alt="PayPal" className="h-6 w-22" />
+                          </>
+                        )}
+                      </div>
+                    )}
+                    <ArrowRight className="h-5 w-5" />
+                  </Button>
+                </div>
 
                 <div className="mt-6 space-y-2">
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
