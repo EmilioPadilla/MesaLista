@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import Stripe from 'stripe';
 import axios from 'axios';
+import emailService from '../services/emailService.js';
 
 const prisma = new PrismaClient();
 
@@ -198,6 +199,14 @@ export default {
                 isPurchased: true,
               },
             });
+          }
+
+          // Send payment confirmation emails
+          try {
+            await emailService.sendPaymentEmails(cartId);
+          } catch (emailError) {
+            console.error('Error sending payment emails:', emailError);
+            // Don't fail the webhook if email sending fails
           }
         } catch (error) {
           console.error('Error processing webhook:', error);
@@ -531,6 +540,14 @@ export default {
               isPurchased: true,
             },
           });
+        }
+
+        // Send payment confirmation emails
+        try {
+          await emailService.sendPaymentEmails(cartId);
+        } catch (emailError) {
+          console.error('Error sending payment emails:', emailError);
+          // Don't fail the payment capture if email sending fails
         }
 
         res.json({

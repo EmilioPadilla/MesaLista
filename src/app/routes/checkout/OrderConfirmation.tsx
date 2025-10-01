@@ -2,7 +2,23 @@ import { Button } from 'components/core/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/core/Card';
 import { Badge } from 'components/core/Badge';
 import { Separator } from 'components/core/Separator';
-import { CheckCircle, Heart, Package, Download, Home } from 'lucide-react';
+import {
+  CheckCircle,
+  Heart,
+  Package,
+  Download,
+  Home,
+  ArrowRight,
+  Calendar,
+  Clock,
+  CreditCard,
+  Mail,
+  MapPin,
+  Share2,
+  Truck,
+  Bell,
+  UserCircle,
+} from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGetCart } from 'src/hooks/useCart';
 import { useOutletContext } from 'react-router-dom';
@@ -10,6 +26,7 @@ import { OutletContextType } from '../guest/PublicRegistry';
 import { useWeddingListBySlug } from 'src/hooks/useWeddingList';
 import { useEffect } from 'react';
 import { useCapturePayPalPayment } from 'src/hooks/usePayment';
+import { motion } from 'motion/react';
 
 export function OrderConfirmation() {
   const navigate = useNavigate();
@@ -70,178 +87,305 @@ export function OrderConfirmation() {
     );
   }
 
-  const getPaymentMethodName = (method: string) => {
-    switch (method) {
-      case 'card':
-        return 'Tarjeta de Crédito/Débito';
-      case 'transfer':
-        return 'Transferencia Bancaria';
-      case 'digital':
-        return 'Billetera Digital';
-      default:
-        return 'Método de Pago';
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-primary/5">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Success Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500 rounded-full mb-6">
-            <CheckCircle className="h-10 w-10 text-white" />
-          </div>
-
-          <h1 className="text-3xl text-primary mb-2">¡Compra Exitosa! 🎉</h1>
-          <p className="text-xl text-muted-foreground mb-4">Gracias por tu regalo para {weddinglist?.coupleName}</p>
-
-          <div className="flex items-center justify-center space-x-2">
-            <Heart className="h-5 w-5 text-primary" />
-            <span className="text-lg text-primary">MesaLista</span>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="bg-white border-b border-border/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-center">
+            <div className="flex items-center space-x-2">
+              <img src="/svg/MesaLista_isologo.svg" className="w-44 h-12" alt="" />
+            </div>
           </div>
         </div>
+      </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Order Details */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Order Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Detalles del Pedido
-                </CardTitle>
-                <CardDescription>Pedido #{cartData?.id}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {cartData?.items?.map((item: any) => (
-                    <div key={item.id} className="flex gap-4 p-3 bg-muted/30 rounded-lg">
-                      <img
-                        src={item?.gift?.imageUrl || '/images/gift_placeholder.png'}
-                        alt={item?.gift?.title}
-                        className="w-16 h-16 object-cover rounded-md"
-                      />
-                      <div className="flex-1">
-                        <h4 className="!text-md mb-1">{item?.gift?.title}</h4>
-                        <div className="flex justify-between items-center">
-                          <div className="text-right">
-                            <p className="text-xs text-muted-foreground">Cantidad: {item?.quantity}</p>
-                            <p className="!text-md">${item?.gift?.price * item?.quantity}</p>
-                          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Success Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-16">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-[#34c759] rounded-full mb-8 shadow-lg">
+            <CheckCircle className="h-12 w-12 text-white" />
+          </div>
+
+          <h1 className="text-5xl md:text-6xl font-semibold text-foreground mb-6 tracking-tight">¡Pedido completado!</h1>
+          <p className="text-xl md:text-2xl text-muted-foreground font-light mb-8 max-w-2xl mx-auto leading-relaxed">
+            Tu regalo está en camino hacia {weddinglist?.coupleName}. Gracias por ser parte de su historia de amor.
+          </p>
+
+          <div className="inline-flex items-center space-x-3 bg-[#f5f5f7] rounded-full px-6 py-3">
+            <Package className="h-5 w-5 text-[#d4704a]" />
+            <span className="text-base font-medium text-foreground">Pedido #{cartData.id}</span>
+          </div>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-12">
+            {/* Order Items */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="bg-white rounded-3xl p-8 shadow-sm border border-border/30">
+              <div className="flex items-center space-x-3 mb-8">
+                <div className="w-10 h-10 bg-[#f5f5f7] rounded-full flex items-center justify-center">
+                  <Package className="h-5 w-5 text-[#d4704a]" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-foreground tracking-tight">Detalles del pedido</h2>
+                  <p className="text-muted-foreground font-light">
+                    {cartData.items.length} {cartData.items.length === 1 ? 'regalo' : 'regalos'} para la pareja
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {cartData.items.map((item: any, index: number) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 * index }}
+                    className="flex gap-6 p-6 bg-[#f5f5f7] rounded-2xl">
+                    <img
+                      src={item.gift?.imageUrl || '/images/gift_placeholder.png'}
+                      alt={item.gift?.title}
+                      className="w-20 h-20 object-cover rounded-2xl"
+                    />
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-foreground">{item.gift?.title}</h3>
+                        <div className="text-right">
+                          <div className="text-sm text-muted-foreground font-light">Cantidad: {item.quantity}</div>
+                          <div className="text-lg font-semibold text-foreground">${item?.gift?.price * item?.quantity}</div>
                         </div>
                       </div>
+                      <p className="text-sm text-muted-foreground font-light mb-3 leading-relaxed">{item?.gift?.description}</p>
+                      {item?.gift?.categories?.map((category: any) => (
+                        <Badge key={category.id} variant="secondary" className="bg-white text-muted-foreground border-0">
+                          {category.name}
+                        </Badge>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </motion.div>
+                ))}
+              </div>
 
-                <Separator />
-
-                <div className="space-y-2">
-                  <div className="flex justify-between !text-md">
-                    <span>Subtotal:</span>
-                    <span>${cartData?.totalAmount}</span>
+              <div className="border-t border-border/30 mt-8 pt-8">
+                <div className="space-y-4">
+                  <div className="flex justify-between text-base">
+                    <span className="text-muted-foreground font-light">Subtotal:</span>
+                    <span className="font-medium text-foreground">${cartData.totalAmount}</span>
                   </div>
-                  <Separator />
-                  <div className="flex justify-between text-lg">
-                    <span>Total Pagado:</span>
-                    <span className="text-green-600">${cartData?.totalAmount}</span>
+                  <div className="flex justify-between text-base">
+                    <span className="text-muted-foreground font-light">Envío:</span>
+                    <span className="font-medium text-foreground">
+                      <span className="text-[#34c759]">No Aplica</span>
+                    </span>
+                  </div>
+                  <div className="border-t border-border/30 pt-4">
+                    <div className="flex justify-between text-2xl">
+                      <span className="font-semibold text-foreground">Total pagado:</span>
+                      <span className="font-semibold text-[#34c759]">${cartData.totalAmount}</span>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </motion.div>
 
-            {/* Footer Message */}
-            <div className="text-center mt-12 p-6 bg-card rounded-lg border">
-              <Heart className="h-8 w-8 text-primary mx-auto mb-4" />
-              <h3 className="text-lg mb-2">¡Gracias por ser parte de este momento especial!</h3>
-              <p className="text-muted-foreground">
-                Tu regalo llegará directamente a {weddinglist?.coupleName}, y seguramente les traerá mucha alegría en su nuevo hogar.
-              </p>
-            </div>
+            {/* User Information */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="bg-white rounded-3xl p-8 shadow-sm border border-border/30">
+              <div className="flex items-center space-x-3 mb-8">
+                <div className="w-10 h-10 bg-[#f5f5f7] rounded-full flex items-center justify-center">
+                  <UserCircle className="h-5 w-5 text-[#d4704a]" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-foreground tracking-tight">Información del invitado</h2>
+                  <p className="text-muted-foreground font-light">Detalles del remitente</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-8 mb-8">
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Mail className="h-4 w-4 text-[#d4704a]" />
+                      <span className="text-sm font-medium text-foreground">Información del remitente</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground font-light space-y-1 pl-6">
+                      <p>{cartData?.inviteeName}</p>
+                      <p>{cartData?.inviteeEmail}</p>
+                      <p>{cartData?.phoneNumber}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {cartData?.guestInfo?.message && (
+                <div className="mb-8">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Heart className="h-4 w-4 text-[#d4704a]" />
+                    <span className="text-sm font-medium text-foreground">Mensaje para la pareja</span>
+                  </div>
+                  <div className="bg-[#f5f5f7] p-6 rounded-2xl text-base font-light text-foreground leading-relaxed">
+                    "{cartData?.guestInfo?.message}"
+                  </div>
+                </div>
+              )}
+            </motion.div>
           </div>
 
-          {/* Actions Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Next Steps */}
-            <Card>
-              <CardHeader>
-                <CardTitle>¿Qué sigue?</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">1</div>
-                    <div>
-                      <p className="!text-md">Confirmación por correo</p>
-                      <p className="text-xs text-muted-foreground">Te enviamos los detalles a tu email</p>
-                    </div>
-                  </div>
+          {/* Sidebar */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Order Timeline */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="bg-[#f5f5f7] rounded-3xl p-8">
+              <h3 className="text-2xl font-semibold text-foreground mb-8 tracking-tight">Estado del pedido</h3>
 
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-muted-foreground text-xs">3</div>
-                    <div>
-                      <p className="!text-md">Confirmación de la pareja</p>
-                      <p className="text-xs text-muted-foreground">¡Tan pronto como puedan!</p>
-                    </div>
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-[#34c759] rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-foreground">Pago confirmado</h4>
+                    <p className="text-sm text-muted-foreground font-light">Tu pago fue procesado exitosamente</p>
+                    <p className="text-xs text-[#34c759] font-medium mt-1">Completado</p>
                   </div>
                 </div>
 
-                <Separator />
-
-                <div className="space-y-2">
-                  {/* <Button variant="outline" className="w-full justify-start" size="sm">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Reenviar confirmación
-                  </Button> */}
-
-                  <Button variant="outline" className="w-full justify-start" size="sm" onClick={() => window.print()}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Descargar comprobante
-                  </Button>
-
-                  {/* <Button variant="outline" className="w-full justify-start" size="sm">
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Compartir regalo
-                  </Button> */}
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-[#d4704a] rounded-full flex items-center justify-center flex-shrink-0">
+                    <Mail className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-foreground">Correo de confirmación</h4>
+                    <p className="text-sm text-muted-foreground font-light">
+                      Enviamos un correo de confirmación. Revisa tu bandeja de SPAM o correo no deseado
+                    </p>
+                    <p className="text-xs text-[#d4704a] font-medium mt-1">En progreso</p>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Payment Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Información de Pago</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between !text-md">
-                  <span>Método de pago:</span>
-                  <span>{getPaymentMethodName(cartData?.paymentMethod)}</span>
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-[#d4704a] rounded-full flex items-center justify-center flex-shrink-0">
+                    <Bell className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-muted-foreground">Confirmación para la pareja</h4>
+                    <p className="text-sm text-muted-foreground font-light">¡Serán notificados de tu regalo!</p>
+                    <p className="text-xs text-[#d4704a] font-medium mt-1">En progreso</p>{' '}
+                  </div>
                 </div>
-                <div className="flex justify-between !text-md">
-                  <span>Estado:</span>
-                  <Badge className="bg-green-500">Aprobado</Badge>
-                </div>
-                <div className="flex justify-between !text-md">
-                  <span>Fecha:</span>
-                  <span>{new Date().toLocaleDateString('es-MX')}</span>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </motion.div>
 
-            {/* Actions */}
-            <div className="space-y-3 print:hidden">
-              <Button className="w-full" onClick={() => navigate(`/${coupleSlug}/regalos`)}>
-                Ver Más Regalos
-              </Button>
+            {/* Payment Information */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className="bg-white rounded-3xl p-8 shadow-sm border border-border/30">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-10 h-10 bg-[#f5f5f7] rounded-full flex items-center justify-center">
+                  <CreditCard className="h-5 w-5 text-[#d4704a]" />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground tracking-tight">Información de pago</h3>
+              </div>
 
-              <Button variant="outline" className="w-full" onClick={() => navigate(`/${coupleSlug}`)}>
-                <Home className="h-4 w-4 mr-2" />
-                Ir al Inicio
-              </Button>
-            </div>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground font-light">Método de pago:</span>
+                  <span className="text-sm font-medium text-foreground">
+                    {cartData.paymentType === 'STRIPE' ? 'Tarjeta de crédito/débito' : 'PayPal'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground font-light">Estado:</span>
+                  <Badge className="bg-[#34c759] text-white border-0 font-medium">Aprobado</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground font-light">Fecha:</span>
+                  <span className="text-sm font-medium text-foreground">{new Date().toLocaleDateString('es-MX')}</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Quick Actions */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.0 }}
+              className="space-y-4">
+              <div className="grid grid-cols-1 gap-3">
+                <Button
+                  variant="outline"
+                  className="justify-start h-12 rounded-2xl bg-white border border-border/30 hover:bg-[#f5f5f7] transition-colors">
+                  <Mail className="h-4 w-4 mr-3" />
+                  <span className="font-light">Reenviar confirmación</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="justify-start h-12 rounded-2xl bg-white border border-border/30 hover:bg-[#f5f5f7] transition-colors">
+                  <Download className="h-4 w-4 mr-3" />
+                  <span className="font-light">Descargar comprobante</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="justify-start h-12 rounded-2xl bg-white border border-border/30 hover:bg-[#f5f5f7] transition-colors">
+                  <Share2 className="h-4 w-4 mr-3" />
+                  <span className="font-light">Compartir regalo</span>
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 pt-4">
+                <Button
+                  className="h-12 bg-[#d4704a] text-white rounded-2xl font-medium border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+                  onClick={() => navigate(`/${coupleSlug}/regalos`)}>
+                  Ver más regalos
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-12 rounded-2xl bg-white border border-border/30 hover:bg-[#f5f5f7] transition-colors font-light"
+                  onClick={() => navigate(`/${coupleSlug}`)}>
+                  <Home className="h-4 w-4 mr-2" />
+                  Ir al inicio
+                </Button>
+              </div>
+            </motion.div>
           </div>
         </div>
+
+        {/* Footer Message */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.2 }}
+          className="text-center mt-16 p-12 bg-gradient-to-r from-[#d4704a]/5 to-white/5 rounded-3xl border border-border/30">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#d4704a]/10 rounded-full mb-6">
+            <Heart className="h-8 w-8 text-[#d4704a]" />
+          </div>
+          <h3 className="text-2xl font-semibold text-foreground mb-4 tracking-tight">Gracias por ser parte de este momento especial</h3>
+          <p className="text-lg text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
+            Tu regalo llegará directamente a {weddinglist?.coupleName}, y seguramente les traerá mucha alegría en su nuevo hogar. Eres parte
+            de su historia de amor.
+          </p>
+        </motion.div>
       </div>
     </div>
   );
