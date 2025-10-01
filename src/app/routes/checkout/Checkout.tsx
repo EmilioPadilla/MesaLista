@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { User, ArrowRight, CheckCircle } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
 import { useGetCart } from 'src/hooks/useCart';
-import { useCreateCheckoutSession, useCreatePayPalOrder, useCapturePayPalPayment } from 'src/hooks/usePayment';
+import { useCreateCheckoutSession, useCreatePayPalOrder } from 'src/hooks/usePayment';
 import { OutletContextType } from '../guest/PublicRegistry';
 import { message, Input, Button } from 'antd';
 import { useUpdateCartDetails } from 'src/hooks/useCart';
 import { motion } from 'motion/react';
 import { useWeddingListBySlug } from 'src/hooks/useWeddingList';
+import { useCancelPayment } from 'src/hooks/usePayment';
+import { useSearchParams } from 'react-router-dom';
 
 const { TextArea } = Input;
 
@@ -20,6 +22,11 @@ export function Checkout() {
   const { mutate: createCheckoutSession, isPending: isCreatingSession } = useCreateCheckoutSession();
   const { mutate: createPayPalOrder, isPending: isCreatingPayPalOrder } = useCreatePayPalOrder();
   const { data: weddinglist } = useWeddingListBySlug(coupleSlug);
+  const { mutate: cancelPayment } = useCancelPayment();
+  const [searchParams] = useSearchParams();
+  const cartId = searchParams.get('cartId');
+  const cancelled = searchParams.get('cancelled');
+  const paymentMethod = searchParams.get('paymentMethod');
 
   const coupleName = weddinglist?.coupleName;
 
@@ -37,6 +44,19 @@ export function Checkout() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    if (cancelled === 'true' && cartId) {
+      cancelPayment(
+        { cartId, paymentMethod: paymentMethod || 'STRIPE' },
+        {
+          onSuccess: () => {
+            message.info('Pago cancelado. Puedes intentar nuevamente.');
+          },
+        },
+      );
+    }
+  }, [cancelled, cartId, paymentMethod]);
 
   const cartTotal = cart?.items?.reduce((sum: number, item: any) => sum + (item.gift?.price || 0) * item.quantity, 0) || 0;
   const finalTotal = cartTotal;
@@ -82,7 +102,7 @@ export function Checkout() {
             {
               cartId: cart.id,
               successUrl: `${baseUrl}/${coupleSlug}/confirmation?cartId=${cart.sessionId}`,
-              cancelUrl: `${baseUrl}/${coupleSlug}/checkout`,
+              cancelUrl: `${baseUrl}/${coupleSlug}/checkout?cancelled=true&cartId=${cart.id}&paymentMethod=${selectedPaymentMethod}`,
               orderId: cart.id,
             },
             {
@@ -132,7 +152,7 @@ export function Checkout() {
             {
               cartId: cart.id,
               successUrl: `${baseUrl}/${coupleSlug}/confirmation?cartId=${cart.sessionId}`,
-              cancelUrl: `${baseUrl}/${coupleSlug}/checkout`,
+              cancelUrl: `${baseUrl}/${coupleSlug}/checkout?cancelled=true&cartId=${cart.id}&paymentMethod=${selectedPaymentMethod}`,
             },
             {
               onSuccess: (paypalResponse) => {

@@ -327,6 +327,13 @@ export const payment_endpoints = {
    * @access Public
    */
   capturePayPalPayment: `/payments/capture-paypal-payment`,
+
+  /**
+   * Cancel payment (Stripe or PayPal)
+   * @method POST
+   * @access Public
+   */
+  cancelPayment: `/payments/cancel-payment`,
 };
 
 /**

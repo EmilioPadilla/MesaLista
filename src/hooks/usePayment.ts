@@ -82,3 +82,12 @@ export const useCapturePayPalPayment = () => {
     },
   });
 };
+
+/**
+ * Hook to cancel a payment (Stripe or PayPal)
+ */
+export const useCancelPayment = () => {
+  return useMutation({
+    mutationFn: (data: { cartId: string; paymentMethod?: string }) => paymentService.cancelPayment(data),
+  });
+};

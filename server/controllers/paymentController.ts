@@ -439,6 +439,65 @@ export default {
     }
   },
 
+  // Handle payment cancellation (both Stripe and PayPal)
+  handlePaymentCancellation: async (req: Request, res: Response) => {
+    try {
+      const { cartId, paymentMethod } = req.body;
+
+      if (!cartId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cart ID is required',
+        });
+      }
+
+      const parsedCartId = parseInt(cartId);
+      if (isNaN(parsedCartId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid cart ID format',
+        });
+      }
+
+      // Get cart to verify it exists
+      const cart = await prisma.cart.findUnique({
+        where: { id: parsedCartId },
+      });
+
+      if (!cart) {
+        return res.status(404).json({
+          success: false,
+          message: 'Cart not found',
+        });
+      }
+
+      // Only update if cart is still pending (not already paid)
+      if (cart.status === 'PENDING') {
+        await prisma.cart.update({
+          where: { id: parsedCartId },
+          data: {
+            status: 'CANCELLED',
+            updatedAt: new Date(),
+          },
+        });
+
+        console.log(`Payment cancelled for cart ${parsedCartId} via ${paymentMethod || 'unknown'}`);
+      }
+
+      res.json({
+        success: true,
+        message: 'Payment cancellation recorded',
+        cartStatus: cart.status === 'PENDING' ? 'CANCELLED' : cart.status,
+      });
+    } catch (error) {
+      console.error('Error handling payment cancellation:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to handle payment cancellation',
+      });
+    }
+  },
+
   // Capture PayPal payment
   capturePayPalPayment: async (req: Request, res: Response) => {
     try {

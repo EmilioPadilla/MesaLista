@@ -6,6 +6,8 @@ const router = express.Router();
 
 router.post('/create-checkout-session', paymentController.createCheckoutSession);
 
+router.post('/cancel-payment', paymentController.handlePaymentCancellation);
+
 router.get('/:id/summary', paymentController.getPaymentSummary);
 
 router.get('/', authenticateSession, paymentController.getAllPayments);

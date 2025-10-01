@@ -134,6 +134,17 @@ export const paymentService = {
     const response = await apiClient.post(api_endpoints.payments.capturePayPalPayment, data);
     return response.data;
   },
+
+  /**
+   * Cancel payment (Stripe or PayPal)
+   *
+   * @param data Payment cancellation data
+   * @returns Payment cancellation response
+   */
+  cancelPayment: async (data: { cartId: string; paymentMethod?: string }): Promise<{ success: boolean; message: string; cartStatus: string }> => {
+    const response = await apiClient.post(api_endpoints.payments.cancelPayment, data);
+    return response.data;
+  },
 };
 
 export default paymentService;
