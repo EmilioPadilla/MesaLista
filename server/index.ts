@@ -13,6 +13,7 @@ import userRoutes from './routes/userRoutes.js';
 import giftRoutes from './routes/giftRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import emailRoutes from './routes/emailRoutes.js';
 import fileUploadRouter from './routes/fileUpload.js';
 import weddingListRoutes from './routes/weddingListRoutes.js';
 import bodyParser from 'body-parser';
@@ -115,6 +116,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/gift', giftRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/email', emailRoutes);
 app.use('/api/wedding-list', weddingListRoutes);
 app.use('/api/upload', fileUploadRouter);
 

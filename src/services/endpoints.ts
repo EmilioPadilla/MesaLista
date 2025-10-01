@@ -330,16 +330,31 @@ export const payment_endpoints = {
 };
 
 /**
+ * Email endpoints
+ */
+export const email_endpoints = {
+  /**
+   * Resend payment confirmation emails
+   * @method POST
+   * @access Public
+   */
+  resendPaymentConfirmation: `/email/resend-payment-confirmation`,
+};
+
+/**
  * Combined endpoints for easy access
  */
-export const api_endpoints = {
+export const endpoints = {
   auth: auth_endpoints,
   users: user_endpoints,
   gifts: gift_endpoints,
   weddingLists: weddingList_endpoints,
   purchases: purchase_endpoints,
   payments: payment_endpoints,
+  email: email_endpoints,
   docs: docs_endpoints,
 };
+
+export const api_endpoints = endpoints;
 
 export default api_endpoints;

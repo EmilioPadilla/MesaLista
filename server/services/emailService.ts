@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 // Configure SendGrid
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
-const FROM_EMAIL = process.env.FROM_EMAIL || 'no-responder@mesalista.com.mx';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'no-responder@bodasolyemilio.com';
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
