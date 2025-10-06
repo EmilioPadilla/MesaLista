@@ -366,4 +366,239 @@ Este es un email automático de notificación
 MesaLista - Haciendo los regalos de boda más fáciles
     `.trim();
   }
+
+  /**
+   * Generate HTML email template for admin contact form notification
+   */
+  static generateContactFormAdminEmailHTML(data: {
+    name: string;
+    email: string;
+    phone?: string;
+    subject: string;
+    message: string;
+  }): string {
+    const subjectMap: Record<string, string> = {
+      'crear-lista': 'Crear lista de regalos',
+      'comprar-regalo': 'Comprar un regalo',
+      'problema-tecnico': 'Problema técnico',
+      'facturacion': 'Facturación',
+      'sugerencia': 'Sugerencia',
+      'otro': 'Otro',
+    };
+
+    const subjectText = subjectMap[data.subject] || data.subject;
+
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Nuevo mensaje de contacto</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f7;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f7; padding: 40px 20px;">
+            <tr>
+              <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                  <!-- Header -->
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #007aff 0%, #0051d0 100%); padding: 40px; text-align: center;">
+                      <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">Nuevo Mensaje de Contacto</h1>
+                    </td>
+                  </tr>
+                  
+                  <!-- Content -->
+                  <tr>
+                    <td style="padding: 40px;">
+                      <h2 style="color: #1d1d1f; margin: 0 0 24px 0; font-size: 20px; font-weight: 600;">Información del Contacto</h2>
+                      
+                      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
+                        <tr>
+                          <td style="padding: 12px 0; border-bottom: 1px solid #e5e5e7;">
+                            <strong style="color: #1d1d1f;">Nombre:</strong>
+                            <span style="color: #6e6e73; margin-left: 8px;">${data.name}</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 12px 0; border-bottom: 1px solid #e5e5e7;">
+                            <strong style="color: #1d1d1f;">Email:</strong>
+                            <a href="mailto:${data.email}" style="color: #007aff; margin-left: 8px; text-decoration: none;">${data.email}</a>
+                          </td>
+                        </tr>
+                        ${
+                          data.phone
+                            ? `
+                        <tr>
+                          <td style="padding: 12px 0; border-bottom: 1px solid #e5e5e7;">
+                            <strong style="color: #1d1d1f;">Teléfono:</strong>
+                            <a href="tel:${data.phone}" style="color: #007aff; margin-left: 8px; text-decoration: none;">${data.phone}</a>
+                          </td>
+                        </tr>
+                        `
+                            : ''
+                        }
+                        <tr>
+                          <td style="padding: 12px 0; border-bottom: 1px solid #e5e5e7;">
+                            <strong style="color: #1d1d1f;">Asunto:</strong>
+                            <span style="color: #6e6e73; margin-left: 8px;">${subjectText}</span>
+                          </td>
+                        </tr>
+                      </table>
+                      
+                      <h3 style="color: #1d1d1f; margin: 24px 0 12px 0; font-size: 18px; font-weight: 600;">Mensaje:</h3>
+                      <div style="background-color: #f5f5f7; padding: 20px; border-radius: 12px; color: #1d1d1f; line-height: 1.6; white-space: pre-wrap;">${data.message}</div>
+                    </td>
+                  </tr>
+                  
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background-color: #f5f5f7; padding: 24px; text-align: center;">
+                      <p style="color: #6e6e73; margin: 0; font-size: 14px;">
+                        Este mensaje fue enviado desde el formulario de contacto de MesaLista
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Generate text email template for admin contact form notification
+   */
+  static generateContactFormAdminEmailText(data: {
+    name: string;
+    email: string;
+    phone?: string;
+    subject: string;
+    message: string;
+  }): string {
+    const subjectMap: Record<string, string> = {
+      'crear-lista': 'Crear lista de regalos',
+      'comprar-regalo': 'Comprar un regalo',
+      'problema-tecnico': 'Problema técnico',
+      'facturacion': 'Facturación',
+      'sugerencia': 'Sugerencia',
+      'otro': 'Otro',
+    };
+
+    const subjectText = subjectMap[data.subject] || data.subject;
+
+    return `
+Nuevo Mensaje de Contacto - MesaLista
+
+Información del Contacto:
+- Nombre: ${data.name}
+- Email: ${data.email}
+${data.phone ? `- Teléfono: ${data.phone}` : ''}
+- Asunto: ${subjectText}
+
+Mensaje:
+${data.message}
+
+---
+Este mensaje fue enviado desde el formulario de contacto de MesaLista
+    `.trim();
+  }
+
+  /**
+   * Generate HTML email template for user contact form confirmation
+   */
+  static generateContactFormUserEmailHTML(data: {
+    name: string;
+    email: string;
+    phone?: string;
+    subject: string;
+    message: string;
+  }): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Confirmación de contacto</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f7;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f7; padding: 40px 20px;">
+            <tr>
+              <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                  <!-- Header -->
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #34c759 0%, #30d158 100%); padding: 40px; text-align: center;">
+                      <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">¡Gracias por contactarnos!</h1>
+                    </td>
+                  </tr>
+                  
+                  <!-- Content -->
+                  <tr>
+                    <td style="padding: 40px;">
+                      <p style="color: #1d1d1f; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                        Hola <strong>${data.name}</strong>,
+                      </p>
+                      
+                      <p style="color: #1d1d1f; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                        Hemos recibido tu mensaje y nuestro equipo lo revisará pronto. Te responderemos en un plazo máximo de 24 horas.
+                      </p>
+                      
+                      <div style="background-color: #f5f5f7; padding: 20px; border-radius: 12px; margin: 24px 0;">
+                        <p style="color: #6e6e73; margin: 0 0 8px 0; font-size: 14px;"><strong>Tu mensaje:</strong></p>
+                        <p style="color: #1d1d1f; margin: 0; line-height: 1.6; white-space: pre-wrap;">${data.message}</p>
+                      </div>
+                      
+                      <p style="color: #1d1d1f; font-size: 16px; line-height: 1.6; margin: 24px 0 0 0;">
+                        Saludos,<br>
+                        <strong>El equipo de MesaLista</strong>
+                      </p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background-color: #f5f5f7; padding: 24px; text-align: center;">
+                      <p style="color: #6e6e73; margin: 0; font-size: 14px;">
+                        © 2025 MesaLista. Todos los derechos reservados.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Generate text email template for user contact form confirmation
+   */
+  static generateContactFormUserEmailText(data: {
+    name: string;
+    email: string;
+    phone?: string;
+    subject: string;
+    message: string;
+  }): string {
+    return `
+Hola ${data.name},
+
+Hemos recibido tu mensaje y nuestro equipo lo revisará pronto. Te responderemos en un plazo máximo de 24 horas.
+
+Tu mensaje:
+${data.message}
+
+Saludos,
+El equipo de MesaLista
+
+---
+© 2025 MesaLista. Todos los derechos reservados.
+    `.trim();
+  }
 }

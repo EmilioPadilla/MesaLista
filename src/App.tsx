@@ -21,6 +21,7 @@ import { Checkout } from 'routes/checkout/Checkout';
 import { OrderConfirmation } from 'routes/checkout/OrderConfirmation';
 import { ManageRegistry } from 'src/app/routes/couple/ManageRegistry';
 import { SearchPage } from 'src/app/routes/SearchPage';
+import { Contact } from 'routes/Contact';
 
 function App() {
   const isLocalhost = window.location.hostname === 'localhost';
@@ -46,6 +47,15 @@ function App() {
               <>
                 <TopNav />
                 <SearchPage />
+              </>
+            }
+          />
+          <Route
+            path="/contacto"
+            element={
+              <>
+                <TopNav />
+                <Contact />
               </>
             }
           />

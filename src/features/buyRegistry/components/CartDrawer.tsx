@@ -1,10 +1,8 @@
 import React from 'react';
-import { Drawer, Button as AntdButton, Image } from 'antd';
-import { CloseCircleOutlined } from '@ant-design/icons';
+import { Drawer, Button, Image } from 'antd';
 import type { Cart, CartItem } from 'types/models/cart';
-import { GiftIcon, Minus, Package, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { GiftIcon, Minus, Package, Plus, Trash2, X } from 'lucide-react';
 import { Card, CardContent } from 'components/core/Card';
-import { Button } from 'components/core/Button';
 import { useNavigate } from 'react-router-dom';
 import { useRemoveGiftFromCart, useUpdateCartItemQuantity } from 'hooks/useCart';
 
@@ -34,13 +32,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData,
       title={
         <>
           <div className="flex justify-between">
-            <div className="flex items-center">
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Carrito de Regalos
-            </div>
-            <CloseCircleOutlined onClick={onClose} />
+            <div className="flex items-center">Tu Carrito de Regalos</div>
+            <X className="h-6 w-6 cursor-pointer" onClick={onClose} />
           </div>
-          <p className="text-md text-gray-500">Revisa tus regalos seleccionados antes de proceder al pago</p>
+          <p className="text-md text-gray-500">Revisa los regalos seleccionados antes de continuar</p>
         </>
       }
       placement="right"
@@ -55,10 +50,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData,
             <span>Total:</span>
             <span className="text-primary">${cartTotal.toLocaleString()}</span>
           </div>
-          <AntdButton disabled={cartItemCount === 0} className="w-full" type="primary" onClick={() => navigate(`/${coupleSlug}/checkout`)}>
+          <Button disabled={cartItemCount === 0} className="w-full" type="primary" onClick={() => navigate(`/${coupleSlug}/checkout`)}>
             <GiftIcon className="h-4 w-4 mr-2" />
             Proceder al Pago
-          </AntdButton>
+          </Button>
         </div>
       }>
       <div className="flex flex-col h-full">
@@ -88,21 +83,21 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData,
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center space-x-2">
                             <Button
-                              variant="outline"
-                              size="sm"
+                              variant="outlined"
+                              size="small"
                               onClick={() => updateCartQuantity({ cartItemId: item.id as unknown as number, quantity: item.quantity - 1 })}>
                               <Minus className="h-3 w-3" />
                             </Button>
                             <span className="w-8 text-center">{item.quantity}</span>
                             <Button
-                              variant="outline"
-                              size="sm"
+                              variant="outlined"
+                              size="small"
                               onClick={() => updateCartQuantity({ cartItemId: item.id as unknown as number, quantity: item.quantity + 1 })}>
                               <Plus className="h-3 w-3" />
                             </Button>
                           </div>
 
-                          <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.id as unknown as number)}>
+                          <Button type="default" size="small" onClick={() => removeFromCart(item.id as unknown as number)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>

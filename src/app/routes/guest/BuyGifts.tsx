@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Filter, Gift as GiftIcon, ArrowUpDown, MapPin } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
-import { Button, Spin, Select, Col, Row, Input, Switch, Badge, Card, Typography, Tooltip } from 'antd';
+import { Button, Spin, Select, Col, Row, Input, Switch, Badge, Card } from 'antd';
 import type { Gift, GiftCategory } from 'types/models/gift';
 import { PlusCircleOutlined, SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useAddGiftToCart, useGetCart, useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'src/hooks/useCart';
@@ -19,8 +19,6 @@ import utc from 'dayjs/plugin/utc';
 import { useDeviceType } from 'src/hooks/useDeviceType';
 
 dayjs.extend(utc);
-
-const { Title } = Typography;
 
 export function BuyGifts() {
   const contextData = useOutletContext<OutletContextType>();

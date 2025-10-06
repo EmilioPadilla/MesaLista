@@ -6,7 +6,8 @@ const prisma = new PrismaClient();
 
 // Configure SendGrid
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
-const FROM_EMAIL = process.env.FROM_EMAIL || 'no-responder@bodasolyemilio.com';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'info@mesalista.com.mx';
+const TEMP_RECIPIENT_EMAIL = process.env.TEMP_RECIPIENT_EMAIL || 'padillam_@hotmail.com';
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
@@ -101,9 +102,10 @@ class EmailService {
   }
 
   /**
-   * Get payment data from database and send both emails
+   * Get payment email data from database
+   * Extracts and formats payment data for email sending
    */
-  async sendPaymentEmails(cartId: number): Promise<void> {
+  async getPaymentEmailData(cartId: number): Promise<PaymentEmailData> {
     try {
       // Get cart with all related data
       const cart = await prisma.cart.findUnique({
@@ -169,6 +171,20 @@ class EmailService {
         },
       };
 
+      return emailData;
+    } catch (error) {
+      console.error('Error getting payment email data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get payment data from database and send both emails
+   */
+  async sendPaymentEmails(cartId: number): Promise<void> {
+    try {
+      const emailData = await this.getPaymentEmailData(cartId);
+
       // Send both emails
       const promises = [];
 
@@ -183,6 +199,54 @@ class EmailService {
       console.log(`Payment emails sent successfully for cart: ${cartId}`);
     } catch (error) {
       console.error('Error sending payment emails:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send contact form email to admin
+   */
+  async sendContactFormEmail(data: { name: string; email: string; phone?: string; subject: string; message: string }): Promise<void> {
+    if (!SENDGRID_API_KEY) {
+      console.warn('SendGrid API key not configured. Skipping email.');
+      return;
+    }
+
+    const subjectMap: Record<string, string> = {
+      'crear-lista': 'Crear lista de regalos',
+      'comprar-regalo': 'Comprar un regalo',
+      'problema-tecnico': 'Problema técnico',
+      'facturacion': 'Facturación',
+      'sugerencia': 'Sugerencia',
+      'otro': 'Otro',
+    };
+
+    const subjectText = subjectMap[data.subject] || data.subject;
+
+    // Email to admin
+    const adminMsg = {
+      to: TEMP_RECIPIENT_EMAIL, // Send to admin email
+      from: FROM_EMAIL,
+      subject: `[Contacto MesaLista] ${subjectText} - ${data.name}`,
+      html: EmailTemplates.generateContactFormAdminEmailHTML(data),
+      text: EmailTemplates.generateContactFormAdminEmailText(data),
+    };
+
+    // Auto-reply to user
+    const userMsg = {
+      to: data.email,
+      from: FROM_EMAIL,
+      subject: 'Hemos recibido tu mensaje - MesaLista',
+      html: EmailTemplates.generateContactFormUserEmailHTML(data),
+      text: EmailTemplates.generateContactFormUserEmailText(data),
+    };
+
+    try {
+      // Send both emails
+      await Promise.all([sgMail.send(adminMsg), sgMail.send(userMsg)]);
+      console.log(`Contact form email sent from: ${data.email}`);
+    } catch (error) {
+      console.error('Error sending contact form email:', error);
       throw error;
     }
   }

@@ -341,11 +341,32 @@ export const payment_endpoints = {
  */
 export const email_endpoints = {
   /**
-   * Resend payment confirmation emails
+   * Resend payment confirmation emails to both admin and invitee
    * @method POST
    * @access Public
    */
   resendPaymentConfirmation: `/email/resend-payment-confirmation`,
+
+  /**
+   * Resend payment notification email to admin only
+   * @method POST
+   * @access Public
+   */
+  resendPaymentToAdmin: `/email/resend-payment-to-admin`,
+
+  /**
+   * Resend payment confirmation email to invitee only
+   * @method POST
+   * @access Public
+   */
+  resendPaymentToInvitee: `/email/resend-payment-to-invitee`,
+
+  /**
+   * Send contact form email
+   * @method POST
+   * @access Public
+   */
+  sendContactForm: `/email/contact`,
 };
 
 /**

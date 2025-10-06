@@ -1,10 +1,12 @@
-import { Heart, Gift, Users, Star, Shield, Sparkles, Plus, BarChart3, CheckCircle, ArrowRight } from 'lucide-react';
+import { useEffect } from 'react';
+import { Heart, Gift, Shield, Sparkles, Plus, BarChart3, CheckCircle, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useGetUserBySlug, useIsAuthenticated } from 'hooks/useUser';
 import { OutletContextType } from './guest/PublicRegistry';
 import { useWeddingListByCouple } from 'hooks/useWeddingList';
 import { Tooltip, Button, Card, Divider } from 'antd';
+import { Footer } from '../modules/navigation/Footer';
 
 export const HomePage = () => {
   const contextData = useOutletContext<OutletContextType>();
@@ -17,42 +19,9 @@ export const HomePage = () => {
   const totalGifts = weddinglist?.gifts.length;
   const progress = (purchasedGifts! / totalGifts!) * 100;
 
-  const faqs = [
-    // {
-    //   question: '¿Puedo cambiar de plan después de crear mi mesa?',
-    //   answer:
-    //     '¡Por supuesto! Puedes actualizar tu plan en cualquier momento desde tu panel de control. Los cambios se aplican inmediatamente.',
-    // },
-    // {
-    //   question: '¿Hay costos ocultos o comisiones adicionales?',
-    //   answer:
-    //     'No hay costos ocultos. Nuestros precios son transparentes y solo pagas la tarifa del plan que elijas. No cobramos comisiones por las compras.',
-    // },
-    {
-      question: '¿Cuándo estará disponible el servicio para mi evento?',
-      answer:
-        'Actualmente, estamos trabajando en la implementación de nuevos servicios y estamos en el proceso de lanzamiento. ¡Te invitamos a que te sigas al perfil de MesaLista para estar al tanto de los nuevos desarrollos!',
-    },
-    {
-      question: '¿Qué tipo de pagos aceptas?',
-      answer: 'Actualmente, aceptamos pagos por medio de PayPal y Stripe.',
-    },
-    {
-      question: '¿Qué pasa si mi boda se pospone?',
-      answer:
-        'Entendemos que las fechas pueden cambiar. Ofrecemos flexibilidad total para ajustar las fechas de tu evento sin costo adicional.',
-    },
-    {
-      question: '¿Puedo usar MesaLista para otros eventos además de bodas?',
-      answer:
-        '¡Definitivamente! Nuestros planes funcionan perfectamente para baby showers, aniversarios, quinceañeras y cualquier celebración especial.',
-    },
-    {
-      question: '¿Ofrecen soporte en español?',
-      answer:
-        'Sí, todo nuestro soporte está disponible en español. Nuestro equipo está ubicado en México y entiende perfectamente las tradiciones locales.',
-    },
-  ];
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const unknownUserHero = () => (
     <>
@@ -310,43 +279,6 @@ export const HomePage = () => {
             </div>
           </div>
         </motion.div>
-
-        <div className="py-24">
-          <Divider />
-        </div>
-
-        {/* FAQ Section */}
-        <section className="px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              className="text-center mb-16"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}>
-              <h2 className="text-4xl mb-6 text-primary">Preguntas Frecuentes</h2>
-              <p className="text-xl text-muted-foreground">Resolvemos tus dudas más comunes sobre nuestros planes</p>
-            </motion.div>
-
-            <div className="space-y-6">
-              {faqs.map((faq, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}>
-                  <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/30">
-                    <div className="p-6">
-                      <h3 className="text-lg mb-3">{faq.question}</h3>
-                      <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
       </section>
 
       {/* CTA Section */}
@@ -398,98 +330,7 @@ export const HomePage = () => {
       )}
 
       {/* Footer - Minimal Apple Style */}
-      <footer className="bg-[#f5f5f7] border-t border-border/30 py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div className="space-y-6">
-              <div className="flex items-center space-x-2">
-                <img src="/svg/MesaLista_isologo.svg" alt="Logo" className="h-10 w-30" />
-              </div>
-              <p className="text-muted-foreground font-light leading-relaxed">La plataforma de mesas de regalos más elegante de México.</p>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-medium text-foreground">Producto</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <a
-                    onClick={() => navigate('regalos')}
-                    className="text-muted-foreground hover:text-foreground transition-colors font-light">
-                    Explorar Regalos
-                  </a>
-                </li>
-                <li>
-                  <a onClick={() => navigate('')} className="text-muted-foreground hover:text-foreground transition-colors font-light">
-                    Planes
-                  </a>
-                </li>
-                {/* <li>
-                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
-                    Características
-                  </a>
-                </li> */}
-              </ul>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-medium text-foreground">Soporte</h4>
-              <ul className="space-y-2 text-sm">
-                {/* <li>
-                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
-                    Centro de Ayuda
-                  </a>
-                </li> */}
-                <li>
-                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
-                    Contacto
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
-                    FAQ
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-medium text-foreground">Empresa</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
-                    Acerca de
-                  </a>
-                </li>
-                {/* <li>
-                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
-                    Carreras
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
-                    Prensa
-                  </a>
-                </li> */}
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-border/30 pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex flex-wrap gap-6 text-sm text-muted-foreground font-light">
-              <a href="#" className="hover:text-foreground transition-colors">
-                Privacidad
-              </a>
-              <a href="#" className="hover:text-foreground transition-colors">
-                Términos
-              </a>
-              <a href="#" className="hover:text-foreground transition-colors">
-                Cookies
-              </a>
-            </div>
-            <p className="text-sm text-muted-foreground font-light">© 2025 MesaLista. Todos los derechos reservados.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

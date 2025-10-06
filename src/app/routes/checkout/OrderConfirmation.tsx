@@ -8,7 +8,7 @@ import { OutletContextType } from '../guest/PublicRegistry';
 import { useWeddingListBySlug } from 'src/hooks/useWeddingList';
 import { useEffect } from 'react';
 import { useCapturePayPalPayment } from 'src/hooks/usePayment';
-import { useResendPaymentConfirmation } from 'src/hooks/useEmail';
+import { useResendPaymentToInvitee } from 'src/hooks/useEmail';
 import { motion } from 'motion/react';
 import { message } from 'antd';
 
@@ -22,7 +22,7 @@ export function OrderConfirmation() {
   const { data: weddinglist } = useWeddingListBySlug(coupleSlug);
   const { data: cartData, isLoading: isLoadingCart, error: cartError } = useGetCart(cartId || '');
   const { mutate: capturePayPalPayment } = useCapturePayPalPayment();
-  const { mutate: resendEmail, isPending: isResendingEmail } = useResendPaymentConfirmation();
+  const { mutate: resendEmail, isPending: isResendingEmail } = useResendPaymentToInvitee();
   const [messageApi, contextHolder] = message.useMessage();
 
   // Handle PayPal payment capture
@@ -62,18 +62,18 @@ export function OrderConfirmation() {
     // Check if email was recently sent
     const resendKey = `email_resend_${cartData.id}`;
     const lastResendTime = localStorage.getItem(resendKey);
-    
+
     if (lastResendTime) {
       const timeSinceLastResend = Date.now() - parseInt(lastResendTime);
       const twoMinutesInMs = 2 * 60 * 1000; // 2 minutes
-      
+
       if (timeSinceLastResend < twoMinutesInMs) {
         const remainingSeconds = Math.ceil((twoMinutesInMs - timeSinceLastResend) / 1000);
         const remainingMinutes = Math.floor(remainingSeconds / 60);
         const seconds = remainingSeconds % 60;
-        
+
         messageApi.warning(
-          `Ya se reenvió la confirmación. Podrás reenviar nuevamente en ${remainingMinutes}:${seconds.toString().padStart(2, '0')}`
+          `Ya se reenvió la confirmación. Podrás reenviar nuevamente en ${remainingMinutes}:${seconds.toString().padStart(2, '0')}`,
         );
         return;
       }
@@ -85,12 +85,15 @@ export function OrderConfirmation() {
         onSuccess: () => {
           // Store the timestamp of successful resend
           localStorage.setItem(resendKey, Date.now().toString());
-          messageApi.success('¡Correos de confirmación reenviados exitosamente!');
-          
+          messageApi.success('¡Correo de confirmación reenviado exitosamente!');
+
           // Auto-clear the localStorage after 2 minutes
-          setTimeout(() => {
-            localStorage.removeItem(resendKey);
-          }, 2 * 60 * 1000);
+          setTimeout(
+            () => {
+              localStorage.removeItem(resendKey);
+            },
+            2 * 60 * 1000,
+          );
         },
         onError: (error) => {
           messageApi.error(error.message || 'Error al reenviar los correos');
