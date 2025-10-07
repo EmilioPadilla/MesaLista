@@ -5,12 +5,12 @@ import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useGetUserBySlug, useIsAuthenticated } from 'hooks/useUser';
 import { OutletContextType } from './guest/PublicRegistry';
 import { useWeddingListByCouple } from 'hooks/useWeddingList';
-import { Tooltip, Button, Card, Divider } from 'antd';
+import { Tooltip, Button, Card, Skeleton } from 'antd';
 import { Footer } from '../modules/navigation/Footer';
 
 export const HomePage = () => {
   const contextData = useOutletContext<OutletContextType>();
-  const { data: userData } = useGetUserBySlug(contextData?.coupleSlug);
+  const { data: userData, isLoading: isLoadingUser } = useGetUserBySlug(contextData?.coupleSlug);
   const { data: weddinglist } = useWeddingListByCouple(userData?.id);
   const { data: isAuthenticated = false } = useIsAuthenticated();
   const navigate = useNavigate();
@@ -106,13 +106,34 @@ export const HomePage = () => {
     </>
   );
 
+  const loadingSkeleton = () => (
+    <>
+      <div className="flex justify-center mb-8">
+        <Skeleton.Button active size="small" className="!w-48 !h-10" />
+      </div>
+
+      <Skeleton.Input active size="large" className="!w-full max-w-3xl !h-20 mb-6" block />
+
+      <div className="max-w-2xl mx-auto mb-8">
+        <Skeleton.Input active size="default" className="!w-full !h-8" block />
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <Skeleton.Button active size="large" className="!w-64 !h-14" />
+        <Skeleton.Button active size="large" className="!w-64 !h-14" />
+      </div>
+    </>
+  );
+
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
       <section className="relative bg-white py-20 px-4 sm:px-6 lg:px-8 min-h-[90vh] flex items-center">
         <div className="max-w-7xl mx-auto text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-            <div className="relative max-w-7xl mx-auto text-center">{!userData ? unknownUserHero() : userHero()}</div>
+            <div className="relative max-w-7xl mx-auto text-center">
+              {isLoadingUser && contextData?.coupleSlug ? loadingSkeleton() : !userData ? unknownUserHero() : userHero()}
+            </div>
           </motion.div>
 
           {userData?.role === 'COUPLE' && isAuthenticated && (

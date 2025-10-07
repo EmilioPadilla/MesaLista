@@ -74,11 +74,6 @@ function App() {
             </Route>
           </Route>
 
-          {/* Protected routes for guest */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/guest" element={<PublicRegistry />} />
-          </Route>
-
           {/* Redirect to login or dashboard based on auth status */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
