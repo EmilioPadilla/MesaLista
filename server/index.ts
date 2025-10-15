@@ -37,13 +37,24 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = parseInt(process.env.PORT || '8080', 10);
 
+// Redirect non-www to www in production
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    const host = req.get('host');
+    if (host === 'mesalista.com.mx') {
+      return res.redirect(301, `https://www.mesalista.com.mx${req.url}`);
+    }
+  }
+  next();
+});
+
 // Middleware
 // For development, allow specific origins with credentials
 app.use(
   cors({
     origin:
       process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_URL || 'https://www.mesalista.com.mx'
+        ? ['https://www.mesalista.com.mx', 'https://mesalista.com.mx'] // Allow both for transition period
         : ['http://localhost:5173', 'http://127.0.0.1:5173'], // Development origins
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
