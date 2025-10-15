@@ -16,7 +16,7 @@ export const useIsAuthenticated = (options?: Partial<UseQueryOptions<boolean, Er
       try {
         // Try to get current user - if successful, user is authenticated
         const user = await userService.getCurrentUser();
-        message.success(`Bienvenidos de vuelta, ${user.firstName} y ${user.spouseFirstName}!`);
+        message.success(`Bienvenid@ de vuelta, ${user.firstName}${user.spouseFirstName ? 'y' + user.spouseFirstName : ''}!`);
         return true;
       } catch (error) {
         // If getCurrentUser fails, user is not authenticated
@@ -96,7 +96,6 @@ export const useLogin = () => {
     },
     onError: (error) => {
       console.error('Login error:', error);
-      message.error('Error al iniciar sesión. Por favor verifica tus credenciales.');
     },
   });
 };
@@ -129,26 +128,6 @@ export const useCreateUser = () => {
 };
 
 /**
- * Hook to update an existing user
- */
-export const useUpdateUser = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<User> }) => userService.update(id, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [queryKeys.users, variables.id] });
-      queryClient.invalidateQueries({ queryKey: [queryKeys.users] });
-
-      // If the updated user is the current user, also invalidate currentUser
-      const currentUser = queryClient.getQueryData<User>([queryKeys.currentUser]);
-      if (currentUser && currentUser.id === variables.id) {
-        queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
-      }
-    },
-  });
-};
-
-/**
  * Hook to delete a user
  */
 export const useDeleteUser = () => {
@@ -157,6 +136,68 @@ export const useDeleteUser = () => {
     mutationFn: userService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.users] });
+    },
+  });
+};
+
+/**
+ * Hook to check if a couple slug is available
+ *
+ * @param slug Couple slug to check
+ * @param excludeUserId Optional user ID to exclude from the check (for updates)
+ * @param options React Query options
+ */
+export const useCheckSlugAvailability = (
+  slug: string | undefined,
+  excludeUserId?: number,
+  options?: Partial<UseQueryOptions<{ available: boolean; slug: string; message: string }, Error>>,
+) => {
+  return useQuery({
+    queryKey: [queryKeys.users, 'checkSlug', slug, excludeUserId],
+    queryFn: () => userService.checkSlugAvailability(slug!, excludeUserId),
+    enabled: !!slug && slug.length > 0,
+    staleTime: 0, // Always fetch fresh data
+    ...options,
+  });
+};
+
+/**
+ * Hook to update current user profile
+ */
+export const useUpdateCurrentUserProfile = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      firstName?: string;
+      lastName?: string;
+      spouseFirstName?: string;
+      spouseLastName?: string;
+      phoneNumber?: string;
+      coupleSlug?: string;
+    }) => userService.updateCurrentUserProfile(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
+      message.success('Perfil actualizado exitosamente');
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.error || 'Error al actualizar el perfil';
+      message.error(errorMessage);
+    },
+  });
+};
+
+/**
+ * Hook to update current user password
+ */
+export const useUpdateCurrentUserPassword = () => {
+  return useMutation({
+    mutationFn: (data: { currentPassword: string; newPassword: string }) => userService.updateCurrentUserPassword(data),
+    onSuccess: () => {
+      message.success('Contraseña actualizada exitosamente');
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.error || 'Error al actualizar la contraseña';
+      message.error(errorMessage);
     },
   });
 };

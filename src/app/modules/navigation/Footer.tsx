@@ -25,16 +25,11 @@ export const Footer = () => {
               </li>
               <li>
                 <a
-                  onClick={() => navigate('')}
+                  onClick={() => navigate('/precios')}
                   className="text-muted-foreground hover:text-foreground transition-colors font-light cursor-pointer">
                   Planes
                 </a>
               </li>
-              {/* <li>
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-light">
-                  Características
-                </a>
-              </li> */}
             </ul>
           </div>
 

@@ -57,6 +57,7 @@ export function SearchPage() {
   };
 
   const getProgressPercentage = (purchased: number, total: number) => {
+    if (total === 0) return 0;
     return Math.round((purchased / total) * 100);
   };
 

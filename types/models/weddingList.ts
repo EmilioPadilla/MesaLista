@@ -10,6 +10,7 @@ export interface WeddingList {
   invitationCount: number;
   weddingDate: Date;
   weddingLocation?: string;
+  weddingVenue?: string;
   imageUrl?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -67,6 +68,8 @@ export interface UpdateWeddingListRequest {
   description?: string;
   coupleName?: string;
   weddingDate?: string;
+  weddingLocation?: string;
+  weddingVenue?: string;
   imageUrl?: string;
   invitationCount?: number;
 }

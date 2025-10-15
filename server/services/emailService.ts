@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 // Configure SendGrid
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'info@mesalista.com.mx';
-const TEMP_RECIPIENT_EMAIL = process.env.TEMP_RECIPIENT_EMAIL || 'padillam_@hotmail.com';
+const TEMP_RECIPIENT_EMAIL = process.env.TEMP_RECIPIENT_EMAIL || 'paadiillaa@gmail.com';
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
@@ -165,7 +165,7 @@ class EmailService {
           spouseFirstName: couple.spouseFirstName || undefined,
           spouseLastName: couple.spouseLastName || undefined,
           // email: couple.email,
-          email: 'padillam_@hotmail.com',
+          email: 'paadiillaa@gmail.com',
           weddingDate: weddingList.weddingDate,
           weddingLocation: weddingList.weddingLocation || undefined,
         },
@@ -199,6 +199,32 @@ class EmailService {
       console.log(`Payment emails sent successfully for cart: ${cartId}`);
     } catch (error) {
       console.error('Error sending payment emails:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send email verification code
+   */
+  async sendVerificationCodeEmail(email: string, code: string): Promise<void> {
+    if (!SENDGRID_API_KEY) {
+      console.warn('SendGrid API key not configured. Skipping email.');
+      return;
+    }
+
+    const msg = {
+      to: email,
+      from: FROM_EMAIL,
+      subject: 'Código de verificación - MesaLista',
+      html: EmailTemplates.generateVerificationCodeEmailHTML(email, code),
+      text: EmailTemplates.generateVerificationCodeEmailText(email, code),
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log(`Verification code email sent to: ${email}`);
+    } catch (error) {
+      console.error('Error sending verification code email:', error);
       throw error;
     }
   }
@@ -247,6 +273,32 @@ class EmailService {
       console.log(`Contact form email sent from: ${data.email}`);
     } catch (error) {
       console.error('Error sending contact form email:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send password reset email
+   */
+  async sendPasswordResetEmail(email: string, firstName: string, resetLink: string): Promise<void> {
+    if (!SENDGRID_API_KEY) {
+      console.warn('SendGrid API key not configured. Skipping email.');
+      return;
+    }
+
+    const msg = {
+      to: email,
+      from: FROM_EMAIL,
+      subject: 'Restablecer contraseña - MesaLista',
+      html: EmailTemplates.generatePasswordResetEmailHTML(firstName, resetLink),
+      text: EmailTemplates.generatePasswordResetEmailText(firstName, resetLink),
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log(`Password reset email sent to: ${email}`);
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
       throw error;
     }
   }

@@ -324,7 +324,7 @@ export default {
         },
       });
 
-      const formattedPayments = payments.map((payment) => ({
+      const formattedPayments = payments.map((payment: any) => ({
         id: payment.id,
         amount: payment.amount,
         currency: payment.currency,
@@ -626,6 +626,70 @@ export default {
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : 'Failed to capture PayPal payment',
+      });
+    }
+  },
+
+  // Create Stripe checkout session for plan payment (signup)
+  createPlanCheckoutSession: async (req: Request, res: Response) => {
+    try {
+      const { planType, email, successUrl, cancelUrl } = req.body;
+
+      if (!planType || !email) {
+        return res.status(400).json({
+          success: false,
+          message: 'Plan type and email are required',
+        });
+      }
+
+      // Only fixed plan requires payment
+      if (planType !== 'FIXED') {
+        return res.status(400).json({
+          success: false,
+          message: 'Only fixed plan requires payment',
+        });
+      }
+
+      // Create line item for plan payment
+      const lineItems = [
+        {
+          price_data: {
+            currency: 'mxn',
+            product_data: {
+              name: 'Plan Fijo - MesaLista',
+              description: 'Pago único para acceso completo a MesaLista sin comisiones por ventas',
+            },
+            unit_amount: 300000, // $3,000 MXN in cents
+          },
+          quantity: 1,
+        },
+      ];
+
+      // Create Stripe checkout session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: lineItems,
+        mode: 'payment',
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        customer_email: email,
+        metadata: {
+          planType: 'FIXED',
+          email: email,
+          paymentFor: 'PLAN_SUBSCRIPTION',
+        },
+      });
+
+      res.json({
+        success: true,
+        sessionId: session.id,
+        url: session.url,
+      });
+    } catch (error) {
+      console.error('Error creating plan checkout session:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to create checkout session',
       });
     }
   },

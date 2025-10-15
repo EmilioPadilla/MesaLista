@@ -4,7 +4,10 @@ import { ConfigProvider } from 'antd';
 // Pages
 import Login from 'routes/Login';
 import Signup from 'routes/Signup';
+import SignupSuccess from 'routes/SignupSuccess';
 import Dashboard from 'routes/Dashboard';
+import { ForgotPassword } from 'routes/ForgotPassword';
+import { ResetPassword } from 'routes/ResetPassword';
 
 // Components
 import PublicRegistry from 'src/app/routes/guest/PublicRegistry';
@@ -22,6 +25,8 @@ import { OrderConfirmation } from 'routes/checkout/OrderConfirmation';
 import { ManageRegistry } from 'src/app/routes/couple/ManageRegistry';
 import { SearchPage } from 'src/app/routes/SearchPage';
 import { Contact } from 'routes/Contact';
+import { Settings } from './app/routes/Settings';
+import { PricingPage } from './app/routes/PricingPage';
 
 function App() {
   const isLocalhost = window.location.hostname === 'localhost';
@@ -41,6 +46,8 @@ function App() {
             }
           />
           <Route path="/login" element={<Login />} />
+          <Route path="/olvide-contrasena" element={<ForgotPassword />} />
+          <Route path="/restablecer-contrasena" element={<ResetPassword />} />
           <Route
             path="/buscar"
             element={
@@ -59,17 +66,28 @@ function App() {
               </>
             }
           />
-          {/* <Route path="/registro" element={<Signup />} /> */}
+          <Route path="/registro" element={<Signup />} />
+          <Route path="/registro-exitoso" element={<SignupSuccess />} />
+          <Route
+            path="/precios"
+            element={
+              <>
+                <TopNav />
+                <PricingPage />
+              </>
+            }
+          />
 
           {/* Public registry view for guests */}
           <Route path="/:coupleSlug" element={<PublicRegistry />}>
             <Route index element={<HomePage />} />
             <Route path="regalos" element={<BuyGifts />} />
             <Route path="checkout" element={<Checkout />} />
-            <Route path="confirmation" element={<OrderConfirmation />} />
+            <Route path="pago-confirmado" element={<OrderConfirmation />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<Dashboard />}>
                 <Route path="gestionar" element={<ManageRegistry />} />
+                <Route path="configuracion" element={<Settings />} />
               </Route>
             </Route>
           </Route>

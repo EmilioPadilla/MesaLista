@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gift, Heart, LogOut, Search, User as UserIcon, Users } from 'lucide-react';
+import { ArrowLeft, Gem, Gift, GiftIcon, Heart, LogOut, Search, User, User as UserIcon, Users } from 'lucide-react';
 import { message, Tooltip, Button, Divider } from 'antd';
 import { useGetUserBySlug, useIsAuthenticated, useLogout } from 'hooks/useUser';
 import { useDeviceType } from 'hooks/useDeviceType';
@@ -99,13 +99,23 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                 </Button>
               </Tooltip>
 
+              <Tooltip title={viewType === 'mobile' ? 'Precios' : ''} placement="bottom">
+                <Button
+                  type={currentPage === '/precios' ? 'primary' : 'text'}
+                  onClick={() => navigate('/precios')}
+                  className="flex items-center justify-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                  <Gem className="h-4 w-4" />
+                  {viewType !== 'mobile' && <span>Precios</span>}
+                </Button>
+              </Tooltip>
+
               {userData?.role === 'COUPLE' && isAuthenticated && (
                 <Tooltip title={viewType === 'mobile' ? 'Gestionar' : ''} placement="bottom">
                   <Button
                     type={currentPage === `/${coupleSlug}/gestionar` ? 'primary' : 'text'}
                     onClick={() => navigate(`/${coupleSlug}/gestionar`)}
                     className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
-                    <Users className="h-4 w-4" />
+                    <GiftIcon className="h-4 w-4" />
                     {viewType !== 'mobile' && <span>Gestionar</span>}
                   </Button>
                 </Tooltip>
@@ -125,11 +135,13 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
             {/* User Authentication */}
             {userData && isAuthenticated ? (
               <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2 cursor-pointer px-3 py-1 bg-secondary/50 rounded-full">
+                <div
+                  onClick={() => navigate(`/${coupleSlug}/configuracion`)}
+                  className="flex items-center space-x-2 cursor-pointer px-3 py-1 bg-secondary/50 rounded-full">
                   <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
                     <UserIcon className="h-4 w-4 text-primary" />
                   </div>
-                  <span className="!text-md text-foreground">{userData?.firstName}</span>
+                  {viewType !== 'mobile' && <span className="!text-md text-foreground">{userData?.firstName}</span>}
                 </div>
                 <Tooltip title={viewType === 'mobile' ? 'Salir' : ''} placement="bottom">
                   <Button
@@ -148,14 +160,16 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   type="text"
                   onClick={() => navigate('/login')}
                   className="transition-all cursor-pointer duration-200 hover:shadow-md !rounded-lg !text-md">
-                  {viewType !== 'mobile' ? <span>Iniciar Sesión</span> : <LoginOutlined />}
+                  {viewType !== 'mobile' ? <span>Iniciar Sesión</span> : <UserIcon className="h-4 w-4" />}
                 </Button>
-                {/* <Button
+                {viewType !== 'mobile' && (
+                  <Button
                     type="text"
                     onClick={() => navigate('/registro')}
                     className="transition-all cursor-pointer duration-200 hover:shadow-md !rounded-lg !text-md">
                     <span>Registrarse</span>
-                  </Button> */}
+                  </Button>
+                )}
               </div>
             )}
           </div>

@@ -1,4 +1,4 @@
-import { UserRole } from '../models/user.js';
+import { UserRole, PlanType } from '../models/user.js';
 
 export interface UserBase {
   id: number;
@@ -10,6 +10,7 @@ export interface UserBase {
   imageUrl?: string;
   phoneNumber?: string;
   role: UserRole;
+  planType?: PlanType;
   createdAt: Date;
 }
 
@@ -26,6 +27,8 @@ export interface UserCreateRequest {
   spouseLastName: string;
   phoneNumber?: string;
   role?: UserRole;
+  planType?: PlanType;
+  coupleSlug: string;
 }
 
 export interface UserUpdateRequest {

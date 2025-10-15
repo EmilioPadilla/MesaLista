@@ -509,13 +509,7 @@ Este mensaje fue enviado desde el formulario de contacto de MesaLista
   /**
    * Generate HTML email template for user contact form confirmation
    */
-  static generateContactFormUserEmailHTML(data: {
-    name: string;
-    email: string;
-    phone?: string;
-    subject: string;
-    message: string;
-  }): string {
+  static generateContactFormUserEmailHTML(data: { name: string; email: string; phone?: string; subject: string; message: string }): string {
     return `
       <!DOCTYPE html>
       <html>
@@ -579,13 +573,7 @@ Este mensaje fue enviado desde el formulario de contacto de MesaLista
   /**
    * Generate text email template for user contact form confirmation
    */
-  static generateContactFormUserEmailText(data: {
-    name: string;
-    email: string;
-    phone?: string;
-    subject: string;
-    message: string;
-  }): string {
+  static generateContactFormUserEmailText(data: { name: string; email: string; phone?: string; subject: string; message: string }): string {
     return `
 Hola ${data.name},
 
@@ -598,6 +586,210 @@ Saludos,
 El equipo de MesaLista
 
 ---
+© 2025 MesaLista. Todos los derechos reservados.
+    `.trim();
+  }
+
+  /**
+   * Generate HTML email template for email verification code
+   */
+  static generateVerificationCodeEmailHTML(email: string, code: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Código de Verificación - MesaLista</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f9fafb;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #d4704a 0%, #b85a3a 100%); color: white; padding: 32px 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px; font-weight: bold;">Verifica tu correo electrónico</h1>
+            <p style="margin: 8px 0 0 0; font-size: 16px; opacity: 0.9;">Estás a un paso de crear tu cuenta en MesaLista</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 32px 24px;">
+            <p style="font-size: 16px; margin-bottom: 24px;">Hola,</p>
+            
+            <p style="font-size: 16px; margin-bottom: 24px;">
+              Recibimos una solicitud para crear una cuenta en MesaLista con este correo electrónico. 
+              Para continuar, por favor ingresa el siguiente código de verificación:
+            </p>
+
+            <!-- Verification Code Box -->
+            <div style="background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); border: 2px solid #d4704a; border-radius: 12px; padding: 24px; text-align: center; margin: 32px 0;">
+              <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">Tu código de verificación</p>
+              <div style="font-size: 42px; font-weight: bold; color: #d4704a; letter-spacing: 8px; font-family: 'Courier New', monospace;">
+                ${code}
+              </div>
+              <p style="margin: 8px 0 0 0; font-size: 12px; color: #6b7280;">Este código expira en 10 minutos</p>
+            </div>
+
+            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0; border-radius: 4px;">
+              <p style="margin: 0; font-size: 14px; color: #92400e;">
+                <strong>⚠️ Importante:</strong> Si no solicitaste este código, puedes ignorar este correo de forma segura.
+              </p>
+            </div>
+
+            <p style="font-size: 14px; color: #6b7280; margin-top: 32px;">
+              Este código es personal e intransferible. No lo compartas con nadie.
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0; font-size: 14px; color: #6b7280;">
+              ¿Necesitas ayuda? Contáctanos en 
+              <a href="mailto:soporte@mesalista.com.mx" style="color: #d4704a; text-decoration: none;">soporte@mesalista.com.mx</a>
+            </p>
+            <p style="margin: 16px 0 0 0; font-size: 12px; color: #9ca3af;">
+              © 2025 MesaLista. Todos los derechos reservados.
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `.trim();
+  }
+
+  /**
+   * Generate plain text email for email verification code
+   */
+  static generateVerificationCodeEmailText(email: string, code: string): string {
+    return `
+VERIFICA TU CORREO ELECTRÓNICO - MESALISTA
+
+Hola,
+
+Recibimos una solicitud para crear una cuenta en MesaLista con este correo electrónico.
+
+TU CÓDIGO DE VERIFICACIÓN:
+${code}
+
+Este código expira en 10 minutos.
+
+Para continuar con el registro, ingresa este código en la página de verificación.
+
+⚠️ IMPORTANTE: Si no solicitaste este código, puedes ignorar este correo de forma segura.
+
+Este código es personal e intransferible. No lo compartas con nadie.
+
+---
+
+¿Necesitas ayuda? Contáctanos en info@mesalista.com.mx
+
+© 2025 MesaLista. Todos los derechos reservados.
+    `.trim();
+  }
+
+  /**
+   * Generate HTML email template for password reset
+   */
+  static generatePasswordResetEmailHTML(firstName: string, resetLink: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Restablecer Contraseña - MesaLista</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f9fafb;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #d4704a 0%, #b85a3a 100%); color: white; padding: 32px 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px; font-weight: bold;">Restablecer Contraseña</h1>
+            <p style="margin: 8px 0 0 0; font-size: 16px; opacity: 0.9;">Solicitud de cambio de contraseña</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 32px 24px;">
+            <p style="font-size: 16px; margin-bottom: 24px;">Hola ${firstName},</p>
+            
+            <p style="font-size: 16px; margin-bottom: 24px;">
+              Recibimos una solicitud para restablecer la contraseña de tu cuenta en MesaLista. 
+              Si fuiste tú quien lo solicitó, haz clic en el botón de abajo para crear una nueva contraseña:
+            </p>
+
+            <!-- Reset Button -->
+            <div style="text-align: center; margin: 32px 0;">
+              <a href="${resetLink}" 
+                 style="display: inline-block; background: linear-gradient(135deg, #d4704a 0%, #b85a3a 100%); color: white; text-decoration: none; padding: 16px 48px; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(212, 112, 74, 0.3);">
+                Restablecer Contraseña
+              </a>
+            </div>
+
+            <p style="font-size: 14px; color: #6b7280; margin: 24px 0;">
+              O copia y pega este enlace en tu navegador:
+            </p>
+            <div style="background-color: #f3f4f6; padding: 12px; border-radius: 6px; word-break: break-all; font-size: 12px; color: #4b5563; margin-bottom: 24px;">
+              ${resetLink}
+            </div>
+
+            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0; border-radius: 4px;">
+              <p style="margin: 0 0 8px 0; font-size: 14px; color: #92400e;">
+                <strong>⚠️ Importante:</strong>
+              </p>
+              <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #92400e;">
+                <li>Este enlace expira en 1 hora por seguridad</li>
+                <li>Si no solicitaste este cambio, ignora este correo</li>
+                <li>Tu contraseña actual seguirá siendo válida</li>
+              </ul>
+            </div>
+
+            <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 16px; margin: 24px 0; border-radius: 4px;">
+              <p style="margin: 0; font-size: 14px; color: #1e40af;">
+                <strong>💡 Consejo de seguridad:</strong> Usa una contraseña única que no hayas usado en otros sitios. 
+                Combina letras mayúsculas, minúsculas, números y símbolos.
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0; font-size: 14px; color: #6b7280;">
+              ¿Necesitas ayuda? Contáctanos en 
+              <a href="mailto:soporte@mesalista.com.mx" style="color: #d4704a; text-decoration: none;">soporte@mesalista.com.mx</a>
+            </p>
+            <p style="margin: 16px 0 0 0; font-size: 12px; color: #9ca3af;">
+              © 2025 MesaLista. Todos los derechos reservados.
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `.trim();
+  }
+
+  /**
+   * Generate plain text email for password reset
+   */
+  static generatePasswordResetEmailText(firstName: string, resetLink: string): string {
+    return `
+RESTABLECER CONTRASEÑA - MESALISTA
+
+Hola ${firstName},
+
+Recibimos una solicitud para restablecer la contraseña de tu cuenta en MesaLista.
+
+Para crear una nueva contraseña, visita el siguiente enlace:
+${resetLink}
+
+⚠️ IMPORTANTE:
+- Este enlace expira en 1 hora por seguridad
+- Si no solicitaste este cambio, ignora este correo
+- Tu contraseña actual seguirá siendo válida
+
+💡 CONSEJO DE SEGURIDAD:
+Usa una contraseña única que no hayas usado en otros sitios. Combina letras mayúsculas, minúsculas, números y símbolos.
+
+---
+
+¿Necesitas ayuda? Contáctanos en soporte@mesalista.com.mx
+
 © 2025 MesaLista. Todos los derechos reservados.
     `.trim();
   }

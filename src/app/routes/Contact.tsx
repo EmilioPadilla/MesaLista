@@ -308,14 +308,9 @@ export function Contact() {
             Únete a miles de parejas que ya han hecho realidad la boda de sus sueños con MesaLista.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Tooltip trigger={['click']} title="¡Funcionalidad disponible pronto!">
-              <Button
-                type="primary"
-                // onClick={() => navigate('/registro')}
-                className="rounded-full px-8 py-4 text-lg">
-                Crear mi MesaLista de regalos
-              </Button>
-            </Tooltip>
+            <Button type="primary" onClick={() => navigate('/registro')} className="rounded-full px-8 py-4 text-lg">
+              Crear mi MesaLista de regalos
+            </Button>
             <Button
               onClick={() => navigate('buscar')}
               className="bg-white hover:bg-[#f5f5f7] text-foreground border border-border/30 rounded-full px-8 py-4 text-lg">

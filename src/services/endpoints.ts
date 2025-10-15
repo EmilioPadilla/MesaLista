@@ -64,6 +64,14 @@ export const user_endpoints = {
   bySlug: (coupleSlug: string) => `/user/slug/${coupleSlug}`,
 
   /**
+   * Check if couple slug is available
+   * @method GET
+   * @access Public
+   * @param slug Couple slug to check
+   */
+  checkSlug: (slug: string) => `/user/check-slug/${slug}`,
+
+  /**
    * Login user
    * @method POST
    * @access Public
@@ -76,6 +84,44 @@ export const user_endpoints = {
    * @access Public
    */
   logout: `/user/logout`,
+
+  /**
+   * Update current user profile
+   * @method PUT
+   * @access Protected
+   * @requires JWT token
+   */
+  updateProfile: `/user/me/profile`,
+
+  /**
+   * Update current user password
+   * @method PUT
+   * @access Protected
+   * @requires JWT token
+   */
+  updatePassword: `/user/me/password`,
+
+  /**
+   * Request password reset
+   * @method POST
+   * @access Public
+   */
+  requestPasswordReset: `/user/password-reset/request`,
+
+  /**
+   * Verify password reset token
+   * @method GET
+   * @access Public
+   * @param token Reset token
+   */
+  verifyResetToken: (token: string) => `/user/password-reset/verify/${token}`,
+
+  /**
+   * Reset password with token
+   * @method POST
+   * @access Public
+   */
+  resetPassword: `/user/password-reset/reset`,
 };
 
 /**
@@ -334,6 +380,13 @@ export const payment_endpoints = {
    * @access Public
    */
   cancelPayment: `/payments/cancel-payment`,
+
+  /**
+   * Create Stripe checkout session for plan payment
+   * @method POST
+   * @access Public
+   */
+  createPlanCheckoutSession: `/payments/create-plan-checkout-session`,
 };
 
 /**
@@ -370,6 +423,33 @@ export const email_endpoints = {
 };
 
 /**
+ * Email verification endpoints
+ */
+export const emailVerification_endpoints = {
+  /**
+   * Send verification code to email
+   * @method POST
+   * @access Public
+   */
+  sendCode: `/email-verification/send`,
+
+  /**
+   * Verify email with code
+   * @method POST
+   * @access Public
+   */
+  verifyCode: `/email-verification/verify`,
+
+  /**
+   * Check if email was recently verified
+   * @method GET
+   * @access Public
+   * @param email Email address to check
+   */
+  checkStatus: (email: string) => `/email-verification/check/${encodeURIComponent(email)}`,
+};
+
+/**
  * Combined endpoints for easy access
  */
 export const endpoints = {
@@ -380,6 +460,7 @@ export const endpoints = {
   purchases: purchase_endpoints,
   payments: payment_endpoints,
   email: email_endpoints,
+  emailVerification: emailVerification_endpoints,
   docs: docs_endpoints,
 };
 

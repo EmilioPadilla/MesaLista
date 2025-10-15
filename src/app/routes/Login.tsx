@@ -50,7 +50,7 @@ const Login: React.FC = () => {
     }
   }, [navigate, isAuthenticated, isAuthLoading]);
 
-  const { mutate: login, data: loginData, isSuccess: isLoginSuccess, isPending: isLoginPending } = useLogin();
+  const { mutate: login, data: loginData, isSuccess: isLoginSuccess, isPending: isLoginPending, isError: isLoginError, error: loginError } = useLogin();
 
   const onFinish = (values: LoginFormValues) => {
     login(values);
@@ -59,8 +59,36 @@ const Login: React.FC = () => {
   useEffect(() => {
     if (isLoginPending) {
       setIsLoading(true);
+    } else {
+      setIsLoading(false);
     }
   }, [isLoginPending]);
+
+  useEffect(() => {
+    if (isLoginError && loginError) {
+      const errorResponse = (loginError as any)?.response?.data;
+      const errorMessage = errorResponse?.error || 'Error al iniciar sesión. Por favor verifica tus credenciales.';
+      const attemptsRemaining = errorResponse?.attemptsRemaining;
+      const lockedUntil = errorResponse?.lockedUntil;
+      
+      // Display the main error message
+      message.error(errorMessage);
+      
+      // If there are remaining attempts, show additional info
+      if (attemptsRemaining !== undefined && attemptsRemaining > 0) {
+        message.warning(`Te quedan ${attemptsRemaining} ${attemptsRemaining === 1 ? 'intento' : 'intentos'}`);
+      }
+      
+      // If account is locked, show lockout info
+      if (lockedUntil) {
+        const unlockTime = new Date(lockedUntil);
+        const minutesRemaining = Math.ceil((unlockTime.getTime() - Date.now()) / 60000);
+        message.error(`Tu cuenta está bloqueada por ${minutesRemaining} ${minutesRemaining === 1 ? 'minuto' : 'minutos'} más`, 10);
+      }
+      
+      setIsLoading(false);
+    }
+  }, [isLoginError, loginError]);
 
   useEffect(() => {
     if (isLoginSuccess) {
@@ -187,7 +215,10 @@ const Login: React.FC = () => {
                     Recordarme
                   </label>
                 </div>
-                <Button variant="link" className="!text-base p-0 h-auto text-primary hover:text-primary/80">
+                <Button
+                  variant="link"
+                  className="!text-base p-0 h-auto text-primary hover:text-primary/80"
+                  onClick={() => navigate('/olvide-contrasena')}>
                   ¿Olvidaste tu contraseña?
                 </Button>
               </div>

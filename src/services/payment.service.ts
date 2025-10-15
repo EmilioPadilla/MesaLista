@@ -145,6 +145,22 @@ export const paymentService = {
     const response = await apiClient.post(api_endpoints.payments.cancelPayment, data);
     return response.data;
   },
+
+  /**
+   * Create Stripe checkout session for plan payment
+   *
+   * @param data Plan checkout session data
+   * @returns Checkout session response with URL
+   */
+  createPlanCheckoutSession: async (data: {
+    planType: string;
+    email: string;
+    successUrl: string;
+    cancelUrl: string;
+  }): Promise<{ success: boolean; sessionId: string; url: string }> => {
+    const response = await apiClient.post(api_endpoints.payments.createPlanCheckoutSession, data);
+    return response.data;
+  },
 };
 
 export default paymentService;

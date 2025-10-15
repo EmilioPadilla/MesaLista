@@ -1,5 +1,4 @@
-import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
-import { queryKeys } from './queryKeys';
+import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
 import { fileService } from 'services/files.service';
 
 /**
@@ -8,14 +7,13 @@ import { fileService } from 'services/files.service';
  * @param options React Query options
  */
 export const useUploadFile = (options?: Partial<UseMutationOptions<any, Error, File>>) => {
-  const queryClient = useQueryClient();
   const { onSuccess, ...restOptions } = options || {};
 
   return useMutation({
     mutationFn: (file: File) => fileService.uploadFile(file),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, options) => {
       if (onSuccess) {
-        onSuccess(data, variables, context);
+        onSuccess(data, variables, context, options);
       }
     },
     ...restOptions,

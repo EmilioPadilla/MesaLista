@@ -19,10 +19,16 @@ model User {
   imageUrl      String?
   phoneNumber   String?
   role          UserRole  @default(GUEST)
+  planType      PlanType? @map("plan_type")
+  lockedUntil   DateTime? @map("locked_until") // Account lockout timestamp
+  failedLoginAttempts Int @default(0) @map("failed_login_attempts")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   weddingList   WeddingList?
   sessions      Session[]
+  passwordResets PasswordReset[]
+  passwordHistory PasswordHistory[]
+  loginAttempts LoginAttempt[]
   
   @@map("users")
 }
@@ -31,6 +37,11 @@ enum UserRole {
   COUPLE
   GUEST
   ADMIN
+}
+
+enum PlanType {
+  FIXED
+  COMMISSION
 }
 
 model WeddingList {
@@ -186,4 +197,61 @@ model Session {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
+}
+
+model EmailVerification {
+  id          String   @id @default(cuid())
+  email       String
+  code        String   // 6-digit verification code
+  expiresAt   DateTime @map("expires_at")
+  verified    Boolean  @default(false)
+  attempts    Int      @default(0) // Track failed attempts
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([email, code])
+  @@map("email_verifications")
+}
+
+model PasswordReset {
+  id          String   @id @default(cuid())
+  userId      Int      @map("user_id")
+  token       String   @unique // Unique hash token for the reset link
+  expiresAt   DateTime @map("expires_at")
+  used        Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("password_resets")
+}
+
+model PasswordHistory {
+  id          String   @id @default(cuid())
+  userId      Int      @map("user_id")
+  passwordHash String  @map("password_hash")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_history")
+}
+
+model LoginAttempt {
+  id          String   @id @default(cuid())
+  userId      Int?     @map("user_id") // Nullable to track attempts on non-existent emails
+  email       String
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  successful  Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email, createdAt])
+  @@index([userId, createdAt])
+  @@map("login_attempts")
 }

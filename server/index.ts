@@ -14,6 +14,7 @@ import giftRoutes from './routes/giftRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import emailRoutes from './routes/emailRoutes.js';
+import emailVerificationRoutes from './routes/emailVerificationRoutes.js';
 import fileUploadRouter from './routes/fileUpload.js';
 import weddingListRoutes from './routes/weddingListRoutes.js';
 import bodyParser from 'body-parser';
@@ -42,7 +43,7 @@ app.use(
   cors({
     origin:
       process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_URL || 'https://mesalista.com'
+        ? process.env.FRONTEND_URL || 'https://www.mesalista.com.mx'
         : ['http://localhost:5173', 'http://127.0.0.1:5173'], // Development origins
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
@@ -117,6 +118,7 @@ app.use('/api/gift', giftRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/email-verification', emailVerificationRoutes);
 app.use('/api/wedding-list', weddingListRoutes);
 app.use('/api/upload', fileUploadRouter);
 

@@ -91,3 +91,12 @@ export const useCancelPayment = () => {
     mutationFn: (data: { cartId: string; paymentMethod?: string }) => paymentService.cancelPayment(data),
   });
 };
+
+/**
+ * Hook to create plan checkout session
+ */
+export const useCreatePlanCheckoutSession = () => {
+  return useMutation({
+    mutationFn: paymentService.createPlanCheckoutSession,
+  });
+};

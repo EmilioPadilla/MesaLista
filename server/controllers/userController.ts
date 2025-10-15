@@ -9,64 +9,11 @@ import {
   UserLoginRequest,
   UserLoginResponse,
   UserResponse,
-  UserUpdateRequest,
 } from '../../types/api/user.js';
 import { UserRole } from '../../types/models/user.js';
-import { User } from 'types/models/user.js';
-
-/**
- * Generates a slug from first names and checks for uniqueness
- * If the slug already exists, it will try with last names
- * @param firstName First name of the user
- * @param spouseFirstName First name of the spouse
- * @param lastName Last name of the user (used if first name slug exists)
- * @param spouseLastName Last name of the spouse (used if first name slug exists)
- * @returns A unique slug for the couple
- */
-async function generateCoupleSlug(
-  firstName: string,
-  spouseFirstName: string,
-  lastName: string,
-  spouseLastName: string
-): Promise<string> {
-  // Helper function to normalize text for slugs
-  const normalizeForSlug = (text: string): string => {
-    return text
-      .toLowerCase()
-      .normalize('NFD') // Normalize to decomposed form
-      .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-      .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
-      .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
-  };
-
-  // Generate the initial slug from first names
-  const firstNameSlug = `${normalizeForSlug(firstName)}-y-${normalizeForSlug(spouseFirstName)}`;
-  
-  // Check if this slug already exists
-  const existingWithFirstNameSlug = await prisma.user.findUnique({
-    where: { coupleSlug: firstNameSlug },
-  });
-
-  if (!existingWithFirstNameSlug) {
-    return firstNameSlug;
-  }
-
-  // If first name slug exists, try with first names and last names
-  const fullNameSlug = `${normalizeForSlug(firstName)}-${normalizeForSlug(lastName)}-y-${normalizeForSlug(spouseFirstName)}-${normalizeForSlug(spouseLastName)}`;
-  
-  // Check if this slug already exists
-  const existingWithFullNameSlug = await prisma.user.findUnique({
-    where: { coupleSlug: fullNameSlug },
-  });
-
-  if (!existingWithFullNameSlug) {
-    return fullNameSlug;
-  }
-
-  // If both slugs exist, add a random number to ensure uniqueness
-  const randomSuffix = Math.floor(Math.random() * 1000);
-  return `${firstNameSlug}-${randomSuffix}`;
-}
+import passwordResetService from '../services/passwordResetService.js';
+import emailService from '../services/emailService.js';
+import passwordValidationService from '../services/passwordValidationService.js';
 
 export const userController = {
   // Get all users
@@ -115,6 +62,7 @@ export const userController = {
           imageUrl: true,
           phoneNumber: true,
           role: true,
+          planType: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -208,7 +156,8 @@ export const userController = {
 
   // Create new user
   createUser: async (req: Request, res: Response) => {
-    const { email, firstName, lastName, spouseFirstName, spouseLastName, password, phoneNumber, role } = req.body as UserCreateRequest;
+    const { email, firstName, lastName, spouseFirstName, spouseLastName, password, phoneNumber, role, planType, coupleSlug } =
+      req.body as UserCreateRequest;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
@@ -226,22 +175,11 @@ export const userController = {
       } else if (role === 'ADMIN') {
         userRole = 'ADMIN';
       }
-      
-      // Generate a unique couple slug if this is a COUPLE user
-      let coupleSlug: string | undefined;
-      if (userRole === 'COUPLE' && firstName && spouseFirstName) {
-        coupleSlug = await generateCoupleSlug(
-          firstName,
-          spouseFirstName || firstName, // Fallback to firstName if spouseFirstName is not provided
-          lastName,
-          spouseLastName || lastName // Fallback to lastName if spouseLastName is not provided
-        );
-      }
 
       // Use a transaction to ensure both user and wedding list (if applicable) are created together
-      const result = await prisma.$transaction(async (prisma) => {
+      const result = await prisma.$transaction(async (tx) => {
         // Create the user
-        const user = await prisma.user.create({
+        const user = await tx.user.create({
           data: {
             email,
             firstName,
@@ -251,7 +189,8 @@ export const userController = {
             password: hashedPassword,
             phoneNumber,
             role: userRole,
-            coupleSlug, // Add the generated coupleSlug
+            coupleSlug,
+            planType: planType || null,
           },
           select: {
             id: true,
@@ -260,10 +199,11 @@ export const userController = {
             lastName: true,
             spouseFirstName: true,
             spouseLastName: true,
-            coupleSlug: true, // Include coupleSlug in the response
+            coupleSlug: true,
             imageUrl: true,
             phoneNumber: true,
             role: true,
+            planType: true,
             createdAt: true,
           },
         });
@@ -273,22 +213,22 @@ export const userController = {
           // Calculate a default wedding date (1 year from now)
           const weddingDate = new Date();
           weddingDate.setFullYear(weddingDate.getFullYear() + 1);
-          
+
           // Create a wedding list for the couple
-          const weddingList = await prisma.weddingList.create({
+          const weddingList = await tx.weddingList.create({
             data: {
               coupleId: user.id,
-              title: `Lista de ${firstName} y ${spouseFirstName || ''}`.trim(),
-              coupleName: `${firstName} y ${spouseFirstName || ''}`.trim(),
+              title: `Lista de ${firstName}${spouseFirstName ? ' y ' + spouseFirstName : ''}`.trim(),
+              coupleName: `${firstName}${spouseFirstName ? ' y ' + spouseFirstName : ''}`.trim(),
               weddingDate,
               description: 'Nuestra lista de regalos',
             },
           });
-          
+
           // Return both user and wedding list
           return { user, weddingList };
         }
-        
+
         // If not a COUPLE, just return the user
         return { user };
       });
@@ -303,49 +243,6 @@ export const userController = {
       }
 
       res.status(500).json({ error: 'Failed to create user' });
-    }
-  },
-
-  // Update user
-  updateUser: async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { email, firstName, lastName, spouseFirstName, spouseLastName } = req.body as UserUpdateRequest;
-
-    try {
-      const updateData: Partial<UserBase> = {};
-
-      if (email) updateData.email = email;
-      if (firstName !== undefined) updateData.firstName = firstName;
-      if (lastName !== undefined) updateData.lastName = lastName;
-      if (spouseFirstName !== undefined) updateData.spouseFirstName = spouseFirstName;
-      if (spouseLastName !== undefined) updateData.spouseLastName = spouseLastName;
-
-      const user = (await prisma.user.update({
-        where: { id: Number(id) },
-        data: updateData,
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          spouseFirstName: true,
-          spouseLastName: true,
-          imageUrl: true,
-          phoneNumber: true,
-          role: true,
-          createdAt: true,
-        },
-      })) as UserResponse;
-
-      res.json(user);
-    } catch (error: unknown) {
-      console.error('Error updating user:', error);
-
-      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      res.status(500).json({ error: 'Failed to update user' });
     }
   },
 
@@ -378,6 +275,9 @@ export const userController = {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
+    const userAgent = req.get('User-Agent') || 'Unknown';
+    const ipAddress = req.ip || req.connection.remoteAddress;
+
     try {
       // Find user by email
       const user = await prisma.user.findUnique({
@@ -385,21 +285,50 @@ export const userController = {
       });
 
       if (!user) {
-        return res.status(401).json({ error: 'Invalid credentials' });
+        // Record failed attempt for non-existent user
+        await passwordValidationService.recordLoginAttempt(email, null, false, ipAddress, userAgent);
+        return res.status(401).json({ error: 'Credenciales inválidas' });
+      }
+
+      // Check if account is locked
+      const lockStatus = await passwordValidationService.isAccountLocked(user.id);
+      if (lockStatus.locked && lockStatus.lockedUntil) {
+        const minutesRemaining = Math.ceil((lockStatus.lockedUntil.getTime() - Date.now()) / 60000);
+        await passwordValidationService.recordLoginAttempt(email, user.id, false, ipAddress, userAgent);
+        return res.status(423).json({
+          error: `Cuenta bloqueada por múltiples intentos fallidos. Intenta de nuevo en ${minutesRemaining} minutos.`,
+          lockedUntil: lockStatus.lockedUntil,
+        });
       }
 
       // Compare provided password with stored hash
       const passwordMatch = await bcrypt.compare(password, user.password);
 
       if (!passwordMatch) {
-        return res.status(401).json({ error: 'Invalid credentials' });
+        // Record failed attempt and handle lockout
+        await passwordValidationService.recordLoginAttempt(email, user.id, false, ipAddress, userAgent);
+        const lockResult = await passwordValidationService.handleFailedLogin(user.id);
+
+        if (lockResult.locked && lockResult.lockedUntil) {
+          const minutesRemaining = Math.ceil((lockResult.lockedUntil.getTime() - Date.now()) / 60000);
+          return res.status(423).json({
+            error: `Cuenta bloqueada por múltiples intentos fallidos. Intenta de nuevo en ${minutesRemaining} minutos.`,
+            lockedUntil: lockResult.lockedUntil,
+          });
+        }
+
+        return res.status(401).json({
+          error: 'Credenciales inválidas',
+          attemptsRemaining: lockResult.attemptsRemaining,
+        });
       }
 
-      // Create session and set HttpOnly cookie
-      const userAgent = req.get('User-Agent') || 'Unknown';
-      const ipAddress = req.ip || req.connection.remoteAddress;
+      // Successful login - reset failed attempts
+      await passwordValidationService.resetFailedLoginAttempts(user.id);
+      await passwordValidationService.recordLoginAttempt(email, user.id, true, ipAddress, userAgent);
 
-      const session = await createSessionAndSetCookie(res, user.id, userAgent, ipAddress);
+      // Create session and set HttpOnly cookie
+      await createSessionAndSetCookie(res, user.id, userAgent, ipAddress);
 
       // Return user data without password or token (token is now in HttpOnly cookie)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -429,33 +358,264 @@ export const userController = {
     }
   },
 
-  // Update user password
-  updateUserPassword: async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { password } = req.body as UserUpdateRequest;
-
-    if (!password) {
-      return res.status(400).json({ error: 'Password is required' });
+  // Update current user profile
+  updateCurrentUserProfile: async (req: Request, res: Response) => {
+    if (!req.user?.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const { firstName, lastName, spouseFirstName, spouseLastName, phoneNumber, coupleSlug } = req.body;
 
     try {
-      const user = (await prisma.user.update({
-        where: { id: Number(id) },
-        data: { password: hashedPassword },
-      })) as UserResponse;
+      const updateData: any = {};
+
+      if (firstName !== undefined) updateData.firstName = firstName;
+      if (lastName !== undefined) updateData.lastName = lastName;
+      if (spouseFirstName !== undefined) updateData.spouseFirstName = spouseFirstName;
+      if (spouseLastName !== undefined) updateData.spouseLastName = spouseLastName;
+      if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+      if (coupleSlug !== undefined) {
+        // Normalize the slug
+        const normalizedSlug = coupleSlug
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '');
+
+        // Check if slug is already taken by another user
+        const existingUser = await prisma.user.findUnique({
+          where: { coupleSlug: normalizedSlug },
+        });
+
+        if (existingUser && existingUser.id !== req.user.userId) {
+          return res.status(409).json({ error: 'Este enlace ya está en uso' });
+        }
+
+        updateData.coupleSlug = normalizedSlug;
+      }
+
+      const user = await prisma.user.update({
+        where: { id: req.user.userId },
+        data: updateData,
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          spouseFirstName: true,
+          spouseLastName: true,
+          coupleSlug: true,
+          imageUrl: true,
+          phoneNumber: true,
+          role: true,
+          planType: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
 
       res.json(user);
     } catch (error: unknown) {
-      console.error('Error updating user password:', error);
+      console.error('Error updating user profile:', error);
 
       if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      res.status(500).json({ error: 'Failed to update user password' });
+      res.status(500).json({ error: 'Failed to update user profile' });
+    }
+  },
+
+  // Update current user password
+  updateCurrentUserPassword: async (req: Request, res: Response) => {
+    if (!req.user?.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current password and new password are required' });
+    }
+
+    try {
+      // Get current user with password
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Verify current password
+      const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+
+      if (!passwordMatch) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+
+      // Validate password strength and history
+      const validation = await passwordValidationService.validatePasswordForReset(req.user.userId, newPassword);
+
+      if (!validation.isValid) {
+        return res.status(400).json({
+          error: validation.errors[0] || 'La contraseña no cumple con los requisitos de seguridad',
+          errors: validation.errors,
+        });
+      }
+
+      // Hash new password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update password
+      await prisma.user.update({
+        where: { id: req.user.userId },
+        data: { password: hashedPassword },
+      });
+
+      // Save old password to history
+      await passwordValidationService.savePasswordToHistory(req.user.userId, user.password);
+
+      res.json({ message: 'Password updated successfully' });
+    } catch (error: unknown) {
+      console.error('Error updating user password:', error);
+      res.status(500).json({ error: 'Failed to update password' });
+    }
+  },
+
+  // Check if couple slug is available
+  checkSlugAvailability: async (req: Request, res: Response) => {
+    const { slug } = req.params;
+    const { excludeUserId } = req.query;
+
+    if (!slug) {
+      return res.status(400).json({ error: 'Slug is required' });
+    }
+
+    try {
+      // Normalize the slug
+      const normalizedSlug = slug
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+
+      // Check if slug exists
+      const existingUser = await prisma.user.findUnique({
+        where: { coupleSlug: normalizedSlug },
+        select: { id: true },
+      });
+
+      // If excludeUserId is provided, check if the existing user is the same as the one being updated
+      const isAvailable = !existingUser || (excludeUserId && existingUser.id === Number(excludeUserId));
+
+      res.json({
+        available: isAvailable,
+        slug: normalizedSlug,
+        message: isAvailable ? 'Slug is available' : 'Slug is already taken',
+      });
+    } catch (error: unknown) {
+      console.error('Error checking slug availability:', error);
+      res.status(500).json({ error: 'Failed to check slug availability' });
+    }
+  },
+
+  // Request password reset
+  requestPasswordReset: async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    try {
+      // Create password reset token
+      const resetData = await passwordResetService.createPasswordResetToken(email.toLowerCase());
+
+      // Always return success to prevent email enumeration
+      // Don't reveal if the email exists or not
+      if (resetData) {
+        // Generate reset link
+        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const resetLink = `${baseUrl}/restablecer-contrasena?token=${resetData.token}`;
+
+        // Send password reset email
+        await emailService.sendPasswordResetEmail(resetData.email, resetData.firstName, resetLink);
+      }
+
+      // Always return success message
+      res.json({
+        success: true,
+        message: 'Si el correo existe, recibirás un enlace para restablecer tu contraseña',
+      });
+    } catch (error: unknown) {
+      console.error('Error requesting password reset:', error);
+      // Still return success to prevent email enumeration
+      res.json({
+        success: true,
+        message: 'Si el correo existe, recibirás un enlace para restablecer tu contraseña',
+      });
+    }
+  },
+
+  // Verify password reset token
+  verifyResetToken: async (req: Request, res: Response) => {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({ error: 'Token is required' });
+    }
+
+    try {
+      const tokenData = await passwordResetService.verifyResetToken(token);
+
+      if (!tokenData) {
+        return res.status(400).json({
+          valid: false,
+          error: 'El enlace de restablecimiento es inválido o ha expirado',
+        });
+      }
+
+      res.json({
+        valid: true,
+        email: tokenData.email,
+        firstName: tokenData.firstName,
+      });
+    } catch (error: unknown) {
+      console.error('Error verifying reset token:', error);
+      res.status(500).json({ error: 'Failed to verify reset token' });
+    }
+  },
+
+  // Reset password
+  resetPassword: async (req: Request, res: Response) => {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and new password are required' });
+    }
+
+    try {
+      const result = await passwordResetService.resetPassword(token, newPassword);
+
+      if (!result.success) {
+        return res.status(400).json({
+          error: result.errors?.[0] || 'El enlace de restablecimiento es inválido o ha expirado',
+          errors: result.errors,
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Contraseña restablecida exitosamente',
+      });
+    } catch (error: unknown) {
+      console.error('Error resetting password:', error);
+      res.status(500).json({ error: 'Failed to reset password' });
     }
   },
 };

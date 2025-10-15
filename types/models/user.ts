@@ -15,9 +15,11 @@ export interface User {
   imageUrl?: string;
   phoneNumber?: string;
   role: UserRole;
+  planType?: PlanType;
   createdAt: Date;
   updatedAt: Date;
   weddingList?: WeddingList;
 }
 
 export type UserRole = 'COUPLE' | 'GUEST' | 'ADMIN';
+export type PlanType = 'FIXED' | 'COMMISSION';

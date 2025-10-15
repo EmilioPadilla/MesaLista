@@ -59,13 +59,57 @@ export const userService = {
     return response.data;
   },
 
-  update: async (id: number, userData: Partial<Omit<User, 'id' | 'createdAt'>>): Promise<User> => {
-    const response = await apiClient.put(user_endpoints.byId(id), userData);
+  delete: async (id: number): Promise<void> => {
+    await apiClient.delete(user_endpoints.byId(id));
+  },
+
+  checkSlugAvailability: async (slug: string, excludeUserId?: number): Promise<{ available: boolean; slug: string; message: string }> => {
+    const params = excludeUserId ? { excludeUserId } : {};
+    const response = await apiClient.get(user_endpoints.checkSlug(slug), {
+      params,
+      skipAuth: true,
+    } as CustomAxiosRequestConfig);
     return response.data;
   },
 
-  delete: async (id: number): Promise<void> => {
-    await apiClient.delete(user_endpoints.byId(id));
+  updateCurrentUserProfile: async (userData: {
+    firstName?: string;
+    lastName?: string;
+    spouseFirstName?: string;
+    spouseLastName?: string;
+    phoneNumber?: string;
+    coupleSlug?: string;
+  }): Promise<User> => {
+    const response = await apiClient.put(user_endpoints.updateProfile, userData);
+    return response.data;
+  },
+
+  updateCurrentUserPassword: async (data: { currentPassword: string; newPassword: string }): Promise<{ message: string }> => {
+    const response = await apiClient.put(user_endpoints.updatePassword, data);
+    return response.data;
+  },
+
+  requestPasswordReset: async (email: string): Promise<{ success: boolean; message: string }> => {
+    const response = await apiClient.post(
+      user_endpoints.requestPasswordReset,
+      { email },
+      { skipAuth: true } as CustomAxiosRequestConfig
+    );
+    return response.data;
+  },
+
+  verifyResetToken: async (token: string): Promise<{ valid: boolean; email: string; firstName: string; error?: string }> => {
+    const response = await apiClient.get(user_endpoints.verifyResetToken(token), { skipAuth: true } as CustomAxiosRequestConfig);
+    return response.data;
+  },
+
+  resetPassword: async (token: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
+    const response = await apiClient.post(
+      user_endpoints.resetPassword,
+      { token, newPassword },
+      { skipAuth: true } as CustomAxiosRequestConfig
+    );
+    return response.data;
   },
 };
 

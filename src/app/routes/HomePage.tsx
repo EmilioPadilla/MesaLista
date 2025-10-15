@@ -5,7 +5,7 @@ import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useGetUserBySlug, useIsAuthenticated } from 'hooks/useUser';
 import { OutletContextType } from './guest/PublicRegistry';
 import { useWeddingListByCouple } from 'hooks/useWeddingList';
-import { Tooltip, Button, Card, Skeleton } from 'antd';
+import { Button, Card, Skeleton } from 'antd';
 import { Footer } from '../modules/navigation/Footer';
 
 export const HomePage = () => {
@@ -31,12 +31,10 @@ export const HomePage = () => {
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <Tooltip trigger={['click']} title="¡Funcionalidad disponible pronto!">
-          <Button type="primary" size="large" className="px-8 py-4 hover:-translate-y-1">
-            <Heart className="mr-2 h-5 w-5" />
-            Crear Mesa de Regalos
-          </Button>
-        </Tooltip>
+        <Button onClick={() => navigate('/registro')} type="primary" size="large" className="px-8 py-4 hover:-translate-y-1">
+          <Heart className="mr-2 h-5 w-5" />
+          Crear Mesa de Regalos
+        </Button>
         <Button
           size="large"
           variant="outlined"
@@ -53,7 +51,7 @@ export const HomePage = () => {
     <>
       <div className="flex justify-center mb-8">
         <div className="px-4 py-2 shadow-md backdrop-blur-sm border border-primary/20 rounded-lg">
-          👋 Bienvenido {isAuthenticated ? `de vuelta ${userData?.firstName}` : ' invitad@'}!
+          👋 Bienvenid@ {isAuthenticated ? `de vuelta, ${userData?.firstName}` : ' invitad@'}!
         </div>
       </div>
 
@@ -150,7 +148,7 @@ export const HomePage = () => {
                     <div className="!text-md text-muted-foreground">Regalos comprados</div>
                   </Card>
                   <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-secondary/20 text-center !rounded-2xl">
-                    <div className="text-3xl text-primary mb-2">{progress.toFixed(2)}%</div>
+                    <div className="text-3xl text-primary mb-2">{progress ? progress.toFixed(2) : 0}%</div>
                     <div className="!text-md text-muted-foreground">Progreso completado</div>
                   </Card>
                 </div>
@@ -313,17 +311,14 @@ export const HomePage = () => {
             viewport={{ once: true }}>
             <h2 className="text-5xl md:text-6xl font-semibold text-foreground mb-8 tracking-tight">Comienza hoy.</h2>
             <p className="text-xl text-muted-foreground mb-12 font-light leading-relaxed">Crea tu mesa de regalos perfecta en minutos.</p>
-            <Tooltip trigger={['click']} title="¡Funcionalidad disponible pronto!">
-              <Button
-                size="large"
-                type="primary"
-                className="px-12 py-4 text-lg bg-[#007aff] hover:bg-[#0051d0] text-white rounded-full border-0 shadow-lg hover:shadow-xl transition-all duration-300"
-                // onClick={() => navigate('registro')}
-              >
-                Empezar gratis
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Tooltip>
+            <Button
+              size="large"
+              type="primary"
+              className="px-12 py-4 text-lg bg-[#007aff] hover:bg-[#0051d0] text-white rounded-full border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+              onClick={() => navigate('registro')}>
+              Empezar
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
           </motion.div>
         </section>
       ) : (

@@ -29,6 +29,7 @@ export const COOKIE_CONFIG = {
     sameSite: 'strict' as const,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
     path: '/',
+    domain: process.env.NODE_ENV === 'production' ? '.mesalista.com.mx' : undefined, // Share cookie across subdomains in production
   },
 };
 
@@ -47,7 +48,7 @@ export const authenticateSession = async (req: Request, res: Response, next: Nex
     
     if (!session) {
       // Clear invalid cookie
-      res.clearCookie(COOKIE_CONFIG.name);
+      res.clearCookie(COOKIE_CONFIG.name, COOKIE_CONFIG.options);
       return res.status(401).json({ error: 'Invalid or expired session.' });
     }
     
@@ -87,7 +88,7 @@ export const optionalAuthenticateSession = async (req: Request, res: Response, n
         req.session = session;
       } else {
         // Clear invalid cookie
-        res.clearCookie(COOKIE_CONFIG.name);
+        res.clearCookie(COOKIE_CONFIG.name, COOKIE_CONFIG.options);
       }
     }
     
@@ -134,10 +135,10 @@ export const logoutSession = async (req: Request, res: Response): Promise<void> 
     }
     
     // Clear cookie
-    res.clearCookie(COOKIE_CONFIG.name);
+    res.clearCookie(COOKIE_CONFIG.name, COOKIE_CONFIG.options);
   } catch (error) {
     console.error('Error during logout:', error);
     // Still clear cookie even if database operation fails
-    res.clearCookie(COOKIE_CONFIG.name);
+    res.clearCookie(COOKIE_CONFIG.name, COOKIE_CONFIG.options);
   }
 };

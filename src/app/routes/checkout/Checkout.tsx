@@ -101,7 +101,7 @@ export function Checkout() {
           createCheckoutSession(
             {
               cartId: cart.id,
-              successUrl: `${baseUrl}/${coupleSlug}/confirmation?cartId=${cart.sessionId}`,
+              successUrl: `${baseUrl}/${coupleSlug}/pago-confirmado?cartId=${cart.sessionId}`,
               cancelUrl: `${baseUrl}/${coupleSlug}/checkout?cancelled=true&cartId=${cart.id}&paymentMethod=${selectedPaymentMethod}`,
               orderId: cart.id,
             },
@@ -151,7 +151,7 @@ export function Checkout() {
           createPayPalOrder(
             {
               cartId: cart.id,
-              successUrl: `${baseUrl}/${coupleSlug}/confirmation?cartId=${cart.sessionId}`,
+              successUrl: `${baseUrl}/${coupleSlug}/pago-confirmado?cartId=${cart.sessionId}`,
               cancelUrl: `${baseUrl}/${coupleSlug}/checkout?cancelled=true&cartId=${cart.id}&paymentMethod=${selectedPaymentMethod}`,
             },
             {

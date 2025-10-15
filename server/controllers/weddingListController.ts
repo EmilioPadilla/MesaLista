@@ -197,7 +197,7 @@ const weddingListController = {
   // Update a wedding list
   updateWeddingList: async (req: Request, res: Response) => {
     const { weddingListId } = req.params;
-    const { title, description, coupleName, weddingDate, imageUrl, invitationCount } = req.body as UpdateWeddingListRequest;
+    const { title, description, coupleName, weddingDate, weddingLocation, weddingVenue, imageUrl, invitationCount } = req.body as UpdateWeddingListRequest;
 
     if (!weddingListId) {
       return res.status(400).json({ error: 'Wedding list ID is required' });
@@ -211,6 +211,8 @@ const weddingListController = {
           ...(description !== undefined && { description }),
           ...(coupleName && { coupleName }),
           ...(weddingDate && { weddingDate: new Date(weddingDate) }),
+          ...(weddingLocation !== undefined && { weddingLocation }),
+          ...(weddingVenue !== undefined && { weddingVenue }),
           ...(imageUrl !== undefined && { imageUrl }),
           ...(invitationCount !== undefined && { invitationCount }),
         },

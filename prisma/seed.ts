@@ -4,6 +4,13 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
+  // SAFETY CHECK: Prevent seeding in production
+  if (process.env.NODE_ENV === 'production') {
+    console.log('⚠️  Skipping seed in production environment');
+    console.log('✅ Production database is safe');
+    return;
+  }
+
   console.log('Starting to seed database...');
 
   // Clear existing data

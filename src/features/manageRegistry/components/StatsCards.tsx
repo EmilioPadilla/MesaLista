@@ -34,7 +34,9 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
         extra={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
         className="shadow-md hover:shadow-lg transition-shadow duration-200">
         <div>
-          <div className="text-2xl text-green-600">{Math.round((stats.purchasedItems / stats.totalItems) * 100)}%</div>
+          <div className="text-2xl text-green-600">
+            {stats.totalItems > 0 ? Math.round((stats.purchasedItems / stats.totalItems) * 100) : 0}%
+          </div>
           <div className="w-full bg-muted rounded-full h-2 mt-2">
             <div
               className="bg-green-600 h-2 rounded-full transition-all duration-300"
