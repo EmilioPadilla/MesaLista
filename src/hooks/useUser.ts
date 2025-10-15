@@ -16,7 +16,7 @@ export const useIsAuthenticated = (options?: Partial<UseQueryOptions<boolean, Er
       try {
         // Try to get current user - if successful, user is authenticated
         const user = await userService.getCurrentUser();
-        message.success(`Bienvenid@ de vuelta, ${user.firstName}${user.spouseFirstName ? 'y' + user.spouseFirstName : ''}!`);
+        message.success(`Bienvenid@ de vuelta, ${user.firstName}${user.spouseFirstName ? ' y ' + user.spouseFirstName : ''}!`);
         return true;
       } catch (error) {
         // If getCurrentUser fails, user is not authenticated

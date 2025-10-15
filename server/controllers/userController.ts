@@ -225,6 +225,19 @@ export const userController = {
             },
           });
 
+          // Create initial gift categories (upsert to avoid duplicates since categories are global)
+          const defaultCategories = ['Cocina', 'Electrodomésticos', 'Viaje', 'Baño', 'Decoración', 'Otros'];
+
+          await Promise.all(
+            defaultCategories.map((categoryName) =>
+              tx.giftCategory.upsert({
+                where: { name: categoryName },
+                update: {}, // Don't update if exists
+                create: { name: categoryName },
+              }),
+            ),
+          );
+
           // Return both user and wedding list
           return { user, weddingList };
         }

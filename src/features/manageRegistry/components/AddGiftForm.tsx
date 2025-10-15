@@ -171,7 +171,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
                       suffixIcon={<CaretDownFilled />}
                       optionFilterProp="label"
                       style={{ width: '100%' }}
-                      placeholder="Selecciona de 1 a 3 categorías"
+                      placeholder="Selecciona (o crea) de 1 a 3 categorías"
                       options={categoryOptions}
                       maxCount={3}
                     />

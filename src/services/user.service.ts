@@ -50,7 +50,6 @@ export const userService = {
       await apiClient.post(user_endpoints.logout, {}, { withCredentials: true });
     } catch (error) {
       console.error('Logout error:', error);
-      // Continue with logout even if backend call fails
     }
   },
 
@@ -90,11 +89,7 @@ export const userService = {
   },
 
   requestPasswordReset: async (email: string): Promise<{ success: boolean; message: string }> => {
-    const response = await apiClient.post(
-      user_endpoints.requestPasswordReset,
-      { email },
-      { skipAuth: true } as CustomAxiosRequestConfig
-    );
+    const response = await apiClient.post(user_endpoints.requestPasswordReset, { email }, { skipAuth: true } as CustomAxiosRequestConfig);
     return response.data;
   },
 
@@ -104,11 +99,9 @@ export const userService = {
   },
 
   resetPassword: async (token: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
-    const response = await apiClient.post(
-      user_endpoints.resetPassword,
-      { token, newPassword },
-      { skipAuth: true } as CustomAxiosRequestConfig
-    );
+    const response = await apiClient.post(user_endpoints.resetPassword, { token, newPassword }, {
+      skipAuth: true,
+    } as CustomAxiosRequestConfig);
     return response.data;
   },
 };

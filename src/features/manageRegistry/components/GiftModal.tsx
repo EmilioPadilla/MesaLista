@@ -150,7 +150,7 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
               allowClear
               optionFilterProp="label"
               style={{ width: '100%' }}
-              placeholder="Selecciona de 1 a 3 categorías"
+              placeholder="Selecciona (o crea) de 1 a 3 categorías"
               maxCount={3}
               options={categoryOptions}
             />
@@ -195,12 +195,12 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
               <label>Vista Previa</label>
               <div className="relative flex items-center justify-center">
                 <div className="w-64 h-40 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-                  <div 
+                  <div
                     className="w-full h-full bg-cover bg-no-repeat rounded-lg"
                     style={{
                       backgroundImage: `url(${imageState.url})`,
                       backgroundPosition: `center ${imagePosition}%`,
-                      backgroundSize: 'cover'
+                      backgroundSize: 'cover',
                     }}
                   />
                 </div>
@@ -215,7 +215,7 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
                     }}></Button>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label>Posición de la imagen</label>
                 <div className="px-2">
@@ -225,18 +225,16 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
                     value={imagePosition}
                     onChange={(value) => setImagePosition(value)}
                     tooltip={{
-                      formatter: (value) => `${value}%`
+                      formatter: (value) => `${value}%`,
                     }}
                     marks={{
                       0: 'Arriba',
                       50: 'Centro',
-                      100: 'Abajo'
+                      100: 'Abajo',
                     }}
                   />
                 </div>
-                <p className="text-sm text-gray-500">
-                  Ajusta qué parte de la imagen será visible en la tarjeta del regalo
-                </p>
+                <p className="text-sm text-gray-500">Ajusta qué parte de la imagen será visible en la tarjeta del regalo</p>
               </div>
             </div>
           )}

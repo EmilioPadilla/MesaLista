@@ -1,9 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gem, Gift, GiftIcon, Heart, LogOut, Search, User, User as UserIcon, Users } from 'lucide-react';
+import { ArrowLeft, Gem, Gift, GiftIcon, Heart, LogOut, Search, User as UserIcon } from 'lucide-react';
 import { message, Tooltip, Button, Divider } from 'antd';
 import { useGetUserBySlug, useIsAuthenticated, useLogout } from 'hooks/useUser';
 import { useDeviceType } from 'hooks/useDeviceType';
-import { LoginOutlined } from '@ant-design/icons';
 
 interface TopNavProps {
   coupleSlug?: string;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Form, Input, message, Checkbox } from 'antd';
+import { Form, Input, message, Checkbox, DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import { Button } from 'components/core/Button';
 import { Collapsible } from 'components/core/Collapsible';
 import { Camera, Save } from 'lucide-react';
@@ -95,6 +96,9 @@ export function Settings() {
     if (weddingListData?.weddingVenue) {
       profileForm.setFieldValue('weddingVenue', weddingListData.weddingVenue);
     }
+    if (weddingListData?.weddingDate) {
+      profileForm.setFieldValue('weddingDate', dayjs(weddingListData.weddingDate));
+    }
   }, [weddingListData, profileForm]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,6 +154,9 @@ export function Settings() {
         }
         if (values.weddingVenue !== undefined) {
           weddingListUpdates.weddingVenue = values.weddingVenue;
+        }
+        if (values.weddingDate !== undefined) {
+          weddingListUpdates.weddingDate = values.weddingDate ? values.weddingDate.toISOString() : null;
         }
 
         // Only update if there are changes
@@ -269,8 +276,12 @@ export function Settings() {
               <Form.Item
                 name="phoneNumber"
                 label={<span className="text-sm text-muted-foreground">Teléfono</span>}
-                className="md:col-span-2 !mb-0">
-                <Input className="h-12 px-4 !bg-[#f5f5f7]" />
+                className="md:col-span-2 !mb-0"
+                rules={[
+                  { required: true, message: 'El teléfono es requerido' },
+                  { pattern: /^[\d\s\-\+\(\)]{10,}$/, message: 'Teléfono inválido' },
+                ]}>
+                <Input className="h-12 px-4 !bg-[#f5f5f7]" placeholder="55 1234 5678" />
               </Form.Item>
             </div>
           </Form>
@@ -359,12 +370,16 @@ export function Settings() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <Form.Item name="weddingVenue" label={<span className="text-sm text-muted-foreground">Lugar del evento</span>}>
+              <Form.Item name="weddingVenue" label={<span className="text-sm text-muted-foreground !mb-0">Lugar del evento</span>}>
                 <Input className="h-12 px-4 !bg-[#f5f5f7]" placeholder="Ej: Hacienda San José" />
               </Form.Item>
 
-              <Form.Item name="weddingLocation" label={<span className="text-sm text-muted-foreground">Ciudad, Estado</span>}>
+              <Form.Item name="weddingLocation" label={<span className="text-sm text-muted-foreground !mb-0">Ciudad, Estado</span>}>
                 <Input className="h-12 px-4 !bg-[#f5f5f7]" placeholder="Ej: Guadalajara, Jalisco" />
+              </Form.Item>
+
+              <Form.Item name="weddingDate" label={<span className="text-sm text-muted-foreground">Fecha del evento</span>}>
+                <DatePicker className="w-full h-12 !bg-[#f5f5f7] !border-none" format="MMM DD, YYYY" placeholder="Selecciona la fecha" />
               </Form.Item>
             </div>
 
