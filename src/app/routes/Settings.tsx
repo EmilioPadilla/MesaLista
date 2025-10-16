@@ -152,6 +152,17 @@ export function Settings() {
       if (weddingListData) {
         const weddingListUpdates: any = {};
 
+        // Update coupleName based on whether it's a wedding account
+        if (isWeddingAccount && values.spouseFirstName) {
+          // Wedding account: "FirstName y SpouseFirstName"
+          weddingListUpdates.coupleName = `${values.firstName}${values.spouseFirstName ? ' y ' + values.spouseFirstName : ''}`.trim();
+          weddingListUpdates.title = `Lista de ${values.firstName}${values.spouseFirstName ? ' y ' + values.spouseFirstName : ''}`.trim();
+        } else {
+          // Not a wedding account: just the user's first name
+          weddingListUpdates.coupleName = values.firstName;
+          weddingListUpdates.title = `Lista de ${values.firstName}`;
+        }
+
         if (values.weddingListDescription !== undefined) {
           weddingListUpdates.description = values.weddingListDescription;
         }
@@ -496,8 +507,7 @@ export function Settings() {
         {/* Danger Zone - Delete Account */}
         <section className="space-y-6">
           <div>
-            <h2 className="text-3xl tracking-tight text-red-600 mb-2">Zona de peligro</h2>
-            <p className="text-muted-foreground font-light">Una vez que elimines tu cuenta, no hay vuelta atrás. Por favor, ten cuidado.</p>
+            <h2 className="text-3xl tracking-tight mb-2">Zona de peligro</h2>
           </div>
 
           <div className="border-2 border-red-200 rounded-2xl p-8 bg-red-50/30">
@@ -505,7 +515,8 @@ export function Settings() {
               <div>
                 <h3 className="text-xl font-medium text-red-900 mb-2">Eliminar cuenta</h3>
                 <p className="text-sm text-red-700">
-                  Esta acción eliminará permanentemente tu cuenta, tu mesa de regalos, todos los regalos y toda la información asociada. Esta acción no se puede deshacer.
+                  Esta acción eliminará permanentemente tu cuenta, tu mesa de regalos, todos los regalos y toda la información asociada.
+                  Esta acción no se puede deshacer.
                 </p>
               </div>
               <Button
