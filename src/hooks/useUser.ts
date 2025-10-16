@@ -15,15 +15,17 @@ export const useIsAuthenticated = (options?: Partial<UseQueryOptions<boolean, Er
     queryFn: async () => {
       try {
         // Try to get current user - if successful, user is authenticated
-        const user = await userService.getCurrentUser();
+        // Pass true to suppress error logging for auth checks
+        const user = await userService.getCurrentUser(true);
         message.success(`Bienvenid@ de vuelta, ${user.firstName}${user.spouseFirstName ? ' y ' + user.spouseFirstName : ''}!`);
         return true;
       } catch (error) {
         // If getCurrentUser fails, user is not authenticated
+        // This is expected behavior, so we don't log it as an error
         return false;
       }
     },
-    retry: 1,
+    retry: false, // Don't retry on auth failures
     staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
@@ -37,8 +39,17 @@ export const useIsAuthenticated = (options?: Partial<UseQueryOptions<boolean, Er
 export const useCurrentUser = (options?: Partial<UseQueryOptions<User, Error>>) => {
   return useQuery({
     queryKey: [queryKeys.currentUser],
-    queryFn: () => userService.getCurrentUser(),
-    retry: 2,
+    queryFn: async () => {
+      try {
+        // Pass true to suppress error logging for auth checks
+        return await userService.getCurrentUser(true);
+      } catch (error) {
+        // Suppress error logging for unauthenticated users
+        // This is expected when user is not logged in
+        throw error;
+      }
+    },
+    retry: false, // Don't retry on auth failures
     ...options,
   });
 };

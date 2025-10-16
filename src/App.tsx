@@ -14,6 +14,7 @@ import PublicRegistry from 'src/app/routes/guest/PublicRegistry';
 
 // Components
 import ProtectedRoute from 'components/ProtectedRoute';
+import AdminRoute from 'components/AdminRoute';
 
 import antdThemeConfig from 'styles/config/antdThemeConfig';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -27,6 +28,8 @@ import { SearchPage } from 'src/app/routes/SearchPage';
 import { Contact } from 'routes/Contact';
 import { Settings } from './app/routes/Settings';
 import { PricingPage } from './app/routes/PricingPage';
+import { Analytics } from './app/routes/admin/Analytics';
+import { PageViewTracker } from './components/analytics/PageViewTracker';
 
 function App() {
   const isLocalhost = window.location.hostname === 'localhost';
@@ -34,6 +37,7 @@ function App() {
   return (
     <ConfigProvider theme={antdThemeConfig}>
       <BrowserRouter>
+        <PageViewTracker />
         <Routes>
           {/* Public routes */}
           <Route
@@ -77,6 +81,19 @@ function App() {
               </>
             }
           />
+
+          {/* Admin routes */}
+          <Route element={<AdminRoute />}>
+            <Route
+              path="/admin/analytics"
+              element={
+                <>
+                  <TopNav />
+                  <Analytics />
+                </>
+              }
+            />
+          </Route>
 
           {/* Public registry view for guests */}
           <Route path="/:coupleSlug" element={<PublicRegistry />}>

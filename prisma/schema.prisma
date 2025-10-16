@@ -255,3 +255,39 @@ model LoginAttempt {
   @@index([userId, createdAt])
   @@map("login_attempts")
 }
+
+// Analytics Models
+model AnalyticsEvent {
+  id          String   @id @default(uuid())
+  userHash    String?  @map("user_hash") // SHA256 hash of user_id for privacy
+  sessionId   String   @map("session_id") // Browser session/fingerprint ID
+  eventType   AnalyticsEventType @map("event_type")
+  metadata    Json?    // Optional additional data (e.g., registry_id, gift_id)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([eventType, createdAt])
+  @@index([sessionId, createdAt])
+  @@index([userHash, createdAt])
+  @@map("analytics_events")
+}
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  SIGN_IN
+  REGISTRY_PURCHASE
+  GIFT_PURCHASE
+}
+
+model AnalyticsDaily {
+  id                  Int      @id @default(autoincrement())
+  date                DateTime @unique @db.Date
+  visitors            Int      @default(0) // Unique sessions with PAGE_VIEW
+  signIns             Int      @default(0) @map("sign_ins") // Unique users with SIGN_IN
+  registryPurchases   Int      @default(0) @map("registry_purchases") // REGISTRY_PURCHASE events
+  giftPurchases       Int      @default(0) @map("gift_purchases") // GIFT_PURCHASE events
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@index([date])
+  @@map("analytics_daily")
+}

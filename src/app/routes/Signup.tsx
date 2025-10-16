@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Checkbox, message, Form, Input } from 'antd';
+import { Checkbox, message, Form, Input, Radio } from 'antd';
 import { Button } from 'components/core/Button';
 import { Label } from 'components/core/Label';
-import { RadioGroup, RadioGroupItem } from 'components/core/RadioGroup';
 import {
   Mail,
   Lock,
@@ -740,13 +739,17 @@ function Signup() {
                   <p className="text-xl text-muted-foreground">Selecciona la opción que mejor se adapte a ti</p>
                 </div>
 
-                <div className="space-y-4 mb-8">
-                  <RadioGroup value={selectedPlan} onValueChange={(value) => setSelectedPlan(value as 'fixed' | 'commission')}>
+                <div className="space-y-4 mb-8 w-full">
+                  <Radio.Group
+                    className="w-full"
+                    value={selectedPlan}
+                    onChange={(e) => setSelectedPlan(e.target.value as 'fixed' | 'commission')}>
                     <div className="space-y-4">
                       <div className="relative">
-                        <RadioGroupItem value="fixed" id="fixed" className="peer sr-only" />
-                        <Label
+                        <Radio value="fixed" id="fixed" className="peer sr-only" />
+                        <label
                           htmlFor="fixed"
+                          onClick={() => setSelectedPlan('fixed')}
                           className={`flex items-center p-6 rounded-2xl border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
                             selectedPlan === 'fixed'
                               ? 'border-[#d4704a] bg-[#d4704a]/5 shadow-md'
@@ -773,14 +776,15 @@ function Signup() {
                               <li>• Listas de regalos inspiradas por nosotros</li>
                             </ul>
                           </div>
-                        </Label>
+                        </label>
                       </div>
 
                       <div className="relative">
-                        <RadioGroupItem value="commission" id="commission" className="peer sr-only" />
-                        <Label
+                        <Radio value="commission" id="commission" className="peer sr-only" />
+                        <label
                           htmlFor="commission"
-                          className={`flex items-center p-6 rounded-2xl border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                          onClick={() => setSelectedPlan('commission')}
+                          className={`flex items-center w-full p-6 rounded-2xl border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
                             selectedPlan === 'commission'
                               ? 'border-[#d4704a] bg-[#d4704a]/5 shadow-md'
                               : 'border-border/30 hover:border-[#d4704a]/50'
@@ -807,10 +811,10 @@ function Signup() {
                               <li>• Listas de regalos inspiradas por nosotros</li>
                             </ul>
                           </div>
-                        </Label>
+                        </label>
                       </div>
                     </div>
-                  </RadioGroup>
+                  </Radio.Group>
                   {planError && <p className="text-sm text-red-500">{planError}</p>}
                 </div>
 

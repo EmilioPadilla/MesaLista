@@ -17,6 +17,7 @@ import emailRoutes from './routes/emailRoutes.js';
 import emailVerificationRoutes from './routes/emailVerificationRoutes.js';
 import fileUploadRouter from './routes/fileUpload.js';
 import weddingListRoutes from './routes/weddingListRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 import bodyParser from 'body-parser';
 import paymentController from './controllers/paymentController.js';
 
@@ -28,6 +29,7 @@ const prisma = new PrismaClient();
 
 // Import session cleanup
 import SessionCleanupJob from './lib/sessionCleanup.js';
+import AnalyticsAggregationJob from './lib/analyticsAggregation.js';
 
 // Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -132,6 +134,7 @@ app.use('/api/email', emailRoutes);
 app.use('/api/email-verification', emailVerificationRoutes);
 app.use('/api/wedding-list', weddingListRoutes);
 app.use('/api/upload', fileUploadRouter);
+app.use('/api/analytics', analyticsRoutes);
 
 // Special case for login (to maintain /api/login endpoint)
 app.post('/api/login', (req, res, next) => {
@@ -174,6 +177,8 @@ prisma
     console.log('✅ Database connected successfully');
     // Start session cleanup job after database connection
     SessionCleanupJob.start();
+    // Start analytics aggregation job
+    AnalyticsAggregationJob.start();
   })
   .catch((error: any) => {
     console.warn('⚠️ Database connection failed, but server will continue:', error.message);
@@ -197,6 +202,7 @@ server.on('error', (error) => {
 process.on('SIGINT', async () => {
   console.log('Shutting down server...');
   SessionCleanupJob.stop();
+  AnalyticsAggregationJob.stop();
   await prisma.$disconnect();
   process.exit(0);
 });

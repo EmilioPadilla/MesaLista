@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from 'components/core/Tabs';
-import { Spin } from 'antd';
+import { Spin, Tabs } from 'antd';
+import type { TabsProps } from 'antd';
 import { useComponentMountControl } from 'hooks/useComponentMountControl';
 import { useGetCategoriesByWeddingList, useReorderGifts, useWeddingListByCouple } from 'src/hooks/useWeddingList';
 import { OutletContextPrivateType } from 'routes/Dashboard';
@@ -168,54 +168,59 @@ export const ManageRegistry = () => {
       {/* Enhanced Stats Cards */}
       <StatsCards stats={stats} />
 
-      <Tabs defaultValue="gifts" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 shadow-sm">
-          <TabsTrigger className="cursor-pointer" value="gifts">
-            Lista de Regalos
-          </TabsTrigger>
-          <TabsTrigger className="cursor-pointer" value="stats">
-            Estadísticas Detalladas
-          </TabsTrigger>
-        </TabsList>
+      <Tabs
+        defaultActiveKey="gifts"
+        items={[
+          {
+            key: 'gifts',
+            label: 'Lista de Regalos',
+            children: (
+              <div className="space-y-6 mt-6">
+                {/* Add New Gift */}
+                <AddGiftForm
+                  weddingListId={weddinglist?.id}
+                  categoryOptions={categoryOptions}
+                  onGiftCreated={() => {
+                    // Refresh the gifts list when a new gift is created
+                    if (weddinglist?.gifts) {
+                      const sortedGifts = [...weddinglist.gifts].sort((a, b) => a.order - b.order);
+                      setGifts(sortedGifts);
+                    }
+                  }}
+                />
 
-        <TabsContent value="gifts" className="space-y-6">
-          {/* Add New Gift */}
-          <AddGiftForm
-            weddingListId={weddinglist?.id}
-            categoryOptions={categoryOptions}
-            onGiftCreated={() => {
-              // Refresh the gifts list when a new gift is created
-              if (weddinglist?.gifts) {
-                const sortedGifts = [...weddinglist.gifts].sort((a, b) => a.order - b.order);
-                setGifts(sortedGifts);
-              }
-            }}
-          />
-
-          {/* Gift List with Search, Sort and Filter */}
-          <GiftsList
-            gifts={gifts}
-            filteredAndSortedGifts={filteredAndSortedGifts}
-            searchTerm={searchTerm}
-            sortBy={sortBy}
-            filterBy={filterBy}
-            weddingListCategories={weddingListCategories}
-            onSearchChange={setSearchTerm}
-            onSortChange={setSortBy}
-            onFilterChange={setFilterBy}
-            onReorder={handleReorderGifts}
-            onDelete={handleDeleteGift}
-            onEdit={(gift) => {
-              setEditingGift(gift);
-              setShowEditGiftModal(true);
-            }}
-          />
-        </TabsContent>
-
-        <TabsContent value="stats">
-          <StatsTabContent stats={stats} />
-        </TabsContent>
-      </Tabs>
+                {/* Gift List with Search, Sort and Filter */}
+                <GiftsList
+                  gifts={gifts}
+                  filteredAndSortedGifts={filteredAndSortedGifts}
+                  searchTerm={searchTerm}
+                  sortBy={sortBy}
+                  filterBy={filterBy}
+                  weddingListCategories={weddingListCategories}
+                  onSearchChange={setSearchTerm}
+                  onSortChange={setSortBy}
+                  onFilterChange={setFilterBy}
+                  onReorder={handleReorderGifts}
+                  onDelete={handleDeleteGift}
+                  onEdit={(gift) => {
+                    setEditingGift(gift);
+                    setShowEditGiftModal(true);
+                  }}
+                />
+              </div>
+            ),
+          },
+          {
+            key: 'stats',
+            label: 'Estadísticas Detalladas',
+            children: (
+              <div className="mt-6">
+                <StatsTabContent stats={stats} />
+              </div>
+            ),
+          },
+        ]}
+      />
 
       {/* Edit Gift Modal */}
       {renderEditGiftModal && (

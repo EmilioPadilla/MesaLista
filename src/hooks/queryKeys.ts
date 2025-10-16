@@ -21,4 +21,5 @@ export const queryKeys = {
   categoriesByWeddingList: 'categoriesByWeddingList',
   uploadFile: 'uploadFile',
   isAuthenticated: 'isAuthenticated',
+  analytics: 'analytics',
 };

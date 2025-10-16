@@ -9,10 +9,12 @@ export interface LoginResponse extends User {
 }
 
 export const userService = {
-  getCurrentUser: async (): Promise<User> => {
+  getCurrentUser: async (suppressErrorLog = false): Promise<User> => {
     // Get the current user based on the stored token
     // The backend will identify the user from the token
-    const response = await apiClient.get(user_endpoints.getCurrentUser);
+    const response = await apiClient.get(user_endpoints.getCurrentUser, {
+      suppressErrorLog,
+    } as CustomAxiosRequestConfig & { suppressErrorLog?: boolean });
     return response.data;
   },
   getAll: async (): Promise<User[]> => {

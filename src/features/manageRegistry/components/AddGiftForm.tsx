@@ -3,7 +3,7 @@ import { useSearchParams, useLocation } from 'react-router-dom';
 import { Collapsible } from 'components/core/Collapsible';
 import { Plus, X, Eye, ExternalLink } from 'lucide-react';
 import { UploadOutlined, CaretDownFilled } from '@ant-design/icons';
-import { Checkbox, Form, Input, Upload, Select as AntdSelect, message, Image, Button, Card } from 'antd';
+import { Checkbox, Form, Input, Upload, Select, message, Image, Button, Card } from 'antd';
 import { useForm } from 'antd/es/form/Form';
 import { UploadChangeParam } from 'antd/es/upload';
 import { useCreateGift } from 'src/hooks/useGift';
@@ -164,7 +164,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
                     label="Categoría"
                     className="!mb-0"
                     rules={[{ required: true, message: 'Por favor, selecciona una categoría' }]}>
-                    <AntdSelect
+                    <Select
                       className="!shadow-sm !rounded-md"
                       mode="tags"
                       allowClear

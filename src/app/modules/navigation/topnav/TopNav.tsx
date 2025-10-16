@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gem, Gift, GiftIcon, Heart, LogOut, Search, User as UserIcon } from 'lucide-react';
+import { ArrowLeft, Gem, Gift, GiftIcon, Heart, LogOut, Search, User as UserIcon, BarChart3 } from 'lucide-react';
 import { message, Tooltip, Button, Divider } from 'antd';
 import { useGetUserBySlug, useIsAuthenticated, useLogout, useCurrentUser } from 'hooks/useUser';
 import { useDeviceType } from 'hooks/useDeviceType';
@@ -126,6 +126,18 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                 </Tooltip>
               )}
 
+              {userData?.role === 'ADMIN' && isAuthenticated && (
+                <Tooltip title={viewType === 'mobile' ? 'Analytics' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === '/admin/analytics' ? 'primary' : 'text'}
+                    onClick={() => navigate('/admin/analytics')}
+                    className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <BarChart3 className="h-4 w-4" />
+                    {viewType !== 'mobile' && <span>Analytics</span>}
+                  </Button>
+                </Tooltip>
+              )}
+
               {userData && !isAuthenticated && userCoupleSlug && (
                 <Button
                   type={currentPage === `/${userCoupleSlug}/regalos` ? 'primary' : 'text'}
@@ -140,21 +152,24 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
             {/* User Authentication */}
             {userData && isAuthenticated ? (
               <div className="flex items-center space-x-3">
-                <div
-                  onClick={() => navigate(`/${userCoupleSlug}/configuracion`)}
-                  className={`flex items-center space-x-2 cursor-pointer px-3 py-1 ${currentPage === `/${userCoupleSlug}/configuracion` ? 'bg-primary' : 'bg-secondary/50'} rounded-full`}>
+                {userData?.role !== 'ADMIN' && (
                   <div
-                    className={`w-8 h-8 ${currentPage === `/${userCoupleSlug}/configuracion` ? 'bg-white' : 'bg-primary/20'} rounded-full flex items-center justify-center`}>
-                    <UserIcon
-                      className={`h-4 w-4 ${currentPage === `/${userCoupleSlug}/configuracion` ? 'text-primary' : 'text-primary'}`}
-                    />
+                    onClick={() => navigate(`/${userCoupleSlug}/configuracion`)}
+                    className={`flex items-center space-x-2 cursor-pointer px-3 py-1 ${currentPage === `/${userCoupleSlug}/configuracion` ? 'bg-primary' : 'bg-secondary/50'} rounded-full`}>
+                    <div
+                      className={`w-8 h-8 ${currentPage === `/${userCoupleSlug}/configuracion` ? 'bg-white' : 'bg-primary/20'} rounded-full flex items-center justify-center`}>
+                      <UserIcon
+                        className={`h-4 w-4 ${currentPage === `/${userCoupleSlug}/configuracion` ? 'text-primary' : 'text-primary'}`}
+                      />
+                    </div>
+                    {viewType !== 'mobile' && (
+                      <span
+                        className={`!text-md ${currentPage === `/${userCoupleSlug}/configuracion` ? 'text-white' : 'text-foreground'} `}>
+                        {userData?.firstName}
+                      </span>
+                    )}
                   </div>
-                  {viewType !== 'mobile' && (
-                    <span className={`!text-md ${currentPage === `/${userCoupleSlug}/configuracion` ? 'text-white' : 'text-foreground'} `}>
-                      {userData?.firstName}
-                    </span>
-                  )}
-                </div>
+                )}
                 <Tooltip title={viewType === 'mobile' ? 'Salir' : ''} placement="bottom">
                   <Button
                     type="text"

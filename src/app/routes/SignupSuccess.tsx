@@ -4,6 +4,7 @@ import { message } from 'antd';
 import { Check, Loader2 } from 'lucide-react';
 import { Button } from 'components/core/Button';
 import { useCreateUser, useLogin } from 'hooks/useUser';
+import { useTrackEvent } from 'hooks/useAnalyticsTracking';
 
 function SignupSuccess() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ function SignupSuccess() {
   const sessionId = searchParams.get('session_id');
   const { mutateAsync: createUser, isSuccess: isSuccessCreatedUser } = useCreateUser();
   const { mutateAsync: login, isSuccess: isSuccessLogin, isError: isFailedLogin } = useLogin();
+  const trackEvent = useTrackEvent();
 
   const retrieveInfo = () => {
     const pendingUserDataStr = sessionStorage.getItem('pendingUserData');
@@ -49,6 +51,12 @@ function SignupSuccess() {
     sessionStorage.removeItem('pendingUserData');
     setPaymentSuccess(true);
     setIsVerifying(false);
+
+    // Track registry purchase
+    trackEvent('REGISTRY_PURCHASE', {
+      planType: userData.planType,
+      coupleSlug: userData.coupleSlug,
+    });
 
     // Redirect to user's registry after 3 seconds
     setTimeout(() => {

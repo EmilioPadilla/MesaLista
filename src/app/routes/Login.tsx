@@ -8,6 +8,7 @@ import { Input } from 'components/core/Input';
 import { Separator } from 'components/core/Separator';
 import { Heart, Mail, Lock, ArrowLeft, Chrome, Facebook, Apple } from 'lucide-react';
 import { userService } from 'services/user.service';
+import { useTrackEvent } from 'hooks/useAnalyticsTracking';
 // PGPASSWORD=RzXOlCpwkRTxAJbxngQGqtPXogREUuks psql -h maglev.proxy.rlwy.net -U postgres -p 38276 -d railway
 const { Title, Text } = Typography;
 
@@ -20,6 +21,7 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const trackEvent = useTrackEvent();
 
   // Use the useIsAuthenticated hook to check authentication status
   const { data: isAuthenticated = false, isLoading: isAuthLoading } = useIsAuthenticated();
@@ -60,7 +62,12 @@ const Login: React.FC = () => {
   } = useLogin();
 
   const onFinish = (values: LoginFormValues) => {
-    login(values);
+    login(values, {
+      onSuccess: () => {
+        // Track successful sign-in
+        trackEvent('SIGN_IN');
+      },
+    });
   };
 
   useEffect(() => {

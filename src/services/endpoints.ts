@@ -19,14 +19,6 @@ export const auth_endpoints = {
    * @access Public
    */
   login: `/users/login`,
-
-  /**
-   * Get the current authenticated user's information
-   * @method GET
-   * @access Protected
-   * @requires JWT token
-   */
-  getCurrentUser: `/users/me`,
 };
 
 /**
@@ -458,6 +450,46 @@ export const emailVerification_endpoints = {
 };
 
 /**
+ * Analytics endpoints
+ */
+export const analytics_endpoints = {
+  /**
+   * Log an analytics event
+   * @method POST
+   * @access Public
+   */
+  logEvent: `/analytics/events`,
+
+  /**
+   * Get metrics summary
+   * @method GET
+   * @access Admin only
+   */
+  summary: `/analytics/admin/metrics/summary`,
+
+  /**
+   * Get time series data
+   * @method GET
+   * @access Admin only
+   */
+  timeSeries: `/analytics/admin/metrics/time_series`,
+
+  /**
+   * Trigger daily aggregation
+   * @method POST
+   * @access Admin only
+   */
+  aggregate: `/analytics/admin/metrics/aggregate`,
+
+  /**
+   * Cleanup old data
+   * @method POST
+   * @access Admin only
+   */
+  cleanup: `/analytics/admin/metrics/cleanup`,
+};
+
+/**
  * Combined endpoints for easy access
  */
 export const endpoints = {
@@ -469,6 +501,7 @@ export const endpoints = {
   payments: payment_endpoints,
   email: email_endpoints,
   emailVerification: emailVerification_endpoints,
+  analytics: analytics_endpoints,
   docs: docs_endpoints,
 };
 

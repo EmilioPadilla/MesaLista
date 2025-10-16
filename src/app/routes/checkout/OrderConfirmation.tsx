@@ -11,6 +11,7 @@ import { useCapturePayPalPayment } from 'src/hooks/usePayment';
 import { useResendPaymentToInvitee } from 'src/hooks/useEmail';
 import { motion } from 'motion/react';
 import { message } from 'antd';
+import { useTrackEvent } from 'src/hooks/useAnalyticsTracking';
 
 export function OrderConfirmation() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export function OrderConfirmation() {
   const cartId = searchParams.get('cartId');
   const contextData = useOutletContext<OutletContextType>();
   const { coupleSlug, regenerateGuestId } = contextData;
+  const trackEvent = useTrackEvent();
 
   const { data: weddinglist } = useWeddingListBySlug(coupleSlug);
   const { data: cartData, isLoading: isLoadingCart, error: cartError } = useGetCart(cartId || '');
@@ -49,8 +51,15 @@ export function OrderConfirmation() {
     if (cartData?.status === 'PAID') {
       localStorage.removeItem('guestId');
       regenerateGuestId();
+      
+      // Track gift purchase
+      trackEvent('GIFT_PURCHASE', {
+        cartId: cartData.id,
+        totalAmount: cartData.totalAmount,
+        itemCount: cartData.items?.length || 0,
+      });
     }
-  }, [cartData?.status, regenerateGuestId]);
+  }, [cartData?.status, regenerateGuestId, trackEvent, cartData]);
 
   // Handle resend email with rate limiting
   const handleResendEmail = () => {
