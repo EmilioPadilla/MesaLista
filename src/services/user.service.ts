@@ -104,6 +104,11 @@ export const userService = {
     } as CustomAxiosRequestConfig);
     return response.data;
   },
+
+  deleteCurrentUser: async (): Promise<{ message: string }> => {
+    const response = await apiClient.delete(user_endpoints.deleteCurrentUser);
+    return response.data;
+  },
 };
 
 export default userService;

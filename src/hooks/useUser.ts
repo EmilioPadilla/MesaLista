@@ -201,3 +201,22 @@ export const useUpdateCurrentUserPassword = () => {
     },
   });
 };
+
+/**
+ * Hook to delete current user account
+ */
+export const useDeleteCurrentUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => userService.deleteCurrentUser(),
+    onSuccess: () => {
+      // Clear all cached data
+      queryClient.clear();
+      message.success('Cuenta eliminada exitosamente');
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.error || 'Error al eliminar la cuenta';
+      message.error(errorMessage);
+    },
+  });
+};

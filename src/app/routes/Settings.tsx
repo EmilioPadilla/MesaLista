@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
-import { Form, Input, message, Checkbox, DatePicker } from 'antd';
+import { Form, Input, message, Checkbox, DatePicker, Alert } from 'antd';
 import dayjs from 'dayjs';
+import { useNavigate } from 'react-router-dom';
 import { Button } from 'components/core/Button';
 import { Collapsible } from 'components/core/Collapsible';
-import { Camera, Save } from 'lucide-react';
+import { Camera, Save, Trash2 } from 'lucide-react';
 import { useCurrentUser, useUpdateCurrentUserProfile, useUpdateCurrentUserPassword, useCheckSlugAvailability } from 'hooks/useUser';
 import { useWeddingListByCouple, useUpdateWeddingList } from 'hooks/useWeddingList';
 import { useUploadFile } from 'hooks/useFiles';
 import { PasswordStrengthIndicator } from 'components/auth/PasswordStrengthIndicator';
 import { useWatch } from 'antd/es/form/Form';
+import { DeleteCurrentUserModal } from 'components/shared/DeleteCurrentUserModal';
 
 export function Settings() {
+  const navigate = useNavigate();
   const [profileForm] = Form.useForm();
   const [passwordForm] = Form.useForm();
   const password = useWatch('newPassword', passwordForm);
@@ -22,6 +25,7 @@ export function Settings() {
   const [slugError, setSlugError] = useState('');
   const [hasProfileChanges, setHasProfileChanges] = useState(false);
   const [hasPasswordChanges, setHasPasswordChanges] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // Fetch current user data
   const { data: userData, isLoading: isLoadingUser } = useCurrentUser();
@@ -131,6 +135,8 @@ export function Settings() {
   const handleSaveProfile = async () => {
     try {
       const values = await profileForm.validateFields();
+      const oldSlug = userData?.coupleSlug;
+      const newSlug = values.coupleSlug;
 
       // Update user profile
       await updateProfile({
@@ -170,6 +176,11 @@ export function Settings() {
 
       // Reset change flag after successful save
       setHasProfileChanges(false);
+
+      // Redirect to new URL if slug was changed
+      if (oldSlug && newSlug && oldSlug !== newSlug) {
+        navigate(`/${newSlug}/configuracion`, { replace: true });
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
     }
@@ -340,7 +351,7 @@ export function Settings() {
             <Form.Item
               name="coupleSlug"
               className="!mb-0"
-              label={<span className="text-sm text-muted-foreground">Slug de la pareja</span>}
+              label={<span className="text-sm text-muted-foreground">ID de la pareja</span>}
               rules={[{ required: true, message: 'El slug es requerido' }]}
               validateStatus={
                 slugError ? 'error' : coupleSlug && slugCheck?.available && coupleSlug !== userData?.coupleSlug ? 'success' : undefined
@@ -368,6 +379,14 @@ export function Settings() {
               )}
               {slugError && <p className="text-sm text-red-500">{slugError}</p>}
             </div>
+            {coupleSlug && coupleSlug !== userData?.coupleSlug && (
+              <Alert
+                className="!my-3"
+                message="Al cambiar tu ID, la URL anterior dejará de funcionar. Recuerda compartir la nueva dirección con tus invitados."
+                type="warning"
+                showIcon
+              />
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
               <Form.Item name="weddingVenue" label={<span className="text-sm text-muted-foreground !mb-0">Lugar del evento</span>}>
@@ -470,7 +489,38 @@ export function Settings() {
             </Button>
           </div>
         </section>
+
+        {/* Divider */}
+        <div className="border-t border-red-200" />
+
+        {/* Danger Zone - Delete Account */}
+        <section className="space-y-6">
+          <div>
+            <h2 className="text-3xl tracking-tight text-red-600 mb-2">Zona de peligro</h2>
+            <p className="text-muted-foreground font-light">Una vez que elimines tu cuenta, no hay vuelta atrás. Por favor, ten cuidado.</p>
+          </div>
+
+          <div className="border-2 border-red-200 rounded-2xl p-8 bg-red-50/30">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-medium text-red-900 mb-2">Eliminar cuenta</h3>
+                <p className="text-sm text-red-700">
+                  Esta acción eliminará permanentemente tu cuenta, tu mesa de regalos, todos los regalos y toda la información asociada. Esta acción no se puede deshacer.
+                </p>
+              </div>
+              <Button
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full transition-all duration-200 flex items-center gap-2 border-0">
+                <Trash2 className="h-5 w-5" />
+                Eliminar mi cuenta
+              </Button>
+            </div>
+          </div>
+        </section>
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      <DeleteCurrentUserModal open={isDeleteModalOpen} onCancel={() => setIsDeleteModalOpen(false)} />
 
       {/* Footer spacing */}
       <div className="h-24" />

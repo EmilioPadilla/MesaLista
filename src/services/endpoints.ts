@@ -102,6 +102,14 @@ export const user_endpoints = {
   updatePassword: `/user/me/password`,
 
   /**
+   * Delete current user account
+   * @method DELETE
+   * @access Protected
+   * @requires JWT token
+   */
+  deleteCurrentUser: `/user/me`,
+
+  /**
    * Request password reset
    * @method POST
    * @access Public

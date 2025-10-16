@@ -30,6 +30,8 @@ router.put('/me/profile', authenticateSession, userController.updateCurrentUserP
 
 router.put('/me/password', authenticateSession, userController.updateCurrentUserPassword); // Update current user password
 
+router.delete('/me', authenticateSession, userController.deleteCurrentUser); // Delete current user
+
 router.get('/', authenticateSession, userController.getAllUsers);
 
 router.get('/:id', authenticateSession, userController.getUserById);

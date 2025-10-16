@@ -631,6 +631,39 @@ export const userController = {
       res.status(500).json({ error: 'Failed to reset password' });
     }
   },
+
+  // Delete current user
+  deleteCurrentUser: async (req: Request, res: Response) => {
+    try {
+      if (!req.user?.userId) {
+        return res.status(401).json({ error: 'Not authenticated' });
+      }
+
+      const userId = req.user.userId;
+
+      // Delete user and all related data (cascading deletes should be handled by Prisma schema)
+      await prisma.user.delete({
+        where: { id: userId },
+      });
+
+      // Clear the session cookie
+      res.clearCookie('session_token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      });
+
+      res.status(200).json({ message: 'Account deleted successfully' });
+    } catch (error: unknown) {
+      console.error('Error deleting current user:', error);
+
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.status(500).json({ error: 'Failed to delete account' });
+    }
+  },
 };
 
 export default userController;
