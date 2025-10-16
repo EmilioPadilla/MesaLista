@@ -40,7 +40,7 @@ export const plans = [
   {
     name: 'Plan Fijo',
     description: 'Pago único',
-    price: '$3,000 MXN',
+    price: '$2,000 MXN',
     period: 'pago único',
     icon: CreditCard,
     color: 'text-[#d4704a]',

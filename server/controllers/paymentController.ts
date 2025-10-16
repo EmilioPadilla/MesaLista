@@ -659,7 +659,7 @@ export default {
               name: 'Plan Fijo - MesaLista',
               description: 'Pago único para acceso completo a MesaLista sin comisiones por ventas',
             },
-            unit_amount: 300000, // $3,000 MXN in cents
+            unit_amount: 200000, // $2,000 MXN in cents
           },
           quantity: 1,
         },

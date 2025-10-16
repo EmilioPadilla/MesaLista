@@ -763,7 +763,7 @@ function Signup() {
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1 pr-8">
                               <h3 className="text-lg text-foreground font-semibold">Plan Fijo</h3>
-                              <span className="text-2xl text-[#d4704a] font-bold">$3,000 MXN</span>
+                              <span className="text-2xl text-[#d4704a] font-bold">$2,000 MXN</span>
                             </div>
                             <p className="text-muted-foreground">Pago único</p>
                             <ul className="text-sm text-muted-foreground mt-2 space-y-1">
@@ -826,7 +826,7 @@ function Signup() {
                 <div className="text-center mb-8">
                   <h1 className="text-3xl sm:text-4xl mb-4 text-foreground">Confirmar pago</h1>
                   <p className="text-xl text-muted-foreground">
-                    {selectedPlan === 'fixed' ? 'Pago único de $3,000 MXN' : 'Sin costo inicial - 3% por venta'}
+                    {selectedPlan === 'fixed' ? 'Pago único de $2,000 MXN' : 'Sin costo inicial - 3% por venta'}
                   </p>
                 </div>
 
@@ -835,7 +835,7 @@ function Signup() {
                     <div className="bg-gray-50 rounded-2xl p-6">
                       <div className="flex justify-between items-center mb-4">
                         <span className="text-lg">Plan Fijo</span>
-                        <span className="text-2xl text-[#d4704a]">$3,000 MXN</span>
+                        <span className="text-2xl text-[#d4704a]">$2,000 MXN</span>
                       </div>
                       <div className="text-sm text-muted-foreground">Pago único, sin comisiones adicionales</div>
                     </div>
@@ -886,7 +886,7 @@ function Signup() {
                     'Procesando...'
                   ) : currentStep === 'payment' ? (
                     selectedPlan === 'fixed' ? (
-                      'Pagar $3,000'
+                      'Pagar $2,000'
                     ) : (
                       'Crear Cuenta'
                     )
