@@ -106,10 +106,14 @@ export const useLogin = () => {
 export const useLogout = () => {
   const queryClient = useQueryClient();
   return {
-    logout: () => {
-      userService.logout();
-      // Clear user data from cache
+    logout: async () => {
+      await userService.logout();
+      // Clear all user-related data from cache
       queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.isAuthenticated] });
+      // Remove the cached data immediately
+      queryClient.removeQueries({ queryKey: [queryKeys.currentUser] });
+      queryClient.removeQueries({ queryKey: [queryKeys.isAuthenticated] });
     },
   };
 };
