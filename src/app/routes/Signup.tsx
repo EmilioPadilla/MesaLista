@@ -26,14 +26,7 @@ import { useCreatePlanCheckoutSession } from 'hooks/usePayment';
 import { motion, AnimatePresence } from 'motion/react';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { PasswordStrengthIndicator } from 'components/auth/PasswordStrengthIndicator';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  type: UserRole;
-  avatar?: string;
-}
+import { useTrackEvent } from 'hooks/useAnalyticsTracking';
 
 type Step = 'details' | 'verification' | 'coupleSlug' | 'plan' | 'payment' | 'success';
 
@@ -61,6 +54,7 @@ function Signup() {
   const { mutateAsync: createPlanCheckout } = useCreatePlanCheckoutSession();
   const { mutateAsync: sendVerificationCode } = useSendVerificationCode();
   const { mutateAsync: verifyCode } = useVerifyCode();
+  const trackEvent = useTrackEvent();
 
   // Check slug availability
   const { data: slugCheck, isLoading: isCheckingSlug } = useCheckSlugAvailability(debouncedSlug);
@@ -294,6 +288,11 @@ function Signup() {
     switch (currentStep) {
       case 'details':
         // Save form data and send verification code
+        // Track registry purchase
+        trackEvent('REGISTRY_ATTEMPT', {
+          plan: selectedPlan,
+          coupleSlug: coupleSlug,
+        });
         const values = form.getFieldsValue();
         setFormData(values);
         await handleSendVerificationCode(values.email);

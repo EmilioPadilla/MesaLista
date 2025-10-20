@@ -1,7 +1,25 @@
 import { useQuery, useMutation, type UseQueryOptions } from '@tanstack/react-query';
 import { message } from 'antd';
-import { analyticsService, type LogEventParams, type MetricsSummary, type TimeSeriesResponse } from '../services/analytics.service';
+import {
+  analyticsService,
+  type LogEventParams,
+  type UpsertSessionParams,
+  type MetricsSummary,
+  type TimeSeriesResponse,
+  type FunnelBreakdownResponse,
+  type AlertsResponse,
+} from '../services/analytics.service';
 import { queryKeys } from './queryKeys';
+
+/**
+ * Hook to upsert analytics session
+ */
+export const useUpsertAnalyticsSession = () => {
+  return useMutation({
+    mutationFn: (params: UpsertSessionParams) => analyticsService.upsertSession(params),
+    // No success/error messages - analytics should be silent
+  });
+};
 
 /**
  * Hook to log an analytics event
@@ -16,10 +34,10 @@ export const useLogAnalyticsEvent = () => {
 /**
  * Hook to get metrics summary
  */
-export const useMetricsSummary = (from?: string, to?: string, options?: Partial<UseQueryOptions<MetricsSummary, Error>>) => {
+export const useMetricsSummary = (from?: string, to?: string, weddingListId?: number, options?: Partial<UseQueryOptions<MetricsSummary, Error>>) => {
   return useQuery({
-    queryKey: [queryKeys.analytics, 'summary', from, to],
-    queryFn: () => analyticsService.getMetricsSummary(from, to),
+    queryKey: [queryKeys.analytics, 'summary', from, to, weddingListId],
+    queryFn: () => analyticsService.getMetricsSummary(from, to, weddingListId),
     staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
@@ -29,7 +47,7 @@ export const useMetricsSummary = (from?: string, to?: string, options?: Partial<
  * Hook to get time series data
  */
 export const useTimeSeries = (
-  metric: 'visitors' | 'signIns' | 'registryPurchases' | 'giftPurchases',
+  metric: 'visitors' | 'signIns' | 'registryAttempts' | 'registryPurchases' | 'giftPurchases',
   from?: string,
   to?: string,
   granularity: 'daily' | 'hourly' = 'daily',
@@ -64,8 +82,15 @@ export const useAggregateDaily = () => {
  */
 export const useCleanupAnalytics = () => {
   return useMutation({
-    mutationFn: ({ eventsRetentionDays, aggregatesRetentionDays }: { eventsRetentionDays?: number; aggregatesRetentionDays?: number }) =>
-      analyticsService.cleanup(eventsRetentionDays, aggregatesRetentionDays),
+    mutationFn: ({
+      eventsRetentionDays,
+      aggregatesRetentionDays,
+      sessionsRetentionDays,
+    }: {
+      eventsRetentionDays?: number;
+      aggregatesRetentionDays?: number;
+      sessionsRetentionDays?: number;
+    }) => analyticsService.cleanup(eventsRetentionDays, aggregatesRetentionDays, sessionsRetentionDays),
     onSuccess: (data) => {
       message.success(data.message);
     },
@@ -73,5 +98,34 @@ export const useCleanupAnalytics = () => {
       const errorMessage = error.response?.data?.error || 'Error al limpiar datos';
       message.error(errorMessage);
     },
+  });
+};
+
+/**
+ * Hook to get funnel breakdown
+ */
+export const useFunnelBreakdown = (
+  dimension: 'utm_source' | 'landing_page',
+  from?: string,
+  to?: string,
+  options?: Partial<UseQueryOptions<FunnelBreakdownResponse, Error>>,
+) => {
+  return useQuery({
+    queryKey: [queryKeys.analytics, 'funnelBreakdown', dimension, from, to],
+    queryFn: () => analyticsService.getFunnelBreakdown(dimension, from, to),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    ...options,
+  });
+};
+
+/**
+ * Hook to get metric alerts
+ */
+export const useMetricAlerts = (options?: Partial<UseQueryOptions<AlertsResponse, Error>>) => {
+  return useQuery({
+    queryKey: [queryKeys.analytics, 'alerts'],
+    queryFn: () => analyticsService.getAlerts(),
+    staleTime: 1 * 60 * 1000, // 1 minute
+    ...options,
   });
 };

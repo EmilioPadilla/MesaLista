@@ -93,7 +93,7 @@ app.post('/api/payments/create-paypal-order', paymentController.createPayPalOrde
 app.post('/api/payments/capture-paypal-payment', paymentController.capturePayPalPayment);
 
 // Serve static files from the React app build directory
-const distPath = path.resolve(__dirname, '../../../dist');
+const distPath = path.resolve(__dirname, '../dist');
 app.use(express.static(distPath));
 
 // API root route

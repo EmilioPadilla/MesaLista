@@ -12,6 +12,7 @@ import { AddGiftForm } from 'src/features/manageRegistry/components/AddGiftForm'
 import { StatsTabContent } from 'src/features/manageRegistry/components/StatsTabContent';
 import { GiftsList } from 'src/components/shared/GiftsList';
 import { GiftModal } from 'src/features/manageRegistry/components/GiftModal';
+import { useTrackEvent } from 'hooks/useAnalyticsTracking';
 
 export interface GiftItem extends GiftInterface {
   purchasedBy?: string;
@@ -27,6 +28,7 @@ export const ManageRegistry = () => {
   const { data: weddingListCategories } = useGetCategoriesByWeddingList(weddinglist?.id);
   const { mutate: reorderGifts } = useReorderGifts(weddinglist?.coupleId);
   const { mutate: deleteGift } = useDeleteGift();
+  const trackEvent = useTrackEvent();
 
   const [gifts, setGifts] = useState<GiftItem[]>();
   const [editingGift, setEditingGift] = useState<GiftItem | null>(null);
@@ -34,6 +36,11 @@ export const ManageRegistry = () => {
   const [sortBy, setSortBy] = useState<SortOption>('original');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
+
+  // Track registry builder view
+  useEffect(() => {
+    trackEvent('VIEW_REGISTRY_BUILDER');
+  }, []);
 
   useEffect(() => {
     if (weddinglist?.gifts) {

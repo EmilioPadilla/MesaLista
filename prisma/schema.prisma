@@ -257,12 +257,41 @@ model LoginAttempt {
 }
 
 // Analytics Models
+
+// Session tracking for UTM parameters and referrer
+model AnalyticsSession {
+  id            String   @id @default(uuid())
+  sessionId     String   @unique @map("session_id") // Browser session/fingerprint ID
+  userHash      String?  @map("user_hash") // SHA256 hash of user_id for privacy
+  utmSource     String?  @map("utm_source")
+  utmMedium     String?  @map("utm_medium")
+  utmCampaign   String?  @map("utm_campaign")
+  utmTerm       String?  @map("utm_term")
+  utmContent    String?  @map("utm_content")
+  referrer      String?  // Full referrer URL
+  landingPage   String?  @map("landing_page") // First page visited
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  startedAt     DateTime @default(now()) @map("started_at")
+  endedAt       DateTime? @map("ended_at")
+  pageViews     Int      @default(0) @map("page_views") // Count of page views in session
+  durationMs    Int?     @map("duration_ms") // Session duration in milliseconds
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([sessionId])
+  @@index([utmSource, startedAt])
+  @@index([landingPage, startedAt])
+  @@index([startedAt])
+  @@map("analytics_sessions")
+}
+
 model AnalyticsEvent {
   id          String   @id @default(uuid())
   userHash    String?  @map("user_hash") // SHA256 hash of user_id for privacy
   sessionId   String   @map("session_id") // Browser session/fingerprint ID
   eventType   AnalyticsEventType @map("event_type")
-  metadata    Json?    // Optional additional data (e.g., registry_id, gift_id)
+  metadata    Json?    // Optional additional data (e.g., registry_id, gift_id, path, utm_*, etc.)
   createdAt   DateTime @default(now()) @map("created_at")
 
   @@index([eventType, createdAt])
@@ -274,20 +303,53 @@ model AnalyticsEvent {
 enum AnalyticsEventType {
   PAGE_VIEW
   SIGN_IN
+  REGISTRY_ATTEMPT
   REGISTRY_PURCHASE
   GIFT_PURCHASE
+  VIEW_PRICING
+  VIEW_REGISTRY_BUILDER
+  START_CHECKOUT
+  CHECKOUT_ERROR
+  SESSION_START
+  SESSION_END
 }
 
 model AnalyticsDaily {
-  id                  Int      @id @default(autoincrement())
-  date                DateTime @unique @db.Date
-  visitors            Int      @default(0) // Unique sessions with PAGE_VIEW
-  signIns             Int      @default(0) @map("sign_ins") // Unique users with SIGN_IN
-  registryPurchases   Int      @default(0) @map("registry_purchases") // REGISTRY_PURCHASE events
-  giftPurchases       Int      @default(0) @map("gift_purchases") // GIFT_PURCHASE events
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  id                    Int      @id @default(autoincrement())
+  date                  DateTime @unique @db.Date
+  visitors              Int      @default(0) // Unique sessions with PAGE_VIEW
+  signIns               Int      @default(0) @map("sign_ins") // Unique users with SIGN_IN
+  registryPurchases     Int      @default(0) @map("registry_purchases") // REGISTRY_PURCHASE events
+  giftPurchases         Int      @default(0) @map("gift_purchases") // GIFT_PURCHASE events
+  viewPricing           Int      @default(0) @map("view_pricing") // VIEW_PRICING events
+  viewRegistryBuilder   Int      @default(0) @map("view_registry_builder") // VIEW_REGISTRY_BUILDER events
+  startCheckouts        Int      @default(0) @map("start_checkouts") // START_CHECKOUT events
+  checkoutErrors        Int      @default(0) @map("checkout_errors") // CHECKOUT_ERROR events
+  checkoutAbandonments  Int      @default(0) @map("checkout_abandonments") // Calculated: start_checkouts - purchases
+  avgPagesPerSession    Float?   @default(0) @map("avg_pages_per_session")
+  avgSessionDurationMs  Float?   @default(0) @map("avg_session_duration_ms")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
 
   @@index([date])
   @@map("analytics_daily")
+}
+
+// Hourly aggregates for near-real-time metrics (last 48 hours)
+model AnalyticsHourly {
+  id                    Int      @id @default(autoincrement())
+  hour                  DateTime @unique @db.Timestamptz // Hour timestamp
+  visitors              Int      @default(0)
+  signIns               Int      @default(0) @map("sign_ins")
+  registryPurchases     Int      @default(0) @map("registry_purchases")
+  giftPurchases         Int      @default(0) @map("gift_purchases")
+  viewPricing           Int      @default(0) @map("view_pricing")
+  viewRegistryBuilder   Int      @default(0) @map("view_registry_builder")
+  startCheckouts        Int      @default(0) @map("start_checkouts")
+  checkoutErrors        Int      @default(0) @map("checkout_errors")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@index([hour])
+  @@map("analytics_hourly")
 }

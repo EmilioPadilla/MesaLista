@@ -454,6 +454,13 @@ export const emailVerification_endpoints = {
  */
 export const analytics_endpoints = {
   /**
+   * Upsert analytics session
+   * @method POST
+   * @access Public
+   */
+  upsertSession: `/analytics/events/session`,
+
+  /**
    * Log an analytics event
    * @method POST
    * @access Public
@@ -473,6 +480,20 @@ export const analytics_endpoints = {
    * @access Admin only
    */
   timeSeries: `/analytics/admin/metrics/time_series`,
+
+  /**
+   * Get funnel breakdown by dimension
+   * @method GET
+   * @access Admin only
+   */
+  funnelBreakdown: `/analytics/admin/metrics/funnel_breakdown`,
+
+  /**
+   * Get metric alerts
+   * @method GET
+   * @access Admin only
+   */
+  alerts: `/analytics/admin/metrics/alerts`,
 
   /**
    * Trigger daily aggregation

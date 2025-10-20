@@ -10,6 +10,7 @@ import { motion } from 'motion/react';
 import { useWeddingListBySlug } from 'src/hooks/useWeddingList';
 import { useCancelPayment } from 'src/hooks/usePayment';
 import { useSearchParams } from 'react-router-dom';
+import { useTrackEvent } from 'src/hooks/useAnalyticsTracking';
 
 const { TextArea } = Input;
 
@@ -27,6 +28,7 @@ export function Checkout() {
   const cartId = searchParams.get('cartId');
   const cancelled = searchParams.get('cancelled');
   const paymentMethod = searchParams.get('paymentMethod');
+  const trackEvent = useTrackEvent();
 
   const coupleName = weddinglist?.coupleName;
 
@@ -98,6 +100,14 @@ export function Checkout() {
       },
       {
         onSuccess: () => {
+          // Track checkout start
+          trackEvent('START_CHECKOUT', {
+            cartId: cart.id,
+            totalAmount: finalTotal,
+            itemCount: cart.items?.length || 0,
+            paymentMethod: 'stripe',
+          });
+
           createCheckoutSession(
             {
               cartId: cart.id,
@@ -112,11 +122,23 @@ export function Checkout() {
                   window.location.href = checkoutResponse.url;
                 } else {
                   message.error('Error al crear la sesión de pago');
+                  // Track checkout error
+                  trackEvent('CHECKOUT_ERROR', {
+                    error: 'No checkout URL returned',
+                    step: 'stripe_session_creation',
+                    paymentMethod: 'stripe',
+                  });
                 }
               },
               onError: (error) => {
                 console.error('Error creating checkout session:', error);
                 message.error('Error al crear la sesión de pago');
+                // Track checkout error
+                trackEvent('CHECKOUT_ERROR', {
+                  error: (error as any)?.message || 'Unknown error',
+                  step: 'stripe_session_creation',
+                  paymentMethod: 'stripe',
+                });
               },
             },
           );
@@ -148,6 +170,14 @@ export function Checkout() {
       },
       {
         onSuccess: () => {
+          // Track checkout start
+          trackEvent('START_CHECKOUT', {
+            cartId: cart.id,
+            totalAmount: finalTotal,
+            itemCount: cart.items?.length || 0,
+            paymentMethod: 'paypal',
+          });
+
           createPayPalOrder(
             {
               cartId: cart.id,
@@ -161,11 +191,23 @@ export function Checkout() {
                   window.location.href = paypalResponse.approvalUrl;
                 } else {
                   message.error('Error al crear la orden de PayPal');
+                  // Track checkout error
+                  trackEvent('CHECKOUT_ERROR', {
+                    error: 'No approval URL returned',
+                    step: 'paypal_order_creation',
+                    paymentMethod: 'paypal',
+                  });
                 }
               },
               onError: (error) => {
                 console.error('Error creating PayPal order:', error);
                 message.error('Error al crear la orden de PayPal');
+                // Track checkout error
+                trackEvent('CHECKOUT_ERROR', {
+                  error: (error as any)?.message || 'Unknown error',
+                  step: 'paypal_order_creation',
+                  paymentMethod: 'paypal',
+                });
               },
             },
           );

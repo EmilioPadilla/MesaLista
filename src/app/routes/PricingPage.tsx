@@ -4,10 +4,21 @@ import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from 'src/components/core/Badge';
 import { faqs, plans } from 'src/config/constants';
+import { useCurrentUser } from 'hooks/useUser';
+import { useTrackEvent } from 'hooks/useAnalyticsTracking';
+import { useEffect } from 'react';
 
 export function PricingPage() {
   const navigate = useNavigate();
+  const { data: currentUser } = useCurrentUser();
+  const trackEvent = useTrackEvent();
+  
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Track pricing page view
+  useEffect(() => {
+    trackEvent('VIEW_PRICING');
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -245,27 +256,29 @@ export function PricingPage() {
             viewport={{ once: true }}>
             Elige el plan que mejor se adapte a ti y comienza tu experiencia MesaLista hoy mismo
           </motion.p>
-          <motion.div
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            viewport={{ once: true }}>
-            <Button
-              size="large"
-              className="px-8 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-0 bg-white hover:!bg-white/95 !text-[#d4704a]"
-              onClick={() => navigate('/registro')}>
-              <Heart className="mr-2 h-5 w-5" />
-              Comenzar Ahora
-            </Button>
-            {/* <Button
-              size="large"
-              className="px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-300 !border-2 !border-white/50 hover:!border-white !bg-transparent hover:!bg-white/10 !text-white"
-              onClick={() => navigate('/')}>
-              <Gift className="mr-2 h-5 w-5" />
-              Ver Demo
-            </Button> */}
-          </motion.div>
+          {!currentUser && (
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              viewport={{ once: true }}>
+              <Button
+                size="large"
+                className="px-8 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-0 bg-white hover:!bg-white/95 !text-[#d4704a]"
+                onClick={() => navigate('/registro')}>
+                <Heart className="mr-2 h-5 w-5" />
+                Comenzar Ahora
+              </Button>
+              {/* <Button
+                size="large"
+                className="px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-300 !border-2 !border-white/50 hover:!border-white !bg-transparent hover:!bg-white/10 !text-white"
+                onClick={() => navigate('/')}>
+                <Gift className="mr-2 h-5 w-5" />
+                Ver Demo
+              </Button> */}
+            </motion.div>
+          )}
         </div>
       </motion.section>
     </div>

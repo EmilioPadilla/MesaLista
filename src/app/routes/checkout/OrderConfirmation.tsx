@@ -6,7 +6,7 @@ import { useGetCart } from 'src/hooks/useCart';
 import { useOutletContext } from 'react-router-dom';
 import { OutletContextType } from '../guest/PublicRegistry';
 import { useWeddingListBySlug } from 'src/hooks/useWeddingList';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useCapturePayPalPayment } from 'src/hooks/usePayment';
 import { useResendPaymentToInvitee } from 'src/hooks/useEmail';
 import { motion } from 'motion/react';
@@ -20,6 +20,7 @@ export function OrderConfirmation() {
   const contextData = useOutletContext<OutletContextType>();
   const { coupleSlug, regenerateGuestId } = contextData;
   const trackEvent = useTrackEvent();
+  const hasTrackedPurchase = useRef(false);
 
   const { data: weddinglist } = useWeddingListBySlug(coupleSlug);
   const { data: cartData, isLoading: isLoadingCart, error: cartError } = useGetCart(cartId || '');
@@ -48,18 +49,20 @@ export function OrderConfirmation() {
 
   // Handle guest ID regeneration when cart is paid
   useEffect(() => {
-    if (cartData?.status === 'PAID') {
+    if (cartData?.status === 'PAID' && !hasTrackedPurchase.current) {
       localStorage.removeItem('guestId');
       regenerateGuestId();
-      
-      // Track gift purchase
+
+      // Track gift purchase (only once)
       trackEvent('GIFT_PURCHASE', {
         cartId: cartData.id,
         totalAmount: cartData.totalAmount,
         itemCount: cartData.items?.length || 0,
       });
+
+      hasTrackedPurchase.current = true;
     }
-  }, [cartData?.status, regenerateGuestId, trackEvent, cartData]);
+  }, [cartData?.status, cartData?.id, cartData?.totalAmount, cartData?.items?.length]);
 
   // Handle resend email with rate limiting
   const handleResendEmail = () => {
