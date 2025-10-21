@@ -267,7 +267,7 @@ const Login: React.FC = () => {
             </a>
             <span>y</span>
             <a
-              href="https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Te%CC%81rminos%20y%20Condiciones%20MesaLista%20Mx.pdf"
+              href="https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Aviso%20de%20Privacidad%20MesaLista%20Mx.pdf"
               target="_blank"
               className="p-0 h-auto text-xs text-primary hover:text-primary/50">
               Política de Privacidad

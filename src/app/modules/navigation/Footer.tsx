@@ -91,7 +91,7 @@ export const Footer = () => {
         <div className="border-t border-border/30 pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="flex flex-wrap gap-6 text-sm text-muted-foreground font-light">
             <a
-              href="https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Pol%CC%81tica%20de%20Privacidad%20MesaLista%20Mx.pdf"
+              href="https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Aviso%20de%20Privacidad%20MesaLista%20Mx.pdf"
               target="_blank"
               className="hover:text-foreground transition-colors">
               Privacidad
