@@ -229,12 +229,9 @@ const Login: React.FC = () => {
                     Recordarme
                   </label>
                 </div> */}
-                <Button
-                  variant="link"
-                  className="!text-base p-0 h-auto text-primary hover:text-primary/80"
-                  onClick={() => navigate('/olvide-contrasena')}>
+                <a className="!text-sm p-0 h-auto !text-primary hover:!text-primary/80" onClick={() => navigate('/olvide-contrasena')}>
                   ¿Olvidaste tu contraseña?
-                </Button>
+                </a>
               </div>
 
               <Button
@@ -248,9 +245,11 @@ const Login: React.FC = () => {
             <div className="text-center">
               <p className="!text-base text-muted-foreground">
                 ¿No tienes una cuenta?{' '}
-                <Button variant="link" className="p-0 h-auto text-primary hover:text-primary/80" onClick={() => navigate('/registro')}>
+                <a
+                  className="!text-sm p-0 h-auto cursor-pointer !text-primary hover:!text-primary/80"
+                  onClick={() => navigate('/registro')}>
                   Regístrate aquí
-                </Button>
+                </a>
               </p>
             </div>
           </CardContent>
@@ -267,7 +266,10 @@ const Login: React.FC = () => {
               Términos y Condiciones
             </a>
             <span>y</span>
-            <a href="" target="_blank" className="p-0 h-auto text-xs text-primary hover:text-primary/50">
+            <a
+              href="https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Te%CC%81rminos%20y%20Condiciones%20MesaLista%20Mx.pdf"
+              target="_blank"
+              className="p-0 h-auto text-xs text-primary hover:text-primary/50">
               Política de Privacidad
             </a>
           </div>
