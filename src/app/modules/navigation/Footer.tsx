@@ -93,7 +93,10 @@ export const Footer = () => {
             <a href="#" className="hover:text-foreground transition-colors">
               Privacidad
             </a>
-            <a href="#" className="hover:text-foreground transition-colors">
+            <a
+              href="https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Te%CC%81rminos%20y%20Condiciones%20MesaLista%20Mx.pdf"
+              target="_blank"
+              className="hover:text-foreground transition-colors">
               Términos
             </a>
             <a href="#" className="hover:text-foreground transition-colors">

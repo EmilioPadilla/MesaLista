@@ -93,7 +93,15 @@ app.post('/api/payments/create-paypal-order', paymentController.createPayPalOrde
 app.post('/api/payments/capture-paypal-payment', paymentController.capturePayPalPayment);
 
 // Serve static files from the React app build directory
-const distPath = path.resolve(__dirname, '../../../dist');
+// Dynamically resolve path based on whether we're running from TypeScript or compiled JS
+// Development (tsx): __dirname = /path/to/MesaLista/server -> ../dist
+// Production (node): __dirname = /path/to/MesaLista/server/dist/dist/dist/server -> ../../../dist
+const isDevelopment = __filename.endsWith('.ts');
+const distPath = isDevelopment
+  ? path.resolve(__dirname, '../dist') // Development: server/index.ts -> dist/
+  : path.resolve(__dirname, '../../../dist'); // Production: server/dist/server/index.js -> dist/
+
+console.log(`[Static Files] Serving from: ${distPath} (${isDevelopment ? 'development' : 'production'} mode)`);
 app.use(express.static(distPath));
 
 // API root route

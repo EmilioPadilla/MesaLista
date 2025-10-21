@@ -156,13 +156,16 @@ export function ForgotPassword() {
         <div className="text-center mt-6 text-xs text-muted-foreground">
           <p>Al usar MesaLista, aceptas nuestros</p>
           <div className="space-x-2">
-            <Button variant="link" className="p-0 h-auto text-xs">
-              Términos de Servicio
-            </Button>
+            <a
+              href="https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Te%CC%81rminos%20y%20Condiciones%20MesaLista%20Mx.pdf"
+              target="_blank"
+              className="p-0 h-auto text-xs text-primary hover:text-primary/50">
+              Términos y Condiciones
+            </a>
             <span>y</span>
-            <Button variant="link" className="p-0 h-auto text-xs">
+            <a href="" target="_blank" className="p-0 h-auto text-xs text-primary hover:text-primary/50">
               Política de Privacidad
-            </Button>
+            </a>
           </div>
         </div>
       </div>

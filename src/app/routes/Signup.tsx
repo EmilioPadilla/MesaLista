@@ -618,13 +618,16 @@ function Signup() {
                     <Checkbox>
                       <span className="text-sm">
                         Acepto los{' '}
-                        <Button variant="link" className="p-0 h-auto text-[#d4704a] text-sm">
-                          Términos de Servicio
-                        </Button>{' '}
+                        <a
+                          href="https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Te%CC%81rminos%20y%20Condiciones%20MesaLista%20Mx.pdf"
+                          target="_blank"
+                          className="p-0 h-auto !text-primary hover:!text-primary/50 text-sm">
+                          Términos y Condiciones
+                        </a>{' '}
                         y la{' '}
-                        <Button variant="link" className="p-0 h-auto text-[#d4704a] text-sm">
+                        <a href="" target="_blank" className="p-0 h-auto !text-primary hover:!text-primary/50 text-sm">
                           Política de Privacidad
-                        </Button>
+                        </a>
                       </span>
                     </Checkbox>
                   </Form.Item>

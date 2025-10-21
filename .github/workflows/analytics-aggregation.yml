@@ -2,8 +2,8 @@ name: Daily Analytics Aggregation
 
 on:
   schedule:
-    # Run daily at 2 AM UTC (8 PM CST / 9 PM CDT)
-    - cron: '0 2 * * *'
+    # Run daily at 8 AM UTC (2 PM CST / 3 PM CDT)
+    - cron: '0 8 * * *'
   workflow_dispatch: # Allow manual trigger from GitHub Actions tab
 
 jobs:
@@ -16,18 +16,18 @@ jobs:
             https://www.mesalista.com.mx/api/analytics/admin/metrics/aggregate \
             -H "Authorization: Bearer ${{ secrets.ANALYTICS_CRON_TOKEN }}" \
             -H "Content-Type: application/json")
-          
+
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | sed '$d')
-          
+
           echo "HTTP Status: $http_code"
           echo "Response: $body"
-          
+
           if [ "$http_code" -ne 200 ]; then
             echo "❌ Aggregation failed with status $http_code"
             exit 1
           fi
-          
+
           echo "✅ Analytics aggregation completed successfully"
 
       - name: Trigger Session Cleanup
@@ -36,13 +36,13 @@ jobs:
             https://www.mesalista.com.mx/api/analytics/admin/metrics/cleanup \
             -H "Authorization: Bearer ${{ secrets.ANALYTICS_CRON_TOKEN }}" \
             -H "Content-Type: application/json")
-          
+
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | sed '$d')
-          
+
           echo "HTTP Status: $http_code"
           echo "Response: $body"
-          
+
           if [ "$http_code" -ne 200 ]; then
             echo "⚠️ Cleanup failed with status $http_code (non-critical)"
           else
