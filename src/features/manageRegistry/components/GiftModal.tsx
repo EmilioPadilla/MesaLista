@@ -149,7 +149,7 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
               mode="tags"
               allowClear
               optionFilterProp="label"
-              style={{ width: '100%' }}
+              className="shadow-sm w-full rounded"
               placeholder="Selecciona (o crea) de 1 a 3 categorías"
               maxCount={3}
               options={categoryOptions}

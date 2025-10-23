@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gem, Gift, GiftIcon, Heart, LogOut, Search, User as UserIcon, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Gem, Gift, GiftIcon, Heart, LogOut, Search, User as UserIcon, BarChart3, Lightbulb, ListPlus } from 'lucide-react';
 import { message, Tooltip, Button, Divider } from 'antd';
 import { useGetUserBySlug, useIsAuthenticated, useLogout, useCurrentUser } from 'hooks/useUser';
 import { useDeviceType } from 'hooks/useDeviceType';
@@ -84,31 +84,46 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <nav className="flex items-center space-x-2">
+            <nav className="flex items-center space-x-1">
+              {/* Home Button */}
               <Tooltip title={viewType === 'mobile' ? 'Inicio' : ''} placement="bottom">
                 <Button
                   type={currentPage === '/' || currentPage === `/${userCoupleSlug}` ? 'primary' : 'text'}
                   onClick={() => navigate(userCoupleSlug ? `/${userCoupleSlug}` : '/')}
-                  className="flex items-center justify-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                  className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                   <Heart className="h-4 w-4" />
                   {viewType !== 'mobile' && <span>Inicio</span>}
                 </Button>
               </Tooltip>
+              {/* Search Button */}
               <Tooltip title={viewType === 'mobile' ? 'Buscar' : ''} placement="bottom">
                 <Button
                   type={currentPage === '/buscar' ? 'primary' : 'text'}
                   onClick={() => navigate('/buscar')}
-                  className="flex items-center justify-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                  className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                   <Search className="h-4 w-4" />
                   {viewType !== 'mobile' && <span>Buscar</span>}
                 </Button>
               </Tooltip>
 
+              {/* Predefined Lists Button */}
+              {userData?.role !== 'ADMIN' && (
+                <Tooltip title={viewType === 'mobile' ? 'Listas Prediseñadas' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === '/listas' ? 'primary' : 'text'}
+                    onClick={() => navigate('/listas')}
+                    className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <Lightbulb className="h-4 w-4" />
+                    {viewType !== 'mobile' && <span>Listas</span>}
+                  </Button>
+                </Tooltip>
+              )}
+
               <Tooltip title={viewType === 'mobile' ? 'Precios' : ''} placement="bottom">
                 <Button
                   type={currentPage === '/precios' ? 'primary' : 'text'}
                   onClick={() => navigate('/precios')}
-                  className="flex items-center justify-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                  className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                   <Gem className="h-4 w-4" />
                   {viewType !== 'mobile' && <span>Precios</span>}
                 </Button>
@@ -119,7 +134,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   <Button
                     type={currentPage === `/${userCoupleSlug}/gestionar` ? 'primary' : 'text'}
                     onClick={() => navigate(`/${userCoupleSlug}/gestionar`)}
-                    className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <GiftIcon className="h-4 w-4" />
                     {viewType !== 'mobile' && <span>Gestionar</span>}
                   </Button>
@@ -131,9 +146,21 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   <Button
                     type={currentPage === '/admin/analytics' ? 'primary' : 'text'}
                     onClick={() => navigate('/admin/analytics')}
-                    className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <BarChart3 className="h-4 w-4" />
                     {viewType !== 'mobile' && <span>Analytics</span>}
+                  </Button>
+                </Tooltip>
+              )}
+
+              {userData?.role === 'ADMIN' && isAuthenticated && (
+                <Tooltip title={viewType === 'mobile' ? 'Listas Prediseñadas' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === '/admin/listas' ? 'primary' : 'text'}
+                    onClick={() => navigate('/admin/listas')}
+                    className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <ListPlus className="h-4 w-4" />
+                    {viewType !== 'mobile' && <span>Listas</span>}
                   </Button>
                 </Tooltip>
               )}
@@ -142,7 +169,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                 <Button
                   type={currentPage === `/${userCoupleSlug}/regalos` ? 'primary' : 'text'}
                   onClick={() => navigate(`/${userCoupleSlug}/regalos`)}
-                  className="flex items-center space-x-2 cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                  className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                   <Gift className="h-4 w-4" />
                   {viewType !== 'mobile' && <span>Regalos</span>}
                 </Button>

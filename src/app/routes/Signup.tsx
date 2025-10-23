@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Checkbox, message, Form, Input, Radio } from 'antd';
 import { Button } from 'components/core/Button';
-import { Label } from 'components/core/Label';
 import {
   Mail,
   Lock,
@@ -434,7 +433,7 @@ function Signup() {
                     <Form.Item
                       name="firstName"
                       className="!mb-0"
-                      label={<Label className="text-sm">Nombre</Label>}
+                      label={<label className="text-sm">Nombre</label>}
                       rules={[{ required: true, message: 'El nombre es requerido' }]}>
                       <Input
                         type="outline"
@@ -453,7 +452,7 @@ function Signup() {
 
                     <Form.Item
                       name="lastName"
-                      label={<Label className="text-sm">Apellido</Label>}
+                      label={<label className="text-sm">Apellido</label>}
                       className="!mb-0"
                       rules={[{ required: true, message: 'El apellido es requerido' }]}>
                       <Input
@@ -482,7 +481,7 @@ function Signup() {
                     <div className="grid grid-cols-2 gap-4">
                       <Form.Item
                         name="spouseFirstName"
-                        label={<Label className="text-sm">Nombre de tu pareja</Label>}
+                        label={<label className="text-sm">Nombre de tu pareja</label>}
                         rules={[{ required: isWeddingAccount, message: 'El nombre de tu pareja es requerido' }]}>
                         <Input
                           type="outline"
@@ -503,7 +502,7 @@ function Signup() {
 
                       <Form.Item
                         name="spouseLastName"
-                        label={<Label className="text-sm">Apellido de tu pareja</Label>}
+                        label={<label className="text-sm">Apellido de tu pareja</label>}
                         rules={[{ required: isWeddingAccount, message: 'El apellido de tu pareja es requerido' }]}>
                         <Input
                           type="outline"
@@ -526,7 +525,7 @@ function Signup() {
 
                   <Form.Item
                     name="email"
-                    label={<Label className="text-sm">Correo Electrónico</Label>}
+                    label={<label className="text-sm">Correo Electrónico</label>}
                     rules={[
                       { required: true, message: 'El correo electrónico es requerido' },
                       { type: 'email', message: 'Correo electrónico inválido' },
@@ -541,7 +540,7 @@ function Signup() {
 
                   <Form.Item
                     name="phone"
-                    label={<Label className="text-sm">Teléfono</Label>}
+                    label={<label className="text-sm">Teléfono</label>}
                     rules={[
                       { required: true, message: 'El teléfono es requerido' },
                       { pattern: /^[\d\s\-\+\(\)]{10,}$/, message: 'Teléfono inválido' },
@@ -556,7 +555,7 @@ function Signup() {
 
                   <Form.Item
                     name="password"
-                    label={<Label className="text-sm">Contraseña</Label>}
+                    label={<label className="text-sm">Contraseña</label>}
                     rules={[
                       { required: true, message: 'La contraseña es requerida' },
                       { min: 8, message: 'La contraseña debe tener al menos 8 caracteres' },
@@ -584,7 +583,7 @@ function Signup() {
 
                   <Form.Item
                     name="confirmPassword"
-                    label={<Label className="text-sm">Confirmar Contraseña</Label>}
+                    label={<label className="text-sm">Confirmar Contraseña</label>}
                     dependencies={['password']}
                     rules={[
                       { required: true, message: 'Confirma tu contraseña' },
@@ -651,9 +650,9 @@ function Signup() {
 
                 <div className="space-y-6">
                   <div>
-                    <Label htmlFor="verificationCode" className="text-sm mb-2 block">
+                    <label htmlFor="verificationCode" className="text-sm mb-2 block">
                       Código de verificación
-                    </Label>
+                    </label>
                     <Input
                       type="outline"
                       id="verificationCode"
@@ -707,9 +706,9 @@ function Signup() {
                 </div>
 
                 <div className="space-y-4">
-                  <Label htmlFor="coupleSlug" className="text-sm">
+                  <label htmlFor="coupleSlug" className="text-sm">
                     Personalizar enlace
-                  </Label>
+                  </label>
                   <div className="relative">
                     <Input
                       type="outline"

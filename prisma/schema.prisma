@@ -109,6 +109,38 @@ model GiftCategoryOnGift {
   @@map("gift_categories_on_gifts")
 }
 
+model PredesignedList {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String
+  imageUrl    String    @map("image_url")
+  icon        String    // Icon name from lucide-react
+  isActive    Boolean   @default(true) @map("is_active")
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  gifts       PredesignedGift[]
+
+  @@map("predesigned_lists")
+}
+
+model PredesignedGift {
+  id                Int       @id @default(autoincrement())
+  title             String
+  description       String?
+  price             Float
+  categories        String[]  // Array of categories
+  imageUrl          String    @map("image_url")
+  priority          String    @default("media") // 'alta', 'media', 'baja'
+  predesignedListId Int       @map("predesigned_list_id")
+  order             Int       @default(0)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  predesignedList   PredesignedList @relation(fields: [predesignedListId], references: [id], onDelete: Cascade)
+
+  @@map("predesigned_gifts")
+}
+
 enum PaymentType {
   PAYPAL
   STRIPE

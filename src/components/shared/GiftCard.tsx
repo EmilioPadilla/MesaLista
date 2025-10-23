@@ -1,10 +1,10 @@
-import { DragOutlined, ExclamationCircleFilled, StarFilled } from '@ant-design/icons';
+import { DragOutlined, ExclamationCircleFilled, StarFilled, PlusOutlined } from '@ant-design/icons';
 import { Edit, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { GiftItem } from 'routes/couple/ManageRegistry';
 import { useState } from 'react';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
-import { Image, Popconfirm, Tag, Button, Card } from 'antd';
+import { Image, Popconfirm, Tag, Button, Card, Tooltip } from 'antd';
 import { useDeviceType } from 'src/hooks/useDeviceType';
 import { CartItem } from 'types/models/cart';
 
@@ -24,6 +24,7 @@ interface GiftCardProps {
   onAddToCart?: (giftId: number) => void;
   onUpdateCartQuantity?: (cartItemId: number, quantity: number) => void;
   onRemoveFromCart?: (cartItemId: number) => void;
+  variant?: 'default' | 'predesigned';
 }
 
 export const GiftCard = ({
@@ -37,6 +38,7 @@ export const GiftCard = ({
   onAddToCart,
   onUpdateCartQuantity,
   onRemoveFromCart,
+  variant = 'default',
 }: GiftCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const deviceType = useDeviceType();
@@ -96,6 +98,67 @@ export const GiftCard = ({
       onRemoveFromCart(cartItem.id as unknown as number);
     }
   };
+
+  if (variant === 'predesigned') {
+    return (
+      <Card
+        styles={{ body: { height: '100%' } }}
+        className="group bg-white border-border/30 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden rounded-2xl h-full flex flex-col"
+        cover={
+          <div className="relative overflow-hidden h-40">
+            <img
+              src={gift.imageUrl}
+              alt={gift.title}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </div>
+        }>
+        <div className="flex flex-col flex-1 h-full">
+          <div className="space-y-2 flex-1">
+            <h3 className="text-xl mb-2 text-primary font-semibold">{gift.title}</h3>
+            <p className="text-muted-foreground line-clamp-2">{gift.description}</p>
+          </div>
+
+          <div className="flex flex-col justify-end items-center gap-4 mt-4 flex-1 h-full">
+            <div
+              className={`flex items-center w-full ${gift.categories && gift.categories?.length > 0 ? 'justify-between' : 'justify-end'}`}>
+              {/* <div> */}
+              {gift.categories && gift.categories.length > 0 ? (
+                <div className="flex items-center gap-1">
+                  <Tag bordered={false} className="shadow-sm !bg-white font-bold">
+                    {gift.categories[0].name}
+                  </Tag>
+                  {gift.categories.length > 1 && (
+                    <Tooltip
+                      title={
+                        <div className="space-y-1">
+                          {gift.categories.slice(1).map((category) => (
+                            <div key={category.id}>{category.name}</div>
+                          ))}
+                        </div>
+                      }>
+                      <div className="flex items-center justify-center w-6 h-6 rounded shadow-sm bg-white border border-border/30 cursor-pointer hover:bg-primary/10 transition-colors">
+                        <Plus className="h-3 w-3 text-primary" />
+                      </div>
+                    </Tooltip>
+                  )}
+                </div>
+              ) : null}
+              {/* </div> */}
+              <span className="text-lg text-primary">${gift.price.toLocaleString()}</span>
+            </div>
+            <Button
+              onClick={handleAddToCart}
+              className="rounded-full transition-all duration-200 !border-primary !text-primary hover:!bg-primary hover:!text-white w-full"
+              size="large">
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar
+            </Button>
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card

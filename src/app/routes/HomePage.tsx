@@ -187,13 +187,13 @@ export const HomePage = () => {
             {[
               {
                 title: 'Pagos seguros',
-                description: 'Stripe y PayPal integrados con encriptación de nivel bancario para transacciones completamente seguras.',
+                description: 'Stripe y PayPal integrados para transacciones completamente seguras.',
                 icon: Shield,
                 image: '/images/payments.png',
               },
               {
                 title: 'Estadísticas completas',
-                description: 'Ve el progreso de tu mesa en tiempo real con análisis detallados y reportes comprensivos.',
+                description: 'Analiza tu mesa en tiempo real con análisis detallados y reportes comprensivos.',
                 icon: Sparkles,
                 image: '/images/statistics.png',
               },

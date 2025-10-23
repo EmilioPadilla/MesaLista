@@ -11,7 +11,6 @@ import { OutletContextType } from './PublicRegistry';
 import { GiftDetailsModal } from 'src/features/buyRegistry/components/GiftDetailsModal';
 import { CartDrawer } from 'src/features/buyRegistry/components/CartDrawer';
 import { SortOption, FilterOption, GiftItem } from 'routes/couple/ManageRegistry';
-import { Label } from '@radix-ui/react-label';
 import { GiftCard } from 'src/components/shared/GiftCard';
 import dayjs from 'dayjs';
 import { motion } from 'motion/react';
@@ -236,7 +235,7 @@ export function BuyGifts() {
         <Card className="!mb-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
             <div className="col-span-4 relative">
-              <Label className="text-md">Buscar:</Label>
+              <label className="text-md">Buscar:</label>
               <Input
                 prefix={<SearchOutlined />}
                 placeholder="Buscar regalos..."
@@ -247,7 +246,7 @@ export function BuyGifts() {
             </div>
 
             <div className="col-span-2 space-y-2 sm:space-y-0">
-              <Label className="text-md">Ordenar por:</Label>
+              <label className="text-md">Ordenar por:</label>
               <div className="flex items-center w-full">
                 <Select
                   suffixIcon={<ArrowUpDown size={14} />}
@@ -266,7 +265,7 @@ export function BuyGifts() {
             </div>
 
             <div className="col-span-4 space-y-2 sm:space-y-0">
-              <Label className="text-md">Filtrar por:</Label>
+              <label className="text-md">Filtrar por:</label>
               <div className="flex items-center w-full">
                 <Select
                   suffixIcon={<Filter size={14} />}
@@ -287,7 +286,7 @@ export function BuyGifts() {
               </div>
             </div>
             <div className="col-span-2 space-y-2 sm:space-y-0">
-              <Label className="text-md">Mostrar regalos comprados</Label>
+              <label className="text-md">Mostrar regalos comprados</label>
               <div className="flex items-center mt-2">
                 <Switch checked={showPurchased} className={showPurchased ? 'hover:!bg-primary' : ''} onChange={setShowPurchased} />
               </div>

@@ -18,6 +18,7 @@ import emailVerificationRoutes from './routes/emailVerificationRoutes.js';
 import fileUploadRouter from './routes/fileUpload.js';
 import weddingListRoutes from './routes/weddingListRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import predesignedListRoutes from './routes/predesignedListRoutes.js';
 import bodyParser from 'body-parser';
 import paymentController from './controllers/paymentController.js';
 
@@ -143,6 +144,7 @@ app.use('/api/email-verification', emailVerificationRoutes);
 app.use('/api/wedding-list', weddingListRoutes);
 app.use('/api/upload', fileUploadRouter);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/predesigned-lists', predesignedListRoutes);
 
 // Special case for login (to maintain /api/login endpoint)
 app.post('/api/login', (req, res, next) => {

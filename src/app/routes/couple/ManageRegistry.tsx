@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Spin, Tabs } from 'antd';
-import type { TabsProps } from 'antd';
 import { useComponentMountControl } from 'hooks/useComponentMountControl';
 import { useGetCategoriesByWeddingList, useReorderGifts, useWeddingListByCouple } from 'src/hooks/useWeddingList';
 import { OutletContextPrivateType } from 'routes/Dashboard';

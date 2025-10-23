@@ -26,10 +26,13 @@ import { OrderConfirmation } from 'routes/checkout/OrderConfirmation';
 import { ManageRegistry } from 'src/app/routes/couple/ManageRegistry';
 import { SearchPage } from 'src/app/routes/SearchPage';
 import { Contact } from 'routes/Contact';
-import { Settings } from './app/routes/Settings';
+import { Settings } from './app/routes/couple/Settings';
 import { PricingPage } from './app/routes/PricingPage';
 import { Analytics } from './app/routes/admin/Analytics';
 import { PageViewTracker } from './components/analytics/PageViewTracker';
+import { PredesignedListsPage } from './app/routes/PredesignedLists.page';
+import { Footer } from './app/modules/navigation/Footer';
+import { AdminPreDesignedLists } from './app/routes/admin/ManagePredesignedLists.page';
 
 function App() {
   const isLocalhost = window.location.hostname === 'localhost';
@@ -81,6 +84,16 @@ function App() {
               </>
             }
           />
+          <Route
+            path="/listas"
+            element={
+              <>
+                <TopNav />
+                <PredesignedListsPage />
+                <Footer />
+              </>
+            }
+          />
 
           {/* Admin routes */}
           <Route element={<AdminRoute />}>
@@ -90,6 +103,15 @@ function App() {
                 <>
                   <TopNav />
                   <Analytics />
+                </>
+              }
+            />
+            <Route
+              path="/admin/listas"
+              element={
+                <>
+                  <TopNav />
+                  <AdminPreDesignedLists />
                 </>
               }
             />

@@ -511,6 +511,15 @@ export const analytics_endpoints = {
 };
 
 /**
+ * Predesigned Lists Endpoints
+ */
+const predesignedList_endpoints = {
+  getAll: `/predesigned-lists`,
+  getById: (id: number) => `/predesigned-lists/${id}`,
+  addGiftToWeddingList: (giftId: number, weddingListId: number) => `/predesigned-lists/${giftId}/add-to-wedding-list`,
+};
+
+/**
  * Combined endpoints for easy access
  */
 export const endpoints = {
@@ -524,6 +533,7 @@ export const endpoints = {
   emailVerification: emailVerification_endpoints,
   analytics: analytics_endpoints,
   docs: docs_endpoints,
+  predesignedLists: predesignedList_endpoints,
 };
 
 export const api_endpoints = endpoints;
