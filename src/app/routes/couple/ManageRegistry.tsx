@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Spin, Tabs } from 'antd';
+import { Button, Spin, Tabs } from 'antd';
 import { useComponentMountControl } from 'hooks/useComponentMountControl';
 import { useGetCategoriesByWeddingList, useReorderGifts, useWeddingListByCouple } from 'src/hooks/useWeddingList';
 import { OutletContextPrivateType } from 'routes/Dashboard';
-import { useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { Gift as GiftInterface } from 'types/models/gift';
 import { useDeleteGift } from 'src/hooks/useGift';
 import { StatsCards } from 'src/features/manageRegistry/components/StatsCards';
@@ -12,6 +12,8 @@ import { StatsTabContent } from 'src/features/manageRegistry/components/StatsTab
 import { GiftsList } from 'src/components/shared/GiftsList';
 import { GiftModal } from 'src/features/manageRegistry/components/GiftModal';
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
+import { useDebounce } from 'src/hooks/useDebounce';
+import { SettingOutlined } from '@ant-design/icons';
 
 export interface GiftItem extends GiftInterface {
   purchasedBy?: string;
@@ -22,6 +24,7 @@ export type FilterOption = 'all' | 'purchased' | 'pending' | 'mostWanted';
 
 export const ManageRegistry = () => {
   const contextData = useOutletContext<OutletContextPrivateType>();
+  const navigate = useNavigate();
   // Use props if provided directly, otherwise use context from Outlet
   const { data: weddinglist } = useWeddingListByCouple(contextData?.userData?.id);
   const { data: weddingListCategories } = useGetCategoriesByWeddingList(weddinglist?.id);
@@ -35,6 +38,9 @@ export const ManageRegistry = () => {
   const [sortBy, setSortBy] = useState<SortOption>('original');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
+
+  // Debounce search term to prevent excessive filtering (300ms delay)
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   // Track registry builder view
   useEffect(() => {
@@ -115,9 +121,9 @@ export const ManageRegistry = () => {
       filtered = filtered.filter((gift) => gift.categories && gift.categories.some((categoryItem: any) => categoryItem.name === filterBy));
     }
 
-    // Apply search term filter
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase().trim();
+    // Apply debounced search term filter
+    if (debouncedSearchTerm.trim()) {
+      const searchLower = debouncedSearchTerm.toLowerCase().trim();
       filtered = filtered.filter(
         (gift) => gift.title.toLowerCase().includes(searchLower) || gift.description?.toLowerCase().includes(searchLower),
       );
@@ -125,7 +131,7 @@ export const ManageRegistry = () => {
 
     // Apply sorting
     return sortGifts(filtered);
-  }, [gifts, filterBy, sortBy, searchTerm]);
+  }, [gifts, filterBy, sortBy, debouncedSearchTerm]);
 
   if (!gifts || !weddinglist)
     return (
@@ -134,31 +140,6 @@ export const ManageRegistry = () => {
       </div>
     );
 
-  // Enhanced statistics
-  const stats = {
-    totalItems: gifts.length,
-    purchasedItems: gifts.filter((g) => g.isPurchased).length,
-    totalValue: gifts.reduce((sum, g) => sum + g.price, 0),
-    purchasedValue: gifts.filter((g) => g.isPurchased).reduce((sum, g) => sum + g.price, 0),
-    averagePrice: gifts.length > 0 ? Math.round(gifts.reduce((sum, g) => sum + g.price, 0) / gifts.length) : 0,
-    minPrice: gifts.length > 0 ? Math.min(...gifts.map((g) => g.price)) : 0,
-    maxPrice: gifts.length > 0 ? Math.max(...gifts.map((g) => g.price)) : 0,
-    priceRanges: {
-      low: gifts.filter((g) => g.price < 1000).length,
-      medium: gifts.filter((g) => g.price >= 1000 && g.price < 5000).length,
-      high: gifts.filter((g) => g.price >= 5000).length,
-    },
-    categoryDistribution: gifts.reduce(
-      (acc, gift) => {
-        gift.categories?.forEach((category) => {
-          acc[category.name] = (acc[category.name] || 0) + 1;
-        });
-        return acc;
-      },
-      {} as Record<string, number>,
-    ),
-  };
-
   const handleDeleteGift = (giftId: number) => {
     deleteGift(giftId);
     setGifts(gifts.filter((gift) => gift.id !== giftId));
@@ -166,13 +147,18 @@ export const ManageRegistry = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl mb-2 text-primary">Gestionar Mesa de Regalos</h1>
-        <p className="text-muted-foreground">Administra tu lista de regalos, ve estadísticas y mantén todo organizado para tu gran día</p>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl mb-2 text-primary">Gestionar Mesa de Regalos</h1>
+          <p className="text-muted-foreground">Administra tu lista de regalos, ve estadísticas y mantén todo organizado para tu gran día</p>
+        </div>
+        <Button type="primary" icon={<SettingOutlined />} onClick={() => navigate(`/${contextData?.userData?.coupleSlug}/configuracion`)}>
+          <span className="hidden md:flex">Configuración</span>
+        </Button>
       </div>
 
       {/* Enhanced Stats Cards */}
-      <StatsCards stats={stats} />
+      <StatsCards gifts={gifts} />
 
       <Tabs
         defaultActiveKey="gifts"
@@ -221,7 +207,7 @@ export const ManageRegistry = () => {
             label: 'Estadísticas Detalladas',
             children: (
               <div className="mt-6">
-                <StatsTabContent stats={stats} />
+                <StatsTabContent gifts={gifts} />
               </div>
             ),
           },

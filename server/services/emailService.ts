@@ -6,8 +6,8 @@ const prisma = new PrismaClient();
 
 // Configure SendGrid
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
-const FROM_EMAIL = process.env.FROM_EMAIL || 'info@mesalista.com.mx';
-const TEMP_RECIPIENT_EMAIL = process.env.TEMP_RECIPIENT_EMAIL || 'paadiillaa@gmail.com';
+const FROM_EMAIL = process.env.BUSINESS_EMAIL || 'info@mesalista.com.mx';
+const ADMIN_RECIPIENT_EMAIL = process.env.BUSINESS_EMAIL || 'info@mesalista.com.mx';
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
@@ -164,8 +164,7 @@ class EmailService {
           lastName: couple.lastName,
           spouseFirstName: couple.spouseFirstName || undefined,
           spouseLastName: couple.spouseLastName || undefined,
-          // email: couple.email,
-          email: 'paadiillaa@gmail.com',
+          email: couple.email,
           weddingDate: weddingList.weddingDate,
           weddingLocation: weddingList.weddingLocation || undefined,
         },
@@ -251,7 +250,7 @@ class EmailService {
 
     // Email to admin
     const adminMsg = {
-      to: TEMP_RECIPIENT_EMAIL, // Send to admin email
+      to: ADMIN_RECIPIENT_EMAIL, // Send to admin email
       from: FROM_EMAIL,
       subject: `[Contacto MesaLista] ${subjectText} - ${data.name}`,
       html: EmailTemplates.generateContactFormAdminEmailHTML(data),

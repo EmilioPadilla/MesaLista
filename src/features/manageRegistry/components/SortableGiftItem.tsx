@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Col } from 'antd';
 import { SortableItem } from 'components/core/SortableItem';
 import type { Gift } from 'types/models/gift';
@@ -6,13 +6,12 @@ import { GiftCard } from 'components/shared/GiftCard';
 import { DragHandleProps } from 'components/shared/GiftCard';
 
 interface SortableGiftItemProps {
-  newModel?: boolean;
   gift: Gift;
   onDelete: (giftId: number) => void;
   onEdit: (giftId: number | undefined) => void;
 }
 
-export const SortableGiftItem: React.FC<SortableGiftItemProps> = ({ gift, onDelete, onEdit, newModel = false }) => {
+const SortableGiftItemComponent: React.FC<SortableGiftItemProps> = ({ gift, onDelete, onEdit }) => {
   const card = (dragHandleProps: DragHandleProps) => (
     <GiftCard gift={gift} onDelete={onDelete} onEdit={onEdit} dragHandleProps={dragHandleProps} />
   );
@@ -23,3 +22,8 @@ export const SortableGiftItem: React.FC<SortableGiftItemProps> = ({ gift, onDele
     </Col>
   );
 };
+
+// Memoize to prevent re-renders when gift data hasn't changed
+export const SortableGiftItem = memo(SortableGiftItemComponent, (prevProps, nextProps) => {
+  return prevProps.gift.id === nextProps.gift.id && prevProps.gift.order === nextProps.gift.order;
+});

@@ -194,7 +194,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label htmlFor="image">Imagen del Regalo</label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 !mt-2">
                     <div className="relative w-full">
                       <Upload
                         onChange={handleImageChange}
@@ -206,7 +206,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
                           return false;
                         }}
                         showUploadList={false}>
-                        <Button type="primary" className="w-full">
+                        <Button type="default" className="w-full border !border-primary !text-primary">
                           <UploadOutlined /> Seleccionar Imagen
                         </Button>
                       </Upload>
@@ -218,9 +218,9 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
                 {imageState.url && (
                   <div className="space-y-2">
                     <label>Vista Previa</label>
-                    <div className="relative flex items-center justify-center">
-                      <div className="w-64 h-64 bg-muted rounded-lg flex items-center justify-center">
-                        <Image src={imageState.url} alt="Vista previa" />
+                    <div className="relative flex items-center justify-center w-full max-w-sm mx-auto">
+                      <div className="w-full aspect-square bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                        <Image src={imageState.url} alt="Vista previa" preview={false} className="w-full h-full object-cover" />
                       </div>
                       <div className="absolute top-2 right-2">
                         <Button

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Form, Input, Select, Checkbox, message, Modal, Upload, Button, Image, Slider } from 'antd';
+import { Form, Input, Select, Checkbox, message, Modal, Upload, Button, Slider } from 'antd';
 import { X } from 'lucide-react';
 import { GiftItem } from 'app/routes/couple/ManageRegistry';
 import { GiftCategory } from 'types/models/gift';

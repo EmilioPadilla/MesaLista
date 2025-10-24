@@ -1,16 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Typography, message, Checkbox } from 'antd';
+import { Form, message, Input, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useLogin, useIsAuthenticated } from 'hooks/useUser';
-import { Button } from 'components/core/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/core/Card';
-import { Input } from 'components/core/Input';
-import { Separator } from 'components/core/Separator';
-import { Heart, Mail, Lock, ArrowLeft, Chrome, Facebook, Apple } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { userService } from 'services/user.service';
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
-// PGPASSWORD=RzXOlCpwkRTxAJbxngQGqtPXogREUuks psql -h maglev.proxy.rlwy.net -U postgres -p 38276 -d railway
-const { Title, Text } = Typography;
 
 interface LoginFormValues {
   email: string;
@@ -110,16 +105,6 @@ const Login: React.FC = () => {
     }
   }, [isLoginSuccess]);
 
-  const handleSocialLogin = (provider: string) => {
-    setIsLoading(true);
-
-    // Simulate social login
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate('/home');
-    }, 1000);
-  };
-
   // Show loading while checking authentication
   if (isCheckingAuth || isAuthLoading) {
     return (
@@ -138,7 +123,7 @@ const Login: React.FC = () => {
       <div className="w-full max-w-md relative">
         {/* Back button */}
         <Button
-          variant="ghost"
+          type="link"
           onClick={() => navigate('/')}
           className="mb-6 flex items-center space-x-2 hover:shadow-md transition-all duration-200">
           <ArrowLeft className="h-4 w-4" />
@@ -155,87 +140,32 @@ const Login: React.FC = () => {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* Social Login Options */}
-            {/* <div className="space-y-3">
-              <Button
-                variant="outline"
-                className="w-full h-12 shadow-md hover:shadow-lg transition-all duration-200 border-primary/20 hover:border-primary/40"
-                onClick={() => handleSocialLogin('google')}
-                disabled={isLoading}>
-                <Chrome className="h-5 w-5 mr-3" />
-                Continuar con Google
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full h-12 shadow-md hover:shadow-lg transition-all duration-200 border-primary/20 hover:border-primary/40"
-                onClick={() => handleSocialLogin('facebook')}
-                disabled={isLoading}>
-                <Facebook className="h-5 w-5 mr-3 text-blue-600" />
-                Continuar con Facebook
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full h-12 shadow-md hover:shadow-lg transition-all duration-200 border-primary/20 hover:border-primary/40"
-                onClick={() => handleSocialLogin('apple')}
-                disabled={isLoading}>
-                <Apple className="h-5 w-5 mr-3" />
-                Continuar con Apple
-              </Button>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">O continúa con</span>
-              </div>
-            </div> */}
-
             {/* Email/Password Form */}
-            <Form onFinish={onFinish} className="space-y-4">
+            <Form layout="vertical" onFinish={onFinish} className="space-y-4">
               <div className="space-y-2">
-                <label className="!text-base font-semibold" htmlFor="email">
-                  Correo Electrónico
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Form.Item name="email" rules={[{ required: true, message: 'Por favor ingresa tu correo electrónico' }]}>
-                    <Input id="email" type="email" placeholder="tu@correo.com" className="pl-10 h-12 shadow-sm" />
-                  </Form.Item>
-                </div>
+                <Form.Item
+                  label="Correo Electrónico"
+                  name="email"
+                  rules={[{ required: true, message: 'Por favor ingresa tu correo electrónico' }]}>
+                  <Input size="large" id="email" type="email" placeholder="tu@correo.com" className="pl-10 h-12 shadow-sm" />
+                </Form.Item>
               </div>
 
               <div className="space-y-2">
-                <label className="!text-base font-semibold" htmlFor="password">
-                  Contraseña
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Form.Item name="password" rules={[{ required: true, message: 'Por favor ingresa tu contraseña' }]}>
-                    <Input id="password" type="password" placeholder="••••••••" className="pl-10 pr-10 h-12 shadow-sm" />
-                  </Form.Item>
-                </div>
+                <Form.Item name="password" label="Contraseña" rules={[{ required: true, message: 'Por favor ingresa tu contraseña' }]}>
+                  <Input.Password size="large" id="password" placeholder="••••••••" className="shadow-sm" />
+                </Form.Item>
               </div>
 
               <div className="flex items-center justify-end">
-                {/* <div className="flex items-center space-x-2">
-                  <Form.Item name="remember" className="!mb-0" valuePropName="checked">
-                    <Checkbox />
-                  </Form.Item>
-                  <label htmlFor="remember" className="ml-2 !text-base cursor-pointer">
-                    Recordarme
-                  </label>
-                </div> */}
                 <a className="!text-sm p-0 h-auto !text-primary hover:!text-primary/80" onClick={() => navigate('/olvide-contrasena')}>
                   ¿Olvidaste tu contraseña?
                 </a>
               </div>
 
               <Button
-                type="submit"
+                type="primary"
+                htmlType="submit"
                 className="w-full h-12 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 disabled={isLoading}>
                 {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}

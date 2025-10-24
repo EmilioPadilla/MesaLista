@@ -643,7 +643,7 @@ El equipo de MesaLista
           <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; font-size: 14px; color: #6b7280;">
               ¿Necesitas ayuda? Contáctanos en 
-              <a href="mailto:soporte@mesalista.com.mx" style="color: #d4704a; text-decoration: none;">soporte@mesalista.com.mx</a>
+              <a href="mailto:info@mesalista.com.mx" style="color: #d4704a; text-decoration: none;">info@mesalista.com.mx</a>
             </p>
             <p style="margin: 16px 0 0 0; font-size: 12px; color: #9ca3af;">
               © 2025 MesaLista. Todos los derechos reservados.
@@ -752,7 +752,7 @@ Este código es personal e intransferible. No lo compartas con nadie.
           <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0; font-size: 14px; color: #6b7280;">
               ¿Necesitas ayuda? Contáctanos en 
-              <a href="mailto:soporte@mesalista.com.mx" style="color: #d4704a; text-decoration: none;">soporte@mesalista.com.mx</a>
+              <a href="mailto:info@mesalista.com.mx" style="color: #d4704a; text-decoration: none;">info@mesalista.com.mx</a>
             </p>
             <p style="margin: 16px 0 0 0; font-size: 12px; color: #9ca3af;">
               © 2025 MesaLista. Todos los derechos reservados.
@@ -788,7 +788,7 @@ Usa una contraseña única que no hayas usado en otros sitios. Combina letras ma
 
 ---
 
-¿Necesitas ayuda? Contáctanos en soporte@mesalista.com.mx
+¿Necesitas ayuda? Contáctanos en info@mesalista.com.mx
 
 © 2025 MesaLista. Todos los derechos reservados.
     `.trim();

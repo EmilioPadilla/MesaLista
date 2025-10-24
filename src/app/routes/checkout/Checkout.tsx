@@ -315,7 +315,7 @@ export function Checkout() {
                     id="message"
                     value={guestInfo.message}
                     onChange={(e) => setGuestInfo({ ...guestInfo, message: e.target.value })}
-                    placeholder="Escribe un mensaje especial para María y Carlos..."
+                    placeholder={`Escribe un mensaje especial para ${coupleName}...`}
                     rows={4}
                     className="!bg-[#f5f5f7] border-0 rounded-2xl text-base font-light focus:ring-[#007aff] resize-none"
                   />

@@ -1,23 +1,15 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from 'components/core/Card';
 import { BarChart3, TrendingUp } from 'lucide-react';
+import { generateStats } from '../utils/manageRegistryUtils';
+import { GiftItem } from 'src/app/routes/couple/ManageRegistry';
 
 interface StatsTabContentProps {
-  stats: {
-    totalItems: number;
-    purchasedItems: number;
-    totalValue: number;
-    purchasedValue: number;
-    priceRanges: {
-      low: number;
-      medium: number;
-      high: number;
-    };
-    categoryDistribution: Record<string, number>;
-  };
+  gifts: GiftItem[];
 }
 
-export const StatsTabContent: React.FC<StatsTabContentProps> = ({ stats }) => {
+export const StatsTabContent: React.FC<StatsTabContentProps> = ({ gifts }) => {
+  const stats = generateStats(gifts);
   return (
     <div className="space-y-6">
       {/* Price Range Analysis */}

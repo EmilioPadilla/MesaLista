@@ -1,20 +1,17 @@
 import React from 'react';
 import { Card } from 'antd';
 import { Package, TrendingUp, Target, DollarSign } from 'lucide-react';
+import { GiftItem } from 'src/app/routes/couple/ManageRegistry';
+import { generateStats } from 'src/features/manageRegistry/utils/manageRegistryUtils';
 
 interface StatsCardsProps {
-  stats: {
-    totalItems: number;
-    purchasedItems: number;
-    minPrice: number;
-    maxPrice: number;
-    averagePrice: number;
-    totalValue: number;
-    purchasedValue: number;
-  };
+  gifts: GiftItem[];
 }
 
-export const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
+export const StatsCards: React.FC<StatsCardsProps> = ({ gifts }) => {
+  // Enhanced statistics
+  const stats = generateStats(gifts);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <Card

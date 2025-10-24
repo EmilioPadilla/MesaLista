@@ -1,10 +1,10 @@
 import { ArrowUpDown, Filter } from 'lucide-react';
 import { Row, Select, Input, Card } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { DraggableList } from 'components/core/DraggableList';
 import { SortableGiftItem } from 'features/manageRegistry/components/SortableGiftItem';
 import { GiftCategory } from 'types/models/gift';
 import { GiftItem, SortOption, FilterOption } from 'src/app/routes/couple/ManageRegistry';
+import { DraggableList } from '../core/DraggableList';
 
 interface GiftsListProps {
   gifts: GiftItem[];
@@ -94,7 +94,6 @@ export const GiftsList = ({
         </div>
       </Card>
 
-      {/* Gift List */}
       <DraggableList
         items={filteredAndSortedGifts}
         getItemId={(gift) => gift.id}
@@ -104,9 +103,7 @@ export const GiftsList = ({
             {children}
           </Row>
         )}
-        renderItem={(gift) => (
-          <SortableGiftItem newModel key={gift.id} gift={gift} onDelete={() => onDelete(gift.id)} onEdit={() => onEdit(gift)} />
-        )}
+        renderItem={(gift) => <SortableGiftItem key={gift.id} gift={gift} onDelete={() => onDelete(gift.id)} onEdit={() => onEdit(gift)} />}
       />
     </div>
   );

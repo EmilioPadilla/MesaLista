@@ -53,22 +53,6 @@ export function AdminPreDesignedLists() {
   const [giftModalMode, setGiftModalMode] = useState<'create' | 'edit'>('create');
   const [editingGift, setEditingGift] = useState<GiftItem | null>(null);
 
-  const [newRegistry, setNewRegistry] = useState({
-    name: '',
-    description: '',
-    image: '',
-    icon: 'MapPin',
-  });
-
-  const [newGift, setNewGift] = useState({
-    name: '',
-    description: '',
-    price: '',
-    categories: [] as string[],
-    image: '',
-    priority: 'media' as 'alta' | 'media' | 'baja',
-  });
-
   // Update selected registry when lists change
   useEffect(() => {
     if (selectedRegistry && lists) {
@@ -112,68 +96,10 @@ export function AdminPreDesignedLists() {
 
   const registries = lists || [];
 
-  const iconOptions = ['MapPin', 'Plane', 'Home', 'Palette', 'Sparkles', 'Heart'];
-
-  // Registry Management Functions
-  const handleAddRegistry = async () => {
-    if (!newRegistry.name || !newRegistry.description) {
-      message.error('Por favor completa todos los campos requeridos');
-      return;
-    }
-
-    createList(
-      {
-        name: newRegistry.name,
-        description: newRegistry.description,
-        imageUrl: newRegistry.image || 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800',
-        icon: newRegistry.icon,
-        isActive: true,
-      },
-      {
-        onSuccess: () => {
-          setNewRegistry({ name: '', description: '', image: '', icon: 'MapPin' });
-          setRegistryModalOpen(false);
-          message.success('Lista prediseñada creada exitosamente');
-        },
-        onError: (error: any) => {
-          message.error('Error al crear la lista');
-          console.error(error);
-        },
-      },
-    );
-  };
-
-  const handleUpdateRegistry = async () => {
-    if (!selectedRegistry) return;
-
-    updateList(
-      {
-        id: selectedRegistry.id,
-        data: {
-          name: selectedRegistry.name,
-          description: selectedRegistry.description,
-          imageUrl: selectedRegistry.imageUrl,
-          icon: selectedRegistry.icon,
-          isActive: selectedRegistry.isActive,
-        },
-      },
-      {
-        onSuccess: () => {
-          setRegistryModalOpen(false);
-          message.success('Lista actualizada exitosamente');
-        },
-        onError: (error: any) => {
-          message.error('Error al actualizar la lista');
-          console.error(error);
-        },
-      },
-    );
-  };
-
-  const handleDeleteRegistry = async (id: number) => {
-    deleteList(id, {
+  const handleDeleteRegistry = (registryId: number) => {
+    deleteList(registryId, {
       onSuccess: () => {
-        if (selectedRegistry?.id === id) {
+        if (selectedRegistry?.id === registryId) {
           setSelectedRegistry(null);
         }
         message.success('Lista eliminada exitosamente');
@@ -185,91 +111,24 @@ export function AdminPreDesignedLists() {
     });
   };
 
-  const moveRegistry = async (index: number, direction: 'up' | 'down') => {
-    const newRegistries = [...registries];
+  const moveRegistry = (index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= registries.length) return;
 
-    if (newIndex < 0 || newIndex >= newRegistries.length) return;
+    const reordered = [...registries];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(newIndex, 0, moved);
 
-    [newRegistries[index], newRegistries[newIndex]] = [newRegistries[newIndex], newRegistries[index]];
-
-    const orders = newRegistries.map((reg, idx) => ({ id: reg.id, order: idx }));
+    const orders = reordered.map((reg, idx) => ({ id: reg.id, order: idx }));
     reorderLists(orders, {
-      onSuccess: () => {
-        message.success('Orden actualizado');
-      },
       onError: (error: any) => {
-        message.error('Error al actualizar el orden');
+        message.error('Error al reordenar las listas');
         console.error(error);
       },
     });
   };
 
-  // Gift Management Functions
-  const handleAddGift = async () => {
-    if (!selectedRegistry || !newGift.name || !newGift.price || newGift.categories.length === 0) {
-      message.error('Por favor completa todos los campos requeridos incluyendo al menos una categoría');
-      return;
-    }
-
-    createGift(
-      {
-        listId: selectedRegistry.id,
-        data: {
-          title: newGift.name,
-          description: newGift.description,
-          price: parseFloat(newGift.price),
-          imageUrl: newGift.image,
-          categories: newGift.categories,
-          priority: newGift.priority,
-        },
-      },
-      {
-        onSuccess: () => {
-          setNewGift({ name: '', description: '', price: '', categories: [], image: '', priority: 'media' });
-          setGiftModalOpen(false);
-          message.success('Regalo agregado exitosamente');
-        },
-        onError: (error: any) => {
-          message.error('Error al agregar el regalo');
-          console.error(error);
-        },
-      },
-    );
-  };
-
-  const handleUpdateGift = async () => {
-    if (!selectedRegistry || !editingGift) return;
-
-    updateGift(
-      {
-        giftId: editingGift.id,
-        data: {
-          title: editingGift.title,
-          description: editingGift.description || undefined,
-          price: editingGift.price,
-          imageUrl: editingGift.imageUrl,
-          categories: editingGift.categories,
-          priority: editingGift.priority,
-        },
-      },
-      {
-        onSuccess: () => {
-          setEditingGift(null);
-          setGiftModalOpen(false);
-          message.success('Regalo actualizado exitosamente');
-        },
-        onError: (error: any) => {
-          message.error('Error al actualizar el regalo');
-          console.error(error);
-        },
-      },
-    );
-  };
-
-  const handleDeleteGift = async (giftId: number) => {
-    if (!selectedRegistry) return;
-
+  const handleDeleteGift = (giftId: number) => {
     deleteGift(giftId, {
       onSuccess: () => {
         message.success('Regalo eliminado exitosamente');
@@ -465,19 +324,15 @@ export function AdminPreDesignedLists() {
         isOpen={registryModalOpen}
         onOpenChange={setRegistryModalOpen}
         mode={registryModalMode}
-        registry={registryModalMode === 'edit' ? selectedRegistry : newRegistry}
-        onRegistryChange={registryModalMode === 'edit' ? setSelectedRegistry : setNewRegistry}
-        onSubmit={registryModalMode === 'edit' ? handleUpdateRegistry : handleAddRegistry}
-        iconOptions={iconOptions}
+        registry={registryModalMode === 'edit' ? selectedRegistry : null}
       />
 
       <PredesignedGiftModal
         isOpen={giftModalOpen}
         onOpenChange={setGiftModalOpen}
         mode={giftModalMode}
-        gift={giftModalMode === 'edit' ? editingGift : newGift}
-        onGiftChange={giftModalMode === 'edit' ? setEditingGift : setNewGift}
-        onSubmit={giftModalMode === 'edit' ? handleUpdateGift : handleAddGift}
+        gift={giftModalMode === 'edit' ? editingGift : null}
+        listId={selectedRegistry?.id}
       />
     </div>
   );

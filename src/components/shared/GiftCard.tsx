@@ -1,10 +1,10 @@
-import { DragOutlined, ExclamationCircleFilled, StarFilled, PlusOutlined } from '@ant-design/icons';
+import { DragOutlined, ExclamationCircleFilled, StarFilled } from '@ant-design/icons';
 import { Edit, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { GiftItem } from 'routes/couple/ManageRegistry';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
-import { Image, Popconfirm, Tag, Button, Card, Tooltip } from 'antd';
+import { Popconfirm, Tag, Button, Card, Tooltip } from 'antd';
 import { useDeviceType } from 'src/hooks/useDeviceType';
 import { CartItem } from 'types/models/cart';
 
@@ -27,7 +27,7 @@ interface GiftCardProps {
   variant?: 'default' | 'predesigned';
 }
 
-export const GiftCard = ({
+const GiftCardComponent = ({
   gift,
   onDelete,
   onEdit,
@@ -109,6 +109,7 @@ export const GiftCard = ({
             <img
               src={gift.imageUrl}
               alt={gift.title}
+              loading="lazy"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           </div>
@@ -180,22 +181,21 @@ export const GiftCard = ({
         <div className="relative">
           <div className="h-40 overflow-hidden rounded-t-lg">
             {gift.imageUrl ? (
-              <div
-                className="w-full h-full bg-cover bg-no-repeat rounded-t-lg"
+              <img
+                src={gift.imageUrl}
+                alt={gift.title}
+                loading="lazy"
+                className="w-full h-full object-cover rounded-t-lg"
                 style={{
-                  backgroundImage: `url(${gift.imageUrl})`,
-                  backgroundPosition: `center ${(gift as any).imagePosition ?? 50}%`,
-                  backgroundSize: 'cover',
+                  objectPosition: `center ${(gift as any).imagePosition ?? 50}%`,
                 }}
               />
             ) : (
-              <div
-                className="w-full h-full bg-cover bg-no-repeat rounded-t-lg"
-                style={{
-                  backgroundImage: `url(/images/gift_placeholder.png)`,
-                  backgroundPosition: 'center 50%',
-                  backgroundSize: 'cover',
-                }}
+              <img
+                src="/images/gift_placeholder.png"
+                alt="Gift placeholder"
+                loading="lazy"
+                className="w-full h-full object-cover rounded-t-lg"
               />
             )}
           </div>
@@ -309,3 +309,20 @@ export const GiftCard = ({
     </Card>
   );
 };
+
+// Memoize the component to prevent unnecessary re-renders
+// Only re-render if gift data, handlers, or cart state actually changes
+export const GiftCard = memo(GiftCardComponent, (prevProps, nextProps) => {
+  // Custom comparison function for better performance
+  return (
+    prevProps.gift.id === nextProps.gift.id &&
+    prevProps.gift.title === nextProps.gift.title &&
+    prevProps.gift.price === nextProps.gift.price &&
+    prevProps.gift.isPurchased === nextProps.gift.isPurchased &&
+    prevProps.gift.isMostWanted === nextProps.gift.isMostWanted &&
+    prevProps.gift.imageUrl === nextProps.gift.imageUrl &&
+    prevProps.isGuest === nextProps.isGuest &&
+    prevProps.variant === nextProps.variant &&
+    prevProps.cartItems?.length === nextProps.cartItems?.length
+  );
+});

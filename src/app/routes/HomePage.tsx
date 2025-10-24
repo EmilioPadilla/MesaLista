@@ -294,7 +294,7 @@ export const HomePage = () => {
             </div>
             <div className="text-left">
               <p className="text-lg font-medium text-foreground">María y Carlos</p>
-              <p className="text-muted-foreground">Ciudad de México, 2024</p>
+              <p className="text-muted-foreground">Ciudad de México, 2025</p>
             </div>
           </div>
         </motion.div>

@@ -2,21 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Checkbox, message, Form, Input, Radio } from 'antd';
 import { Button } from 'components/core/Button';
-import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  ArrowLeft,
-  Phone,
-  Edit3,
-  ArrowRight,
-  Check,
-  CreditCard,
-  TrendingUp,
-  Zap,
-  ShieldCheck,
-} from 'lucide-react';
+import { Mail, Lock, ArrowLeft, Phone, Edit3, ArrowRight, Check, CreditCard, TrendingUp, Zap, ShieldCheck } from 'lucide-react';
 import { userService } from 'services/user.service';
 import { UserRole } from 'types/models/user';
 import { useIsAuthenticated, useCreateUser, useLogin, useCheckSlugAvailability } from 'hooks/useUser';
@@ -413,7 +399,7 @@ function Signup() {
             {currentStep === 'details' && (
               <>
                 <div className="text-center">
-                  <div className="w-30 h-30 bg-[#d4704a]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <div className="w-30 h-30 rounded-full flex items-center justify-center mx-auto mb-6">
                     <img src="/svg/MesaLista_isotipo.svg" className="w-24 h-24" alt="" />
                   </div>
                   <h1 className="text-3xl sm:text-4xl mb-4 text-foreground">Únete a MesaLista</h1>
@@ -569,7 +555,6 @@ function Signup() {
                       prefix={<Lock className="h-4 w-4 text-muted-foreground" />}
                       placeholder="••••••••"
                       className="h-12 rounded-xl !border !border-border"
-                      iconRender={(visible) => (visible ? <EyeOff size={16} /> : <Eye size={16} />)}
                       onChange={(e) => setPassword(e.target.value)}
                     />
                   </Form.Item>
@@ -601,7 +586,6 @@ function Signup() {
                       prefix={<Lock className="h-4 w-4 text-muted-foreground" />}
                       placeholder="••••••••"
                       className="h-12 rounded-xl !border !border-border"
-                      iconRender={(visible) => (visible ? <EyeOff size={16} /> : <Eye size={16} />)}
                     />
                   </Form.Item>
 

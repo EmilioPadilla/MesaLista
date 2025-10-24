@@ -1,7 +1,7 @@
 import { Card } from 'antd';
 import { PredesignedList, PredesignedGift } from 'src/services/predesignedList.service';
-import { GiftCard } from '../../components/shared/GiftCard';
 import { GiftItem } from 'routes/couple/ManageRegistry';
+import { PredesignedGiftCard } from './PredesignedGiftCard';
 
 interface PredesignedListTabContentProps {
   registry: PredesignedList;
@@ -83,7 +83,7 @@ export function PredesignedListTabContent({ registry, addedGifts, onAddGift }: P
                 key={gift.id}
                 onClick={() => !added && onAddGift(gift, registry.name)}
                 className={`h-full ${added ? 'opacity-75 pointer-events-none' : ''}`}>
-                <GiftCard gift={giftItem} variant="predesigned" onAddToCart={() => onAddGift(gift, registry.name)} isGuest={true} />
+                <PredesignedGiftCard gift={giftItem} onAddToCart={() => onAddGift(gift, registry.name)} />
               </div>
             );
           })}

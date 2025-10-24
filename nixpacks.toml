@@ -12,4 +12,4 @@ cmds = [
 ]
 
 [start]
-cmd = 'npx prisma migrate deploy && npm run prisma:seed && node server/dist/server/index.js'
+cmd = 'npx prisma migrate deploy && node server/dist/server/index.js'

@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useMemo } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
 
@@ -30,10 +30,15 @@ export function DraggableList<T>({ items, getItemId, onReorder, renderContainer,
     }
   };
 
+  // Render all items but in optimized chunks
+  const renderedItems = useMemo(() => {
+    return items.map((item, index) => renderItem(item, index));
+  }, [items, renderItem]);
+
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={items.map((item) => getItemId(item))} strategy={rectSortingStrategy}>
-        {renderContainer(items.map((item, index) => renderItem(item, index)))}
+        {renderContainer(renderedItems)}
       </SortableContext>
     </DndContext>
   );

@@ -83,7 +83,7 @@ export function ForgotPassword() {
 
           {/* Footer */}
           <div className="text-center mt-6 text-xs text-muted-foreground">
-            <p>¿Necesitas ayuda? Contáctanos en soporte@mesalista.com.mx</p>
+            <p>¿Necesitas ayuda? Contáctanos en info@mesalista.com.mx</p>
           </div>
         </div>
       </div>
