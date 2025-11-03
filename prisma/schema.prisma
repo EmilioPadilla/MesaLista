@@ -20,6 +20,7 @@ model User {
   phoneNumber   String?
   role          UserRole  @default(GUEST)
   planType      PlanType? @map("plan_type")
+  discountCodeId Int?     @map("discount_code_id") // Reference to applied discount code
   lockedUntil   DateTime? @map("locked_until") // Account lockout timestamp
   failedLoginAttempts Int @default(0) @map("failed_login_attempts")
   createdAt     DateTime  @default(now()) @map("created_at")
@@ -29,6 +30,7 @@ model User {
   passwordResets PasswordReset[]
   passwordHistory PasswordHistory[]
   loginAttempts LoginAttempt[]
+  discountCode  DiscountCode? @relation(fields: [discountCodeId], references: [id])
   
   @@map("users")
 }
@@ -286,6 +288,28 @@ model LoginAttempt {
   @@index([email, createdAt])
   @@index([userId, createdAt])
   @@map("login_attempts")
+}
+
+model DiscountCode {
+  id              Int      @id @default(autoincrement())
+  code            String   @unique // The discount code string (e.g., "SUMMER2024")
+  discountType    DiscountType @map("discount_type") // PERCENTAGE or FIXED_AMOUNT
+  discountValue   Float    @map("discount_value") // Percentage (0-100) or fixed amount
+  usageLimit      Int      @map("usage_limit") // Maximum number of times this code can be used
+  usageCount      Int      @default(0) @map("usage_count") // Current usage count
+  isActive        Boolean  @default(true) @map("is_active") // Can be deactivated without deletion
+  expiresAt       DateTime? @map("expires_at") // Optional expiration date
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  users           User[]   // Users who used this discount code
+
+  @@index([code])
+  @@map("discount_codes")
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
 }
 
 // Analytics Models

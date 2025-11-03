@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gem, Gift, GiftIcon, Heart, LogOut, Search, User as UserIcon, BarChart3, Lightbulb, ListPlus } from 'lucide-react';
+import { ArrowLeft, Gem, Gift, GiftIcon, Heart, LogOut, Search, User as UserIcon, BarChart3, Lightbulb, ListPlus, Tag } from 'lucide-react';
 import { message, Tooltip, Button, Divider } from 'antd';
 import { useGetUserBySlug, useIsAuthenticated, useLogout, useCurrentUser } from 'hooks/useUser';
 import { useDeviceType } from 'hooks/useDeviceType';
@@ -161,6 +161,18 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                     className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <ListPlus className="h-4 w-4" />
                     {viewType !== 'mobile' && <span>Listas</span>}
+                  </Button>
+                </Tooltip>
+              )}
+
+              {userData?.role === 'ADMIN' && isAuthenticated && (
+                <Tooltip title={viewType === 'mobile' ? 'Códigos de Descuento' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === '/admin/codigos-descuento' ? 'primary' : 'text'}
+                    onClick={() => navigate('/admin/codigos-descuento')}
+                    className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <Tag className="h-4 w-4" />
+                    {viewType !== 'mobile' && <span>Descuentos</span>}
                   </Button>
                 </Tooltip>
               )}

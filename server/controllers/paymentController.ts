@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import Stripe from 'stripe';
 import axios from 'axios';
 import emailService from '../services/emailService.js';
+import { discountCodeService } from '../services/discountCodeService.js';
 
 const prisma = new PrismaClient();
 
@@ -633,7 +634,7 @@ export default {
   // Create Stripe checkout session for plan payment (signup)
   createPlanCheckoutSession: async (req: Request, res: Response) => {
     try {
-      const { planType, email, successUrl, cancelUrl } = req.body;
+      const { planType, email, successUrl, cancelUrl, discountCode } = req.body;
 
       if (!planType || !email) {
         return res.status(400).json({
@@ -650,6 +651,34 @@ export default {
         });
       }
 
+      // Validate discount code if provided
+      let validatedDiscountCode = null;
+      let finalAmount = 200000; // $2,000 MXN in cents
+
+      if (discountCode) {
+        const validation = await discountCodeService.validateDiscountCode(discountCode);
+        if (!validation.valid) {
+          return res.status(400).json({
+            success: false,
+            message: validation.error,
+          });
+        }
+        validatedDiscountCode = validation.discountCode;
+
+        // Calculate discounted amount
+        const baseAmount = 2000; // $2,000 MXN
+        let discountedAmount = baseAmount;
+
+        if (validatedDiscountCode!.discountType === 'PERCENTAGE') {
+          discountedAmount = baseAmount - (baseAmount * validatedDiscountCode!.discountValue) / 100;
+        } else {
+          // FIXED_AMOUNT
+          discountedAmount = baseAmount - validatedDiscountCode!.discountValue;
+        }
+
+        finalAmount = Math.max(0, Math.round(discountedAmount * 100)); // Convert to cents
+      }
+
       // Create line item for plan payment
       const lineItems = [
         {
@@ -657,9 +686,11 @@ export default {
             currency: 'mxn',
             product_data: {
               name: 'Plan Fijo - MesaLista',
-              description: 'Pago único para acceso completo a MesaLista sin comisiones por ventas',
+              description: validatedDiscountCode
+                ? `Pago único para acceso completo a MesaLista sin comisiones por ventas (Código: ${validatedDiscountCode.code})`
+                : 'Pago único para acceso completo a MesaLista sin comisiones por ventas',
             },
-            unit_amount: 200000, // $2,000 MXN in cents
+            unit_amount: finalAmount,
           },
           quantity: 1,
         },
@@ -677,6 +708,10 @@ export default {
           planType: 'FIXED',
           email: email,
           paymentFor: 'PLAN_SUBSCRIPTION',
+          ...(validatedDiscountCode && {
+            discountCodeId: validatedDiscountCode.id.toString(),
+            discountCode: validatedDiscountCode.code,
+          }),
         },
       });
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Checkbox, message, Form, Input, Radio } from 'antd';
+import { Checkbox, message, Form, Input, Radio, Spin } from 'antd';
 import { Button } from 'components/core/Button';
-import { Mail, Lock, ArrowLeft, Phone, Edit3, ArrowRight, Check, CreditCard, TrendingUp, Zap, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, Phone, Edit3, ArrowRight, Check, CreditCard, TrendingUp, Zap, ShieldCheck, Tag } from 'lucide-react';
 import { userService } from 'services/user.service';
 import { UserRole } from 'types/models/user';
 import { useIsAuthenticated, useCreateUser, useLogin, useCheckSlugAvailability } from 'hooks/useUser';
@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { PasswordStrengthIndicator } from 'components/auth/PasswordStrengthIndicator';
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
+import { useValidateDiscountCode } from 'hooks/useDiscountCode';
 
 type Step = 'details' | 'verification' | 'coupleSlug' | 'plan' | 'payment' | 'success';
 
@@ -30,16 +31,24 @@ function Signup() {
   const [formData, setFormData] = useState<any>(null); // Store form data across steps
   const [verificationCode, setVerificationCode] = useState('');
   const [verificationError, setVerificationError] = useState('');
-  const [isResendingCode, setIsResendingCode] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [password, setPassword] = useState('');
+  const [discountCode, setDiscountCode] = useState('');
 
   const { mutateAsync: createUser, isSuccess: isSuccessCreatedUser } = useCreateUser();
   const { mutateAsync: login } = useLogin();
   const { mutateAsync: createPlanCheckout } = useCreatePlanCheckoutSession();
-  const { mutateAsync: sendVerificationCode } = useSendVerificationCode();
+  const { mutateAsync: sendVerificationCode, isPending: isResendingCode } = useSendVerificationCode();
   const { mutateAsync: verifyCode } = useVerifyCode();
+  const {
+    data: discountCodeInfo,
+    isLoading: isValidatingDiscountCode,
+    isError: isDiscountCodeError,
+  } = useValidateDiscountCode(discountCode);
   const trackEvent = useTrackEvent();
+
+  // Derive discount code validity from hook response
+  const discountCodeValid = discountCodeInfo ? true : isDiscountCodeError ? false : null;
 
   // Check slug availability
   const { data: slugCheck, isLoading: isCheckingSlug } = useCheckSlugAvailability(debouncedSlug);
@@ -146,6 +155,7 @@ function Signup() {
           coupleSlug: coupleSlug,
           role: 'COUPLE',
           planType: 'FIXED',
+          ...(discountCode && discountCodeValid && { discountCode }),
         };
 
         sessionStorage.setItem('pendingUserData', JSON.stringify(userData));
@@ -156,6 +166,7 @@ function Signup() {
           email: values.email,
           successUrl: `${baseUrl}/registro-exitoso?session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${baseUrl}/registro?step=payment&cancelled=true`,
+          ...(discountCode && discountCodeValid && { discountCode }),
         });
 
         if (checkoutResponse.success && checkoutResponse.url) {
@@ -178,6 +189,7 @@ function Signup() {
           role: 'COUPLE' as UserRole,
           planType: selectedPlan.toUpperCase() as 'FIXED' | 'COMMISSION',
           updatedAt: new Date(),
+          ...(discountCode && discountCodeValid && { discountCode }),
         };
 
         await createUser(userData);
@@ -214,9 +226,7 @@ function Signup() {
 
   const handleResendCode = async () => {
     if (resendTimer > 0 || !formData?.email) return;
-    setIsResendingCode(true);
     await handleSendVerificationCode(formData.email);
-    setIsResendingCode(false);
   };
 
   const validateCurrentStep = async () => {
@@ -346,6 +356,26 @@ function Signup() {
     return 6;
   };
 
+  const calculateDiscountedPrice = () => {
+    const basePrice = 2000;
+    if (!discountCodeValid || !discountCodeInfo || selectedPlan !== 'fixed') {
+      return { original: basePrice, discounted: basePrice, savings: 0 };
+    }
+
+    let discounted = basePrice;
+    if (discountCodeInfo.discountType === 'PERCENTAGE') {
+      discounted = basePrice - (basePrice * discountCodeInfo.discountValue) / 100;
+    } else {
+      discounted = basePrice - discountCodeInfo.discountValue;
+    }
+
+    return {
+      original: basePrice,
+      discounted: Math.max(0, discounted),
+      savings: basePrice - Math.max(0, discounted),
+    };
+  };
+
   const renderProgressBar = () => (
     <div className="mb-8">
       <div className="flex justify-between text-sm text-muted-foreground mb-2">
@@ -415,16 +445,16 @@ function Signup() {
                 </div>
 
                 <Form form={form} layout="vertical" className="">
-                  <div className="grid grid-cols-2 gap-4 !mb-0">
+                  <div className="grid grid-cols-2 gap-4 mb-0!">
                     <Form.Item
                       name="firstName"
-                      className="!mb-0"
+                      className="mb-0!"
                       label={<label className="text-sm">Nombre</label>}
                       rules={[{ required: true, message: 'El nombre es requerido' }]}>
                       <Input
                         type="outline"
                         placeholder="María"
-                        className="h-12 rounded-xl !border !border-border"
+                        className="h-12 rounded-xl border border-border!"
                         onChange={() => {
                           const firstName = form.getFieldValue('firstName');
                           const lastName = form.getFieldValue('lastName');
@@ -439,12 +469,12 @@ function Signup() {
                     <Form.Item
                       name="lastName"
                       label={<label className="text-sm">Apellido</label>}
-                      className="!mb-0"
+                      className="mb-0!"
                       rules={[{ required: true, message: 'El apellido es requerido' }]}>
                       <Input
                         type="outline"
                         placeholder="González"
-                        className="h-12 rounded-xl !border !border-border"
+                        className="h-12 rounded-xl border border-border!"
                         onChange={() => {
                           const firstName = form.getFieldValue('firstName');
                           const lastName = form.getFieldValue('lastName');
@@ -472,7 +502,7 @@ function Signup() {
                         <Input
                           type="outline"
                           placeholder="Juan"
-                          className="h-12 rounded-xl !border !border-border"
+                          className="h-12 rounded-xl border border-border!"
                           onChange={() => {
                             const firstName = form.getFieldValue('firstName');
                             const lastName = form.getFieldValue('lastName');
@@ -493,7 +523,7 @@ function Signup() {
                         <Input
                           type="outline"
                           placeholder="Pérez"
-                          className="h-12 rounded-xl !border !border-border"
+                          className="h-12 rounded-xl border border-border!"
                           onChange={() => {
                             const firstName = form.getFieldValue('firstName');
                             const lastName = form.getFieldValue('lastName');
@@ -520,7 +550,7 @@ function Signup() {
                       type="outline"
                       prefix={<Mail className="h-4 w-4 text-muted-foreground" />}
                       placeholder="maria@correo.com"
-                      className="h-12 rounded-xl !border !border-border"
+                      className="h-12 rounded-xl border border-border!"
                     />
                   </Form.Item>
 
@@ -535,8 +565,44 @@ function Signup() {
                       type="outline"
                       prefix={<Phone className="h-4 w-4 text-muted-foreground" />}
                       placeholder="55 1234 5678"
-                      className="h-12 rounded-xl !border !border-border"
+                      className="h-12 rounded-xl border border-border!"
                     />
+                  </Form.Item>
+
+                  <Form.Item name="discountCode" label={<label className="text-sm">Código de descuento (opcional)</label>}>
+                    <div>
+                      <div className="relative">
+                        <Input
+                          type="outline"
+                          prefix={<Tag className="h-4 w-4 text-muted-foreground" />}
+                          placeholder="CODIGO2024"
+                          value={discountCode}
+                          onChange={(e) => {
+                            const value = e.target.value.toUpperCase();
+                            setDiscountCode(value);
+                          }}
+                          className="h-12 rounded-xl border border-border!"
+                          status={discountCodeValid === false ? 'error' : discountCodeValid === true ? undefined : undefined}
+                        />
+                      </div>
+                      {discountCodeValid === true && discountCodeInfo && (
+                        <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <p className="text-sm text-green-700">
+                            ✓ Código válido:{' '}
+                            {discountCodeInfo.discountType === 'PERCENTAGE'
+                              ? `${discountCodeInfo.discountValue}% de descuento`
+                              : `$${discountCodeInfo.discountValue} MXN de descuento`}
+                          </p>
+                        </div>
+                      )}
+                      {isValidatingDiscountCode ? (
+                        <div className="flex items-center gap-2 text-blue-500 mt-2">
+                          <Spin size="small" style={{ color: 'blue' }} />
+                          <span className="text-xs">Validando...</span>
+                        </div>
+                      ) : null}
+                      {discountCodeValid === false && <p className="text-sm text-red-500 mt-2">Código de descuento inválido o expirado</p>}
+                    </div>
                   </Form.Item>
 
                   <Form.Item
@@ -554,7 +620,7 @@ function Signup() {
                       type="outline"
                       prefix={<Lock className="h-4 w-4 text-muted-foreground" />}
                       placeholder="••••••••"
-                      className="h-12 rounded-xl !border !border-border"
+                      className="h-12 rounded-xl border border-border!"
                       onChange={(e) => setPassword(e.target.value)}
                     />
                   </Form.Item>
@@ -585,7 +651,7 @@ function Signup() {
                       type="outline"
                       prefix={<Lock className="h-4 w-4 text-muted-foreground" />}
                       placeholder="••••••••"
-                      className="h-12 rounded-xl !border !border-border"
+                      className="h-12 rounded-xl border border-border!"
                     />
                   </Form.Item>
 
@@ -604,14 +670,14 @@ function Signup() {
                         <a
                           href="https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Te%CC%81rminos%20y%20Condiciones%20MesaLista%20Mx.pdf"
                           target="_blank"
-                          className="p-0 h-auto !text-primary hover:!text-primary/50 text-sm">
+                          className="p-0 h-auto text-primary! hover:text-primary/50! text-sm">
                           Términos y Condiciones
                         </a>{' '}
                         y la{' '}
                         <a
                           href="https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Aviso%20de%20Privacidad%20MesaLista%20Mx.pdf"
                           target="_blank"
-                          className="p-0 h-auto !text-primary hover:!text-primary/50 text-sm">
+                          className="p-0 h-auto text-primary! hover:text-primary/50! text-sm">
                           Política de Privacidad
                         </a>
                       </span>
@@ -648,7 +714,7 @@ function Signup() {
                       }}
                       placeholder="000000"
                       maxLength={6}
-                      className="h-14 rounded-xl !border !border-border text-center text-2xl tracking-widest font-mono"
+                      className="h-14 rounded-xl border border-border! text-center text-2xl tracking-widest font-mono"
                       status={verificationError ? 'error' : undefined}
                     />
                     {verificationError && <p className="text-sm text-red-500 mt-2">{verificationError}</p>}
@@ -700,7 +766,7 @@ function Signup() {
                       value={coupleSlug}
                       onChange={(e) => setCoupleSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
                       placeholder="maria-gonzalez"
-                      className="h-12 rounded-xl !border !border-border"
+                      className="h-12 rounded-xl border border-border!"
                       suffix={<Edit3 className="h-4 w-4 text-muted-foreground" />}
                       status={slugError ? 'error' : undefined}
                     />
@@ -754,9 +820,31 @@ function Signup() {
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1 pr-8">
                               <h3 className="text-lg text-foreground font-semibold">Plan Fijo</h3>
-                              <span className="text-2xl text-[#d4704a] font-bold">$2,000 MXN</span>
+                              <div className="flex flex-col items-end">
+                                {discountCodeValid && discountCodeInfo && calculateDiscountedPrice().savings > 0 ? (
+                                  <>
+                                    <span className="text-sm text-muted-foreground line-through">$2,000 MXN</span>
+                                    <span className="text-2xl text-green-600 font-bold">
+                                      ${calculateDiscountedPrice().discounted.toLocaleString('es-MX')} MXN
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="text-2xl text-[#d4704a] font-bold">$2,000 MXN</span>
+                                )}
+                              </div>
                             </div>
                             <p className="text-muted-foreground">Pago único</p>
+                            {discountCodeValid && discountCodeInfo && calculateDiscountedPrice().savings > 0 && (
+                              <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Tag className="h-4 w-4 text-green-700" />
+                                  <span className="text-sm text-green-700 font-medium">
+                                    Código "{discountCodeInfo.code}" aplicado - Ahorras $
+                                    {calculateDiscountedPrice().savings.toLocaleString('es-MX')} MXN
+                                  </span>
+                                </div>
+                              </div>
+                            )}
                             <ul className="text-sm text-muted-foreground mt-2 space-y-1">
                               <li>• Mesa de regalos ilimitada</li>
                               <li>• Sin comisiones por ventas</li>
@@ -807,7 +895,7 @@ function Signup() {
                 </div>
 
                 <div className="bg-blue-50 rounded-2xl p-4 text-center">
-                  <InfoCircleOutlined className="!text-blue-700 !mr-2" />
+                  <InfoCircleOutlined className="text-blue-700! mr-2!" />
                   <span className="text-sm text-blue-700">Una vez elegido tu plan, no podrás cambiarlo</span>
                 </div>
               </>
@@ -818,7 +906,11 @@ function Signup() {
                 <div className="text-center mb-8">
                   <h1 className="text-3xl sm:text-4xl mb-4 text-foreground">Confirmar pago</h1>
                   <p className="text-xl text-muted-foreground">
-                    {selectedPlan === 'fixed' ? 'Pago único de $2,000 MXN' : 'Sin costo inicial - 3% por venta'}
+                    {selectedPlan === 'fixed'
+                      ? discountCodeValid && discountCodeInfo && calculateDiscountedPrice().savings > 0
+                        ? `Pago único de $${calculateDiscountedPrice().discounted.toLocaleString('es-MX')} MXN`
+                        : 'Pago único de $2,000 MXN'
+                      : 'Sin costo inicial - 3% por venta'}
                   </p>
                 </div>
 
@@ -827,8 +919,44 @@ function Signup() {
                     <div className="bg-gray-50 rounded-2xl p-6">
                       <div className="flex justify-between items-center mb-4">
                         <span className="text-lg">Plan Fijo</span>
-                        <span className="text-2xl text-[#d4704a]">$2,000 MXN</span>
+                        <div className="flex flex-col items-end">
+                          {discountCodeValid && discountCodeInfo && calculateDiscountedPrice().savings > 0 ? (
+                            <>
+                              <span className="text-sm text-muted-foreground line-through">$2,000 MXN</span>
+                              <span className="text-2xl text-green-600 font-bold">
+                                ${calculateDiscountedPrice().discounted.toLocaleString('es-MX')} MXN
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-2xl text-[#d4704a]">$2,000 MXN</span>
+                          )}
+                        </div>
                       </div>
+
+                      {discountCodeValid && discountCodeInfo && calculateDiscountedPrice().savings > 0 && (
+                        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Tag className="h-5 w-5 text-green-700" />
+                              <div>
+                                <p className="text-sm font-medium text-green-700">Código de descuento aplicado</p>
+                                <p className="text-xs text-green-600">"{discountCodeInfo.code}"</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium text-green-700">
+                                -${calculateDiscountedPrice().savings.toLocaleString('es-MX')} MXN
+                              </p>
+                              <p className="text-xs text-green-600">
+                                {discountCodeInfo.discountType === 'PERCENTAGE'
+                                  ? `${discountCodeInfo.discountValue}% descuento`
+                                  : 'Descuento fijo'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="text-sm text-muted-foreground">Pago único, sin comisiones adicionales</div>
                     </div>
 
@@ -878,7 +1006,7 @@ function Signup() {
                     'Procesando...'
                   ) : currentStep === 'payment' ? (
                     selectedPlan === 'fixed' ? (
-                      'Pagar $2,000'
+                      `Pagar $${calculateDiscountedPrice().discounted.toLocaleString('es-MX')}`
                     ) : (
                       'Crear Cuenta'
                     )

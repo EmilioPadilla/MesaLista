@@ -520,6 +520,57 @@ const predesignedList_endpoints = {
 };
 
 /**
+ * Discount Code Endpoints
+ */
+const discountCode_endpoints = {
+  /**
+   * Validate a discount code
+   * @method GET
+   * @access Public
+   * @param code Discount code to validate
+   */
+  validate: (code: string) => `/discount-codes/validate/${code}`,
+
+  /**
+   * Get all discount codes
+   * @method GET
+   * @access Admin only
+   */
+  getAllAdmin: `/discount-codes/admin/all`,
+
+  /**
+   * Get discount code statistics
+   * @method GET
+   * @access Admin only
+   * @param id Discount code ID
+   */
+  getStatsAdmin: (id: number) => `/discount-codes/admin/${id}/stats`,
+
+  /**
+   * Create a new discount code
+   * @method POST
+   * @access Admin only
+   */
+  createAdmin: `/discount-codes/admin`,
+
+  /**
+   * Update a discount code
+   * @method PUT
+   * @access Admin only
+   * @param id Discount code ID
+   */
+  updateAdmin: (id: number) => `/discount-codes/admin/${id}`,
+
+  /**
+   * Delete a discount code
+   * @method DELETE
+   * @access Admin only
+   * @param id Discount code ID
+   */
+  deleteAdmin: (id: number) => `/discount-codes/admin/${id}`,
+};
+
+/**
  * Combined endpoints for easy access
  */
 export const endpoints = {
@@ -534,6 +585,7 @@ export const endpoints = {
   analytics: analytics_endpoints,
   docs: docs_endpoints,
   predesignedLists: predesignedList_endpoints,
+  discountCodes: discountCode_endpoints,
 };
 
 export const api_endpoints = endpoints;

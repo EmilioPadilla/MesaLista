@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Plus, Eye, Shield } from 'lucide-react';
-import { message, Button, Card, Spin, Row, Divider } from 'antd';
+import { message, Button, Card, Spin } from 'antd';
 import { DraggableList } from 'components/core/DraggableList';
 import {
   PredesignedRegistryModal,
   PredesignedGiftModal,
   PredesignedRegistryCard,
   SortablePredesignedGiftItem,
-} from 'src/features/adminPredesignedLists/components';
+} from 'src/features/admin/PredesignedLists/components';
 import { useCurrentUser } from 'hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 import {

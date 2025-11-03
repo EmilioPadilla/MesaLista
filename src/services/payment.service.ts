@@ -157,6 +157,7 @@ export const paymentService = {
     email: string;
     successUrl: string;
     cancelUrl: string;
+    discountCode?: string;
   }): Promise<{ success: boolean; sessionId: string; url: string }> => {
     const response = await apiClient.post(api_endpoints.payments.createPlanCheckoutSession, data);
     return response.data;

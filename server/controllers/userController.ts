@@ -14,6 +14,7 @@ import { UserRole } from '../../types/models/user.js';
 import passwordResetService from '../services/passwordResetService.js';
 import emailService from '../services/emailService.js';
 import passwordValidationService from '../services/passwordValidationService.js';
+import { discountCodeService } from '../services/discountCodeService.js';
 
 export const userController = {
   // Get all users
@@ -156,14 +157,23 @@ export const userController = {
 
   // Create new user
   createUser: async (req: Request, res: Response) => {
-    const { email, firstName, lastName, spouseFirstName, spouseLastName, password, phoneNumber, role, planType, coupleSlug } =
-      req.body as UserCreateRequest;
+    const { email, firstName, lastName, spouseFirstName, spouseLastName, password, phoneNumber, role, planType, coupleSlug, discountCode } =
+      req.body as UserCreateRequest & { discountCode?: string };
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
     try {
+      // Get discount code if provided (already validated during payment)
+      let discountCodeRecord = null;
+      if (discountCode) {
+        discountCodeRecord = await discountCodeService.getDiscountCodeByCode(discountCode);
+        if (!discountCodeRecord) {
+          console.warn(`Discount code ${discountCode} not found during user creation`);
+        }
+      }
+
       // Hash the password before storing it
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -191,6 +201,7 @@ export const userController = {
             role: userRole,
             coupleSlug,
             planType: planType || null,
+            discountCodeId: discountCodeRecord?.id || null,
           },
           select: {
             id: true,
@@ -207,6 +218,18 @@ export const userController = {
             createdAt: true,
           },
         });
+
+        // Increment discount code usage count if a code was used
+        if (discountCodeRecord) {
+          await tx.discountCode.update({
+            where: { id: discountCodeRecord.id },
+            data: {
+              usageCount: {
+                increment: 1,
+              },
+            },
+          });
+        }
 
         // If the user is a COUPLE, automatically create a wedding list
         if (userRole === 'COUPLE') {

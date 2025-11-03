@@ -22,4 +22,5 @@ export const queryKeys = {
   uploadFile: 'uploadFile',
   isAuthenticated: 'isAuthenticated',
   analytics: 'analytics',
+  discountCodes: 'discountCodes',
 };

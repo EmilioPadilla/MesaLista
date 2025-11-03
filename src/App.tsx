@@ -33,6 +33,7 @@ import { PageViewTracker } from './components/analytics/PageViewTracker';
 import { PredesignedListsPage } from './app/routes/PredesignedLists.page';
 import { Footer } from './app/modules/navigation/Footer';
 import { AdminPreDesignedLists } from './app/routes/admin/ManagePredesignedLists.page';
+import { ManageDiscountCodes } from './app/routes/admin/ManageDiscountCodes';
 
 function App() {
   const isLocalhost = window.location.hostname === 'localhost';
@@ -112,6 +113,15 @@ function App() {
                 <>
                   <TopNav />
                   <AdminPreDesignedLists />
+                </>
+              }
+            />
+            <Route
+              path="/admin/codigos-descuento"
+              element={
+                <>
+                  <TopNav />
+                  <ManageDiscountCodes />
                 </>
               }
             />
