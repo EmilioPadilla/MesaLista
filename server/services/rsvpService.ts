@@ -1,0 +1,274 @@
+import { PrismaClient, RsvpStatus } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export const rsvpService = {
+  // Get all invitees for a couple
+  async getInviteesByCoupleId(coupleId: number) {
+    return prisma.invitee.findMany({
+      where: { coupleId },
+      orderBy: { createdAt: 'desc' },
+    });
+  },
+
+  // Get a single invitee by ID
+  async getInviteeById(id: string) {
+    return prisma.invitee.findUnique({
+      where: { id },
+    });
+  },
+
+  // Get invitee by secret code
+  async getInviteeBySecretCode(secretCode: string) {
+    return prisma.invitee.findUnique({
+      where: { secretCode },
+    });
+  },
+
+  // Generate a unique secret code
+  async generateSecretCode(): Promise<string> {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code: string;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    do {
+      code = '';
+      for (let i = 0; i < 8; i++) {
+        code += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      
+      const existing = await prisma.invitee.findUnique({
+        where: { secretCode: code },
+      });
+      
+      if (!existing) {
+        return code;
+      }
+      
+      attempts++;
+    } while (attempts < maxAttempts);
+
+    throw new Error('No se pudo generar un código único. Por favor, intenta de nuevo.');
+  },
+
+  // Create a new invitee (supports partial data)
+  async createInvitee(data: {
+    coupleId: number;
+    firstName?: string;
+    lastName?: string;
+    tickets?: number;
+    secretCode?: string;
+  }) {
+    // Auto-generate missing values
+    const firstName = data.firstName || 'Invitado';
+    const lastName = data.lastName || 'Sin Apellido';
+    const tickets = data.tickets || 1;
+    let secretCode = data.secretCode?.toUpperCase();
+
+    // Generate secret code if not provided
+    if (!secretCode) {
+      secretCode = await this.generateSecretCode();
+    } else {
+      // Check if provided secret code already exists
+      const existing = await prisma.invitee.findUnique({
+        where: { secretCode },
+      });
+
+      if (existing) {
+        throw new Error('El código secreto ya existe. Por favor, usa otro código.');
+      }
+    }
+
+    return prisma.invitee.create({
+      data: {
+        coupleId: data.coupleId,
+        firstName,
+        lastName,
+        tickets,
+        secretCode,
+      },
+    });
+  },
+
+  // Bulk create invitees (supports partial data)
+  async bulkCreateInvitees(
+    coupleId: number,
+    invitees: Array<{
+      firstName?: string;
+      lastName?: string;
+      tickets?: number;
+      secretCode?: string;
+    }>
+  ) {
+    const results = {
+      created: [] as any[],
+      errors: [] as any[],
+    };
+
+    for (const invitee of invitees) {
+      try {
+        const created = await this.createInvitee({
+          coupleId,
+          firstName: invitee.firstName,
+          lastName: invitee.lastName,
+          tickets: invitee.tickets,
+          secretCode: invitee.secretCode,
+        });
+        results.created.push(created);
+      } catch (error) {
+        results.errors.push({
+          invitee,
+          error: error instanceof Error ? error.message : 'Error desconocido',
+        });
+      }
+    }
+
+    return results;
+  },
+
+  // Update an invitee
+  async updateInvitee(
+    id: string,
+    data: {
+      firstName?: string;
+      lastName?: string;
+      tickets?: number;
+      secretCode?: string;
+    }
+  ) {
+    // If updating secret code, check if it already exists
+    if (data.secretCode) {
+      const existing = await prisma.invitee.findUnique({
+        where: { secretCode: data.secretCode },
+      });
+
+      if (existing && existing.id !== id) {
+        throw new Error('El código secreto ya existe. Por favor, usa otro código.');
+      }
+    }
+
+    return prisma.invitee.update({
+      where: { id },
+      data,
+    });
+  },
+
+  // Delete an invitee
+  async deleteInvitee(id: string) {
+    return prisma.invitee.delete({
+      where: { id },
+    });
+  },
+
+  // Bulk delete invitees
+  async bulkDeleteInvitees(ids: string[]) {
+    return prisma.invitee.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+  },
+
+  // Bulk update invitee status
+  async bulkUpdateInviteeStatus(ids: string[], status: RsvpStatus) {
+    return prisma.invitee.updateMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      data: {
+        status,
+      },
+    });
+  },
+
+  // Respond to RSVP
+  async respondToRsvp(secretCode: string, status: RsvpStatus, confirmedTickets?: number, guestMessage?: string) {
+    const invitee = await prisma.invitee.findUnique({
+      where: { secretCode },
+    });
+
+    if (!invitee) {
+      throw new Error('Invitación no encontrada');
+    }
+
+    // Validate confirmed tickets
+    if (status === 'CONFIRMED' && confirmedTickets) {
+      if (confirmedTickets > invitee.tickets) {
+        throw new Error(`No puedes confirmar más de ${invitee.tickets} boletos`);
+      }
+      if (confirmedTickets < 1) {
+        throw new Error('Debes confirmar al menos 1 boleto');
+      }
+    }
+
+    return prisma.invitee.update({
+      where: { secretCode },
+      data: {
+        status,
+        confirmedTickets: status === 'CONFIRMED' ? confirmedTickets : 0,
+        guestMessage: guestMessage || null,
+        respondedAt: new Date(),
+      },
+    });
+  },
+
+  // Get RSVP statistics for a couple
+  async getRsvpStats(coupleId: number) {
+    const invitees = await prisma.invitee.findMany({
+      where: { coupleId },
+    });
+
+    const stats = {
+      total: invitees.length,
+      confirmed: invitees.filter((i) => i.status === 'CONFIRMED').length,
+      rejected: invitees.filter((i) => i.status === 'REJECTED').length,
+      pending: invitees.filter((i) => i.status === 'PENDING').length,
+      totalTickets: invitees.reduce((sum, i) => sum + i.tickets, 0),
+      confirmedTickets: invitees.reduce((sum, i) => sum + (i.confirmedTickets || 0), 0),
+      pendingTickets: invitees.filter((i) => i.status === 'PENDING').reduce((sum, i) => sum + i.tickets, 0),
+      rejectedTickets: invitees.filter((i) => i.status === 'REJECTED').reduce((sum, i) => sum + i.tickets, 0),
+    };
+
+    return stats;
+  },
+
+  // Get or create RSVP messages for a couple
+  async getRsvpMessages(coupleId: number) {
+    let messages = await prisma.rsvpMessages.findUnique({
+      where: { coupleId },
+    });
+
+    // Create default messages if they don't exist
+    if (!messages) {
+      messages = await prisma.rsvpMessages.create({
+        data: {
+          coupleId,
+        },
+      });
+    }
+
+    return messages;
+  },
+
+  // Update RSVP messages for a couple
+  async updateRsvpMessages(
+    coupleId: number,
+    data: {
+      confirmationMessage?: string;
+      cancellationMessage?: string;
+    }
+  ) {
+    // Ensure messages exist first
+    await this.getRsvpMessages(coupleId);
+
+    return prisma.rsvpMessages.update({
+      where: { coupleId },
+      data,
+    });
+  },
+};

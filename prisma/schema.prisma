@@ -409,3 +409,43 @@ model AnalyticsHourly {
   @@index([hour])
   @@map("analytics_hourly")
 }
+
+// RSVP Models
+
+model Invitee {
+  id                String        @id @default(cuid())
+  coupleId          Int           @map("couple_id")
+  firstName         String        @map("first_name")
+  lastName          String        @map("last_name")
+  tickets           Int           @default(1) // Maximum number of people allowed
+  secretCode        String        @unique @map("secret_code") // Unique code for confirmation
+  status            RsvpStatus    @default(PENDING)
+  confirmedTickets  Int?          @map("confirmed_tickets") // Actual number confirming
+  guestMessage      String?       @map("guest_message") @db.Text // Optional message from guest
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  respondedAt       DateTime?     @map("responded_at") // When they responded
+
+  @@index([coupleId])
+  @@index([secretCode])
+  @@index([status])
+  @@map("invitees")
+}
+
+enum RsvpStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+model RsvpMessages {
+  id                    Int      @id @default(autoincrement())
+  coupleId              Int      @unique @map("couple_id")
+  confirmationMessage   String   @default("¡Gracias por confirmar tu asistencia! Nos encantará verte en nuestra boda.") @map("confirmation_message")
+  cancellationMessage   String   @default("Lamentamos que no puedas asistir. ¡Gracias por avisarnos!") @map("cancellation_message")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@index([coupleId])
+  @@map("rsvp_messages")
+}

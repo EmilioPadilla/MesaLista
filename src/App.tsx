@@ -34,6 +34,8 @@ import { PredesignedListsPage } from './app/routes/PredesignedLists.page';
 import { Footer } from './app/modules/navigation/Footer';
 import { AdminPreDesignedLists } from './app/routes/admin/ManagePredesignedLists.page';
 import { ManageDiscountCodes } from './app/routes/admin/ManageDiscountCodes';
+import { GuestConfirmation } from './app/routes/GuestConfirmation';
+import { ManageRSVP } from './app/routes/couple/ManageRsvp';
 
 function App() {
   const isLocalhost = window.location.hostname === 'localhost';
@@ -130,12 +132,14 @@ function App() {
           {/* Public registry view for guests */}
           <Route path="/:coupleSlug" element={<PublicRegistry />}>
             <Route index element={<HomePage />} />
+            <Route path="rsvp" element={<GuestConfirmation />} />
             <Route path="regalos" element={<BuyGifts />} />
             <Route path="checkout" element={<Checkout />} />
             <Route path="pago-confirmado" element={<OrderConfirmation />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<Dashboard />}>
                 <Route path="gestionar" element={<ManageRegistry />} />
+                <Route path="gestionar-rsvp" element={<ManageRSVP />} />
                 <Route path="configuracion" element={<Settings />} />
               </Route>
             </Route>

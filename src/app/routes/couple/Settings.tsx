@@ -4,18 +4,20 @@ import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'components/core/Button';
 import { Collapsible } from 'components/core/Collapsible';
-import { Camera, Save, Trash2 } from 'lucide-react';
+import { Camera, Save, Trash2, MessageSquare } from 'lucide-react';
 import { useCurrentUser, useUpdateCurrentUserProfile, useUpdateCurrentUserPassword, useCheckSlugAvailability } from 'hooks/useUser';
 import { useWeddingListByCouple, useUpdateWeddingList } from 'hooks/useWeddingList';
 import { useUploadFile } from 'hooks/useFiles';
 import { PasswordStrengthIndicator } from 'components/auth/PasswordStrengthIndicator';
 import { useWatch } from 'antd/es/form/Form';
 import { DeleteCurrentUserModal } from 'components/shared/DeleteCurrentUserModal';
+import { useRsvpMessages, useUpdateRsvpMessages } from 'hooks/useRsvp';
 
 export function Settings() {
   const navigate = useNavigate();
   const [profileForm] = Form.useForm();
   const [passwordForm] = Form.useForm();
+  const [rsvpMessagesForm] = Form.useForm();
   const password = useWatch('newPassword', passwordForm);
   const [coverImage, setCoverImage] = useState<string>('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -25,17 +27,20 @@ export function Settings() {
   const [slugError, setSlugError] = useState('');
   const [hasProfileChanges, setHasProfileChanges] = useState(false);
   const [hasPasswordChanges, setHasPasswordChanges] = useState(false);
+  const [hasRsvpMessagesChanges, setHasRsvpMessagesChanges] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // Fetch current user data
   const { data: userData, isLoading: isLoadingUser } = useCurrentUser();
   const { data: weddingListData, isLoading: isLoadingWeddingList } = useWeddingListByCouple(userData?.id);
+  const { data: rsvpMessages } = useRsvpMessages(userData?.id || 0, !!userData?.id);
 
   // Mutations
   const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useUpdateCurrentUserProfile();
   const { mutateAsync: updatePassword, isPending: isUpdatingPassword } = useUpdateCurrentUserPassword();
   const { mutateAsync: updateWeddingList } = useUpdateWeddingList();
   const { mutateAsync: uploadFile } = useUploadFile();
+  const { mutateAsync: updateRsvpMessages, isPending: isUpdatingRsvpMessages } = useUpdateRsvpMessages();
 
   // Check slug availability (excluding current user)
   const { data: slugCheck, isLoading: isCheckingSlug } = useCheckSlugAvailability(debouncedSlug, userData?.id);
@@ -62,6 +67,16 @@ export function Settings() {
       }
     }
   }, [userData, profileForm]);
+
+  // Load RSVP messages into form
+  useEffect(() => {
+    if (rsvpMessages) {
+      rsvpMessagesForm.setFieldsValue({
+        confirmationMessage: rsvpMessages.confirmationMessage,
+        cancellationMessage: rsvpMessages.cancellationMessage,
+      });
+    }
+  }, [rsvpMessages, rsvpMessagesForm]);
 
   // Debounce slug input
   useEffect(() => {
@@ -208,6 +223,21 @@ export function Settings() {
       setHasPasswordChanges(false);
     } catch (error) {
       console.error('Error updating password:', error);
+    }
+  };
+
+  const handleSaveRsvpMessages = async () => {
+    try {
+      const values = await rsvpMessagesForm.validateFields();
+      await updateRsvpMessages({
+        confirmationMessage: values.confirmationMessage,
+        cancellationMessage: values.cancellationMessage,
+      });
+      setHasRsvpMessagesChanges(false);
+      message.success('Mensajes de confirmación actualizados');
+    } catch (error) {
+      console.error('Error updating RSVP messages:', error);
+      message.error('Error al actualizar mensajes');
     }
   };
 
@@ -438,6 +468,62 @@ export function Settings() {
             {isUpdatingProfile ? 'Guardando...' : 'Guardar cambios'}
           </Button>
         </div>
+
+        {/* Divider */}
+        <div className="border-t border-border/30" />
+
+        {/* RSVP Messages Section */}
+        <section className="space-y-6">
+          <div>
+            <h2 className="text-3xl tracking-tight text-foreground mb-2 flex items-center gap-2">
+              <MessageSquare className="h-8 w-8" />
+              Mensajes de confirmación
+            </h2>
+            <p className="text-muted-foreground font-light">
+              Personaliza los mensajes que verán tus invitados al confirmar o cancelar su asistencia
+            </p>
+          </div>
+
+          <Form form={rsvpMessagesForm} layout="vertical" onValuesChange={() => setHasRsvpMessagesChanges(true)}>
+            <div className="space-y-4">
+              <Form.Item
+                name="confirmationMessage"
+                label={<span className="text-sm text-muted-foreground">Mensaje de confirmación</span>}
+                rules={[{ required: true, message: 'El mensaje de confirmación es requerido' }]}>
+                <Input.TextArea
+                  rows={3}
+                  maxLength={200}
+                  showCount
+                  placeholder="¡Gracias por confirmar tu asistencia! Nos encantará verte en nuestra boda."
+                  className="px-4 py-3 bg-[#f5f5f7]!"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="cancellationMessage"
+                label={<span className="text-sm text-muted-foreground">Mensaje de cancelación</span>}
+                rules={[{ required: true, message: 'El mensaje de cancelación es requerido' }]}>
+                <Input.TextArea
+                  rows={3}
+                  maxLength={200}
+                  showCount
+                  placeholder="Lamentamos que no puedas asistir. ¡Gracias por avisarnos!"
+                  className="px-4 py-3 bg-[#f5f5f7]!"
+                />
+              </Form.Item>
+            </div>
+          </Form>
+
+          <div className="flex justify-center pt-4">
+            <Button
+              onClick={handleSaveRsvpMessages}
+              disabled={isUpdatingRsvpMessages || !hasRsvpMessagesChanges}
+              className="px-8 py-3 bg-[#d4704a] hover:bg-[#c25f3a] text-white rounded-full transition-all duration-200 flex items-center gap-2 border-0 disabled:opacity-50 disabled:cursor-not-allowed">
+              <Save className="h-5 w-5" />
+              {isUpdatingRsvpMessages ? 'Guardando...' : 'Guardar mensajes'}
+            </Button>
+          </div>
+        </section>
 
         {/* Divider */}
         <div className="border-t border-border/30" />

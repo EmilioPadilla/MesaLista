@@ -1,5 +1,19 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gem, Gift, GiftIcon, Heart, LogOut, Search, User as UserIcon, BarChart3, Lightbulb, ListPlus, Tag } from 'lucide-react';
+import {
+  ArrowLeft,
+  Gem,
+  Gift,
+  GiftIcon,
+  Heart,
+  LogOut,
+  Search,
+  User as UserIcon,
+  BarChart3,
+  Lightbulb,
+  ListPlus,
+  Tag,
+  Mail,
+} from 'lucide-react';
 import { message, Tooltip, Button, Divider } from 'antd';
 import { useGetUserBySlug, useIsAuthenticated, useLogout, useCurrentUser } from 'hooks/useUser';
 import { useDeviceType } from 'hooks/useDeviceType';
@@ -83,7 +97,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
             )}
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center">
             <nav className="flex items-center space-x-1">
               {/* Home Button */}
               <Tooltip title={viewType === 'mobile' ? 'Inicio' : ''} placement="bottom">
@@ -92,7 +106,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   onClick={() => navigate(userCoupleSlug ? `/${userCoupleSlug}` : '/')}
                   className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                   <Heart className="h-4 w-4" />
-                  {viewType !== 'mobile' && <span>Inicio</span>}
+                  <span className="hidden md:block">Inicio</span>
                 </Button>
               </Tooltip>
               {/* Search Button */}
@@ -102,7 +116,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   onClick={() => navigate('/buscar')}
                   className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                   <Search className="h-4 w-4" />
-                  {viewType !== 'mobile' && <span>Buscar</span>}
+                  <span className="hidden md:block">Buscar</span>
                 </Button>
               </Tooltip>
 
@@ -114,7 +128,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                     onClick={() => navigate('/listas')}
                     className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <Lightbulb className="h-4 w-4" />
-                    {viewType !== 'mobile' && <span>Listas</span>}
+                    <span className="hidden md:block">Listas</span>
                   </Button>
                 </Tooltip>
               )}
@@ -125,7 +139,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   onClick={() => navigate('/precios')}
                   className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                   <Gem className="h-4 w-4" />
-                  {viewType !== 'mobile' && <span>Precios</span>}
+                  <span className="hidden md:block">Precios</span>
                 </Button>
               </Tooltip>
 
@@ -136,7 +150,19 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                     onClick={() => navigate(`/${userCoupleSlug}/gestionar`)}
                     className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <GiftIcon className="h-4 w-4" />
-                    {viewType !== 'mobile' && <span>Gestionar</span>}
+                    <span className="hidden md:block">Gestionar</span>
+                  </Button>
+                </Tooltip>
+              )}
+
+              {userData?.role === 'COUPLE' && isAuthenticated && userCoupleSlug && (
+                <Tooltip title={viewType === 'mobile' ? 'RSVP' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === `/${userCoupleSlug}/gestionar-rsvp` ? 'primary' : 'text'}
+                    onClick={() => navigate(`/${userCoupleSlug}/gestionar-rsvp`)}
+                    className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <Mail className="h-4 w-4" />
+                    <span className="hidden md:block">RSVP</span>
                   </Button>
                 </Tooltip>
               )}
@@ -148,7 +174,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                     onClick={() => navigate('/admin/analytics')}
                     className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <BarChart3 className="h-4 w-4" />
-                    {viewType !== 'mobile' && <span>Analytics</span>}
+                    <span className="hidden md:block">Analytics</span>
                   </Button>
                 </Tooltip>
               )}
@@ -160,7 +186,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                     onClick={() => navigate('/admin/listas')}
                     className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <ListPlus className="h-4 w-4" />
-                    {viewType !== 'mobile' && <span>Listas</span>}
+                    <span className="hidden md:block">Listas</span>
                   </Button>
                 </Tooltip>
               )}
@@ -172,7 +198,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                     onClick={() => navigate('/admin/codigos-descuento')}
                     className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <Tag className="h-4 w-4" />
-                    {viewType !== 'mobile' && <span>Descuentos</span>}
+                    <span className="hidden md:block">Descuentos</span>
                   </Button>
                 </Tooltip>
               )}
@@ -183,14 +209,14 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   onClick={() => navigate(`/${userCoupleSlug}/regalos`)}
                   className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                   <Gift className="h-4 w-4" />
-                  {viewType !== 'mobile' && <span>Regalos</span>}
+                  <span className="hidden md:block">Regalos</span>
                 </Button>
               )}
             </nav>
 
             {/* User Authentication */}
             {userData && isAuthenticated ? (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center mx-1">
                 {userData?.role !== 'ADMIN' && (
                   <div
                     onClick={() => navigate(`/${userCoupleSlug}/configuracion`)}
@@ -214,19 +240,20 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                     type="text"
                     size="middle"
                     onClick={handleLogout}
-                    className="flex items-center space-x-1 cursor-pointer !rounded-lg !text-md">
+                    className="flex items-center ml-1 cursor-pointer rounded-lg! text-md!">
                     <LogOut className="h-4 w-4" />
-                    {viewType !== 'mobile' && <span>Salir</span>}
+                    <span className="hidden md:block">Salir</span>
                   </Button>
                 </Tooltip>
               </div>
             ) : (
-              <div className="flex items-center space-x-2 cursor-pointer">
+              <div className="flex items-center space-x-1 cursor-pointer">
                 <Button
                   type="text"
                   onClick={() => navigate('/login')}
                   className="transition-all cursor-pointer duration-200 hover:shadow-md !rounded-lg !text-md">
-                  {viewType !== 'mobile' ? <span>Iniciar Sesión</span> : <UserIcon className="h-4 w-4" />}
+                  <span className="hidden md:block">Iniciar Sesión</span>
+                  <UserIcon className="h-4 w-4" />
                 </Button>
                 {viewType !== 'mobile' && (
                   <Button

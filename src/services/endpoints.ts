@@ -571,6 +571,100 @@ const discountCode_endpoints = {
 };
 
 /**
+ * RSVP Endpoints
+ */
+const rsvp_endpoints = {
+  /**
+   * Get all invitees for authenticated couple
+   * @method GET
+   * @access Protected (Couple only)
+   */
+  getInvitees: `/rsvp/invitees`,
+
+  /**
+   * Get invitee by secret code
+   * @method GET
+   * @access Public
+   * @param secretCode Secret code
+   */
+  getInviteeByCode: (secretCode: string) => `/rsvp/invitee/${secretCode}`,
+
+  /**
+   * Create a new invitee
+   * @method POST
+   * @access Protected (Couple only)
+   */
+  createInvitee: `/rsvp/invitees`,
+
+  /**
+   * Bulk create invitees
+   * @method POST
+   * @access Protected (Couple only)
+   */
+  bulkCreateInvitees: `/rsvp/invitees/bulk`,
+
+  /**
+   * Update an invitee
+   * @method PUT
+   * @access Protected (Couple only)
+   * @param id Invitee ID
+   */
+  updateInvitee: (id: string) => `/rsvp/invitees/${id}`,
+
+  /**
+   * Delete an invitee
+   * @method DELETE
+   * @access Protected (Couple only)
+   * @param id Invitee ID
+   */
+  deleteInvitee: (id: string) => `/rsvp/invitees/${id}`,
+
+  /**
+   * Bulk delete invitees
+   * @method POST
+   * @access Protected (Couple only)
+   */
+  bulkDeleteInvitees: `/rsvp/invitees/bulk-delete`,
+
+  /**
+   * Bulk update invitee status
+   * @method POST
+   * @access Protected (Couple only)
+   */
+  bulkUpdateInviteeStatus: `/rsvp/invitees/bulk-update-status`,
+
+  /**
+   * Respond to RSVP
+   * @method POST
+   * @access Public
+   * @param secretCode Secret code
+   */
+  respondToRsvp: (secretCode: string) => `/rsvp/respond/${secretCode}`,
+
+  /**
+   * Get RSVP statistics
+   * @method GET
+   * @access Protected (Couple only)
+   */
+  getStats: `/rsvp/stats`,
+
+  /**
+   * Get RSVP messages for a couple
+   * @method GET
+   * @access Public
+   * @param coupleId Couple ID
+   */
+  getMessages: (coupleId: number) => `/rsvp/messages/${coupleId}`,
+
+  /**
+   * Update RSVP messages
+   * @method PUT
+   * @access Protected (Couple only)
+   */
+  updateMessages: `/rsvp/messages`,
+};
+
+/**
  * Combined endpoints for easy access
  */
 export const endpoints = {
@@ -586,6 +680,7 @@ export const endpoints = {
   docs: docs_endpoints,
   predesignedLists: predesignedList_endpoints,
   discountCodes: discountCode_endpoints,
+  rsvp: rsvp_endpoints,
 };
 
 export const api_endpoints = endpoints;

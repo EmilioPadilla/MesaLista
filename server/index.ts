@@ -20,6 +20,7 @@ import weddingListRoutes from './routes/weddingListRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import predesignedListRoutes from './routes/predesignedListRoutes.js';
 import discountCodeRoutes from './routes/discountCodeRoutes.js';
+import rsvpRoutes from './routes/rsvpRoutes.js';
 import bodyParser from 'body-parser';
 import paymentController from './controllers/paymentController.js';
 
@@ -147,6 +148,7 @@ app.use('/api/upload', fileUploadRouter);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/predesigned-lists', predesignedListRoutes);
 app.use('/api/discount-codes', discountCodeRoutes);
+app.use('/api/rsvp', rsvpRoutes);
 
 // Special case for login (to maintain /api/login endpoint)
 app.post('/api/login', (req, res, next) => {

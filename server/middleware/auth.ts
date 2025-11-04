@@ -38,20 +38,20 @@ export const authenticateSession = async (req: Request, res: Response, next: Nex
   try {
     // Get token from cookie
     const token = req.cookies[COOKIE_CONFIG.name];
-    
+
     if (!token) {
       return res.status(401).json({ error: 'Access denied. No session token provided.' });
     }
-    
+
     // Validate session
     const session = await SessionService.validateSession(token);
-    
+
     if (!session) {
       // Clear invalid cookie
       res.clearCookie(COOKIE_CONFIG.name, COOKIE_CONFIG.options);
       return res.status(401).json({ error: 'Invalid or expired session.' });
     }
-    
+
     // Attach user and session data to request
     req.user = {
       userId: session.user.id,
@@ -61,7 +61,7 @@ export const authenticateSession = async (req: Request, res: Response, next: Nex
       role: session.user.role,
     };
     req.session = session;
-    
+
     next();
   } catch (error) {
     console.error('Session authentication error:', error);
@@ -73,10 +73,10 @@ export const authenticateSession = async (req: Request, res: Response, next: Nex
 export const optionalAuthenticateSession = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies[COOKIE_CONFIG.name];
-    
+
     if (token) {
       const session = await SessionService.validateSession(token);
-      
+
       if (session) {
         req.user = {
           userId: session.user.id,
@@ -91,7 +91,7 @@ export const optionalAuthenticateSession = async (req: Request, res: Response, n
         res.clearCookie(COOKIE_CONFIG.name, COOKIE_CONFIG.options);
       }
     }
-    
+
     next();
   } catch (error) {
     console.warn('Optional session authentication error:', error);
@@ -105,7 +105,7 @@ export const createSessionAndSetCookie = async (
   res: Response,
   userId: number,
   userAgent: string,
-  ipAddress?: string
+  ipAddress?: string,
 ): Promise<SessionData> => {
   try {
     const session = await SessionService.createSession({
@@ -113,10 +113,10 @@ export const createSessionAndSetCookie = async (
       userAgent,
       ipAddress,
     });
-    
+
     // Set secure HttpOnly cookie
     res.cookie(COOKIE_CONFIG.name, session.token, COOKIE_CONFIG.options);
-    
+
     return session;
   } catch (error) {
     console.error('Error creating session:', error);
@@ -128,12 +128,12 @@ export const createSessionAndSetCookie = async (
 export const logoutSession = async (req: Request, res: Response): Promise<void> => {
   try {
     const token = req.cookies[COOKIE_CONFIG.name];
-    
+
     if (token) {
       // Invalidate session in database
       await SessionService.invalidateSession(token);
     }
-    
+
     // Clear cookie
     res.clearCookie(COOKIE_CONFIG.name, COOKIE_CONFIG.options);
   } catch (error) {
