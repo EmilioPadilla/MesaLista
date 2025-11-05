@@ -28,3 +28,7 @@ dist-ssr
 
 # Builds
 tsconfig.app.tsbuildinfo
+
+# AI Guides
+ai_guides
+
