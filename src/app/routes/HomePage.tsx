@@ -41,7 +41,7 @@ export const HomePage = () => {
     <>
       <h1 className="text-6xl md:text-8xl font-semibold tracking-tight text-foreground mb-8 leading-tight">MesaLista</h1>
       <p className="text-2xl md:text-3xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light">
-        La forma más elegante de crear y gestionar tu mesa de regalos de boda.
+        La forma más elegante de crear y gestionar tu mesa de regalos.
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -52,7 +52,7 @@ export const HomePage = () => {
         <Button
           size="large"
           variant="outlined"
-          className="px-8 py-4 hover:-translate-y-1 !border-primary !text-primary"
+          className="px-8 py-4 hover:-translate-y-1 border-primary! text-primary!"
           onClick={() => navigate('/buscar')}>
           <Gift className="mr-2 h-5 w-5" />
           Buscar Mesa de Regalos
@@ -153,17 +153,17 @@ export const HomePage = () => {
               <div className="max-w-4xl mx-auto">
                 <h2 className="text-2xl mb-8 text-center ">Resumen de tu Mesa de Regalos</h2>
                 <div className="grid md:grid-cols-3 gap-6">
-                  <Card className="border-0 shadow-lg bg-linear-to-br from-card to-secondary/20 text-center !rounded-2xl">
+                  <Card className="border-0 shadow-lg bg-linear-to-br from-card to-secondary/20 text-center rounded-2xl!">
                     <div className="text-3xl text-primary mb-2">{totalGifts}</div>
-                    <div className="!text-md text-muted-foreground">Regalos en tu lista</div>
+                    <div className="text-md! text-muted-foreground">Regalos en tu lista</div>
                   </Card>
-                  <Card className="border-0 shadow-lg bg-linear-to-br from-card to-accent/20 text-center !rounded-2xl">
+                  <Card className="border-0 shadow-lg bg-linear-to-br from-card to-accent/20 text-center rounded-2xl!">
                     <div className="text-3xl text-green-600 mb-2">{purchasedGifts}</div>
-                    <div className="!text-md text-muted-foreground">Regalos comprados</div>
+                    <div className="text-md! text-muted-foreground">Regalos comprados</div>
                   </Card>
-                  <Card className="border-0 shadow-lg bg-linear-to-br from-card to-secondary/20 text-center !rounded-2xl">
+                  <Card className="border-0 shadow-lg bg-linear-to-br from-card to-secondary/20 text-center rounded-2xl!">
                     <div className="text-3xl text-primary mb-2">{progress ? progress.toFixed(2) : 0}%</div>
-                    <div className="!text-md text-muted-foreground">Progreso completado</div>
+                    <div className="text-md! text-muted-foreground">Progreso completado</div>
                   </Card>
                 </div>
               </div>
@@ -304,7 +304,7 @@ export const HomePage = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
                   viewport={{ once: true }}>
-                  <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-primary to-[#d4a574] flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-primary to-[#d4a574] flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
                     <feature.icon className="h-7 w-7 text-white" />
                   </div>
                   <div>

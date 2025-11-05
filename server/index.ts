@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -67,6 +68,9 @@ app.use(
     maxAge: 86400, // Cache preflight requests for 24 hours
   }),
 );
+
+// Compression middleware (gzip) - must be early in the middleware chain
+app.use(compression());
 
 // Cookie parser middleware (must be before routes that use cookies)
 app.use(cookieParser());

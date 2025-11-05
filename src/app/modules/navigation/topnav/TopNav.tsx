@@ -252,8 +252,8 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                   type="text"
                   onClick={() => navigate('/login')}
                   className="transition-all cursor-pointer duration-200 hover:shadow-md !rounded-lg !text-md">
-                  <span className="hidden md:block">Iniciar Sesión</span>
                   <UserIcon className="h-4 w-4" />
+                  <span className="hidden md:block">Iniciar Sesión</span>
                 </Button>
                 {viewType !== 'mobile' && (
                   <Button
