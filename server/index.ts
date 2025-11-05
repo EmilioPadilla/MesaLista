@@ -150,15 +150,8 @@ app.use('/api/predesigned-lists', predesignedListRoutes);
 app.use('/api/discount-codes', discountCodeRoutes);
 app.use('/api/rsvp', rsvpRoutes);
 
-// Special case for login (to maintain /api/login endpoint)
-app.post('/api/login', (req, res, next) => {
-  // Redirect to the user login route handler
-  req.url = '/login';
-  next();
-});
-
-// Add a specific route for login after the redirect
-app.use('/login', userRoutes);
+// Special case for login API endpoint
+app.post('/api/login', userRoutes);
 
 // Catch-all handler: send back React's index.html file for SPA routing
 // This must be AFTER all API routes to avoid conflicts

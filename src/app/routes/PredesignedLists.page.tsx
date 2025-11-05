@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Button, Card, message, Tabs, Modal, Spin } from 'antd';
+import { useState, useEffect } from 'react';
+import { Button, message, Tabs, Modal, Spin } from 'antd';
 import { Heart, Plane, Home, Palette, Sparkles, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsAuthenticated, useCurrentUser } from 'hooks/useUser';
@@ -27,6 +27,11 @@ export function PredesignedListsPage() {
   const { data: weddingList } = useWeddingListByCouple(currentUser?.id);
   const { mutate: addGiftToWeddingList, isPending: isAddingGift } = useAddPredesignedGiftToWeddingList();
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Scroll to top when component loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleAddGift = (gift: PredesignedGift) => {
     if (!isAuthenticated) {
