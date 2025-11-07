@@ -105,7 +105,15 @@ export const rsvpController = {
         });
       }
 
-      const { firstName, lastName, tickets, secretCode } = req.body;
+      const { firstName, lastName, tickets, secretCode, guestMessage, status } = req.body;
+
+      // Validate status if provided
+      if (status && !['PENDING', 'CONFIRMED', 'REJECTED'].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Estado inválido. Debe ser PENDING, CONFIRMED o REJECTED',
+        });
+      }
 
       const invitee = await rsvpService.createInvitee({
         coupleId,
@@ -113,6 +121,8 @@ export const rsvpController = {
         lastName: lastName?.trim() || undefined,
         tickets: tickets ? parseInt(tickets) : undefined,
         secretCode: secretCode?.trim()?.toUpperCase() || undefined,
+        guestMessage: guestMessage?.trim() || undefined,
+        status: status || undefined,
       });
 
       res.status(201).json({

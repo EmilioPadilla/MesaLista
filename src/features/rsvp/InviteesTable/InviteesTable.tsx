@@ -26,9 +26,10 @@ interface InviteesTableProps {
   onEdit: (invitee: Invitee) => void;
   onDelete: (id: string) => void;
   onBulkDelete?: (ids: string[]) => void;
+  onBulkUpdateStatus?: (ids: string[], status: 'PENDING' | 'CONFIRMED' | 'REJECTED') => void;
 }
 
-export function InviteesTable({ invitees, loading, searchTerm, statusFilter, onEdit, onDelete, onBulkDelete }: InviteesTableProps) {
+export function InviteesTable({ invitees, loading, searchTerm, statusFilter, onEdit, onDelete, onBulkDelete, onBulkUpdateStatus }: InviteesTableProps) {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
@@ -79,9 +80,40 @@ export function InviteesTable({ invitees, loading, searchTerm, statusFilter, onE
         <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center justify-between">
           <span className="text-foreground">{selectedRowKeys.length} invitado(s) seleccionado(s)</span>
           <div className="flex gap-2">
+            {onBulkUpdateStatus && (
+              <>
+                <Button
+                  onClick={() => {
+                    onBulkUpdateStatus(selectedRowKeys as string[], 'CONFIRMED');
+                    setSelectedRowKeys([]);
+                  }}
+                  className="rounded-xl bg-green-500 hover:bg-green-600 text-white border-0"
+                  icon={<CheckCircle2 className="h-4 w-4" />}>
+                  Confirmar
+                </Button>
+                <Button
+                  onClick={() => {
+                    onBulkUpdateStatus(selectedRowKeys as string[], 'REJECTED');
+                    setSelectedRowKeys([]);
+                  }}
+                  className="rounded-xl bg-red-500 hover:bg-red-600 text-white border-0"
+                  icon={<XCircle className="h-4 w-4" />}>
+                  Rechazar
+                </Button>
+                <Button
+                  onClick={() => {
+                    onBulkUpdateStatus(selectedRowKeys as string[], 'PENDING');
+                    setSelectedRowKeys([]);
+                  }}
+                  className="rounded-xl"
+                  icon={<Clock className="h-4 w-4" />}>
+                  Pendiente
+                </Button>
+              </>
+            )}
             {onBulkDelete && (
               <Button onClick={handleBulkDelete} danger className="rounded-xl" icon={<Trash2 className="h-4 w-4" />}>
-                Eliminar Seleccionados
+                Eliminar
               </Button>
             )}
           </div>

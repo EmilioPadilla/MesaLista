@@ -21,6 +21,8 @@ export interface CreateInviteeRequest {
   lastName?: string;
   tickets?: number;
   secretCode?: string;
+  guestMessage?: string;
+  status?: 'PENDING' | 'CONFIRMED' | 'REJECTED';
 }
 
 export interface RsvpMessages {

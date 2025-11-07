@@ -13,6 +13,7 @@ import {
   useUpdateInvitee,
   useDeleteInvitee,
   useBulkDeleteInvitees,
+  useBulkUpdateInviteeStatus,
   useRsvpStats,
 } from 'src/hooks/useRsvp';
 import { useCurrentUser } from 'src/hooks/useUser';
@@ -32,6 +33,8 @@ interface ImportInvitee {
   lastName?: string;
   tickets?: number;
   secretCode?: string;
+  guestMessage?: string;
+  status?: 'PENDING' | 'CONFIRMED' | 'REJECTED';
 }
 
 export function ManageRSVP() {
@@ -55,6 +58,7 @@ export function ManageRSVP() {
   const deleteInviteeMutation = useDeleteInvitee();
   const bulkCreateMutation = useBulkCreateInvitees();
   const bulkDeleteMutation = useBulkDeleteInvitees();
+  const bulkUpdateStatusMutation = useBulkUpdateInviteeStatus();
 
   const handleAddInvitee = async (invitee: Omit<Invitee, 'id' | 'status'>) => {
     try {
@@ -93,6 +97,17 @@ export function ManageRSVP() {
     } catch (error) {
       console.error('Error bulk deleting invitees:', error);
       message.error('Error al eliminar invitados');
+    }
+  };
+
+  const handleBulkUpdateStatus = async (ids: string[], status: 'PENDING' | 'CONFIRMED' | 'REJECTED') => {
+    try {
+      const result = await bulkUpdateStatusMutation.mutateAsync({ ids, status });
+      const statusText = status === 'CONFIRMED' ? 'confirmados' : status === 'REJECTED' ? 'rechazados' : 'pendientes';
+      message.success(`${result.count} invitado(s) marcado(s) como ${statusText}`);
+    } catch (error) {
+      console.error('Error bulk updating status:', error);
+      message.error('Error al actualizar estado');
     }
   };
 
@@ -171,12 +186,12 @@ export function ManageRSVP() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-linear from-[#faf9f8] to-white">
+      <section className="relative py-10 px-4 sm:px-6 lg:px-8 bg-linear from-[#faf9f8] to-white">
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#007aff]/10 mb-6">
             <Users className="h-8 w-8 text-[#007aff]" />
           </div>
-          <h1 className="mb-4 text-foreground">Gestionar Invitados</h1>
+          <h1 className="mb-4 text-3xl text-foreground">Gestionar Invitados</h1>
           <p className="max-w-2xl mx-auto text-muted-foreground">
             Administra tu lista de invitados, controla las confirmaciones y mantén todo organizado en un solo lugar.
           </p>
@@ -262,6 +277,7 @@ export function ManageRSVP() {
           }}
           onDelete={handleDeleteInvitee}
           onBulkDelete={handleBulkDelete}
+          onBulkUpdateStatus={handleBulkUpdateStatus}
         />
 
         {/* Info Section */}

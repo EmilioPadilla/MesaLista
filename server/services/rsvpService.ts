@@ -59,6 +59,8 @@ export const rsvpService = {
     lastName?: string;
     tickets?: number;
     secretCode?: string;
+    guestMessage?: string;
+    status?: 'PENDING' | 'CONFIRMED' | 'REJECTED';
   }) {
     // Auto-generate missing values
     const firstName = data.firstName || 'Invitado';
@@ -80,6 +82,11 @@ export const rsvpService = {
       }
     }
 
+    // Set status and confirmedTickets based on provided status
+    const status = data.status || 'PENDING';
+    const confirmedTickets = status === 'CONFIRMED' ? tickets : 0;
+    const respondedAt = status !== 'PENDING' ? new Date() : null;
+
     return prisma.invitee.create({
       data: {
         coupleId: data.coupleId,
@@ -87,6 +94,10 @@ export const rsvpService = {
         lastName,
         tickets,
         secretCode,
+        guestMessage: data.guestMessage || null,
+        status,
+        confirmedTickets,
+        respondedAt,
       },
     });
   },
@@ -99,6 +110,8 @@ export const rsvpService = {
       lastName?: string;
       tickets?: number;
       secretCode?: string;
+      guestMessage?: string;
+      status?: 'PENDING' | 'CONFIRMED' | 'REJECTED';
     }>
   ) {
     const results = {
@@ -114,6 +127,8 @@ export const rsvpService = {
           lastName: invitee.lastName,
           tickets: invitee.tickets,
           secretCode: invitee.secretCode,
+          guestMessage: invitee.guestMessage,
+          status: invitee.status,
         });
         results.created.push(created);
       } catch (error) {
@@ -174,16 +189,43 @@ export const rsvpService = {
 
   // Bulk update invitee status
   async bulkUpdateInviteeStatus(ids: string[], status: RsvpStatus) {
-    return prisma.invitee.updateMany({
-      where: {
-        id: {
-          in: ids,
+    // For bulk updates, we need to handle confirmedTickets properly
+    // CONFIRMED: set confirmedTickets to tickets (max allowed)
+    // REJECTED/PENDING: set confirmedTickets to 0
+    
+    if (status === 'CONFIRMED') {
+      // For CONFIRMED status, we need to update each invitee individually
+      // to set confirmedTickets = tickets
+      const invitees = await prisma.invitee.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, tickets: true },
+      });
+
+      await prisma.$transaction(
+        invitees.map((invitee) =>
+          prisma.invitee.update({
+            where: { id: invitee.id },
+            data: {
+              status: 'CONFIRMED',
+              confirmedTickets: invitee.tickets,
+              respondedAt: new Date(),
+            },
+          })
+        )
+      );
+
+      return { count: invitees.length };
+    } else {
+      // For REJECTED or PENDING, we can use updateMany
+      return prisma.invitee.updateMany({
+        where: { id: { in: ids } },
+        data: {
+          status,
+          confirmedTickets: 0,
+          respondedAt: new Date(),
         },
-      },
-      data: {
-        status,
-      },
-    });
+      });
+    }
   },
 
   // Respond to RSVP

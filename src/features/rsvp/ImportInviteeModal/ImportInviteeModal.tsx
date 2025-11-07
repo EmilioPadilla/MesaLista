@@ -7,6 +7,8 @@ interface Invitee {
   lastName?: string;
   tickets?: number;
   secretCode?: string;
+  guestMessage?: string;
+  status?: 'PENDING' | 'CONFIRMED' | 'REJECTED';
   hasWarnings?: boolean;
 }
 
@@ -27,23 +29,76 @@ export function ImportInviteesModal({ open, onClose, onImport }: ImportInviteesM
   const [preview, setPreview] = useState<Invitee[]>([]);
 
   const parseCSV = (text: string): Invitee[] => {
-    const lines = text.trim().split('\n');
+    const rows: string[][] = [];
+    let currentRow: string[] = [];
+    let currentField = '';
+    let inQuotes = false;
+
+    // Parse entire CSV text character by character
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          // Escaped quote within quoted field
+          currentField += '"';
+          i++; // Skip next quote
+        } else {
+          // Toggle quote state
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        // End of field
+        currentRow.push(currentField.trim());
+        currentField = '';
+      } else if ((char === '\n' || char === '\r') && !inQuotes) {
+        // End of row (handle both \n and \r\n)
+        if (char === '\r' && nextChar === '\n') {
+          i++; // Skip \n in \r\n
+        }
+        currentRow.push(currentField.trim());
+        if (currentRow.some((field) => field !== '')) {
+          // Only add non-empty rows
+          rows.push(currentRow);
+        }
+        currentRow = [];
+        currentField = '';
+      } else {
+        currentField += char;
+      }
+    }
+
+    // Add last field and row if any
+    if (currentField || currentRow.length > 0) {
+      currentRow.push(currentField.trim());
+      if (currentRow.some((field) => field !== '')) {
+        rows.push(currentRow);
+      }
+    }
+
     const invitees: Invitee[] = [];
 
-    // Skip header row
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-
-      const parts = line.split(',').map((part) => part.trim());
+    // Skip header row (first row)
+    for (let i = 1; i < rows.length; i++) {
+      const parts = rows[i];
 
       // Allow partial data - pad with empty strings if needed
-      while (parts.length < 4) {
+      while (parts.length < 6) {
         parts.push('');
       }
 
-      const [firstName, lastName, ticketsStr, secretCode] = parts;
+      const [firstName, lastName, ticketsStr, secretCode, guestMessage, statusStr] = parts;
       const tickets = ticketsStr ? parseInt(ticketsStr) : undefined;
+
+      // Validate and normalize status
+      let status: 'PENDING' | 'CONFIRMED' | 'REJECTED' | undefined;
+      if (statusStr) {
+        const normalizedStatus = statusStr.toUpperCase();
+        if (['PENDING', 'CONFIRMED', 'REJECTED'].includes(normalizedStatus)) {
+          status = normalizedStatus as 'PENDING' | 'CONFIRMED' | 'REJECTED';
+        }
+      }
 
       // Check if any values are missing to mark as warning
       const hasWarnings = !firstName || !lastName || !tickets || isNaN(tickets as number) || !secretCode;
@@ -53,6 +108,8 @@ export function ImportInviteesModal({ open, onClose, onImport }: ImportInviteesM
         lastName: lastName || undefined,
         tickets: tickets && !isNaN(tickets) && tickets > 0 ? tickets : undefined,
         secretCode: secretCode ? secretCode.toUpperCase() : undefined,
+        guestMessage: guestMessage || undefined,
+        status: status || undefined,
         hasWarnings,
       });
     }
@@ -112,7 +169,7 @@ export function ImportInviteesModal({ open, onClose, onImport }: ImportInviteesM
   };
 
   const downloadTemplate = () => {
-    const template = 'Nombre,Apellido,Boletos,Código\nJuan,Pérez,2,ABC12345\nMaría,González,1,XYZ67890\nCarlos,Rodríguez,4,DEF54321';
+    const template = 'Nombre,Apellido,Boletos,Código,Mensaje,Estado\nJuan,Pérez,2,ABC12345,¡Nos vemos en la boda!,CONFIRMED\nMaría,González,1,XYZ67890,Felicidades,PENDING\nCarlos,Rodríguez,4,DEF54321,,REJECTED';
     const blob = new Blob([template], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -157,6 +214,12 @@ export function ImportInviteesModal({ open, onClose, onImport }: ImportInviteesM
                 </li>
                 <li>
                   • <strong>Código:</strong> Código secreto único para confirmar
+                </li>
+                <li>
+                  • <strong>Mensaje:</strong> Mensaje del invitado (opcional)
+                </li>
+                <li>
+                  • <strong>Estado:</strong> PENDING, CONFIRMED o REJECTED (opcional, por defecto PENDING)
                 </li>
               </ul>
             </div>
@@ -228,6 +291,8 @@ export function ImportInviteesModal({ open, onClose, onImport }: ImportInviteesM
                     <th className="px-3 py-2 text-left text-muted-foreground">Apellido</th>
                     <th className="px-3 py-2 text-center text-muted-foreground">Boletos</th>
                     <th className="px-3 py-2 text-left text-muted-foreground">Código</th>
+                    <th className="px-3 py-2 text-left text-muted-foreground">Mensaje</th>
+                    <th className="px-3 py-2 text-center text-muted-foreground">Estado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/30">
@@ -247,6 +312,25 @@ export function ImportInviteesModal({ open, onClose, onImport }: ImportInviteesM
                           <code className="px-2 py-0.5 bg-white rounded text-foreground">{invitee.secretCode}</code>
                         ) : (
                           <span className="text-foreground">(Auto)</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className="text-foreground text-xs">{invitee.guestMessage || '-'}</span>
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        {invitee.status ? (
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded text-xs ${
+                              invitee.status === 'CONFIRMED'
+                                ? 'bg-green-100 text-green-700'
+                                : invitee.status === 'REJECTED'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-yellow-100 text-yellow-700'
+                            }`}>
+                            {invitee.status === 'CONFIRMED' ? 'Confirmado' : invitee.status === 'REJECTED' ? 'Rechazado' : 'Pendiente'}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">(Pendiente)</span>
                         )}
                       </td>
                     </tr>
