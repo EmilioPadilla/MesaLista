@@ -9,6 +9,7 @@ import { useDeleteGift } from 'src/hooks/useGift';
 import { StatsCards } from 'src/features/manageRegistry/components/StatsCards';
 import { AddGiftForm } from 'src/features/manageRegistry/components/AddGiftForm';
 import { StatsTabContent } from 'src/features/manageRegistry/components/StatsTabContent';
+import { PurchasedGiftsTab } from 'src/features/manageRegistry/components/PurchasedGiftsTab';
 import { GiftsList } from 'src/components/shared/GiftsList';
 import { GiftModal } from 'src/features/manageRegistry/components/GiftModal';
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
@@ -199,6 +200,15 @@ export const ManageRegistry = () => {
                     setShowEditGiftModal(true);
                   }}
                 />
+              </div>
+            ),
+          },
+          {
+            key: 'purchased',
+            label: 'Regalos Comprados',
+            children: (
+              <div className="mt-6">
+                <PurchasedGiftsTab weddingListId={weddinglist?.id} />
               </div>
             ),
           },

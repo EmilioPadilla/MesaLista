@@ -173,6 +173,7 @@ model Cart {
   country       String?
   phoneNumber   String?        @map("phone_number")
   message       String?        // Message to the couple
+  rsvpCode      String?        @map("rsvp_code") // Optional RSVP secret code to link purchase with invitation
   paymentId     String?        @map("payment_id") // External payment ID from PayPal or Stripe
   status        CartStatus     @default(PENDING)
   totalAmount   Float?         @map("total_amount")
@@ -180,7 +181,9 @@ model Cart {
   updatedAt     DateTime       @updatedAt @map("updated_at")
   items         CartItem[]
   payment       Payment?       // One-to-one relation
+  invitee       Invitee?       @relation(fields: [rsvpCode], references: [secretCode])
 
+  @@index([rsvpCode])
   @@map("carts")
 }
 
@@ -425,6 +428,7 @@ model Invitee {
   createdAt         DateTime      @default(now()) @map("created_at")
   updatedAt         DateTime      @updatedAt @map("updated_at")
   respondedAt       DateTime?     @map("responded_at") // When they responded
+  carts             Cart[]        // Purchases made by this invitee
 
   @@index([coupleId])
   @@index([secretCode])

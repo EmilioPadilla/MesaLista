@@ -387,6 +387,15 @@ export const payment_endpoints = {
    * @access Public
    */
   createPlanCheckoutSession: `/payments/create-plan-checkout-session`,
+
+  /**
+   * Get purchased gifts by wedding list ID
+   * @method GET
+   * @access Protected
+   * @requires JWT token
+   * @param weddingListId Wedding list ID
+   */
+  getPurchasedGiftsByWeddingList: (weddingListId: number) => `/payments/wedding-list/${weddingListId}/purchased-gifts`,
 };
 
 /**
@@ -588,6 +597,14 @@ const rsvp_endpoints = {
    * @param secretCode Secret code
    */
   getInviteeByCode: (secretCode: string) => `/rsvp/invitee/${secretCode}`,
+
+  /**
+   * Validate RSVP code
+   * @method GET
+   * @access Public
+   * @param secretCode Secret code to validate
+   */
+  validateRsvpCode: (secretCode: string) => `/rsvp/validate/${secretCode}`,
 
   /**
    * Create a new invitee

@@ -14,4 +14,6 @@ router.get('/:id/summary', paymentController.getPaymentSummary);
 
 router.get('/', authenticateSession, paymentController.getAllPayments);
 
+router.get('/wedding-list/:weddingListId/purchased-gifts', authenticateSession, paymentController.getPurchasedGiftsByWeddingList);
+
 export default router;

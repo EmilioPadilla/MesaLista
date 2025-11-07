@@ -728,4 +728,102 @@ export default {
       });
     }
   },
+
+  // Get purchased gifts by wedding list ID
+  getPurchasedGiftsByWeddingList: async (req: Request, res: Response) => {
+    try {
+      const { weddingListId } = req.params;
+
+      if (!weddingListId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Wedding list ID is required',
+        });
+      }
+
+      // Get all payments for gifts in this wedding list
+      const payments = await prisma.payment.findMany({
+        where: {
+          status: 'PAID',
+          cart: {
+            items: {
+              some: {
+                gift: {
+                  weddingListId: Number(weddingListId),
+                },
+              },
+            },
+          },
+        },
+        include: {
+          cart: {
+            include: {
+              items: {
+                include: {
+                  gift: {
+                    include: {
+                      categories: {
+                        include: {
+                          category: true,
+                        },
+                      },
+                    },
+                  },
+                },
+                where: {
+                  gift: {
+                    weddingListId: Number(weddingListId),
+                  },
+                },
+              },
+              invitee: true, // Include RSVP invitee information
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      // Format the response
+      const purchasedGifts = payments.flatMap((payment: any) =>
+        payment.cart.items.map((item: any) => ({
+          id: item.id,
+          giftTitle: item.gift.title,
+          guestName: payment.cart.inviteeName || 'Anónimo',
+          guestEmail: payment.cart.inviteeEmail || '',
+          message: payment.cart.message || '',
+          quantity: item.quantity,
+          price: item.price,
+          totalPrice: item.price * item.quantity,
+          categories: item.gift.categories
+            .map((catRel: any) => catRel.category?.name)
+            .filter(Boolean)
+            .join(', ') || 'Sin categoría',
+          paymentType: payment.paymentType,
+          paymentDate: payment.createdAt.toISOString(),
+          currency: payment.currency,
+          rsvpCode: payment.cart.rsvpCode || null,
+          rsvpInvitee: payment.cart.invitee
+            ? {
+                firstName: payment.cart.invitee.firstName,
+                lastName: payment.cart.invitee.lastName,
+                status: payment.cart.invitee.status,
+              }
+            : null,
+        })),
+      );
+
+      res.json({
+        success: true,
+        data: purchasedGifts,
+      });
+    } catch (error) {
+      console.error('Error getting purchased gifts:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to get purchased gifts',
+      });
+    }
+  },
 };

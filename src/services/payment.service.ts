@@ -54,6 +54,27 @@ export interface Payment {
   inviteeEmail: string;
 }
 
+export interface PurchasedGift {
+  id: number;
+  giftTitle: string;
+  guestName: string;
+  guestEmail: string;
+  message: string;
+  quantity: number;
+  price: number;
+  totalPrice: number;
+  categories: string;
+  paymentType: string;
+  paymentDate: string;
+  currency: string;
+  rsvpCode?: string | null;
+  rsvpInvitee?: {
+    firstName: string;
+    lastName: string;
+    status: string;
+  } | null;
+}
+
 /**
  * Service for handling payment-related API calls
  */
@@ -160,6 +181,17 @@ export const paymentService = {
     discountCode?: string;
   }): Promise<{ success: boolean; sessionId: string; url: string }> => {
     const response = await apiClient.post(api_endpoints.payments.createPlanCheckoutSession, data);
+    return response.data;
+  },
+
+  /**
+   * Get purchased gifts by wedding list ID
+   *
+   * @param weddingListId Wedding list ID
+   * @returns List of purchased gifts with payment details
+   */
+  getPurchasedGiftsByWeddingList: async (weddingListId: number): Promise<{ success: boolean; data: PurchasedGift[] }> => {
+    const response = await apiClient.get(api_endpoints.payments.getPurchasedGiftsByWeddingList(weddingListId));
     return response.data;
   },
 };

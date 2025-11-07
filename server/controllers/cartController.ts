@@ -246,10 +246,24 @@ export default {
   updateCartDetails: async (req: Request, res: Response) => {
     try {
       const { id: cartId } = req.params;
-      const { inviteeName, inviteeEmail, country, phoneNumber, message }: UpdateCartDetailsRequest = req.body;
+      const { inviteeName, inviteeEmail, country, phoneNumber, message, rsvpCode }: UpdateCartDetailsRequest = req.body;
 
       if (!cartId) {
         return res.status(400).json({ error: 'Cart ID is required' });
+      }
+
+      // Validate RSVP code if provided (only save if valid due to foreign key constraint)
+      let validatedRsvpCode: string | null = null;
+      if (rsvpCode && rsvpCode.trim()) {
+        const invitee = await prisma.invitee.findUnique({
+          where: { secretCode: rsvpCode.trim() },
+        });
+        
+        // Only set the code if it exists (foreign key constraint requires it)
+        if (invitee) {
+          validatedRsvpCode = rsvpCode.trim();
+        }
+        // If invalid, we silently ignore it (frontend already warned the user)
       }
 
       // Update cart details
@@ -261,6 +275,7 @@ export default {
           phoneNumber,
           message,
           country,
+          rsvpCode: validatedRsvpCode,
         },
         include: {
           items: {

@@ -6,6 +6,7 @@ const router = express.Router();
 
 // Public routes (for guests)
 router.get('/invitee/:secretCode', rsvpController.getInviteeByCode);
+router.get('/validate/:secretCode', rsvpController.validateRsvpCode);
 router.post('/respond/:secretCode', rsvpController.respondToRsvp);
 router.get('/messages/:coupleId', rsvpController.getRsvpMessages);
 

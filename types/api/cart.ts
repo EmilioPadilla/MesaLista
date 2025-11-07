@@ -3,4 +3,5 @@ export interface CartDetailsRequest {
   inviteeEmail?: string;
   phoneNumber?: string;
   message?: string;
+  rsvpCode?: string;
 }

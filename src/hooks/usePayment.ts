@@ -100,3 +100,18 @@ export const useCreatePlanCheckoutSession = () => {
     mutationFn: paymentService.createPlanCheckoutSession,
   });
 };
+
+/**
+ * Hook to fetch purchased gifts by wedding list ID
+ *
+ * @param weddingListId ID of the wedding list
+ * @param options React Query options
+ */
+export const usePurchasedGiftsByWeddingList = (weddingListId: number | undefined, options?: Partial<UseQueryOptions<any, Error>>) => {
+  return useQuery({
+    queryKey: [queryKeys.purchasedGifts, weddingListId],
+    queryFn: () => paymentService.getPurchasedGiftsByWeddingList(weddingListId!),
+    enabled: !!weddingListId,
+    ...options,
+  });
+};

@@ -4,6 +4,7 @@ import rsvpService, { Invitee, CreateInviteeRequest, RsvpStats, RsvpMessages } f
 const queryKeys = {
   invitees: ['invitees'] as const,
   inviteeByCode: (code: string) => ['invitee', code] as const,
+  validateCode: (code: string) => ['validate-rsvp-code', code] as const,
   stats: ['rsvp-stats'] as const,
   messages: (coupleId: number) => ['rsvp-messages', coupleId] as const,
 };
@@ -22,6 +23,17 @@ export const useInviteeByCode = (secretCode: string, enabled: boolean = true) =>
     queryKey: queryKeys.inviteeByCode(secretCode),
     queryFn: () => rsvpService.getInviteeByCode(secretCode),
     enabled: enabled && !!secretCode,
+  });
+};
+
+// Query: Validate RSVP code (public)
+export const useValidateRsvpCode = (secretCode: string, enabled: boolean = true) => {
+  return useQuery<{ valid: boolean; message: string }, Error>({
+    queryKey: queryKeys.validateCode(secretCode),
+    queryFn: () => rsvpService.validateRsvpCode(secretCode),
+    enabled: enabled && !!secretCode.trim(),
+    retry: false, // Don't retry on validation failure
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 };
 

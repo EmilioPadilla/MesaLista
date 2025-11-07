@@ -56,6 +56,12 @@ const rsvpService = {
     return response.data.data;
   },
 
+  // Validate RSVP code (public)
+  async validateRsvpCode(secretCode: string): Promise<{ valid: boolean; message: string }> {
+    const response = await apiClient.get(endpoints.rsvp.validateRsvpCode(secretCode));
+    return { valid: response.data.valid, message: response.data.message };
+  },
+
   // Create a new invitee
   async createInvitee(data: CreateInviteeRequest): Promise<Invitee> {
     const response = await apiClient.post(endpoints.rsvp.createInvitee, data);

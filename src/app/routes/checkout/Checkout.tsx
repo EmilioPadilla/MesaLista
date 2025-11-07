@@ -11,6 +11,7 @@ import { useWeddingListBySlug } from 'src/hooks/useWeddingList';
 import { useCancelPayment } from 'src/hooks/usePayment';
 import { useSearchParams } from 'react-router-dom';
 import { useTrackEvent } from 'src/hooks/useAnalyticsTracking';
+import { useValidateRsvpCode, useInviteeByCode } from 'src/hooks/useRsvp';
 
 const { TextArea } = Input;
 
@@ -37,10 +38,18 @@ export function Checkout() {
     email: '',
     phone: '',
     message: '',
+    rsvpCode: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'stripe' | 'paypal' | null>(null);
+  const [debouncedRsvpCode, setDebouncedRsvpCode] = useState('');
+
+  // Use the validation hook with debounced code
+  const { data: validationResult, isLoading: isValidating } = useValidateRsvpCode(debouncedRsvpCode, !!debouncedRsvpCode.trim());
+
+  // Get full invitee data when code is valid
+  const { data: inviteeData } = useInviteeByCode(debouncedRsvpCode, validationResult?.valid === true);
 
   // Scroll to top when component loads
   useEffect(() => {
@@ -62,6 +71,23 @@ export function Checkout() {
 
   const cartTotal = cart?.items?.reduce((sum: number, item: any) => sum + (item.gift?.price || 0) * item.quantity, 0) || 0;
   const finalTotal = cartTotal;
+
+  // Debounce RSVP code input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedRsvpCode(guestInfo.rsvpCode);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [guestInfo.rsvpCode]);
+
+  // Auto-populate name when valid RSVP code is entered (only if name is empty)
+  useEffect(() => {
+    if (inviteeData && !guestInfo.name.trim()) {
+      const fullName = `${inviteeData.firstName} ${inviteeData.lastName}`.trim();
+      setGuestInfo((prev) => ({ ...prev, name: fullName }));
+    }
+  }, [inviteeData]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -96,6 +122,7 @@ export function Checkout() {
           inviteeEmail: guestInfo.email,
           phoneNumber: guestInfo.phone,
           message: guestInfo.message,
+          rsvpCode: guestInfo.rsvpCode || undefined,
         },
       },
       {
@@ -166,6 +193,7 @@ export function Checkout() {
           inviteeEmail: guestInfo.email,
           phoneNumber: guestInfo.phone,
           message: guestInfo.message,
+          rsvpCode: guestInfo.rsvpCode || undefined,
         },
       },
       {
@@ -256,6 +284,48 @@ export function Checkout() {
               </div>
 
               <div className="space-y-6">
+                {/* RSVP Code - First and Full Width */}
+                <div className="space-y-2">
+                  <label htmlFor="rsvpCode" className="text-sm font-medium text-foreground">
+                    ¿Tienes un código RSVP? (opcional)
+                  </label>
+                  <Input
+                    id="rsvpCode"
+                    value={guestInfo.rsvpCode}
+                    onChange={(e) => setGuestInfo({ ...guestInfo, rsvpCode: e.target.value })}
+                    placeholder="Ingresa tu código de invitación"
+                    className={`!bg-[#f5f5f7] border-0 rounded-2xl h-12 text-base font-light focus:ring-[#007aff] ${
+                      validationResult?.valid === false
+                        ? 'ring-2 ring-[#ff9500]'
+                        : validationResult?.valid === true
+                          ? 'ring-2 ring-[#34c759]'
+                          : ''
+                    }`}
+                    suffix={
+                      isValidating ? (
+                        <span className="text-sm text-gray-400">Validando...</span>
+                      ) : validationResult?.valid === true ? (
+                        <CheckCircle className="w-5 h-5 text-[#34c759]" />
+                      ) : validationResult?.valid === false ? (
+                        <span className="text-sm text-[#ff9500]">⚠️</span>
+                      ) : null
+                    }
+                  />
+                  {validationResult?.valid === false && (
+                    <p className="text-sm text-[#ff9500] font-light flex items-center gap-1">
+                      <span>⚠️</span>
+                      <span>{validationResult.message} - Puedes continuar de todas formas</span>
+                    </p>
+                  )}
+                  {validationResult?.valid === true && inviteeData && (
+                    <p className="text-sm text-[#34c759] font-light flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>¡Hola {inviteeData.firstName}!</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Name and Email */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label htmlFor="name" className="text-sm font-medium text-foreground">
@@ -291,6 +361,7 @@ export function Checkout() {
                   </div>
                 </div>
 
+                {/* Phone - Full Width */}
                 <div className="space-y-2">
                   <label htmlFor="phone" className="text-sm font-medium text-foreground">
                     Teléfono *

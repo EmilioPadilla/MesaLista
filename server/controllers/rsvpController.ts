@@ -63,6 +63,36 @@ export const rsvpController = {
     }
   },
 
+  // Validate RSVP code (public endpoint for checkout validation)
+  validateRsvpCode: async (req: Request, res: Response) => {
+    try {
+      const { secretCode } = req.params;
+
+      if (!secretCode) {
+        return res.status(400).json({
+          success: false,
+          valid: false,
+          message: 'Código secreto requerido',
+        });
+      }
+
+      const invitee = await rsvpService.getInviteeBySecretCode(secretCode);
+
+      res.json({
+        success: true,
+        valid: !!invitee,
+        message: invitee ? 'Código válido' : 'Código no encontrado',
+      });
+    } catch (error) {
+      console.error('Error validating RSVP code:', error);
+      res.status(500).json({
+        success: false,
+        valid: false,
+        message: error instanceof Error ? error.message : 'Error al validar código',
+      });
+    }
+  },
+
   // Create a new invitee (supports partial data)
   createInvitee: async (req: Request, res: Response) => {
     try {

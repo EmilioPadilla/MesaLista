@@ -35,6 +35,7 @@ export interface Cart {
   country?: string;
   phoneNumber?: string;
   message?: string;
+  rsvpCode?: string;
   paymentId?: string;
   status: CartStatus;
   totalAmount?: number;
@@ -75,6 +76,7 @@ export interface UpdateCartDetailsRequest {
   country?: string;
   phoneNumber?: string;
   message?: string;
+  rsvpCode?: string;
 }
 
 /**
