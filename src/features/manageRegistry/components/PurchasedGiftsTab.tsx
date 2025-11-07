@@ -2,6 +2,7 @@ import { Table, Tag, Typography, Empty, Spin } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { usePurchasedGiftsByWeddingList } from 'src/hooks/usePayment';
 import type { PurchasedGift } from 'src/services/payment.service';
+import { useDeviceType } from 'src/hooks/useDeviceType';
 
 const { Text } = Typography;
 
@@ -11,6 +12,7 @@ interface PurchasedGiftsTabProps {
 
 export const PurchasedGiftsTab: React.FC<PurchasedGiftsTabProps> = ({ weddingListId }) => {
   const { data, isLoading, error } = usePurchasedGiftsByWeddingList(weddingListId);
+  const deviceType = useDeviceType();
 
   const columns: ColumnsType<PurchasedGift> = [
     {
@@ -18,7 +20,7 @@ export const PurchasedGiftsTab: React.FC<PurchasedGiftsTabProps> = ({ weddingLis
       dataIndex: 'giftTitle',
       key: 'giftTitle',
       width: 200,
-      fixed: 'left',
+      fixed: ['mobile', 'small-tablet'].includes(deviceType) ? false : 'left',
       render: (text: string) => <Text strong>{text}</Text>,
     },
     {
@@ -34,11 +36,14 @@ export const PurchasedGiftsTab: React.FC<PurchasedGiftsTabProps> = ({ weddingLis
       width: 150,
       render: (_: any, record: PurchasedGift) => {
         if (record.rsvpInvitee) {
-          const statusColor = record.rsvpInvitee.status === 'CONFIRMED' ? 'green' : record.rsvpInvitee.status === 'REJECTED' ? 'red' : 'orange';
+          const statusColor =
+            record.rsvpInvitee.status === 'CONFIRMED' ? 'green' : record.rsvpInvitee.status === 'REJECTED' ? 'red' : 'orange';
           return (
             <div className="flex flex-col gap-1">
               <Text strong>{`${record.rsvpInvitee.firstName} ${record.rsvpInvitee.lastName}`}</Text>
-              <Tag color={statusColor} className="w-fit">{record.rsvpInvitee.status}</Tag>
+              <Tag color={statusColor} className="w-fit">
+                {record.rsvpInvitee.status}
+              </Tag>
             </div>
           );
         }
@@ -124,11 +129,12 @@ export const PurchasedGiftsTab: React.FC<PurchasedGiftsTabProps> = ({ weddingLis
       dataIndex: 'paymentDate',
       key: 'paymentDate',
       width: 150,
-      render: (date: string) => new Date(date).toLocaleDateString('es-MX', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      }),
+      render: (date: string) =>
+        new Date(date).toLocaleDateString('es-MX', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
     },
   ];
 
@@ -151,12 +157,7 @@ export const PurchasedGiftsTab: React.FC<PurchasedGiftsTabProps> = ({ weddingLis
   const purchasedGifts = data?.data || [];
 
   if (purchasedGifts.length === 0) {
-    return (
-      <Empty
-        description="Aún no hay regalos comprados"
-        image={Empty.PRESENTED_IMAGE_SIMPLE}
-      />
-    );
+    return <Empty description="Aún no hay regalos comprados" image={Empty.PRESENTED_IMAGE_SIMPLE} />;
   }
 
   // Calculate totals
@@ -169,11 +170,15 @@ export const PurchasedGiftsTab: React.FC<PurchasedGiftsTabProps> = ({ weddingLis
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-blue-50 p-4 rounded-lg">
-          <Text type="secondary" className="block text-sm">Total de Regalos Comprados</Text>
+          <Text type="secondary" className="block text-sm">
+            Total de Regalos Comprados
+          </Text>
           <Text className="text-2xl font-bold">{totalGifts}</Text>
         </div>
         <div className="bg-green-50 p-4 rounded-lg">
-          <Text type="secondary" className="block text-sm">Monto Total Recibido</Text>
+          <Text type="secondary" className="block text-sm">
+            Monto Total Recibido
+          </Text>
           <Text className="text-2xl font-bold">
             {new Intl.NumberFormat('es-MX', {
               style: 'currency',
@@ -182,7 +187,9 @@ export const PurchasedGiftsTab: React.FC<PurchasedGiftsTabProps> = ({ weddingLis
           </Text>
         </div>
         <div className="bg-purple-50 p-4 rounded-lg">
-          <Text type="secondary" className="block text-sm">Promedio por Regalo</Text>
+          <Text type="secondary" className="block text-sm">
+            Promedio por Regalo
+          </Text>
           <Text className="text-2xl font-bold">
             {new Intl.NumberFormat('es-MX', {
               style: 'currency',
