@@ -576,7 +576,7 @@ export const userController = {
       // Don't reveal if the email exists or not
       if (resetData) {
         // Generate reset link
-        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const baseUrl = process.env.FRONT_END_URL || 'http://localhost:5173';
         const resetLink = `${baseUrl}/restablecer-contrasena?token=${resetData.token}`;
 
         // Send password reset email
