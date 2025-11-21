@@ -203,19 +203,19 @@ export const HomePage = () => {
                 title: 'Pagos seguros',
                 description: 'Stripe y PayPal integrados para transacciones completamente seguras.',
                 icon: Shield,
-                image: '/images/payments.png',
+                image: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/Imagenes%20Webpage%20MesaLista%20-%201.PNG',
               },
               {
                 title: 'Estadísticas completas',
                 description: 'Analiza tu mesa en tiempo real con análisis detallados y reportes comprensivos.',
                 icon: Sparkles,
-                image: '/images/statistics.png',
+                image: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/Imagenes%20Webpage%20MesaLista%20-%202.png',
               },
               {
                 title: 'Soporte dedicado',
                 description: 'Preguntas frecuentes detalladas y soporte personalizado cuando lo necesites.',
                 icon: CheckCircle,
-                image: '/images/greatSupport.png',
+                image: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/Imagenes%20Webpage%20MesaLista%20-%203.png',
               },
             ].map((feature, index) => (
               <motion.div
