@@ -41,7 +41,7 @@ export const HomePage = () => {
     <>
       <h1 className="text-6xl md:text-8xl font-semibold tracking-tight text-foreground mb-8 leading-tight">MesaLista</h1>
       <p className="text-2xl md:text-3xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light">
-        La forma más elegante de crear y gestionar tu mesa de regalos.
+        La forma más elegante de crear y gestionar tu mesa de regalos
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
