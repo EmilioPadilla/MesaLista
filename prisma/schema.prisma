@@ -453,3 +453,50 @@ model RsvpMessages {
   @@index([coupleId])
   @@map("rsvp_messages")
 }
+
+// Email Analytics Models
+model EmailAnalytics {
+  id              String            @id @default(uuid())
+  messageId       String            @unique @map("message_id") // Postmark MessageID
+  recipient       String            // Email recipient
+  subject         String?           // Email subject
+  eventType       EmailEventType    @map("event_type")
+  tag             String?           // Email tag (e.g., "payment_confirmation", "verification")
+  metadata        Json?             // Additional event data from Postmark
+  recordedAt      DateTime          @map("recorded_at") // When the event occurred
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  @@index([eventType, recordedAt])
+  @@index([recipient, recordedAt])
+  @@index([tag, recordedAt])
+  @@index([recordedAt])
+  @@map("email_analytics")
+}
+
+enum EmailEventType {
+  DELIVERY        // Email successfully delivered
+  BOUNCE          // Email bounced (hard or soft)
+  SPAM_COMPLAINT  // Recipient marked as spam
+  OPEN            // Email opened (first open only)
+  LINK_CLICK      // Link clicked in email
+}
+
+// Daily email analytics aggregates
+model EmailAnalyticsDaily {
+  id                Int      @id @default(autoincrement())
+  date              DateTime @unique @db.Date
+  sent              Int      @default(0) // Total emails sent (calculated from deliveries + bounces)
+  delivered         Int      @default(0) // Successfully delivered
+  bounced           Int      @default(0) // Bounced emails
+  opened            Int      @default(0) // Unique opens
+  clicked           Int      @default(0) // Unique clicks
+  spamComplaints    Int      @default(0) @map("spam_complaints")
+  deliveryRate      Float    @default(0) @map("delivery_rate") // delivered / sent * 100
+  openRate          Float    @default(0) @map("open_rate") // opened / delivered * 100
+  clickRate         Float    @default(0) @map("click_rate") // clicked / delivered * 100
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@index([date])
+  @@map("email_analytics_daily")
+}

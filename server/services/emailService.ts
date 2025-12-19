@@ -1,17 +1,16 @@
-import sgMail from '@sendgrid/mail';
+import postmark from 'postmark';
 import { PrismaClient } from '@prisma/client';
 import { EmailTemplates } from '../templates/emailTemplates.js';
 
 const prisma = new PrismaClient();
 
-// Configure SendGrid
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
+// Configure Postmark
+const POSTMARK_API_KEY = process.env.POSTMARK_API_KEY || '';
 const FROM_EMAIL = process.env.BUSINESS_EMAIL || 'info@mesalista.com.mx';
 const ADMIN_RECIPIENT_EMAIL = process.env.BUSINESS_EMAIL || 'info@mesalista.com.mx';
 
-if (SENDGRID_API_KEY) {
-  sgMail.setApiKey(SENDGRID_API_KEY);
-}
+// Initialize Postmark client
+const postmarkClient = POSTMARK_API_KEY ? new postmark.ServerClient(POSTMARK_API_KEY) : null;
 
 export interface PaymentEmailData {
   cartId: number;
@@ -47,24 +46,23 @@ class EmailService {
    * Send payment confirmation email to the guest who made the payment
    */
   async sendPaymentConfirmationToGuest(data: PaymentEmailData): Promise<void> {
-    if (!SENDGRID_API_KEY) {
-      console.warn('SendGrid API key not configured. Skipping email.');
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
       return;
     }
 
     const totalAmount = data.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const itemsCount = data.items.reduce((sum, item) => sum + item.quantity, 0);
 
-    const msg = {
-      to: data.guestEmail,
-      from: FROM_EMAIL,
-      subject: `¡Confirmación de pago! - Regalo para ${data.coupleInfo.coupleName}`,
-      html: EmailTemplates.generateGuestConfirmationEmailHTML(data, totalAmount, itemsCount),
-      text: EmailTemplates.generateGuestConfirmationEmailText(data, totalAmount, itemsCount),
-    };
-
     try {
-      await sgMail.send(msg);
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: data.guestEmail,
+        Subject: `¡Confirmación de pago! - Regalo para ${data.coupleInfo.coupleName}`,
+        HtmlBody: EmailTemplates.generateGuestConfirmationEmailHTML(data, totalAmount, itemsCount),
+        TextBody: EmailTemplates.generateGuestConfirmationEmailText(data, totalAmount, itemsCount),
+        MessageStream: 'outbound',
+      });
       console.log(`Payment confirmation email sent to guest: ${data.guestEmail}`);
     } catch (error) {
       console.error('Error sending payment confirmation email to guest:', error);
@@ -76,24 +74,23 @@ class EmailService {
    * Send payment notification email to the couple (registry owner)
    */
   async sendPaymentNotificationToOwner(data: PaymentEmailData): Promise<void> {
-    if (!SENDGRID_API_KEY) {
-      console.warn('SendGrid API key not configured. Skipping email.');
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
       return;
     }
 
     const totalAmount = data.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const itemsCount = data.items.reduce((sum, item) => sum + item.quantity, 0);
 
-    const msg = {
-      to: data.coupleInfo.email,
-      from: FROM_EMAIL,
-      subject: `¡Nuevo regalo recibido! - ${data.guestName} te ha enviado un regalo`,
-      html: EmailTemplates.generateOwnerNotificationEmailHTML(data, totalAmount, itemsCount),
-      text: EmailTemplates.generateOwnerNotificationEmailText(data, totalAmount, itemsCount),
-    };
-
     try {
-      await sgMail.send(msg);
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: data.coupleInfo.email,
+        Subject: `¡Nuevo regalo recibido! - ${data.guestName} te ha enviado un regalo`,
+        HtmlBody: EmailTemplates.generateOwnerNotificationEmailHTML(data, totalAmount, itemsCount),
+        TextBody: EmailTemplates.generateOwnerNotificationEmailText(data, totalAmount, itemsCount),
+        MessageStream: 'outbound',
+      });
       console.log(`Payment notification email sent to owner: ${data.coupleInfo.email}`);
     } catch (error) {
       console.error('Error sending payment notification email to owner:', error);
@@ -206,21 +203,20 @@ class EmailService {
    * Send email verification code
    */
   async sendVerificationCodeEmail(email: string, code: string): Promise<void> {
-    if (!SENDGRID_API_KEY) {
-      console.warn('SendGrid API key not configured. Skipping email.');
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
       return;
     }
 
-    const msg = {
-      to: email,
-      from: FROM_EMAIL,
-      subject: 'Código de verificación - MesaLista',
-      html: EmailTemplates.generateVerificationCodeEmailHTML(email, code),
-      text: EmailTemplates.generateVerificationCodeEmailText(email, code),
-    };
-
     try {
-      await sgMail.send(msg);
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: email,
+        Subject: 'Código de verificación - MesaLista',
+        HtmlBody: EmailTemplates.generateVerificationCodeEmailHTML(email, code),
+        TextBody: EmailTemplates.generateVerificationCodeEmailText(email, code),
+        MessageStream: 'outbound',
+      });
       console.log(`Verification code email sent to: ${email}`);
     } catch (error) {
       console.error('Error sending verification code email:', error);
@@ -232,8 +228,8 @@ class EmailService {
    * Send contact form email to admin
    */
   async sendContactFormEmail(data: { name: string; email: string; phone?: string; subject: string; message: string }): Promise<void> {
-    if (!SENDGRID_API_KEY) {
-      console.warn('SendGrid API key not configured. Skipping email.');
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
       return;
     }
 
@@ -248,27 +244,26 @@ class EmailService {
 
     const subjectText = subjectMap[data.subject] || data.subject;
 
-    // Email to admin
-    const adminMsg = {
-      to: ADMIN_RECIPIENT_EMAIL, // Send to admin email
-      from: FROM_EMAIL,
-      subject: `[Contacto MesaLista] ${subjectText} - ${data.name}`,
-      html: EmailTemplates.generateContactFormAdminEmailHTML(data),
-      text: EmailTemplates.generateContactFormAdminEmailText(data),
-    };
-
-    // Auto-reply to user
-    const userMsg = {
-      to: data.email,
-      from: FROM_EMAIL,
-      subject: 'Hemos recibido tu mensaje - MesaLista',
-      html: EmailTemplates.generateContactFormUserEmailHTML(data),
-      text: EmailTemplates.generateContactFormUserEmailText(data),
-    };
-
     try {
-      // Send both emails
-      await Promise.all([sgMail.send(adminMsg), sgMail.send(userMsg)]);
+      // Send both emails using Postmark batch API
+      await postmarkClient.sendEmailBatch([
+        {
+          From: FROM_EMAIL,
+          To: ADMIN_RECIPIENT_EMAIL,
+          Subject: `[Contacto MesaLista] ${subjectText} - ${data.name}`,
+          HtmlBody: EmailTemplates.generateContactFormAdminEmailHTML(data),
+          TextBody: EmailTemplates.generateContactFormAdminEmailText(data),
+          MessageStream: 'outbound',
+        },
+        {
+          From: FROM_EMAIL,
+          To: data.email,
+          Subject: 'Hemos recibido tu mensaje - MesaLista',
+          HtmlBody: EmailTemplates.generateContactFormUserEmailHTML(data),
+          TextBody: EmailTemplates.generateContactFormUserEmailText(data),
+          MessageStream: 'outbound',
+        },
+      ]);
       console.log(`Contact form email sent from: ${data.email}`);
     } catch (error) {
       console.error('Error sending contact form email:', error);
@@ -280,21 +275,20 @@ class EmailService {
    * Send password reset email
    */
   async sendPasswordResetEmail(email: string, firstName: string, resetLink: string): Promise<void> {
-    if (!SENDGRID_API_KEY) {
-      console.warn('SendGrid API key not configured. Skipping email.');
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
       return;
     }
 
-    const msg = {
-      to: email,
-      from: FROM_EMAIL,
-      subject: 'Restablecer contraseña - MesaLista',
-      html: EmailTemplates.generatePasswordResetEmailHTML(firstName, resetLink),
-      text: EmailTemplates.generatePasswordResetEmailText(firstName, resetLink),
-    };
-
     try {
-      await sgMail.send(msg);
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: email,
+        Subject: 'Restablecer contraseña - MesaLista',
+        HtmlBody: EmailTemplates.generatePasswordResetEmailHTML(firstName, resetLink),
+        TextBody: EmailTemplates.generatePasswordResetEmailText(firstName, resetLink),
+        MessageStream: 'outbound',
+      });
       console.log(`Password reset email sent to: ${email}`);
     } catch (error) {
       console.error('Error sending password reset email:', error);
