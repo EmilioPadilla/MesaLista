@@ -6,8 +6,7 @@ import { Mail, Lock, ArrowLeft, Phone, Edit3, ArrowRight, Check, CreditCard, Tre
 import { userService } from 'services/user.service';
 import { UserRole } from 'types/models/user';
 import { useIsAuthenticated, useCreateUser, useLogin, useCheckSlugAvailability } from 'hooks/useUser';
-// VERIFICATION DISABLED - To re-enable, uncomment the line below
-// import { useSendVerificationCode, useVerifyCode } from 'hooks/useEmailVerification';
+import { useSendVerificationCode, useVerifyCode } from 'hooks/useEmailVerification';
 import { useCreatePlanCheckoutSession } from 'hooks/usePayment';
 import { motion, AnimatePresence } from 'motion/react';
 import { InfoCircleOutlined } from '@ant-design/icons';
@@ -15,8 +14,7 @@ import { PasswordStrengthIndicator } from 'components/auth/PasswordStrengthIndic
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
 import { useValidateDiscountCode } from 'hooks/useDiscountCode';
 
-// VERIFICATION DISABLED - To re-enable, uncomment 'verification' in Step type
-type Step = 'details' | /* 'verification' | */ 'coupleSlug' | 'plan' | 'payment' | 'success';
+type Step = 'details' | 'verification' | 'coupleSlug' | 'plan' | 'payment' | 'success';
 
 function Signup() {
   const navigate = useNavigate();
@@ -31,19 +29,17 @@ function Signup() {
   const [isWeddingAccount, setIsWeddingAccount] = useState(false);
   const [debouncedSlug, setDebouncedSlug] = useState('');
   const [formData, setFormData] = useState<any>(null); // Store form data across steps
-  // VERIFICATION DISABLED - To re-enable, uncomment the lines below
-  // const [verificationCode, setVerificationCode] = useState('');
-  // const [verificationError, setVerificationError] = useState('');
-  // const [resendTimer, setResendTimer] = useState(0);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationError, setVerificationError] = useState('');
+  const [resendTimer, setResendTimer] = useState(0);
   const [password, setPassword] = useState('');
   const [discountCode, setDiscountCode] = useState('');
 
   const { mutateAsync: createUser, isSuccess: isSuccessCreatedUser } = useCreateUser();
   const { mutateAsync: login } = useLogin();
   const { mutateAsync: createPlanCheckout } = useCreatePlanCheckoutSession();
-  // VERIFICATION DISABLED - To re-enable, uncomment the lines below
-  // const { mutateAsync: sendVerificationCode, isPending: isResendingCode } = useSendVerificationCode();
-  // const { mutateAsync: verifyCode } = useVerifyCode();
+  const { mutateAsync: sendVerificationCode, isPending: isResendingCode } = useSendVerificationCode();
+  const { mutateAsync: verifyCode } = useVerifyCode();
   const {
     data: discountCodeInfo,
     isLoading: isValidatingDiscountCode,
@@ -95,14 +91,13 @@ function Signup() {
     }
   }, [slugCheck, currentStep]);
 
-  // VERIFICATION DISABLED - To re-enable, uncomment the useEffect below
   // Resend timer countdown
-  // useEffect(() => {
-  //   if (resendTimer > 0) {
-  //     const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [resendTimer]);
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendTimer]);
 
   // Redirect user to couple page if user was successfully created here
   // Do it after eight seconds of being in success step
@@ -215,25 +210,24 @@ function Signup() {
     }
   };
 
-  // VERIFICATION DISABLED - To re-enable, uncomment the functions below
-  // const handleSendVerificationCode = async (email: string) => {
-  //   try {
-  //     setIsLoading(true);
-  //     await sendVerificationCode({ email });
-  //     message.success('Código de verificación enviado a tu correo');
-  //     setResendTimer(60); // 60 seconds cooldown
-  //   } catch (error: any) {
-  //     console.error('Error sending verification code:', error);
-  //     message.error(error.response?.data?.error || 'Error al enviar el código');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+  const handleSendVerificationCode = async (email: string) => {
+    try {
+      setIsLoading(true);
+      await sendVerificationCode({ email });
+      message.success('Código de verificación enviado a tu correo');
+      setResendTimer(60); // 60 seconds cooldown
+    } catch (error: any) {
+      console.error('Error sending verification code:', error);
+      message.error(error.response?.data?.error || 'Error al enviar el código');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  // const handleResendCode = async () => {
-  //   if (resendTimer > 0 || !formData?.email) return;
-  //   await handleSendVerificationCode(formData.email);
-  // };
+  const handleResendCode = async () => {
+    if (resendTimer > 0 || !formData?.email) return;
+    await handleSendVerificationCode(formData.email);
+  };
 
   const validateCurrentStep = async () => {
     switch (currentStep) {
@@ -245,14 +239,13 @@ function Signup() {
           return false;
         }
 
-      // VERIFICATION DISABLED - To re-enable, uncomment the case below
-      // case 'verification':
-      //   if (!verificationCode || verificationCode.length !== 6) {
-      //     setVerificationError('Ingresa el código de 6 dígitos');
-      //     return false;
-      //   }
-      //   setVerificationError('');
-      //   return true;
+      case 'verification':
+        if (!verificationCode || verificationCode.length !== 6) {
+          setVerificationError('Ingresa el código de 6 dígitos');
+          return false;
+        }
+        setVerificationError('');
+        return true;
 
       case 'coupleSlug':
         if (!coupleSlug) {
@@ -289,51 +282,36 @@ function Signup() {
 
     switch (currentStep) {
       case 'details':
-        // VERIFICATION DISABLED - Skip verification step and go directly to coupleSlug
-        // To re-enable verification, uncomment the code block below and comment out the new flow
-
-        // === NEW FLOW (verification disabled) ===
+        // Save form data and send verification code
+        // Track registry purchase
         trackEvent('REGISTRY_ATTEMPT', {
           plan: selectedPlan,
           coupleSlug: coupleSlug,
         });
         const values = form.getFieldsValue();
         setFormData(values);
-        setCurrentStep('coupleSlug');
+        await handleSendVerificationCode(values.email);
+        setCurrentStep('verification');
         break;
 
-      // === OLD FLOW (verification enabled) - COMMENTED OUT ===
-      // // Save form data and send verification code
-      // // Track registry purchase
-      // trackEvent('REGISTRY_ATTEMPT', {
-      //   plan: selectedPlan,
-      //   coupleSlug: coupleSlug,
-      // });
-      // const values = form.getFieldsValue();
-      // setFormData(values);
-      // await handleSendVerificationCode(values.email);
-      // setCurrentStep('verification');
-      // break;
-
-      // VERIFICATION DISABLED - To re-enable, uncomment the case below
-      // case 'verification':
-      //   // Verify the code
-      //   try {
-      //     setIsLoading(true);
-      //     const result = await verifyCode({ email: formData.email, code: verificationCode });
-      //     if (result.success) {
-      //       message.success('¡Correo verificado exitosamente!');
-      //       setCurrentStep('coupleSlug');
-      //     } else {
-      //       setVerificationError(result.error || 'Código inválido');
-      //     }
-      //   } catch (error: any) {
-      //     console.error('Error verifying code:', error);
-      //     setVerificationError(error.response?.data?.error || 'Error al verificar el código');
-      //   } finally {
-      //     setIsLoading(false);
-      //   }
-      //   break;
+      case 'verification':
+        // Verify the code
+        try {
+          setIsLoading(true);
+          const result = await verifyCode({ email: formData.email, code: verificationCode });
+          if (result.success) {
+            message.success('¡Correo verificado exitosamente!');
+            setCurrentStep('coupleSlug');
+          } else {
+            setVerificationError(result.error || 'Código inválido');
+          }
+        } catch (error: any) {
+          console.error('Error verifying code:', error);
+          setVerificationError(error.response?.data?.error || 'Error al verificar el código');
+        } finally {
+          setIsLoading(false);
+        }
+        break;
       case 'coupleSlug':
         setCurrentStep('plan');
         break;
@@ -353,14 +331,11 @@ function Signup() {
 
   const handleBack = () => {
     switch (currentStep) {
-      // VERIFICATION DISABLED - To re-enable, uncomment the case below
-      // case 'verification':
-      //   setCurrentStep('details');
-      //   break;
-      case 'coupleSlug':
-        // VERIFICATION DISABLED - Go back to details instead of verification
+      case 'verification':
         setCurrentStep('details');
-        // To re-enable verification, replace above line with: setCurrentStep('verification');
+        break;
+      case 'coupleSlug':
+        setCurrentStep('verification');
         break;
       case 'plan':
         setCurrentStep('coupleSlug');
@@ -374,16 +349,12 @@ function Signup() {
   };
 
   const getStepNumber = () => {
-    // VERIFICATION DISABLED - Removed 'verification' from steps array
-    // To re-enable, replace with: const steps = ['details', 'verification', 'coupleSlug', 'plan', 'payment', 'success'];
-    const steps = ['details', 'coupleSlug', 'plan', 'payment', 'success'];
+    const steps = ['details', 'verification', 'coupleSlug', 'plan', 'payment', 'success'];
     return steps.indexOf(currentStep) + 1;
   };
 
   const getTotalSteps = () => {
-    // VERIFICATION DISABLED - Changed from 6 to 5 steps
-    // To re-enable, change back to: return 6;
-    return 5;
+    return 6;
   };
 
   const calculateDiscountedPrice = () => {
@@ -717,19 +688,6 @@ function Signup() {
               </>
             )}
 
-            {/* VERIFICATION DISABLED - To re-enable verification step:
-                1. Uncomment the import on line 10
-                2. Uncomment the state variables on lines 35-37
-                3. Uncomment the hooks on lines 45-46
-                4. Uncomment the useEffect on lines 100-105
-                5. Uncomment the handler functions on lines 219-236
-                6. Uncomment the validation case on lines 249-255
-                7. Uncomment the handleNext case on lines 319-336
-                8. Uncomment the handleBack case on lines 357-359
-                9. Update getStepNumber and getTotalSteps (lines 377-386)
-                10. Uncomment this entire JSX block below
-            */}
-            {/* 
             {currentStep === 'verification' && (
               <>
                 <div className="text-center mb-8">
@@ -780,7 +738,6 @@ function Signup() {
                 </div>
               </>
             )}
-            */}
 
             {currentStep === 'coupleSlug' && (
               <>
