@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Card, DatePicker, Select, Tabs } from 'antd';
-import { TrendingUp, Mail } from 'lucide-react';
+import { TrendingUp, Mail, Users } from 'lucide-react';
 import { useMetricsSummary, useTimeSeries, useFunnelBreakdown, useMetricAlerts } from 'hooks/useAnalytics';
 import { useEmailAnalyticsSummary, useEmailAnalyticsTimeSeries } from 'hooks/useEmailAnalytics';
+import { useUsersListsSummary, useUsersAnalytics, useWeddingListsAnalytics } from 'hooks/useUsersListsAnalytics';
 import { useWeddingLists } from 'hooks/useWeddingList';
-import { UserAnalyticsTab, EmailAnalyticsTab } from 'src/features/admin/analytics';
+import { UserAnalyticsTab, EmailAnalyticsTab, UsersListsAnalyticsTab } from 'src/features/admin/analytics';
 import dayjs, { Dayjs } from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -78,6 +79,11 @@ export function Analytics() {
   // Email analytics data
   const { data: emailSummary, isLoading: isEmailSummaryLoading } = useEmailAnalyticsSummary(from, to);
   const { data: emailTimeSeries, isLoading: isEmailTimeSeriesLoading } = useEmailAnalyticsTimeSeries(from, to);
+
+  // Users and lists analytics data
+  const { data: usersListsSummary, isLoading: isUsersListsSummaryLoading } = useUsersListsSummary(from, to);
+  const { data: usersData, isLoading: isUsersDataLoading } = useUsersAnalytics(from, to);
+  const { data: listsData, isLoading: isListsDataLoading } = useWeddingListsAnalytics(from, to);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -164,6 +170,24 @@ export function Analytics() {
               isEmailSummaryLoading={isEmailSummaryLoading}
               emailTimeSeries={emailTimeSeries}
               isEmailTimeSeriesLoading={isEmailTimeSeriesLoading}
+            />
+          </Tabs.TabPane>
+
+          <Tabs.TabPane
+            tab={
+              <span>
+                <Users className="inline mr-2" size={16} />
+                Usuarios y Listas
+              </span>
+            }
+            key="users-lists">
+            <UsersListsAnalyticsTab
+              summary={usersListsSummary}
+              isSummaryLoading={isUsersListsSummaryLoading}
+              usersData={usersData}
+              isUsersLoading={isUsersDataLoading}
+              listsData={listsData}
+              isListsLoading={isListsDataLoading}
             />
           </Tabs.TabPane>
         </Tabs>

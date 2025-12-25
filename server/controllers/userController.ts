@@ -269,6 +269,26 @@ export const userController = {
         return { user };
       });
 
+      // Send admin notification email (non-blocking)
+      if (userRole === 'COUPLE') {
+        emailService
+          .sendAdminSignupNotification({
+            firstName,
+            lastName,
+            spouseFirstName,
+            spouseLastName,
+            email,
+            phoneNumber,
+            coupleSlug: coupleSlug || '',
+            planType: planType as 'FIXED' | 'COMMISSION',
+            discountCode,
+            createdAt: result.user.createdAt,
+          })
+          .catch((error) => {
+            console.error('Failed to send admin signup notification email:', error);
+          });
+      }
+
       res.status(201).json(result.user);
     } catch (error: unknown) {
       console.error('Error creating user:', error);

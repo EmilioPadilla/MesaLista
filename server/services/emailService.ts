@@ -295,6 +295,60 @@ class EmailService {
       throw error;
     }
   }
+
+  /**
+   * Send admin notification email when a new user signs up
+   */
+  async sendAdminSignupNotification(data: {
+    firstName: string;
+    lastName: string;
+    spouseFirstName?: string;
+    spouseLastName?: string;
+    email: string;
+    phoneNumber?: string;
+    coupleSlug: string;
+    planType: 'FIXED' | 'COMMISSION';
+    discountCode?: string;
+    createdAt: Date;
+  }): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    const coupleName = `${data.firstName}${data.spouseFirstName ? ' y ' + data.spouseFirstName : ''}`;
+
+    try {
+      // Get all admin users to send notification
+      const adminUsers = await prisma.user.findMany({
+        where: { role: 'ADMIN' },
+        select: { email: true },
+      });
+
+      if (adminUsers.length === 0) {
+        console.warn('No admin users found to send signup notification');
+        return;
+      }
+
+      // Send email to all admins
+      const emailPromises = adminUsers.map((admin) =>
+        postmarkClient.sendEmail({
+          From: FROM_EMAIL,
+          To: admin.email,
+          Subject: `Nueva cuenta creada - ${coupleName} - MesaLista`,
+          HtmlBody: EmailTemplates.generateAdminSignupNotificationEmailHTML(data),
+          TextBody: EmailTemplates.generateAdminSignupNotificationEmailText(data),
+          MessageStream: 'outbound',
+        }),
+      );
+
+      await Promise.all(emailPromises);
+      console.log(`Admin signup notification sent to ${adminUsers.length} admin(s) for user: ${data.email}`);
+    } catch (error) {
+      console.error('Error sending admin signup notification:', error);
+      // Don't throw error - we don't want to fail user creation if email fails
+    }
+  }
 }
 
 export default new EmailService();

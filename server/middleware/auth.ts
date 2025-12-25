@@ -124,6 +124,19 @@ export const createSessionAndSetCookie = async (
   }
 };
 
+// Middleware to require admin role (must be used after authenticateSession)
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required.' });
+  }
+
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+  }
+
+  next();
+};
+
 // Utility function to logout (clear session and cookie)
 export const logoutSession = async (req: Request, res: Response): Promise<void> => {
   try {

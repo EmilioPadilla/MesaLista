@@ -580,6 +580,32 @@ const discountCode_endpoints = {
 };
 
 /**
+ * Users and Lists Analytics Endpoints
+ */
+const usersListsAnalytics_endpoints = {
+  /**
+   * Get summary statistics for users and wedding lists
+   * @method GET
+   * @access Admin only
+   */
+  summary: `/admin/users-lists-analytics/summary`,
+
+  /**
+   * Get detailed analytics for all users with their wedding lists
+   * @method GET
+   * @access Admin only
+   */
+  users: `/admin/users-lists-analytics/users`,
+
+  /**
+   * Get detailed analytics for all wedding lists
+   * @method GET
+   * @access Admin only
+   */
+  lists: `/admin/users-lists-analytics/lists`,
+};
+
+/**
  * RSVP Endpoints
  */
 const rsvp_endpoints = {
@@ -697,6 +723,7 @@ export const endpoints = {
   docs: docs_endpoints,
   predesignedLists: predesignedList_endpoints,
   discountCodes: discountCode_endpoints,
+  usersListsAnalytics: usersListsAnalytics_endpoints,
   rsvp: rsvp_endpoints,
 };
 

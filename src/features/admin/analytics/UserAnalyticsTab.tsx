@@ -109,7 +109,6 @@ export function UserAnalyticsTab({
               title="Intentos de Registro"
               value={summary?.registryAttempts || 0}
               prefix={<FileText className="text-purple-500" />}
-              suffix={`(${summary?.registryAttemptRate?.toFixed(1)}%)`}
             />
           </Card>
         </Col>
@@ -119,7 +118,7 @@ export function UserAnalyticsTab({
               title="Compras de Mesa"
               value={summary?.registryPurchases || 0}
               prefix={<ShoppingCart className="text-orange-500" />}
-              suffix={`(${summary?.registryConversionRate?.toFixed(1)}%)`}
+              suffix={`(${summary?.registryPurchaseRate?.toFixed(1)}%)`}
             />
           </Card>
         </Col>
@@ -133,7 +132,7 @@ export function UserAnalyticsTab({
               title="Compras de Regalos"
               value={summary?.giftPurchases || 0}
               prefix={<Gift className="text-pink-500" />}
-              suffix={`(${summary?.giftConversionRate?.toFixed(1)}%)`}
+              suffix={`(${summary?.giftPurchaseRate?.toFixed(1)}%)`}
             />
           </Card>
         </Col>

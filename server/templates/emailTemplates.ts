@@ -793,4 +793,155 @@ Usa una contraseña única que no hayas usado en otros sitios. Combina letras ma
 © 2025 MesaLista. Todos los derechos reservados.
     `.trim();
   }
+
+  /**
+   * Generate HTML email template for admin notification on new user signup
+   */
+  static generateAdminSignupNotificationEmailHTML(data: {
+    firstName: string;
+    lastName: string;
+    spouseFirstName?: string;
+    spouseLastName?: string;
+    email: string;
+    phoneNumber?: string;
+    coupleSlug: string;
+    planType: 'FIXED' | 'COMMISSION';
+    discountCode?: string;
+    createdAt: Date;
+  }): string {
+    const coupleName = `${data.firstName}${data.spouseFirstName ? ' y ' + data.spouseFirstName : ''}`;
+    const fullName = `${data.firstName} ${data.lastName}${data.spouseFirstName ? ' y ' + data.spouseFirstName + ' ' + (data.spouseLastName || data.lastName) : ''}`;
+    const planTypeText = data.planType === 'FIXED' ? 'Plan Fijo ($2,000 MXN)' : 'Plan Comisión (5%)';
+    const registryUrl = `https://mesalista.com.mx/${data.coupleSlug}/regalos`;
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Nueva Cuenta Creada - MesaLista</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f9fafb;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 32px 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px; font-weight: bold;">🎉 Nueva Cuenta Creada</h1>
+            <p style="margin: 8px 0 0 0; font-size: 16px; opacity: 0.9;">Un nuevo usuario se ha registrado en MesaLista</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 32px 24px;">
+            <div style="background-color: #d1fae5; border: 1px solid #10b981; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <div style="display: flex; align-items: center;">
+                <div style="font-size: 24px; margin-right: 16px;">✅</div>
+                <div>
+                  <strong style="color: #065f46;">Nueva lista de regalos creada</strong>
+                  <br><small style="color: #065f46;">Fecha: ${this.formatDateTime(data.createdAt)}</small>
+                </div>
+              </div>
+            </div>
+
+            <h2 style="color: #1f2937; margin-bottom: 16px;">Información de la Pareja</h2>
+            
+            <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <p style="margin: 0 0 8px 0;"><strong>Nombre completo:</strong> ${fullName}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Nombre de pareja:</strong> ${coupleName}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Email:</strong> <a href="mailto:${data.email}" style="color: #d4704a; text-decoration: none;">${data.email}</a></p>
+              ${data.phoneNumber ? `<p style="margin: 0 0 8px 0;"><strong>Teléfono:</strong> <a href="tel:${data.phoneNumber}" style="color: #d4704a; text-decoration: none;">${data.phoneNumber}</a></p>` : ''}
+              <p style="margin: 0 0 8px 0;"><strong>Slug de pareja:</strong> <code style="background-color: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 14px;">${data.coupleSlug}</code></p>
+              <p style="margin: 0;"><strong>Tipo de plan:</strong> <span style="color: ${data.planType === 'FIXED' ? '#059669' : '#3b82f6'}; font-weight: 600;">${planTypeText}</span></p>
+            </div>
+
+            ${
+              data.discountCode
+                ? `
+            <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <p style="margin: 0; color: #92400e;">
+                <strong>🎟️ Código de descuento usado:</strong> <code style="background-color: #fde68a; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${data.discountCode}</code>
+              </p>
+            </div>
+            `
+                : ''
+            }
+
+            <h3 style="color: #1f2937; margin-bottom: 16px;">Enlace a la Lista de Regalos</h3>
+            
+            <div style="background-color: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <p style="margin: 0 0 8px 0; color: #1e40af;"><strong>URL pública:</strong></p>
+              <a href="${registryUrl}" style="color: #3b82f6; word-break: break-all; text-decoration: none; font-weight: 500;">${registryUrl}</a>
+            </div>
+
+            <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; margin-top: 24px; border-radius: 4px;">
+              <p style="margin: 0; color: #065f46;">
+                <strong>💡 Acción sugerida:</strong> Puedes contactar a la pareja para darles la bienvenida y ofrecerles asistencia para configurar su lista de regalos.
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">Este es un email automático de notificación</p>
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">
+              <strong>MesaLista Admin</strong> - Panel de administración
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `.trim();
+  }
+
+  /**
+   * Generate plain text email for admin notification on new user signup
+   */
+  static generateAdminSignupNotificationEmailText(data: {
+    firstName: string;
+    lastName: string;
+    spouseFirstName?: string;
+    spouseLastName?: string;
+    email: string;
+    phoneNumber?: string;
+    coupleSlug: string;
+    planType: 'FIXED' | 'COMMISSION';
+    discountCode?: string;
+    createdAt: Date;
+  }): string {
+    const coupleName = `${data.firstName}${data.spouseFirstName ? ' y ' + data.spouseFirstName : ''}`;
+    const fullName = `${data.firstName} ${data.lastName}${data.spouseFirstName ? ' y ' + data.spouseFirstName + ' ' + (data.spouseLastName || data.lastName) : ''}`;
+    const planTypeText = data.planType === 'FIXED' ? 'Plan Fijo ($2,000 MXN)' : 'Plan Comisión (5%)';
+    const registryUrl = `https://mesalista.com.mx/${data.coupleSlug}/regalos`;
+
+    return `
+🎉 NUEVA CUENTA CREADA - MESALISTA
+
+Un nuevo usuario se ha registrado en MesaLista
+
+✅ Nueva lista de regalos creada
+Fecha: ${this.formatDateTime(data.createdAt)}
+
+INFORMACIÓN DE LA PAREJA:
+- Nombre completo: ${fullName}
+- Nombre de pareja: ${coupleName}
+- Email: ${data.email}
+${data.phoneNumber ? `- Teléfono: ${data.phoneNumber}\n` : ''}- Slug de pareja: ${data.coupleSlug}
+- Tipo de plan: ${planTypeText}
+
+${
+  data.discountCode
+    ? `🎟️ CÓDIGO DE DESCUENTO USADO: ${data.discountCode}
+
+`
+    : ''
+}ENLACE A LA LISTA DE REGALOS:
+${registryUrl}
+
+💡 ACCIÓN SUGERIDA:
+Puedes contactar a la pareja para darles la bienvenida y ofrecerles asistencia para configurar su lista de regalos.
+
+---
+Este es un email automático de notificación
+MesaLista Admin - Panel de administración
+    `.trim();
+  }
 }
