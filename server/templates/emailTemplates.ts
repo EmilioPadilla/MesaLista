@@ -1000,44 +1000,56 @@ MesaLista Admin - Panel de administración
             <div style="margin-bottom: 24px;">
               <!-- Step 1 -->
               <div style="background-color: #f9fafb; border-left: 4px solid #d4704a; padding: 20px; margin-bottom: 16px; border-radius: 8px;">
-                <div style="display: flex; align-items: start;">
-                  <div style="background-color: #d4704a; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin-right: 16px; font-weight: bold; flex-shrink: 0;">1</div>
-                  <div>
-                    <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Agrega tus regalos</h3>
-                    <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
-                      Crea tu lista de regalos con fotos, descripciones y precios. Puedes agregar desde electrodomésticos hasta experiencias de viaje. 
-                      ¡Sé creativo y agrega todo lo que necesiten para su nueva vida juntos!
-                    </p>
-                  </div>
-                </div>
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="width: 32px; vertical-align: top; padding-right: 16px;">
+                      <div style="background-color: #d4704a; color: white; border-radius: 50%; width: 32px; height: 32px; text-align: center; line-height: 32px; font-weight: bold; font-size: 16px;">1</div>
+                    </td>
+                    <td style="vertical-align: top;">
+                      <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Agrega tus regalos</h3>
+                      <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                        Crea tu lista de regalos con fotos, descripciones y precios. Puedes agregar desde electrodomésticos hasta experiencias de viaje. 
+                        ¡Sé creativo y agrega todo lo que necesiten para su nueva vida juntos!
+                      </p>
+                    </td>
+                  </tr>
+                </table>
               </div>
 
               <!-- Step 2 -->
               <div style="background-color: #f9fafb; border-left: 4px solid #d4704a; padding: 20px; margin-bottom: 16px; border-radius: 8px;">
-                <div style="display: flex; align-items: start;">
-                  <div style="background-color: #d4704a; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin-right: 16px; font-weight: bold; flex-shrink: 0;">2</div>
-                  <div>
-                    <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Gestiona tus confirmaciones (RSVPs)</h3>
-                    <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
-                      Crea y administra las confirmaciones de asistencia de tus invitados. Mantén todo organizado en un solo lugar 
-                      y lleva el control de quién asistirá a tu gran día.
-                    </p>
-                  </div>
-                </div>
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="width: 32px; vertical-align: top; padding-right: 16px;">
+                      <div style="background-color: #d4704a; color: white; border-radius: 50%; width: 32px; height: 32px; text-align: center; line-height: 32px; font-weight: bold; font-size: 16px;">2</div>
+                    </td>
+                    <td style="vertical-align: top;">
+                      <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Gestiona tus confirmaciones (RSVPs)</h3>
+                      <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                        Crea y administra las confirmaciones de asistencia de tus invitados. Mantén todo organizado en un solo lugar 
+                        y lleva el control de quién asistirá a tu gran día.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
               </div>
 
               <!-- Step 3 -->
               <div style="background-color: #f9fafb; border-left: 4px solid #d4704a; padding: 20px; border-radius: 8px;">
-                <div style="display: flex; align-items: start;">
-                  <div style="background-color: #d4704a; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin-right: 16px; font-weight: bold; flex-shrink: 0;">3</div>
-                  <div>
-                    <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Comparte tu lista</h3>
-                    <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
-                      Una vez que tengas tus regalos listos, comparte el enlace de tu lista con familiares y amigos. 
-                      Ellos podrán ver tus regalos y hacer sus contribuciones de forma fácil y segura.
-                    </p>
-                  </div>
-                </div>
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="width: 32px; vertical-align: top; padding-right: 16px;">
+                      <div style="background-color: #d4704a; color: white; border-radius: 50%; width: 32px; height: 32px; text-align: center; line-height: 32px; font-weight: bold; font-size: 16px;">3</div>
+                    </td>
+                    <td style="vertical-align: top;">
+                      <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Comparte tu lista</h3>
+                      <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                        Una vez que tengas tus regalos listos, comparte el enlace de tu lista con familiares y amigos. 
+                        Ellos podrán ver tus regalos y hacer sus contribuciones de forma fácil y segura.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
               </div>
             </div>
 
