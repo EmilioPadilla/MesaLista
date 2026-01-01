@@ -1,11 +1,10 @@
 import { useState, useMemo } from 'react';
 import { Card, DatePicker, Select, Tabs } from 'antd';
-import { TrendingUp, Mail, Users } from 'lucide-react';
+import { TrendingUp, Users } from 'lucide-react';
 import { useMetricsSummary, useTimeSeries, useFunnelBreakdown, useMetricAlerts } from 'hooks/useAnalytics';
-import { useEmailAnalyticsSummary, useEmailAnalyticsTimeSeries } from 'hooks/useEmailAnalytics';
 import { useUsersListsSummary, useUsersAnalytics, useWeddingListsAnalytics } from 'hooks/useUsersListsAnalytics';
 import { useWeddingLists } from 'hooks/useWeddingList';
-import { UserAnalyticsTab, EmailAnalyticsTab, UsersListsAnalyticsTab } from 'src/features/admin/analytics';
+import { UserAnalyticsTab, UsersListsAnalyticsTab } from 'src/features/admin/analytics';
 import dayjs, { Dayjs } from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -75,10 +74,6 @@ export function Analytics() {
   );
   const { data: funnelBreakdown, isLoading: isFunnelLoading } = useFunnelBreakdown(funnelDimension, from, to);
   const { data: alerts } = useMetricAlerts();
-
-  // Email analytics data
-  const { data: emailSummary, isLoading: isEmailSummaryLoading } = useEmailAnalyticsSummary(from, to);
-  const { data: emailTimeSeries, isLoading: isEmailTimeSeriesLoading } = useEmailAnalyticsTimeSeries(from, to);
 
   // Users and lists analytics data
   const { data: usersListsSummary, isLoading: isUsersListsSummaryLoading } = useUsersListsSummary(from, to);
@@ -154,22 +149,6 @@ export function Analytics() {
               alerts={alerts}
               selectedMetric={selectedMetric}
               onMetricChange={setSelectedMetric}
-            />
-          </Tabs.TabPane>
-
-          <Tabs.TabPane
-            tab={
-              <span>
-                <Mail className="inline mr-2" size={16} />
-                Analíticas de Email
-              </span>
-            }
-            key="email">
-            <EmailAnalyticsTab
-              emailSummary={emailSummary}
-              isEmailSummaryLoading={isEmailSummaryLoading}
-              emailTimeSeries={emailTimeSeries}
-              isEmailTimeSeriesLoading={isEmailTimeSeriesLoading}
             />
           </Tabs.TabPane>
 

@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Table, Tag, Button, Space, Input, Modal, message, Statistic, Row, Col, Card } from 'antd';
+import { Table, Tag, Button, Space, Input, message, Statistic, Row, Col, Card } from 'antd';
 import { Search, RefreshCw, Calendar, Gift, DollarSign, TrendingUp, Percent, ExternalLink } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
 import type { WeddingListAnalytics, UsersListsSummary } from 'services/usersListsAnalytics.service';
-import { useUpdateUserPlanType } from 'src/hooks/useUser';
+import { RegistryDetailModal } from './index';
 
 interface RegistriesControlTabProps {
   summary: UsersListsSummary | undefined;
@@ -17,10 +17,6 @@ export function RegistriesControlTab({ summary, listsData, isListsLoading, onRef
   const [searchText, setSearchText] = useState('');
   const [selectedList, setSelectedList] = useState<WeddingListAnalytics | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isPlanTypeModalOpen, setIsPlanTypeModalOpen] = useState(false);
-  const [selectedListForPlanUpdate, setSelectedListForPlanUpdate] = useState<WeddingListAnalytics | null>(null);
-  const [newPlanType, setNewPlanType] = useState<'FIXED' | 'COMMISSION' | null>(null);
-  const updatePlanTypeMutation = useUpdateUserPlanType();
 
   const formatDate = (date: string) => {
     return dayjs(date).format('DD/MMM/YYYY');
@@ -49,36 +45,6 @@ export function RegistriesControlTab({ summary, listsData, isListsLoading, onRef
   const handleCopyLink = (slug: string) => {
     navigator.clipboard.writeText(`https://mesalista.com.mx/${slug}/regalos`);
     message.success('Enlace copiado al portapapeles');
-  };
-
-  const handleOpenPlanTypeModal = (list: WeddingListAnalytics) => {
-    setSelectedListForPlanUpdate(list);
-    setNewPlanType(list.couplePlanType || null);
-    setIsPlanTypeModalOpen(true);
-  };
-
-  const handleUpdatePlanType = async () => {
-    if (!selectedListForPlanUpdate || !newPlanType) {
-      message.error('Por favor selecciona un tipo de plan');
-      return;
-    }
-
-    try {
-      // We need to get the user ID from the list - it's not directly available in WeddingListAnalytics
-      // We'll need to find the user from the usersData or make an API call
-      // For now, let's assume we can get it from the email
-      const userId = selectedListForPlanUpdate.id; // This is actually the wedding list ID
-
-      // Since we don't have the user ID directly, we'll show a message
-      message.warning('Actualizando plan...');
-
-      // We need to pass the correct user ID - let's update this to use a different approach
-      // We'll need to modify the backend or pass user ID through the analytics data
-      setIsPlanTypeModalOpen(false);
-      message.info('Esta funcionalidad requiere el ID del usuario. Por favor usa la pestaña de Usuarios para actualizar el plan.');
-    } catch (error) {
-      // Error handled by mutation hook
-    }
   };
 
   const filteredData = listsData?.filter((list) => {
@@ -331,140 +297,16 @@ export function RegistriesControlTab({ summary, listsData, isListsLoading, onRef
         }}
       />
 
-      {/* Registry Detail Modal */}
-      <Modal
-        title="Detalles de la Lista de Regalos"
-        open={isDetailModalOpen}
-        onCancel={() => setIsDetailModalOpen(false)}
-        footer={[
-          <Button key="close" onClick={() => setIsDetailModalOpen(false)}>
-            Cerrar
-          </Button>,
-          selectedList?.coupleSlug && (
-            <Button
-              key="view"
-              type="primary"
-              icon={<ExternalLink className="h-4 w-4" />}
-              onClick={() => handleViewPublicRegistry(selectedList.coupleSlug!)}>
-              Ver Lista Pública
-            </Button>
-          ),
-        ]}
-        width={700}>
-        {selectedList && (
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Información General</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-gray-500">Título:</span>
-                  <div className="font-medium">{selectedList.title}</div>
-                </div>
-                <div>
-                  <span className="text-gray-500">Pareja:</span>
-                  <div className="font-medium">{selectedList.coupleName}</div>
-                </div>
-                <div>
-                  <span className="text-gray-500">Email:</span>
-                  <div className="font-medium">{selectedList.coupleEmail}</div>
-                </div>
-                <div>
-                  <span className="text-gray-500">Slug:</span>
-                  <div
-                    className="font-medium text-blue-600 cursor-pointer hover:underline"
-                    onClick={() => handleCopyLink(selectedList.coupleSlug!)}>
-                    {selectedList.coupleSlug || 'N/A'}
-                  </div>
-                </div>
-                <div>
-                  <span className="text-gray-500">Plan:</span>
-                  <div className="font-medium">
-                    {selectedList.couplePlanType ? (
-                      <Tag color={selectedList.couplePlanType === 'FIXED' ? 'green' : 'blue'}>
-                        {selectedList.couplePlanType === 'FIXED' ? 'Fijo' : 'Comisión'}
-                      </Tag>
-                    ) : (
-                      'Sin plan'
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <span className="text-gray-500">Fecha de Creación:</span>
-                  <div className="font-medium">{formatDateTime(selectedList.createdAt)}</div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Fecha de Boda</h3>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-purple-600" />
-                  <span className="text-xl font-semibold text-purple-900">{formatDate(selectedList.weddingDate)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Estadísticas de Regalos</h3>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-500">Total Regalos:</span>
-                    <div className="font-medium text-2xl">{selectedList.totalGifts}</div>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Regalos Comprados:</span>
-                    <div className="font-medium text-2xl text-green-600">{selectedList.purchasedGifts}</div>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Tasa de Compra:</span>
-                    <div className="font-medium">
-                      <Tag
-                        color={selectedList.purchaseRate > 50 ? 'green' : selectedList.purchaseRate > 25 ? 'orange' : 'red'}
-                        className="text-lg">
-                        {selectedList.purchaseRate.toFixed(1)}%
-                      </Tag>
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Invitaciones:</span>
-                    <div className="font-medium text-2xl">{selectedList.invitationCount || 0}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Información Financiera</h3>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-500">Valor Total:</span>
-                    <div className="font-semibold text-2xl text-gray-900">{formatCurrency(selectedList.totalValue)}</div>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Total Recibido:</span>
-                    <div className="font-semibold text-2xl text-green-600">{formatCurrency(selectedList.totalReceived)}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Actividad</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-gray-500">Última Compra:</span>
-                  <div className="font-medium">
-                    {selectedList.lastPurchaseDate ? formatDateTime(selectedList.lastPurchaseDate) : 'Sin compras aún'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
+      <RegistryDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        registry={selectedList}
+        formatDate={formatDate}
+        formatDateTime={formatDateTime}
+        formatCurrency={formatCurrency}
+        onViewPublicRegistry={handleViewPublicRegistry}
+        onCopyLink={handleCopyLink}
+      />
     </div>
   );
 }

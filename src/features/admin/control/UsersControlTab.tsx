@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Table, Tag, Button, Space, Input, Modal, message, Tooltip, Statistic, Row, Col, Card, Select } from 'antd';
+import { Table, Tag, Button, Space, Input, Modal, message, Statistic, Row, Col, Card } from 'antd';
 import { Search, RefreshCw, Mail, Phone, Calendar, Users, DollarSign, UserCheck, UserX, Trash2, Edit } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
 import type { UserAnalytics, UsersListsSummary } from 'services/usersListsAnalytics.service';
 import { useDeleteUser, useUpdateUserPlanType } from 'src/hooks/useUser';
+import { UserDetailModal, PlanTypeUpdateModal } from './index';
 
 interface UsersControlTabProps {
   summary: UsersListsSummary | undefined;
@@ -331,182 +332,27 @@ export function UsersControlTab({ summary, usersData, isUsersLoading, onRefresh 
         }}
       />
 
-      {/* User Detail Modal */}
-      <Modal
-        title="Detalles del Usuario"
-        open={isDetailModalOpen}
-        onCancel={() => setIsDetailModalOpen(false)}
-        footer={[
-          <Button key="close" onClick={() => setIsDetailModalOpen(false)}>
-            Cerrar
-          </Button>,
-        ]}
-        width={700}>
-        {selectedUser && (
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Información Personal</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-gray-500">Nombre:</span>
-                  <div className="font-medium">
-                    {selectedUser.firstName} {selectedUser.lastName}
-                  </div>
-                </div>
-                {selectedUser.spouseFirstName && (
-                  <div>
-                    <span className="text-gray-500">Pareja:</span>
-                    <div className="font-medium">
-                      {selectedUser.spouseFirstName} {selectedUser.spouseLastName}
-                    </div>
-                  </div>
-                )}
-                <div>
-                  <span className="text-gray-500">Email:</span>
-                  <div className="font-medium">{selectedUser.email}</div>
-                </div>
-                <div>
-                  <span className="text-gray-500">Teléfono:</span>
-                  <div className="font-medium">{selectedUser.phoneNumber || 'No proporcionado'}</div>
-                </div>
-                <div>
-                  <span className="text-gray-500">Slug:</span>
-                  <div className="font-medium text-blue-600">{selectedUser.coupleSlug || 'N/A'}</div>
-                </div>
-                <div>
-                  <span className="text-gray-500">Fecha de Registro:</span>
-                  <div className="font-medium">{formatDate(selectedUser.createdAt)}</div>
-                </div>
-              </div>
-            </div>
+      <UserDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        user={selectedUser}
+        formatDate={formatDate}
+        formatCurrency={formatCurrency}
+      />
 
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Plan y Descuentos</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-gray-500">Tipo de Plan:</span>
-                  <div className="font-medium">
-                    {selectedUser.planType ? (
-                      <Tag color={selectedUser.planType === 'FIXED' ? 'green' : 'blue'}>
-                        {selectedUser.planType === 'FIXED' ? 'Fijo' : 'Comisión'}
-                      </Tag>
-                    ) : (
-                      'Sin plan'
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <span className="text-gray-500">Código de Descuento:</span>
-                  <div className="font-medium">
-                    {selectedUser.discountCode ? <Tag color="orange">{selectedUser.discountCode}</Tag> : 'Ninguno'}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {selectedUser.weddingList && (
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Lista de Regalos</h3>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-gray-500">Título:</span>
-                      <div className="font-medium">{selectedUser.weddingList.title}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Nombre Pareja:</span>
-                      <div className="font-medium">{selectedUser.weddingList.coupleName}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Fecha de Boda:</span>
-                      <div className="font-medium">{dayjs(selectedUser.weddingList.weddingDate).format('DD/MMM/YYYY')}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Total Regalos:</span>
-                      <div className="font-medium">{selectedUser.weddingList.totalGifts}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Regalos Comprados:</span>
-                      <div className="font-medium text-green-600">{selectedUser.weddingList.purchasedGifts}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Tasa de Compra:</span>
-                      <div className="font-medium">
-                        <Tag
-                          color={
-                            selectedUser.weddingList.purchaseRate > 50
-                              ? 'green'
-                              : selectedUser.weddingList.purchaseRate > 25
-                                ? 'orange'
-                                : 'red'
-                          }>
-                          {selectedUser.weddingList.purchaseRate.toFixed(1)}%
-                        </Tag>
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Valor Total:</span>
-                      <div className="font-medium">{formatCurrency(selectedUser.weddingList.totalValue)}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Total Recibido:</span>
-                      <div className="font-medium text-green-600 text-lg">{formatCurrency(selectedUser.weddingList.totalReceived)}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Invitaciones:</span>
-                      <div className="font-medium">{selectedUser.weddingList.invitationCount}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </Modal>
-
-      {/* Plan Type Update Modal */}
-      <Modal
-        title="Actualizar Tipo de Plan"
-        open={isPlanTypeModalOpen}
-        onCancel={() => {
+      <PlanTypeUpdateModal
+        isOpen={isPlanTypeModalOpen}
+        onClose={() => {
           setIsPlanTypeModalOpen(false);
           setEditingPlanUser(null);
           setNewPlanType(null);
         }}
-        onOk={handleUpdatePlanType}
-        okText="Actualizar"
-        cancelText="Cancelar"
-        confirmLoading={updatePlanTypeMutation.isPending}>
-        {editingPlanUser && (
-          <div className="space-y-4">
-            <div>
-              <p className="mb-2">
-                Usuario:{' '}
-                <strong>
-                  {editingPlanUser.firstName} {editingPlanUser.lastName}
-                </strong>
-              </p>
-              <p className="text-sm text-gray-600 mb-4">
-                Plan actual:{' '}
-                <Tag color={editingPlanUser.planType === 'FIXED' ? 'green' : 'blue'}>
-                  {editingPlanUser.planType === 'FIXED' ? 'Fijo' : 'Comisión'}
-                </Tag>
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Nuevo Tipo de Plan:</label>
-              <Select value={newPlanType} onChange={setNewPlanType} style={{ width: '100%' }} placeholder="Selecciona un tipo de plan">
-                <Select.Option value="FIXED">
-                  <Tag color="green">Fijo</Tag> - Pago único por el servicio
-                </Select.Option>
-                <Select.Option value="COMMISSION">
-                  <Tag color="blue">Comisión</Tag> - Comisión por regalo comprado
-                </Select.Option>
-              </Select>
-            </div>
-          </div>
-        )}
-      </Modal>
+        onUpdate={handleUpdatePlanType}
+        user={editingPlanUser}
+        newPlanType={newPlanType}
+        onPlanTypeChange={setNewPlanType}
+        isLoading={updatePlanTypeMutation.isPending}
+      />
     </div>
   );
 }
