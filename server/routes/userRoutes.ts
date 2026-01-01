@@ -1,6 +1,6 @@
 import express from 'express';
 import userController from '../controllers/userController.js';
-import { authenticateSession } from '../middleware/auth.js';
+import { authenticateSession, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -36,6 +36,8 @@ router.get('/', authenticateSession, userController.getAllUsers);
 
 router.get('/:id', authenticateSession, userController.getUserById);
 
-router.delete('/:id', authenticateSession, userController.deleteUser);
+router.put('/:id/plan-type', authenticateSession, requireAdmin, userController.updateUserPlanType);
+
+router.delete('/:id', authenticateSession, requireAdmin, userController.deleteUser);
 
 export default router;

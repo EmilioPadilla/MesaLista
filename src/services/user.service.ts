@@ -111,6 +111,11 @@ export const userService = {
     const response = await apiClient.delete(user_endpoints.deleteCurrentUser);
     return response.data;
   },
+
+  updateUserPlanType: async (userId: number, planType: 'FIXED' | 'COMMISSION'): Promise<User> => {
+    const response = await apiClient.put(user_endpoints.updatePlanType(userId), { planType });
+    return response.data;
+  },
 };
 
 export default userService;

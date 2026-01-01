@@ -122,6 +122,15 @@ export const user_endpoints = {
    * @access Public
    */
   resetPassword: `/user/password-reset/reset`,
+
+  /**
+   * Update user plan type (admin only)
+   * @method PUT
+   * @access Protected (Admin only)
+   * @requires JWT token
+   * @param userId User ID
+   */
+  updatePlanType: (userId: number) => `/user/${userId}/plan-type`,
 };
 
 /**

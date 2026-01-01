@@ -287,6 +287,19 @@ export const userController = {
           .catch((error) => {
             console.error('Failed to send admin signup notification email:', error);
           });
+
+        // Send welcome email to the new user (non-blocking)
+        emailService
+          .sendWelcomeEmail({
+            email,
+            firstName,
+            spouseFirstName,
+            coupleSlug: coupleSlug || '',
+            planType: planType as 'FIXED' | 'COMMISSION',
+          })
+          .catch((error) => {
+            console.error('Failed to send welcome email:', error);
+          });
       }
 
       res.status(201).json(result.user);
@@ -320,6 +333,47 @@ export const userController = {
       }
 
       res.status(500).json({ error: 'Failed to delete user' });
+    }
+  },
+
+  // Update user plan type (admin only)
+  updateUserPlanType: async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { planType } = req.body;
+
+    if (!planType || !['FIXED', 'COMMISSION'].includes(planType)) {
+      return res.status(400).json({ error: 'Valid plan type is required (FIXED or COMMISSION)' });
+    }
+
+    try {
+      const user = await prisma.user.update({
+        where: { id: Number(id) },
+        data: { planType },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          spouseFirstName: true,
+          spouseLastName: true,
+          coupleSlug: true,
+          phoneNumber: true,
+          role: true,
+          planType: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      res.json(user);
+    } catch (error: unknown) {
+      console.error('Error updating user plan type:', error);
+
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.status(500).json({ error: 'Failed to update plan type' });
     }
   },
 

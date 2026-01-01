@@ -13,6 +13,7 @@ import {
   ListPlus,
   Tag,
   Mail,
+  Settings,
 } from 'lucide-react';
 import { message, Tooltip, Button, Divider } from 'antd';
 import { useGetUserBySlug, useIsAuthenticated, useLogout, useCurrentUser } from 'hooks/useUser';
@@ -175,6 +176,18 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                     className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <BarChart3 className="h-4 w-4" />
                     <span className="hidden md:block">Analytics</span>
+                  </Button>
+                </Tooltip>
+              )}
+
+              {userData?.role === 'ADMIN' && isAuthenticated && (
+                <Tooltip title={viewType === 'mobile' ? 'Control' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === '/admin/control' ? 'primary' : 'text'}
+                    onClick={() => navigate('/admin/control')}
+                    className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <Settings className="h-4 w-4" />
+                    <span className="hidden md:block">Control</span>
                   </Button>
                 </Tooltip>
               )}

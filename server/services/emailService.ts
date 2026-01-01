@@ -349,6 +349,40 @@ class EmailService {
       // Don't throw error - we don't want to fail user creation if email fails
     }
   }
+
+  /**
+   * Send welcome email to new users after successful account creation
+   */
+  async sendWelcomeEmail(data: {
+    email: string;
+    firstName: string;
+    spouseFirstName?: string;
+    coupleSlug: string;
+    planType: 'FIXED' | 'COMMISSION';
+  }): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    const coupleName = `${data.firstName}${data.spouseFirstName ? ' y ' + data.spouseFirstName : ''}`;
+    const welcomeMessage = `¡Bienvenid${data.spouseFirstName ? 'os' : '@'} a MesaLista, ${coupleName}! 🎉`;
+
+    try {
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: data.email,
+        Subject: welcomeMessage,
+        HtmlBody: EmailTemplates.generateWelcomeEmailHTML(data),
+        TextBody: EmailTemplates.generateWelcomeEmailText(data),
+        MessageStream: 'outbound',
+      });
+      console.log(`Welcome email sent to: ${data.email}`);
+    } catch (error) {
+      console.error('Error sending welcome email:', error);
+      // Don't throw error - we don't want to fail user creation if email fails
+    }
+  }
 }
 
 export default new EmailService();

@@ -29,6 +29,7 @@ import { Contact } from 'routes/Contact';
 import { Settings } from './app/routes/couple/Settings';
 import { PricingPage } from './app/routes/PricingPage';
 import { Analytics } from './app/routes/admin/Analytics';
+import { AdminControl } from './app/routes/admin/AdminControl';
 import { PageViewTracker } from './components/analytics/PageViewTracker';
 import { PredesignedListsPage } from './app/routes/PredesignedLists.page';
 import { Footer } from './app/modules/navigation/Footer';
@@ -106,6 +107,15 @@ function App() {
                 <>
                   <TopNav />
                   <Analytics />
+                </>
+              }
+            />
+            <Route
+              path="/admin/control"
+              element={
+                <>
+                  <TopNav />
+                  <AdminControl />
                 </>
               }
             />

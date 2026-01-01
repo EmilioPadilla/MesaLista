@@ -143,14 +143,20 @@ export const useCreateUser = () => {
 };
 
 /**
- * Hook to delete a user
+ * Hook to delete a user (admin only)
  */
 export const useDeleteUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: userService.delete,
+    mutationFn: (userId: number) => userService.delete(userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.users] });
+      queryClient.invalidateQueries({ queryKey: ['usersListsAnalytics'] });
+      message.success('Usuario eliminado exitosamente');
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.error || 'Error al eliminar el usuario';
+      message.error(errorMessage);
     },
   });
 };
@@ -231,6 +237,26 @@ export const useDeleteCurrentUser = () => {
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.error || 'Error al eliminar la cuenta';
+      message.error(errorMessage);
+    },
+  });
+};
+
+/**
+ * Hook to update user plan type (admin only)
+ */
+export const useUpdateUserPlanType = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, planType }: { userId: number; planType: 'FIXED' | 'COMMISSION' }) =>
+      userService.updateUserPlanType(userId, planType),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.users] });
+      queryClient.invalidateQueries({ queryKey: ['usersListsAnalytics'] });
+      message.success('Plan actualizado exitosamente');
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.error || 'Error al actualizar el plan';
       message.error(errorMessage);
     },
   });

@@ -944,4 +944,239 @@ Este es un email automático de notificación
 MesaLista Admin - Panel de administración
     `.trim();
   }
+
+  /**
+   * Generate HTML email template for welcome email to new users
+   */
+  static generateWelcomeEmailHTML(data: {
+    firstName: string;
+    spouseFirstName?: string;
+    coupleSlug: string;
+    planType: 'FIXED' | 'COMMISSION';
+  }): string {
+    const coupleName = `${data.firstName}${data.spouseFirstName ? ' y ' + data.spouseFirstName : ''}`;
+    const dashboardUrl = 'https://mesalista.com.mx/dashboard';
+    const registryUrl = `https://mesalista.com.mx/${data.coupleSlug}/regalos`;
+    const supportEmail = 'info@mesalista.com.mx';
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>¡Bienvenidos a MesaLista!</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f9fafb;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #d4704a 0%, #b85a3a 100%); color: white; padding: 40px 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 32px; font-weight: bold;">🎉 ¡Bienvenidos a MesaLista!</h1>
+            <p style="margin: 12px 0 0 0; font-size: 18px; opacity: 0.95;">Tu lista de regalos está lista para comenzar</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 40px 24px;">
+            <p style="font-size: 18px; margin-bottom: 16px; color: #1f2937;">
+              Hola <strong>${coupleName}</strong>,
+            </p>
+            
+            <p style="font-size: 16px; margin-bottom: 24px; color: #374151; line-height: 1.8;">
+              ¡Felicidades por crear tu cuenta en MesaLista! 🎊 Estamos emocionados de ser parte de este momento tan especial en sus vidas. 
+              Tu lista de regalos ya está activa y lista para compartir con tus invitados.
+            </p>
+
+            <!-- Success Box -->
+            <div style="background-color: #d1fae5; border: 2px solid #10b981; border-radius: 12px; padding: 20px; margin: 32px 0; text-align: center;">
+              <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
+              <p style="margin: 0; color: #065f46; font-size: 18px; font-weight: 600;">
+                ¡Tu cuenta ha sido creada exitosamente!
+              </p>
+            </div>
+
+            <!-- Quick Start Guide -->
+            <h2 style="color: #1f2937; margin: 32px 0 20px 0; font-size: 22px; font-weight: 600;">🚀 Primeros pasos para comenzar</h2>
+            
+            <div style="margin-bottom: 24px;">
+              <!-- Step 1 -->
+              <div style="background-color: #f9fafb; border-left: 4px solid #d4704a; padding: 20px; margin-bottom: 16px; border-radius: 8px;">
+                <div style="display: flex; align-items: start;">
+                  <div style="background-color: #d4704a; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin-right: 16px; font-weight: bold; flex-shrink: 0;">1</div>
+                  <div>
+                    <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Agrega tus regalos</h3>
+                    <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                      Crea tu lista de regalos con fotos, descripciones y precios. Puedes agregar desde electrodomésticos hasta experiencias de viaje. 
+                      ¡Sé creativo y agrega todo lo que necesiten para su nueva vida juntos!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 2 -->
+              <div style="background-color: #f9fafb; border-left: 4px solid #d4704a; padding: 20px; margin-bottom: 16px; border-radius: 8px;">
+                <div style="display: flex; align-items: start;">
+                  <div style="background-color: #d4704a; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin-right: 16px; font-weight: bold; flex-shrink: 0;">2</div>
+                  <div>
+                    <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Gestiona tus confirmaciones (RSVPs)</h3>
+                    <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                      Crea y administra las confirmaciones de asistencia de tus invitados. Mantén todo organizado en un solo lugar 
+                      y lleva el control de quién asistirá a tu gran día.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3 -->
+              <div style="background-color: #f9fafb; border-left: 4px solid #d4704a; padding: 20px; border-radius: 8px;">
+                <div style="display: flex; align-items: start;">
+                  <div style="background-color: #d4704a; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin-right: 16px; font-weight: bold; flex-shrink: 0;">3</div>
+                  <div>
+                    <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Comparte tu lista</h3>
+                    <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                      Una vez que tengas tus regalos listos, comparte el enlace de tu lista con familiares y amigos. 
+                      Ellos podrán ver tus regalos y hacer sus contribuciones de forma fácil y segura.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="text-align: center; margin: 40px 0;">
+              <a href="${dashboardUrl}" 
+                 style="display: inline-block; background: linear-gradient(135deg, #d4704a 0%, #b85a3a 100%); color: white; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(212, 112, 74, 0.3); margin-bottom: 12px;">
+                Ir a mi Panel de Control
+              </a>
+              <br>
+              <a href="${registryUrl}" 
+                 style="display: inline-block; background-color: white; color: #d4704a; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: bold; font-size: 16px; border: 2px solid #d4704a; margin-top: 12px;">
+                Ver mi Lista Pública
+              </a>
+            </div>
+
+            <!-- Tips Section -->
+            <div style="background-color: #eff6ff; border: 2px solid #3b82f6; border-radius: 12px; padding: 24px; margin: 32px 0;">
+              <h3 style="margin: 0 0 16px 0; color: #1e40af; font-size: 18px; font-weight: 600;">💡 Consejos útiles</h3>
+              <ul style="margin: 0; padding-left: 20px; color: #1e40af; font-size: 14px; line-height: 1.8;">
+                <li style="margin-bottom: 8px;">Agrega fotos de alta calidad a tus regalos para que luzcan mejor</li>
+                <li style="margin-bottom: 8px;">Incluye descripciones detalladas para ayudar a tus invitados a elegir</li>
+                <li style="margin-bottom: 8px;">Varía los precios para que haya opciones para todos los presupuestos</li>
+                <li style="margin-bottom: 8px;">Revisa regularmente tu panel para ver qué regalos han sido comprados</li>
+                <li>Actualiza tu lista conforme cambien tus necesidades</li>
+              </ul>
+            </div>
+
+            <!-- Support Section -->
+            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 32px 0; border-radius: 8px;">
+              <h3 style="margin: 0 0 12px 0; color: #92400e; font-size: 16px; font-weight: 600;">🤝 ¿Necesitas ayuda?</h3>
+              <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.6;">
+                Nuestro equipo está aquí para ayudarte. Si tienes alguna pregunta o necesitas asistencia, 
+                no dudes en contactarnos en <a href="mailto:${supportEmail}" style="color: #d4704a; text-decoration: none; font-weight: 600;">${supportEmail}</a>. 
+                Responderemos lo antes posible.
+              </p>
+            </div>
+
+            <!-- Registry Link Box -->
+            <div style="background-color: #f0fdf4; border: 2px solid #10b981; border-radius: 12px; padding: 20px; margin: 32px 0;">
+              <h3 style="margin: 0 0 12px 0; color: #065f46; font-size: 16px; font-weight: 600;">🔗 Tu enlace personalizado</h3>
+              <p style="margin: 0 0 12px 0; color: #065f46; font-size: 14px;">
+                Comparte este enlace con tus invitados:
+              </p>
+              <div style="background-color: white; padding: 12px; border-radius: 6px; word-break: break-all; font-size: 14px; color: #059669; font-weight: 500; border: 1px solid #10b981;">
+                ${registryUrl}
+              </div>
+            </div>
+
+            <p style="font-size: 16px; margin: 32px 0 0 0; color: #374151; line-height: 1.8;">
+              Gracias por confiar en MesaLista para este momento tan importante. ¡Les deseamos mucha felicidad en su camino juntos! 💕
+            </p>
+
+            <p style="font-size: 16px; margin: 24px 0 0 0; color: #6b7280;">
+              Con cariño,<br>
+              <strong style="color: #1f2937;">El equipo de MesaLista</strong>
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">
+              ¿Necesitas ayuda? Contáctanos en 
+              <a href="mailto:${supportEmail}" style="color: #d4704a; text-decoration: none;">${supportEmail}</a>
+            </p>
+            <p style="margin: 16px 0 0 0; font-size: 12px; color: #9ca3af;">
+              © 2025 MesaLista. Todos los derechos reservados.
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `.trim();
+  }
+
+  /**
+   * Generate plain text email for welcome email to new users
+   */
+  static generateWelcomeEmailText(data: {
+    firstName: string;
+    spouseFirstName?: string;
+    coupleSlug: string;
+    planType: 'FIXED' | 'COMMISSION';
+  }): string {
+    const coupleName = `${data.firstName}${data.spouseFirstName ? ' y ' + data.spouseFirstName : ''}`;
+    const dashboardUrl = 'https://mesalista.com.mx/dashboard';
+    const registryUrl = `https://mesalista.com.mx/${data.coupleSlug}/regalos`;
+    const supportEmail = 'info@mesalista.com.mx';
+
+    return `
+🎉 ¡BIENVENIDOS A MESALISTA!
+
+Tu lista de regalos está lista para comenzar
+
+Hola ${coupleName},
+
+¡Felicidades por crear tu cuenta en MesaLista! 🎊 Estamos emocionados de ser parte de este momento tan especial en sus vidas. Tu lista de regalos ya está activa y lista para compartir con tus invitados.
+
+✅ ¡TU CUENTA HA SIDO CREADA EXITOSAMENTE!
+
+🚀 PRIMEROS PASOS PARA COMENZAR:
+
+1. AGREGA TUS REGALOS
+   Crea tu lista de regalos con fotos, descripciones y precios. Puedes agregar desde electrodomésticos hasta experiencias de viaje. ¡Sé creativo y agrega todo lo que necesiten para su nueva vida juntos!
+
+2. GESTIONA TUS CONFIRMACIONES (RSVPs)
+   Crea y administra las confirmaciones de asistencia de tus invitados. Mantén todo organizado en un solo lugar y lleva el control de quién asistirá a tu gran día.
+
+3. COMPARTE TU LISTA
+   Una vez que tengas tus regalos listos, comparte el enlace de tu lista con familiares y amigos. Ellos podrán ver tus regalos y hacer sus contribuciones de forma fácil y segura.
+
+ENLACES IMPORTANTES:
+- Panel de Control: ${dashboardUrl}
+- Tu Lista Pública: ${registryUrl}
+
+💡 CONSEJOS ÚTILES:
+- Agrega fotos de alta calidad a tus regalos para que luzcan mejor
+- Incluye descripciones detalladas para ayudar a tus invitados a elegir
+- Varía los precios para que haya opciones para todos los presupuestos
+- Revisa regularmente tu panel para ver qué regalos han sido comprados
+- Actualiza tu lista conforme cambien tus necesidades
+
+🤝 ¿NECESITAS AYUDA?
+Nuestro equipo está aquí para ayudarte. Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos en ${supportEmail}. Responderemos lo antes posible.
+
+🔗 TU ENLACE PERSONALIZADO:
+Comparte este enlace con tus invitados:
+${registryUrl}
+
+Gracias por confiar en MesaLista para este momento tan importante. ¡Les deseamos mucha felicidad en su camino juntos! 💕
+
+Con cariño,
+El equipo de MesaLista
+
+---
+
+¿Necesitas ayuda? Contáctanos en ${supportEmail}
+
+© 2025 MesaLista. Todos los derechos reservados.
+    `.trim();
+  }
 }
