@@ -37,6 +37,7 @@ import { AdminPreDesignedLists } from './app/routes/admin/ManagePredesignedLists
 import { ManageDiscountCodes } from './app/routes/admin/ManageDiscountCodes';
 import { GuestConfirmation } from './app/routes/GuestConfirmation';
 import { ManageRSVP } from './app/routes/couple/ManageRsvp';
+import { Invitations } from './app/routes/couple/Invitations';
 
 function App() {
   const isLocalhost = window.location.hostname === 'localhost';
@@ -145,6 +146,7 @@ function App() {
             <Route path="rsvp" element={<GuestConfirmation />} />
             <Route path="regalos" element={<BuyGifts />} />
             <Route path="checkout" element={<Checkout />} />
+            <Route path="invitaciones" element={<Invitations />} />
             <Route path="pago-confirmado" element={<OrderConfirmation />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<Dashboard />}>

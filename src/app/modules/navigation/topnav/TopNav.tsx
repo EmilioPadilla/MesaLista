@@ -14,6 +14,8 @@ import {
   Tag,
   Mail,
   Settings,
+  ListTodo,
+  MailOpen,
 } from 'lucide-react';
 import { message, Tooltip, Button, Divider } from 'antd';
 import { useGetUserBySlug, useIsAuthenticated, useLogout, useCurrentUser } from 'hooks/useUser';
@@ -111,15 +113,17 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                 </Button>
               </Tooltip>
               {/* Search Button */}
-              <Tooltip title={viewType === 'mobile' ? 'Buscar' : ''} placement="bottom">
-                <Button
-                  type={currentPage === '/buscar' ? 'primary' : 'text'}
-                  onClick={() => navigate('/buscar')}
-                  className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
-                  <Search className="h-4 w-4" />
-                  <span className="hidden md:block">Buscar</span>
-                </Button>
-              </Tooltip>
+              {!isAuthenticated && (
+                <Tooltip title={viewType === 'mobile' ? 'Buscar' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === '/buscar' ? 'primary' : 'text'}
+                    onClick={() => navigate('/buscar')}
+                    className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <Search className="h-4 w-4" />
+                    <span className="hidden md:block">Buscar</span>
+                  </Button>
+                </Tooltip>
+              )}
 
               {/* Predefined Lists Button */}
               {userData?.role !== 'ADMIN' && (
@@ -134,15 +138,17 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                 </Tooltip>
               )}
 
-              <Tooltip title={viewType === 'mobile' ? 'Precios' : ''} placement="bottom">
-                <Button
-                  type={currentPage === '/precios' ? 'primary' : 'text'}
-                  onClick={() => navigate('/precios')}
-                  className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
-                  <Gem className="h-4 w-4" />
-                  <span className="hidden md:block">Precios</span>
-                </Button>
-              </Tooltip>
+              {!isAuthenticated && (
+                <Tooltip title={viewType === 'mobile' ? 'Precios' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === '/precios' ? 'primary' : 'text'}
+                    onClick={() => navigate('/precios')}
+                    className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <Gem className="h-4 w-4" />
+                    <span className="hidden md:block">Precios</span>
+                  </Button>
+                </Tooltip>
+              )}
 
               {userData?.role === 'COUPLE' && isAuthenticated && userCoupleSlug && (
                 <Tooltip title={viewType === 'mobile' ? 'Gestionar' : ''} placement="bottom">
@@ -157,12 +163,24 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
               )}
 
               {userData?.role === 'COUPLE' && isAuthenticated && userCoupleSlug && (
+                <Tooltip title={viewType === 'mobile' ? 'Invitación' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === `/${userCoupleSlug}/invitaciones` ? 'primary' : 'text'}
+                    onClick={() => navigate(`/${userCoupleSlug}/invitaciones`)}
+                    className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <MailOpen className="h-4 w-4" />
+                    <span className="hidden md:block">Invitación</span>
+                  </Button>
+                </Tooltip>
+              )}
+
+              {userData?.role === 'COUPLE' && isAuthenticated && userCoupleSlug && (
                 <Tooltip title={viewType === 'mobile' ? 'RSVP' : ''} placement="bottom">
                   <Button
                     type={currentPage === `/${userCoupleSlug}/gestionar-rsvp` ? 'primary' : 'text'}
                     onClick={() => navigate(`/${userCoupleSlug}/gestionar-rsvp`)}
                     className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
-                    <Mail className="h-4 w-4" />
+                    <ListTodo className="h-4 w-4" />
                     <span className="hidden md:block">RSVP</span>
                   </Button>
                 </Tooltip>
