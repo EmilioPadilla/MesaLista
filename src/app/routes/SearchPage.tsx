@@ -153,11 +153,32 @@ export function SearchPage() {
                 className="group cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm overflow-hidden"
                 onClick={() => navigate(`/${registry.coupleSlug}/regalos`)}>
                 <div className="relative">
-                  <img
-                    src={registry.imageUrl}
-                    alt={`Boda de ${registry.coupleName}`}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  {registry.imageUrl ? (
+                    <img
+                      src={registry.imageUrl}
+                      alt={`Boda de ${registry.coupleName}`}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gradient-to-br from-gray-50 via-orange-50 to-amber-50 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                      <div className="text-center opacity-30">
+                        <svg
+                          className="w-32 h-32 mx-auto mb-2 text-[#d4704a]"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                          />
+                        </svg>
+                        <p className="text-[#d4704a] text-sm font-medium">Sin imagen</p>
+                      </div>
+                    </div>
+                  )}
                   <div className="absolute top-4 right-4">
                     <Badge variant="secondary" className="bg-card/90 text-card-foreground shadow-md">
                       {registry.coupleSlug}

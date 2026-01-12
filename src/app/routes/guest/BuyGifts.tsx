@@ -198,12 +198,28 @@ export function BuyGifts() {
         <div className="h-[600px] md:h-[650px] relative overflow-hidden">
           {/* Background image container */}
           <div className="absolute inset-0 z-0">
-            <img
-              src={weddinglist?.imageUrl}
-              alt="Romantic couple wedding portrait"
-              className="w-full h-full object-cover opacity-40"
-              // preview={false}
-            />
+            {weddinglist?.imageUrl ? (
+              <img src={weddinglist.imageUrl} alt="Romantic couple wedding portrait" className="w-full h-full object-cover opacity-40" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-gray-50 via-orange-50 to-amber-50 flex items-center justify-center">
+                <div className="text-center opacity-20">
+                  <svg
+                    className="w-64 h-64 mx-auto mb-4 text-[#d4704a]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                    />
+                  </svg>
+                  <p className="text-[#d4704a] text-lg font-medium">Mesa de Regalos</p>
+                </div>
+              </div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-white/10" />
           </div>
 
