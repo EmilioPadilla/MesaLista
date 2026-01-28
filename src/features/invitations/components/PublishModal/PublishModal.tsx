@@ -2,19 +2,20 @@ import { useState } from 'react';
 import { Button, Input, Modal, Typography } from 'antd';
 import { Check, Copy, Eye, Share2 } from 'lucide-react';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 interface PublishModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   slug: string;
+  giftListId: number;
   eventName: string;
 }
 
-export function PublishModal({ isOpen, onClose, onConfirm, slug, eventName }: PublishModalProps) {
+export function PublishModal({ isOpen, onClose, onConfirm, slug, giftListId, eventName }: PublishModalProps) {
   const [copied, setCopied] = useState(false);
-  const publicUrl = `https://mesalista.com/i/${slug}`;
+  const publicUrl = `https://mesalista.com/${slug}/${giftListId}/invitacion`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(publicUrl);
@@ -30,7 +31,7 @@ export function PublishModal({ isOpen, onClose, onConfirm, slug, eventName }: Pu
   return (
     <Modal open={isOpen} onCancel={onClose} footer={null} width={600} className="rounded-3xl overflow-hidden" closable={false}>
       {/* Header with Gradient */}
-      <div className="bg-gradient-to-br from-[#007aff] to-[#0051d0] p-8 text-white -m-6 mb-6">
+      <div className="bg-linear-to-br from-primary to-[#d4a574] p-8 text-white -m-7 mb-6">
         <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
           <Share2 className="h-8 w-8" />
         </div>
@@ -71,7 +72,7 @@ export function PublishModal({ isOpen, onClose, onConfirm, slug, eventName }: Pu
             <Eye className="h-5 w-5 text-[#34c759]" />
             Después de publicar
           </Title>
-          <ul className="space-y-2 text-sm text-muted-foreground font-light">
+          <ul className="space-y-2 text-sm text-black font-light">
             <li className="flex items-start gap-2">
               <span className="text-[#34c759] mt-0.5">•</span>
               <span>Tu invitación será visible públicamente</span>

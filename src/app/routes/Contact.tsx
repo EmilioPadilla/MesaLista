@@ -6,6 +6,8 @@ import { Footer } from '../modules/navigation/Footer';
 import { useSendContactForm } from 'src/hooks/useEmail';
 import { faqs } from 'src/config/constants';
 import { motion } from 'motion/react';
+import { PageSEO } from 'src/components/seo';
+import { faqSchema } from 'src/utils/structuredData';
 
 interface ContactFormValues {
   name: string;
@@ -44,8 +46,20 @@ export function Contact() {
     window.scrollTo(0, 0);
   }, []);
 
+  const faqStructuredData = faqSchema(faqs.map((faq) => ({ question: faq.question, answer: faq.answer })));
+
   return (
     <div className="min-h-screen bg-background">
+      <PageSEO
+        title="Contacto - MesaLista"
+        description="¿Tienes alguna pregunta sobre tu mesa de regalos? Nuestro equipo está listo para ayudarte. Contáctanos por email o teléfono."
+        keywords="contacto mesa de regalos, soporte MesaLista, ayuda lista de bodas, atención al cliente"
+        customStructuredData={faqStructuredData}
+        breadcrumbs={[
+          { name: 'Inicio', url: 'https://www.mesalista.com.mx' },
+          { name: 'Contacto', url: 'https://www.mesalista.com.mx/contacto' },
+        ]}
+      />
       {contextHolder}
       {/* Hero Section */}
       <section className="py-20 lg:py-32">

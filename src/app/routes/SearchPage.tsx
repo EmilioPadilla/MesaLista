@@ -3,14 +3,15 @@ import { Button } from 'components/core/Button';
 import { Input } from 'components/core/Input';
 import { Card, CardContent, CardHeader } from 'components/core/Card';
 import { Badge } from 'components/core/Badge';
-import { Calendar, Search, Users, MapPin, Gift, Eye } from 'lucide-react';
+import { Calendar, Search, Users, MapPin, Gift, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useWeddingLists } from 'src/hooks/useWeddingList';
-import { WeddingListBrief } from 'types/models/weddingList';
+import { useGiftLists } from 'src/hooks/useGiftList';
+import { GiftListBrief } from 'types/models/giftList';
+import { PageSEO } from 'src/components/seo';
 
 export function SearchPage() {
   const navigate = useNavigate();
-  const { data: registries } = useWeddingLists() as { data: WeddingListBrief[] | undefined };
+  const { data: registries } = useGiftLists() as { data: GiftListBrief[] | undefined };
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
 
@@ -24,14 +25,14 @@ export function SearchPage() {
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase().trim();
       filtered = filtered.filter(
-        (registry) => registry.coupleName.toLowerCase().includes(searchLower) || registry.coupleSlug.toLowerCase().includes(searchLower),
+        (registry) => registry.coupleName.toLowerCase().includes(searchLower) || registry.userSlug.toLowerCase().includes(searchLower),
       );
     }
 
     // Apply date filter
     if (selectedDate) {
       filtered = filtered.filter((registry) => {
-        const registryDate = new Date(registry.weddingDate);
+        const registryDate = new Date(registry.eventDate);
         const searchDate = new Date(selectedDate);
         const diffTime = Math.abs(registryDate.getTime() - searchDate.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -63,8 +64,14 @@ export function SearchPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageSEO
+        title="Buscar Mesa de Regalos - MesaLista"
+        description="Encuentra la mesa de regalos de tus seres queridos. Busca por nombre de pareja o fecha de evento."
+        keywords="buscar mesa de regalos, encontrar lista de bodas, buscar registro de bodas, México"
+        noindex={true}
+      />
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-primary/5 via-secondary/30 to-accent/20 border-b border-border">
+      <div className="bg-linear-to-br from-primary/5 via-secondary/30 to-accent/20 border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center space-y-6">
             <div className="flex justify-center">
@@ -121,7 +128,7 @@ export function SearchPage() {
               </div>
             </div>
 
-            <div className="!text-md text-muted-foreground">
+            <div className="text-md! text-muted-foreground">
               Se encontraron <span className="text-primary">{filteredRegistries?.length || 0}</span> mesa(s) de regalos
             </div>
           </CardContent>
@@ -151,7 +158,7 @@ export function SearchPage() {
               <Card
                 key={registry.id}
                 className="group cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm overflow-hidden"
-                onClick={() => navigate(`/${registry.coupleSlug}/regalos`)}>
+                onClick={() => navigate(`/${registry.userSlug}/regalos?listId=${registry.id}`)}>
                 <div className="relative">
                   {registry.imageUrl ? (
                     <img
@@ -160,7 +167,7 @@ export function SearchPage() {
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
-                    <div className="w-full h-48 bg-gradient-to-br from-gray-50 via-orange-50 to-amber-50 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                    <div className="w-full h-48 bg-linear-to-br from-gray-50 via-orange-50 to-amber-50 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                       <div className="text-center opacity-30">
                         <svg
                           className="w-32 h-32 mx-auto mb-2 text-[#d4704a]"
@@ -181,15 +188,15 @@ export function SearchPage() {
                   )}
                   <div className="absolute top-4 right-4">
                     <Badge variant="secondary" className="bg-card/90 text-card-foreground shadow-md">
-                      {registry.coupleSlug}
+                      {registry.userSlug}
                     </Badge>
                   </div>
                   <div className="absolute bottom-4 left-4 right-4">
                     <div className="bg-card/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
                       <h3 className="text-card-foreground mb-1">{registry.coupleName}</h3>
-                      <div className="flex items-center !text-md text-muted-foreground">
+                      <div className="flex items-center text-md! text-muted-foreground">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {formatDate(registry.weddingDate.toString())}
+                        {formatDate(registry.eventDate.toString())}
                       </div>
                     </div>
                   </div>
@@ -198,29 +205,29 @@ export function SearchPage() {
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <div className="flex items-center space-x-2 !text-md text-muted-foreground">
+                      <div className="flex items-center space-x-2 text-md text-muted-foreground">
                         <Users className="h-4 w-4" />
                         <span>{registry.coupleName}</span>
                       </div>
-                      {registry.weddingLocation && (
-                        <div className="flex items-center space-x-2 !text-md text-muted-foreground">
+                      {registry.eventLocation && (
+                        <div className="flex items-center space-x-2 text-md text-muted-foreground">
                           <MapPin className="h-4 w-4" />
-                          <span>{registry.weddingLocation}</span>
+                          <span>{registry.eventLocation}</span>
                         </div>
                       )}
-                      {registry.weddingVenue && (
-                        <div className="flex items-center space-x-2 !text-md text-muted-foreground">
-                          <span className="text-xs">📍 {registry.weddingVenue}</span>
+                      {registry.eventVenue && (
+                        <div className="flex items-center space-x-2 text-md text-muted-foreground">
+                          <span className="text-xs">📍 {registry.eventVenue}</span>
                         </div>
                       )}
                     </div>
 
                     {registry.description && (
-                      <p className="!text-md text-muted-foreground line-clamp-2 whitespace-pre-line">{registry.description}</p>
+                      <p className="text-md text-muted-foreground line-clamp-2 whitespace-pre-line">{registry.description}</p>
                     )}
 
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between !text-md">
+                      <div className="flex items-center justify-between text-md">
                         <span className="text-muted-foreground">Progreso de regalos</span>
                         <span className="text-primary">{getProgressPercentage(registry.purchasedGifts, registry.totalGifts)}%</span>
                       </div>
@@ -239,10 +246,22 @@ export function SearchPage() {
                     <div className="flex space-x-2 pt-2">
                       <Button
                         className="flex-1 shadow-md hover:shadow-lg transition-all duration-200"
-                        onClick={() => navigate(`/${registry.coupleSlug}/regalos`)}>
+                        onClick={() => navigate(`/${registry.userSlug}/regalos?listId=${registry.id}`)}>
                         <Gift className="h-4 w-4 mr-2" />
                         Ver Regalos
                       </Button>
+                      {registry.invitationSlug && (
+                        <Button
+                          variant="outline"
+                          className="flex-1 shadow-md hover:shadow-lg transition-all duration-200"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/${registry.invitationSlug}/invitacion`);
+                          }}>
+                          <Mail className="h-4 w-4 mr-2" />
+                          Ver Invitación
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>

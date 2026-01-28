@@ -58,12 +58,11 @@ export const userController = {
           firstName: true,
           lastName: true,
           spouseFirstName: true,
-          coupleSlug: true,
+          slug: true,
           spouseLastName: true,
           imageUrl: true,
           phoneNumber: true,
           role: true,
-          planType: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -90,11 +89,15 @@ export const userController = {
 
   // Get user by couple slug
   getUserBySlug: async (req: Request, res: Response) => {
-    const { coupleSlug } = req.params;
+    const { slug } = req.params;
+
+    if (Array.isArray(slug)) {
+      return res.status(400).json({ error: 'Invalid couple slug' });
+    }
 
     try {
       const user = (await prisma.user.findUnique({
-        where: { coupleSlug },
+        where: { slug: slug as string },
         select: {
           id: true,
           email: true,
@@ -102,7 +105,7 @@ export const userController = {
           lastName: true,
           spouseFirstName: true,
           spouseLastName: true,
-          coupleSlug: true,
+          slug: true,
           imageUrl: true,
           phoneNumber: true,
           role: true,
@@ -157,7 +160,7 @@ export const userController = {
 
   // Create new user
   createUser: async (req: Request, res: Response) => {
-    const { email, firstName, lastName, spouseFirstName, spouseLastName, password, phoneNumber, role, planType, coupleSlug, discountCode } =
+    const { email, firstName, lastName, spouseFirstName, spouseLastName, password, phoneNumber, role, slug, discountCode } =
       req.body as UserCreateRequest & { discountCode?: string };
 
     if (!email || !password) {
@@ -186,123 +189,49 @@ export const userController = {
         userRole = 'ADMIN';
       }
 
-      // Use a transaction to ensure both user and wedding list (if applicable) are created together
-      const result = await prisma.$transaction(async (tx) => {
-        // Create the user
-        const user = await tx.user.create({
-          data: {
-            email,
-            firstName,
-            lastName,
-            spouseFirstName,
-            spouseLastName,
-            password: hashedPassword,
-            phoneNumber,
-            role: userRole,
-            coupleSlug,
-            planType: planType || null,
-            discountCodeId: discountCodeRecord?.id || null,
-          },
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            spouseFirstName: true,
-            spouseLastName: true,
-            coupleSlug: true,
-            imageUrl: true,
-            phoneNumber: true,
-            role: true,
-            planType: true,
-            createdAt: true,
-          },
-        });
-
-        // Increment discount code usage count if a code was used
-        if (discountCodeRecord) {
-          await tx.discountCode.update({
-            where: { id: discountCodeRecord.id },
-            data: {
-              usageCount: {
-                increment: 1,
-              },
-            },
-          });
-        }
-
-        // If the user is a COUPLE, automatically create a wedding list
-        if (userRole === 'COUPLE') {
-          // Calculate a default wedding date (1 year from now)
-          const weddingDate = new Date();
-          weddingDate.setFullYear(weddingDate.getFullYear() + 1);
-
-          // Create a wedding list for the couple
-          const weddingList = await tx.weddingList.create({
-            data: {
-              coupleId: user.id,
-              title: `Lista de ${firstName}${spouseFirstName ? ' y ' + spouseFirstName : ''}`.trim(),
-              coupleName: `${firstName}${spouseFirstName ? ' y ' + spouseFirstName : ''}`.trim(),
-              weddingDate,
-              description: 'Nuestra lista de regalos',
-            },
-          });
-
-          // Create initial gift categories (upsert to avoid duplicates since categories are global)
-          const defaultCategories = ['Cocina', 'Electrodomésticos', 'Viaje', 'Baño', 'Decoración', 'Otros'];
-
-          await Promise.all(
-            defaultCategories.map((categoryName) =>
-              tx.giftCategory.upsert({
-                where: { name: categoryName },
-                update: {}, // Don't update if exists
-                create: { name: categoryName },
-              }),
-            ),
-          );
-
-          // Return both user and wedding list
-          return { user, weddingList };
-        }
-
-        // If not a COUPLE, just return the user
-        return { user };
+      // Create the user
+      const user = await prisma.user.create({
+        data: {
+          email,
+          firstName,
+          lastName,
+          spouseFirstName,
+          spouseLastName,
+          password: hashedPassword,
+          phoneNumber,
+          role: userRole,
+          slug,
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          spouseFirstName: true,
+          spouseLastName: true,
+          slug: true,
+          imageUrl: true,
+          phoneNumber: true,
+          role: true,
+          createdAt: true,
+        },
       });
 
-      // Send admin notification email (non-blocking)
-      if (userRole === 'COUPLE') {
-        emailService
-          .sendAdminSignupNotification({
-            firstName,
-            lastName,
-            spouseFirstName,
-            spouseLastName,
-            email,
-            phoneNumber,
-            coupleSlug: coupleSlug || '',
-            planType: planType as 'FIXED' | 'COMMISSION',
-            discountCode,
-            createdAt: result.user.createdAt,
-          })
-          .catch((error) => {
-            console.error('Failed to send admin signup notification email:', error);
-          });
-
-        // Send welcome email to the new user (non-blocking)
-        emailService
-          .sendWelcomeEmail({
-            email,
-            firstName,
-            spouseFirstName,
-            coupleSlug: coupleSlug || '',
-            planType: planType as 'FIXED' | 'COMMISSION',
-          })
-          .catch((error) => {
-            console.error('Failed to send welcome email:', error);
-          });
+      // Increment discount code usage count if a code was used
+      if (discountCodeRecord) {
+        await prisma.discountCode.update({
+          where: { id: discountCodeRecord.id },
+          data: {
+            usageCount: {
+              increment: 1,
+            },
+          },
+        });
       }
 
-      res.status(201).json(result.user);
+      // Note: GiftList is now created separately in the signup flow with planType
+
+      res.status(201).json(user);
     } catch (error: unknown) {
       console.error('Error creating user:', error);
 
@@ -333,47 +262,6 @@ export const userController = {
       }
 
       res.status(500).json({ error: 'Failed to delete user' });
-    }
-  },
-
-  // Update user plan type (admin only)
-  updateUserPlanType: async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { planType } = req.body;
-
-    if (!planType || !['FIXED', 'COMMISSION'].includes(planType)) {
-      return res.status(400).json({ error: 'Valid plan type is required (FIXED or COMMISSION)' });
-    }
-
-    try {
-      const user = await prisma.user.update({
-        where: { id: Number(id) },
-        data: { planType },
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          spouseFirstName: true,
-          spouseLastName: true,
-          coupleSlug: true,
-          phoneNumber: true,
-          role: true,
-          planType: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
-
-      res.json(user);
-    } catch (error: unknown) {
-      console.error('Error updating user plan type:', error);
-
-      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      res.status(500).json({ error: 'Failed to update plan type' });
     }
   },
 
@@ -474,7 +362,7 @@ export const userController = {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { firstName, lastName, spouseFirstName, spouseLastName, phoneNumber, coupleSlug } = req.body;
+    const { firstName, lastName, spouseFirstName, spouseLastName, phoneNumber, slug } = req.body;
 
     try {
       const updateData: any = {};
@@ -484,9 +372,9 @@ export const userController = {
       if (spouseFirstName !== undefined) updateData.spouseFirstName = spouseFirstName;
       if (spouseLastName !== undefined) updateData.spouseLastName = spouseLastName;
       if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
-      if (coupleSlug !== undefined) {
+      if (slug !== undefined) {
         // Normalize the slug
-        const normalizedSlug = coupleSlug
+        const normalizedSlug = slug
           .toLowerCase()
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '')
@@ -495,14 +383,14 @@ export const userController = {
 
         // Check if slug is already taken by another user
         const existingUser = await prisma.user.findUnique({
-          where: { coupleSlug: normalizedSlug },
+          where: { slug: normalizedSlug },
         });
 
         if (existingUser && existingUser.id !== req.user.userId) {
           return res.status(409).json({ error: 'Este enlace ya está en uso' });
         }
 
-        updateData.coupleSlug = normalizedSlug;
+        updateData.slug = normalizedSlug;
       }
 
       const user = await prisma.user.update({
@@ -515,11 +403,10 @@ export const userController = {
           lastName: true,
           spouseFirstName: true,
           spouseLastName: true,
-          coupleSlug: true,
+          slug: true,
           imageUrl: true,
           phoneNumber: true,
           role: true,
-          planType: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -601,13 +488,13 @@ export const userController = {
     const { slug } = req.params;
     const { excludeUserId } = req.query;
 
-    if (!slug) {
+    if (!slug || Array.isArray(slug)) {
       return res.status(400).json({ error: 'Slug is required' });
     }
 
     try {
       // Normalize the slug
-      const normalizedSlug = slug
+      const normalizedSlug = (slug as string)
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
@@ -616,7 +503,7 @@ export const userController = {
 
       // Check if slug exists
       const existingUser = await prisma.user.findUnique({
-        where: { coupleSlug: normalizedSlug },
+        where: { slug: normalizedSlug },
         select: { id: true },
       });
 
@@ -676,12 +563,12 @@ export const userController = {
   verifyResetToken: async (req: Request, res: Response) => {
     const { token } = req.params;
 
-    if (!token) {
+    if (!token || Array.isArray(token)) {
       return res.status(400).json({ error: 'Token is required' });
     }
 
     try {
-      const tokenData = await passwordResetService.verifyResetToken(token);
+      const tokenData = await passwordResetService.verifyResetToken(token as string);
 
       if (!tokenData) {
         return res.status(400).json({

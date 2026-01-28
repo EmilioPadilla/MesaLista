@@ -18,7 +18,7 @@ export const giftController = {
           id: Number(id),
         },
         include: {
-          weddingList: true,
+          giftList: true,
           categories: {
             include: {
               category: true,
@@ -32,9 +32,11 @@ export const giftController = {
       }
 
       // Format gift to include category information
+      // Type assertion for categories relation
+      const giftWithCategories = gift as typeof gift & { categories: any[] };
       const formattedGift = {
         ...gift,
-        categories: gift.categories.map((cat: any) => cat.category.name),
+        categories: giftWithCategories.categories.map((cat: any) => cat.category.name),
       };
 
       res.json(formattedGift);
@@ -46,10 +48,10 @@ export const giftController = {
 
   // Create a new gift
   createGift: async (req: Request, res: Response) => {
-    const { title, description, price, imageUrl, imagePosition, categories, weddingListId, quantity, isMostWanted } = req.body as any;
+    const { title, description, price, imageUrl, imagePosition, categories, giftListId, quantity, isMostWanted } = req.body as any;
 
-    if (!title || !price || !weddingListId) {
-      return res.status(400).json({ error: 'Title, price, and wedding list ID are required' });
+    if (!title || !price || !giftListId) {
+      return res.status(400).json({ error: 'Title, price, and gift list ID are required' });
     }
 
     try {
@@ -70,7 +72,7 @@ export const giftController = {
           imagePosition: imagePosition ? Number(imagePosition) : 50,
           quantity: quantity ? Number(quantity) : 1,
           isMostWanted: Boolean(isMostWanted),
-          weddingListId: Number(weddingListId),
+          giftListId: Number(giftListId),
         },
       });
 
@@ -93,13 +95,13 @@ export const giftController = {
 
         const giftCategories = await Promise.all(categoryPromises);
 
-        // Create the many-to-many relationships with weddingListId
+        // Create the many-to-many relationships with giftListId
         const categoryRelationPromises = giftCategories.map((giftCategory) =>
           prisma.giftCategoryOnGift.create({
             data: {
               giftId: gift.id,
               categoryId: giftCategory.id,
-              weddingListId: gift.weddingListId,
+              giftListId: gift.giftListId,
             },
           }),
         );
@@ -190,21 +192,23 @@ export const giftController = {
 
         const giftCategories = await Promise.all(categoryPromises);
 
-        // Fetch the gift to get weddingListId
-        const giftForWeddingList = await prisma.gift.findUnique({
+        // Fetch the gift to get giftListId
+        const giftForGiftList = await prisma.gift.findUnique({
           where: { id: Number(id) },
-          select: { weddingListId: true },
+          select: { giftListId: true },
         });
-        const weddingListId = giftForWeddingList?.weddingListId;
 
-        // Create new category relationships with weddingListId
+        if (!giftForGiftList) {
+          return res.status(404).json({ error: 'Gift not found' });
+        }
+
+        // Create new category relationships with giftListId
         const categoryRelationPromises = giftCategories.map((giftCategory: any) =>
           prisma.giftCategoryOnGift.create({
-            // @ts-ignore
             data: {
               giftId: Number(id),
               categoryId: giftCategory.id,
-              weddingListId,
+              giftListId: giftForGiftList.giftListId,
             },
           }),
         );

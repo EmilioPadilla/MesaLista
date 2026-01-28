@@ -13,25 +13,48 @@ import {
   MessageSquare,
   Users,
   Star,
+  ShoppingBag,
+  DollarSign,
+  MapPin,
+  Share2,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useGetUserBySlug, useIsAuthenticated } from 'hooks/useUser';
 import { OutletContextType } from './guest/PublicRegistry';
-import { useWeddingListByCouple } from 'hooks/useWeddingList';
+import { useGiftListsByUser } from 'hooks/useGiftList';
 import { Badge, Button, Card, Skeleton } from 'antd';
 import { Footer } from '../modules/navigation/Footer';
+import { PageSEO } from 'src/components/seo';
+import { MLButton } from 'src/components/core/MLButton';
+import { InvitationTemplateCarousel } from 'src/components/invitations/InvitationTemplateCarousel';
 
 export const HomePage = () => {
   const contextData = useOutletContext<OutletContextType>();
-  const { data: userData, isLoading: isLoadingUser } = useGetUserBySlug(contextData?.coupleSlug);
-  const { data: weddinglist } = useWeddingListByCouple(userData?.id);
+  const { data: userData, isLoading: isLoadingUser } = useGetUserBySlug(contextData?.slug);
+  const { data: giftLists } = useGiftListsByUser(userData?.id);
   const { data: isAuthenticated = false } = useIsAuthenticated();
   const navigate = useNavigate();
 
-  const purchasedGifts = weddinglist?.gifts.filter((gift) => gift.isPurchased).length;
-  const totalGifts = weddinglist?.gifts.length;
-  const progress = (purchasedGifts! / totalGifts!) * 100;
+  const hasMultipleLists = (giftLists?.length || 0) > 1;
+
+  // Calculate aggregate stats for all gift lists
+  const activeLists = giftLists?.filter((list) => list.isActive).length || 0;
+  const totalGifts = giftLists?.reduce((sum, list) => sum + (list.gifts?.length || 0), 0) || 0;
+  const purchasedGifts = giftLists?.reduce((sum, list) => sum + (list.gifts?.filter((gift) => gift.isPurchased).length || 0), 0) || 0;
+  const totalRaised =
+    giftLists?.reduce((sum, list) => {
+      const listTotal = list.gifts?.filter((gift) => gift.isPurchased).reduce((giftSum, gift) => giftSum + (gift.price || 0), 0) || 0;
+      return sum + listTotal;
+    }, 0) || 0;
+  const progress = totalGifts > 0 ? (purchasedGifts / totalGifts) * 100 : 0;
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+    }).format(amount);
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -75,39 +98,48 @@ export const HomePage = () => {
 
       <p className="text-xl mb-8 max-w-2xl mx-auto text-muted-foreground leading-relaxed">
         {isAuthenticated
-          ? 'Gestiona tu lista, ve estadísticas y mantente al día con las compras de tus invitados.'
+          ? `Gestiona tu${hasMultipleLists ? 's' : ''} lista${hasMultipleLists ? 's' : ''}, ve estadísticas y mantente al día con las compras de tus invitados.`
           : 'Explora las mesas de regalos disponibles y encuentra el regalo ideal para esa pareja especial.'}
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
         {isAuthenticated ? (
           <>
-            <Button
-              size="large"
-              type="primary"
-              className="px-8 py-4 hover:-translate-y-1 !bg-primary"
-              onClick={() => navigate('gestionar')}>
-              <BarChart3 className="mr-2 h-5 w-5" />
-              Ver Mi Mesa de Regalos
-            </Button>
-            <Button
-              size="large"
-              variant="outlined"
-              className="px-8 py-4 hover:-translate-y-1 !border-primary !text-primary"
-              onClick={() => navigate('gestionar?addGift=true')}>
-              <Plus className="mr-2 h-5 w-5" />
-              Agregar Regalos
-            </Button>
+            {hasMultipleLists ? (
+              <Button size="large" type="primary" className="px-8 py-4 hover:-translate-y-1 bg-primary!" onClick={() => navigate('listas')}>
+                <BarChart3 className="mr-2 h-5 w-5" />
+                Ver Mis Listas
+              </Button>
+            ) : (
+              <>
+                <Button
+                  size="large"
+                  type="primary"
+                  className="px-8 py-4 hover:-translate-y-1 bg-primary!"
+                  onClick={() => navigate('gestionar')}>
+                  <BarChart3 className="mr-2 h-5 w-5" />
+                  Ver Mi Mesa de Regalos
+                </Button>
+                <Button
+                  size="large"
+                  variant="outlined"
+                  className="px-8 py-4 hover:-translate-y-1 border-primary! text-primary!"
+                  onClick={() => navigate('gestionar?addGift=true')}>
+                  <Plus className="mr-2 h-5 w-5" />
+                  Agregar Regalos
+                </Button>
+              </>
+            )}
           </>
         ) : (
           <>
-            <Button size="large" type="primary" className="px-8 py-4 hover:-translate-y-1 !bg-primary" onClick={() => navigate('regalos')}>
+            <Button size="large" type="primary" className="px-8 py-4 hover:-translate-y-1 bg-primary!" onClick={() => navigate('regalos')}>
               <Gift className="mr-2 h-5 w-5" />
               Explorar Mesa de Regalos de Pareja
             </Button>
             <Button
               size="large"
-              className="px-8 py-4 hover:-translate-y-1 !border-primary !text-primary"
+              className="px-8 py-4 hover:-translate-y-1 border-primary! text-primary!"
               onClick={() => navigate('/buscar')}>
               <Heart className="mr-2 h-5 w-5" />
               Buscar por Pareja
@@ -121,51 +153,118 @@ export const HomePage = () => {
   const loadingSkeleton = () => (
     <>
       <div className="flex justify-center mb-8">
-        <Skeleton.Button active size="small" className="!w-48 !h-10" />
+        <Skeleton.Button active size="small" className="w-48! h-10!" />
       </div>
 
-      <Skeleton.Input active size="large" className="!w-full max-w-3xl !h-20 mb-6" block />
+      <Skeleton.Input active size="large" className="w-full! max-w-3xl! h-20! mb-6" block />
 
       <div className="max-w-2xl mx-auto mb-8">
-        <Skeleton.Input active size="default" className="!w-full !h-8" block />
+        <Skeleton.Input active size="default" className="w-full! h-8!" block />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <Skeleton.Button active size="large" className="!w-64 !h-14" />
-        <Skeleton.Button active size="large" className="!w-64 !h-14" />
+        <Skeleton.Button active size="large" className="w-64! h-14!" />
+        <Skeleton.Button active size="large" className="w-64! h-14!" />
       </div>
     </>
   );
 
   return (
-    <div className="flex flex-col">
+    <div className="min-h-screen bg-white">
+      <PageSEO
+        title="MesaLista - Mesa de Regalos Digital para tu Evento"
+        description="Crea tu mesa de regalos en minutos. Gestiona RSVP, recibe regalos en efectivo o productos. Fácil, elegante y sin comisiones ocultas."
+        keywords="mesa de regalos, evento, matrimonio, boda, regalos de boda, lista de bodas, RSVP, confirmaciones, regalos digitales, México"
+        includeOrganizationSchema
+        includeServiceSchema
+        includeWebsiteSchema
+      />
       {/* Hero Section */}
       <section className="relative bg-white py-20 px-4 sm:px-6 lg:px-8 min-h-[90vh] flex items-center">
         <div className="max-w-7xl mx-auto text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <div className="relative max-w-7xl mx-auto text-center">
-              {isLoadingUser && contextData?.coupleSlug ? loadingSkeleton() : !userData ? unknownUserHero() : userHero()}
+              {isLoadingUser && contextData?.slug ? loadingSkeleton() : !userData ? unknownUserHero() : userHero()}
             </div>
           </motion.div>
 
           {userData?.role === 'COUPLE' && isAuthenticated && (
             <section className="py-16 px-4 sm:px-6 lg:px-8">
               <div className="max-w-4xl mx-auto">
-                <h2 className="text-2xl mb-8 text-center ">Resumen de tu Mesa de Regalos</h2>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <Card className="border-0 shadow-lg bg-linear-to-br from-card to-secondary/20 text-center rounded-2xl!">
-                    <div className="text-3xl text-primary mb-2">{totalGifts}</div>
-                    <div className="text-md! text-muted-foreground">Regalos en tu lista</div>
-                  </Card>
-                  <Card className="border-0 shadow-lg bg-linear-to-br from-card to-accent/20 text-center rounded-2xl!">
-                    <div className="text-3xl text-green-600 mb-2">{purchasedGifts}</div>
-                    <div className="text-md! text-muted-foreground">Regalos comprados</div>
-                  </Card>
-                  <Card className="border-0 shadow-lg bg-linear-to-br from-card to-secondary/20 text-center rounded-2xl!">
-                    <div className="text-3xl text-primary mb-2">{progress ? progress.toFixed(2) : 0}%</div>
-                    <div className="text-md! text-muted-foreground">Progreso completado</div>
-                  </Card>
-                </div>
+                <h2 className="text-2xl mb-8 text-center">
+                  {hasMultipleLists ? 'Resumen de tus Listas' : 'Resumen de tu Mesa de Regalos'}
+                </h2>
+                {hasMultipleLists ? (
+                  <div className="grid md:grid-cols-4 gap-3">
+                    <Card styles={{ body: { padding: '0px' } }} className="border-0 shadow-lg bg-white rounded-2xl overflow-hidden">
+                      <div className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-muted-foreground font-light mb-1">Listas Totales</p>
+                            <p className="text-3xl font-light">{giftLists?.length || 0}</p>
+                          </div>
+                          <div className="w-12 h-12 bg-[#f5f5f7] rounded-full flex items-center justify-center">
+                            <Gift className="h-6 w-6 text-[#007aff]" />
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                    <Card styles={{ body: { padding: '0px' } }} className="border-0 shadow-lg bg-white rounded-2xl overflow-hidden">
+                      <div className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-muted-foreground font-light mb-1">Listas Activas</p>
+                            <p className="text-3xl font-light">{activeLists}</p>
+                          </div>
+                          <div className="w-12 h-12 bg-[#e8f5e9] rounded-full flex items-center justify-center">
+                            <CheckCircle className="h-6 w-6 text-[#34c759]" />
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                    <Card styles={{ body: { padding: '0px' } }} className="border-0 shadow-lg bg-white rounded-2xl overflow-hidden">
+                      <div className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-muted-foreground font-light mb-1">Regalos Totales</p>
+                            <p className="text-3xl font-light">{totalGifts}</p>
+                          </div>
+                          <div className="w-12 h-12 bg-[#fff3e0] rounded-full flex items-center justify-center">
+                            <ShoppingBag className="h-6 w-6 text-[#ff9500]" />
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                    <Card styles={{ body: { padding: '0px' } }} className="border-0 shadow-lg bg-white rounded-2xl overflow-hidden">
+                      <div className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-muted-foreground font-light mb-1">Total Recaudado</p>
+                            <p className="text-2xl font-light">{formatCurrency(totalRaised)}</p>
+                          </div>
+                          <div className="w-12 h-12 bg-[#e3f2fd] rounded-full flex items-center justify-center">
+                            <DollarSign className="h-6 w-6 text-[#007aff]" />
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <Card className="border-0 shadow-lg bg-linear-to-br from-card to-secondary/20 text-center rounded-2xl!">
+                      <div className="text-3xl text-primary mb-2">{totalGifts}</div>
+                      <div className="text-md! text-muted-foreground">Regalos en tu lista</div>
+                    </Card>
+                    <Card className="border-0 shadow-lg bg-linear-to-br from-card to-accent/20 text-center rounded-2xl!">
+                      <div className="text-3xl text-green-600 mb-2">{purchasedGifts}</div>
+                      <div className="text-md! text-muted-foreground">Regalos comprados</div>
+                    </Card>
+                    <Card className="border-0 shadow-lg bg-linear-to-br from-card to-secondary/20 text-center rounded-2xl!">
+                      <div className="text-3xl text-primary mb-2">{progress ? progress.toFixed(2) : 0}%</div>
+                      <div className="text-md! text-muted-foreground">Progreso completado</div>
+                    </Card>
+                  </div>
+                )}
               </div>
             </section>
           )}
@@ -179,6 +278,91 @@ export const HomePage = () => {
               <img src="/images/HP.JPG" alt="Elegant wedding table setting" className="w-full h-[500px] object-cover" />
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Digital Invitations Section - New Feature */}
+      <section className="relative bg-white py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            {/* Left side - Visual showcase with carousel */}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="relative order-2 lg:order-1 h-[600px]">
+              <InvitationTemplateCarousel />
+            </motion.div>
+
+            {/* Right side - Features */}
+            <motion.div
+              className="space-y-8 order-1 lg:order-2"
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}>
+              <div>
+                <Badge className="mb-6 bg-rose-100 text-rose-600 border-rose-200 px-6 py-2 text-sm">Nuevo</Badge>
+                <h2 className="text-5xl md:text-6xl font-semibold text-foreground mb-6 tracking-tight">
+                  Invitaciones Digitales.
+                  <br />
+                  <span className="text-rose-500">Hermosas y compartibles.</span>
+                </h2>
+                <p className="text-xl text-muted-foreground font-light leading-relaxed mb-8">
+                  Crea invitaciones digitales elegantes que complementan perfectamente tu mesa de regalos. Diseños profesionales listos para
+                  compartir.
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                {[
+                  {
+                    icon: Gift,
+                    title: 'Múltiples plantillas premium',
+                    description: 'Elige entre diseños elegantes para bodas, cumpleaños, baby showers y más.',
+                  },
+                  {
+                    icon: Sparkles,
+                    title: 'Personalización en tiempo real',
+                    description: 'Editor intuitivo con vista previa instantánea de tus cambios.',
+                  },
+                  {
+                    icon: Share2,
+                    title: 'Comparte fácilmente',
+                    description: 'URL única para cada invitación con acceso directo a tu mesa de regalos.',
+                  },
+                ].map((feature, index) => (
+                  <motion.div
+                    key={index}
+                    className="flex gap-4 items-start group"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 + index * 0.1 }}
+                    viewport={{ once: true }}>
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-400 to-pink-300 flex items-center justify-center flex-shrink-0 shadow-md group-hover:scale-110 transition-transform duration-300">
+                      <feature.icon className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground mb-1">{feature.title}</h3>
+                      <p className="text-muted-foreground leading-relaxed font-light">{feature.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {!isAuthenticated && (
+                <MLButton
+                  size="large"
+                  buttonType="secondary"
+                  onClick={() => navigate('/registro')}
+                  className="px-10 py-4 text-lg bg-rose-500 hover:bg-rose-600 text-white rounded-full border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+                  Crear mi primera invitación
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </MLButton>
+              )}
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -747,16 +931,20 @@ export const HomePage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}>
-            <h2 className="text-5xl md:text-6xl font-semibold text-foreground mb-8 tracking-tight">Visita tu Mesa de Regalos.</h2>
+            <h2 className="text-5xl md:text-6xl font-semibold text-foreground mb-8 tracking-tight">
+              {hasMultipleLists ? 'Visita tus Listas de Regalos.' : 'Visita tu Mesa de Regalos.'}
+            </h2>
             <p className="text-xl text-muted-foreground mb-12 font-light leading-relaxed">
-              Accede a tu mesa de regalos y comienza a gestionar tus invitados.
+              {hasMultipleLists
+                ? 'Accede a todas tus listas de regalos y gestiona tus invitados.'
+                : 'Accede a tu mesa de regalos y comienza a gestionar tus invitados.'}
             </p>
             <Button
               size="large"
               type="primary"
               className="px-12 py-4 text-lg bg-primary hover:bg-[#d4a574] text-white rounded-full border-0 shadow-lg hover:shadow-xl transition-all duration-300"
-              onClick={() => navigate('regalos')}>
-              Visitar
+              onClick={() => navigate(hasMultipleLists ? 'listas' : 'regalos')}>
+              {hasMultipleLists ? 'Ver Mis Listas' : 'Visitar'}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </motion.div>

@@ -72,14 +72,18 @@ export const emailVerificationController = {
    * Check if email was recently verified
    * GET /api/email-verification/check/:email
    */
-  checkVerificationStatus: async (req: Request, res: Response) => {
-    const { email } = req.params;
-
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
-    }
-
+  checkEmailVerified: async (req: Request, res: Response) => {
     try {
+      const { email } = req.params;
+
+      if (Array.isArray(email)) {
+        return res.status(400).json({ message: 'Invalid email' });
+      }
+
+      if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+      }
+
       const isVerified = await emailVerificationService.isEmailRecentlyVerified(email);
 
       res.json({

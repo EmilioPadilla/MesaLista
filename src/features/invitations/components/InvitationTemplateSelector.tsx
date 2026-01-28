@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Button, Card, Badge, Input, Tabs, Typography } from 'antd';
 import { ArrowLeft, Heart, PartyPopper, Baby, Sparkles } from 'lucide-react';
-import type { InvitationTemplate } from 'src/app/routes/couple/Invitations';
+import type { InvitationTemplate } from 'types/models/invitation';
+import { invitationTemplates } from './invitationTemplates';
 
 const { Search } = Input;
 const { Title, Text } = Typography;
@@ -11,72 +12,6 @@ interface InvitationTemplateSelectorProps {
   onSelectTemplate: (template: InvitationTemplate) => void;
   onBack: () => void;
 }
-
-// Template definitions
-const templates: InvitationTemplate[] = [
-  {
-    id: 'elegant-wedding',
-    name: 'Boda Elegante',
-    description: 'Diseño clásico y sofisticado perfecto para bodas formales',
-    thumbnail: 'wedding-elegant',
-    category: 'wedding',
-    previewComponent: 'ElegantWeddingPreview',
-    fields: [
-      { key: 'title', label: 'Nombres de los Novios', type: 'text', placeholder: 'Ana & Carlos', defaultValue: '' },
-      {
-        key: 'subtitle',
-        label: 'Subtítulo',
-        type: 'text',
-        placeholder: 'Te invitamos a celebrar nuestra boda',
-        defaultValue: 'Te invitamos a celebrar nuestra boda',
-      },
-      { key: 'date', label: 'Fecha del Evento', type: 'date', placeholder: '', defaultValue: '' },
-      { key: 'time', label: 'Hora', type: 'time', placeholder: '18:00', defaultValue: '18:00' },
-      { key: 'location', label: 'Ubicación', type: 'location', placeholder: 'Hacienda San Miguel, Guadalajara', defaultValue: '' },
-      {
-        key: 'message',
-        label: 'Mensaje Personal',
-        type: 'textarea',
-        placeholder: 'Será un honor contar con tu presencia...',
-        defaultValue: '',
-      },
-    ],
-  },
-  {
-    id: 'modern-birthday',
-    name: 'Cumpleaños Moderno',
-    description: 'Diseño vibrante y divertido para celebraciones de cumpleaños',
-    thumbnail: 'birthday-modern',
-    category: 'birthday',
-    previewComponent: 'ModernBirthdayPreview',
-    fields: [
-      { key: 'title', label: 'Título', type: 'text', placeholder: '¡Fiesta de Cumpleaños!', defaultValue: '' },
-      { key: 'name', label: 'Nombre del Festejado', type: 'text', placeholder: 'María', defaultValue: '' },
-      { key: 'age', label: 'Edad', type: 'text', placeholder: '30', defaultValue: '' },
-      { key: 'date', label: 'Fecha', type: 'date', placeholder: '', defaultValue: '' },
-      { key: 'time', label: 'Hora', type: 'time', placeholder: '19:00', defaultValue: '19:00' },
-      { key: 'location', label: 'Ubicación', type: 'location', placeholder: 'Salón de Fiestas', defaultValue: '' },
-      { key: 'message', label: 'Mensaje', type: 'textarea', placeholder: 'Ven a celebrar conmigo...', defaultValue: '' },
-    ],
-  },
-  {
-    id: 'baby-shower',
-    name: 'Baby Shower',
-    description: 'Diseño tierno y dulce para celebrar la llegada del bebé',
-    thumbnail: 'baby-shower',
-    category: 'baby-shower',
-    previewComponent: 'BabyShowerPreview',
-    fields: [
-      { key: 'title', label: 'Título', type: 'text', placeholder: 'Baby Shower', defaultValue: '' },
-      { key: 'parentNames', label: 'Nombres de los Padres', type: 'text', placeholder: 'Ana y Carlos', defaultValue: '' },
-      { key: 'babyName', label: 'Nombre del Bebé', type: 'text', placeholder: 'Sofía', defaultValue: '' },
-      { key: 'date', label: 'Fecha', type: 'date', placeholder: '', defaultValue: '' },
-      { key: 'time', label: 'Hora', type: 'time', placeholder: '16:00', defaultValue: '16:00' },
-      { key: 'location', label: 'Ubicación', type: 'location', placeholder: 'Casa de la Abuela', defaultValue: '' },
-      { key: 'message', label: 'Mensaje', type: 'textarea', placeholder: 'Acompáñanos a celebrar...', defaultValue: '' },
-    ],
-  },
-];
 
 const getCategoryIcon = (category: string) => {
   switch (category) {
@@ -108,9 +43,9 @@ export function InvitationTemplateSelector({ onSelectTemplate, onBack }: Invitat
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const categories = ['all', ...Array.from(new Set(templates.map((t) => t.category)))];
+  const categories = ['all', ...Array.from(new Set(invitationTemplates.map((t) => t.category)))];
 
-  const filteredTemplates = templates.filter((template) => {
+  const filteredTemplates = invitationTemplates.filter((template) => {
     const matchesSearch =
       template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description.toLowerCase().includes(searchQuery.toLowerCase());

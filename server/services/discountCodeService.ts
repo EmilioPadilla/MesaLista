@@ -7,7 +7,7 @@ export const discountCodeService = {
     return await prisma.discountCode.findMany({
       include: {
         _count: {
-          select: { users: true },
+          select: { giftLists: true },
         },
       },
       orderBy: {
@@ -22,7 +22,7 @@ export const discountCodeService = {
       where: { code: code.toUpperCase() },
       include: {
         _count: {
-          select: { users: true },
+          select: { giftLists: true },
         },
       },
     });
@@ -121,16 +121,11 @@ export const discountCodeService = {
     const discountCode = await prisma.discountCode.findUnique({
       where: { id },
       include: {
-        users: {
+        giftLists: {
           select: {
             id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            createdAt: true,
-          },
-          orderBy: {
-            createdAt: 'desc',
+            coupleName: true,
+            userId: true,
           },
         },
       },

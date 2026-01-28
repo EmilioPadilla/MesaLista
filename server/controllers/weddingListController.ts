@@ -8,10 +8,10 @@ const prisma = new PrismaClient();
 const weddingListController = {
   getAllWeddingLists: async (_req: Request, res: Response) => {
     try {
-      const weddingLists = await prisma.weddingList.findMany({
+      const weddingLists = await prisma.giftList.findMany({
         include: {
           gifts: true,
-          couple: {
+          user: {
             select: {
               id: true,
               firstName: true,
@@ -20,7 +20,7 @@ const weddingListController = {
               spouseLastName: true,
               imageUrl: true,
               email: true,
-              coupleSlug: true,
+              slug: true,
               phoneNumber: true,
               role: true,
               createdAt: true,
@@ -37,11 +37,11 @@ const weddingListController = {
         (list: any): WeddingListBrief => ({
           id: list.id,
           coupleName: list.coupleName,
-          weddingDate: list.weddingDate.toISOString(),
+          weddingDate: list.eventDate.toISOString(),
           imageUrl: list.imageUrl,
-          weddingLocation: list.weddingLocation,
-          weddingVenue: list.weddingVenue,
-          coupleSlug: list.couple.coupleSlug,
+          weddingLocation: list.eventLocation,
+          weddingVenue: list.eventVenue,
+          slug: list.user.slug,
           description: list.description,
           totalGifts: list.gifts.length,
           purchasedGifts: list.gifts.filter((gift: any) => gift.isPurchased).length,
@@ -64,8 +64,8 @@ const weddingListController = {
     }
 
     try {
-      const weddingList = await prisma.weddingList.findUnique({
-        where: { coupleId: Number(coupleId) },
+      const weddingList = await prisma.giftList.findFirst({
+        where: { userId: Number(coupleId) },
         include: {
           gifts: {
             include: {
@@ -105,16 +105,16 @@ const weddingListController = {
 
   // Get wedding list by couple slug
   getWeddingListBySlug: async (req: Request, res: Response) => {
-    const { coupleSlug } = req.params;
+    const { slug } = req.params;
 
-    if (!coupleSlug) {
+    if (!slug || Array.isArray(slug)) {
       return res.status(400).json({ error: 'Couple slug is required' });
     }
 
     try {
-      // First find the user by coupleSlug
+      // First find the user by slug
       const user = await prisma.user.findUnique({
-        where: { coupleSlug },
+        where: { slug },
         select: { id: true },
       });
 
@@ -123,8 +123,8 @@ const weddingListController = {
       }
 
       // Then find the wedding list by coupleId
-      const weddingList = await prisma.weddingList.findUnique({
-        where: { coupleId: user.id },
+      const weddingList = await prisma.giftList.findFirst({
+        where: { userId: user.id },
         include: {
           gifts: {
             include: {
@@ -171,13 +171,13 @@ const weddingListController = {
     }
 
     try {
-      const weddingList = await prisma.weddingList.create({
+      const weddingList = await prisma.giftList.create({
         data: {
-          coupleId: Number(coupleId),
+          userId: Number(coupleId),
           title,
           description,
           coupleName,
-          weddingDate: new Date(weddingDate),
+          eventDate: new Date(weddingDate),
           imageUrl,
         },
       });
@@ -197,22 +197,23 @@ const weddingListController = {
   // Update a wedding list
   updateWeddingList: async (req: Request, res: Response) => {
     const { weddingListId } = req.params;
-    const { title, description, coupleName, weddingDate, weddingLocation, weddingVenue, imageUrl, invitationCount } = req.body as UpdateWeddingListRequest;
+    const { title, description, coupleName, weddingDate, weddingLocation, weddingVenue, imageUrl, invitationCount } =
+      req.body as UpdateWeddingListRequest;
 
     if (!weddingListId) {
       return res.status(400).json({ error: 'Wedding list ID is required' });
     }
 
     try {
-      const weddingList = await prisma.weddingList.update({
+      const weddingList = await prisma.giftList.update({
         where: { id: Number(weddingListId) },
         data: {
           ...(title && { title }),
           ...(description !== undefined && { description }),
           ...(coupleName && { coupleName }),
-          ...(weddingDate && { weddingDate: new Date(weddingDate) }),
-          ...(weddingLocation !== undefined && { weddingLocation }),
-          ...(weddingVenue !== undefined && { weddingVenue }),
+          ...(weddingDate && { eventDate: new Date(weddingDate) }),
+          ...(weddingLocation !== undefined && { eventLocation: weddingLocation }),
+          ...(weddingVenue !== undefined && { eventVenue: weddingVenue }),
           ...(imageUrl !== undefined && { imageUrl }),
           ...(invitationCount !== undefined && { invitationCount }),
         },
@@ -242,7 +243,7 @@ const weddingListController = {
     try {
       // Build the where clause with filters
       const whereClause: WhereClause = {
-        weddingListId: Number(weddingListId),
+        giftListId: Number(weddingListId),
       };
 
       // Add category filter if provided
@@ -277,7 +278,7 @@ const weddingListController = {
       const gifts = await prisma.gift.findMany({
         where: whereClause,
         include: {
-          weddingList: true,
+          giftList: true,
           categories: {
             include: {
               category: true,
@@ -310,7 +311,7 @@ const weddingListController = {
     try {
       // Fetch unique categories directly from GiftCategoryOnGift using weddingListId
       const categoriesOnGifts = await prisma.giftCategoryOnGift.findMany({
-        where: { weddingListId: Number(weddingListId) },
+        where: { giftListId: Number(weddingListId) },
         include: { category: true },
       });
 
@@ -350,7 +351,7 @@ const weddingListController = {
           await tx.gift.update({
             where: {
               id: Number(giftId),
-              weddingListId: Number(weddingListId), // Ensure gift belongs to this wedding list
+              giftListId: Number(weddingListId), // Ensure gift belongs to this gift list
             },
             data: {
               order: Number(order),

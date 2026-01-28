@@ -43,7 +43,7 @@ export interface FormattedWeddingList {
 export interface WeddingListBrief {
   id: number;
   coupleName: string;
-  coupleSlug: string;
+  slug: string;
   weddingLocation?: string;
   weddingVenue?: string;
   description?: string;

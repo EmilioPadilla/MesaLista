@@ -28,7 +28,7 @@ export interface UserCreateRequest {
   phoneNumber?: string;
   role?: UserRole;
   planType?: PlanType;
-  coupleSlug: string;
+  slug: string;
 }
 
 export interface UserUpdateRequest {

@@ -17,7 +17,7 @@ export const useIsAuthenticated = (options?: Partial<UseQueryOptions<boolean, Er
         // Try to get current user - if successful, user is authenticated
         // Pass true to suppress error logging for auth checks
         const user = await userService.getCurrentUser(true);
-        message.success(`Bienvenid@ de vuelta, ${user.firstName}${user.spouseFirstName ? ' y ' + user.spouseFirstName : ''}!`);
+        // message.success(`Bienvenid@ de vuelta, ${user.firstName}${user.spouseFirstName ? ' y ' + user.spouseFirstName : ''}!`);
         return true;
       } catch (error) {
         // If getCurrentUser fails, user is not authenticated
@@ -85,11 +85,11 @@ export const useUserById = (userId: number | undefined, options?: Partial<UseQue
 /**
  * Hook to fetch a user by couple slug
  */
-export const useGetUserBySlug = (coupleSlug: string | undefined) => {
+export const useGetUserBySlug = (slug: string | undefined) => {
   return useQuery({
-    queryKey: [queryKeys.userBySlug, coupleSlug],
-    queryFn: () => userService.getBySlug(coupleSlug!),
-    enabled: !!coupleSlug,
+    queryKey: [queryKeys.userBySlug, slug],
+    queryFn: () => userService.getBySlug(slug!),
+    enabled: !!slug,
   });
 };
 
@@ -194,7 +194,7 @@ export const useUpdateCurrentUserProfile = () => {
       spouseFirstName?: string;
       spouseLastName?: string;
       phoneNumber?: string;
-      coupleSlug?: string;
+      slug?: string;
     }) => userService.updateCurrentUserProfile(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });

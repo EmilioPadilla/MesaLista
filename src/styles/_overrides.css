@@ -22,4 +22,322 @@ body {
       }
     }
   }
+
+  /* MLButton - MesaLista Custom Button Styles */
+
+  /* Primary Button - Oak (#d4704a) */
+  .ant-btn-primary {
+    background-color: #d4704a !important;
+    border-color: #d4704a !important;
+    color: #ffffff !important;
+  }
+
+  .ant-btn-primary:hover {
+    background-color: #c05f3d !important;
+    border-color: #c05f3d !important;
+    color: #ffffff !important;
+  }
+
+  .ant-btn-primary:active,
+  .ant-btn-primary:focus {
+    background-color: #a84f30 !important;
+    border-color: #a84f30 !important;
+    color: #ffffff !important;
+  }
+
+  .ant-btn-primary:disabled {
+    background-color: #e8b39a !important;
+    border-color: #e8b39a !important;
+    color: #ffffff !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Secondary Button - White (#ffffff) */
+  .ant-btn-secondary {
+    background-color: #ffffff !important;
+    border-color: #d4d8dc !important;
+    color: #101418 !important;
+  }
+
+  .ant-btn-secondary:hover {
+    background-color: #f5f5f5 !important;
+    border-color: #bfc5cb !important;
+    color: #101418 !important;
+  }
+
+  .ant-btn-secondary:active,
+  .ant-btn-secondary:focus {
+    background-color: #dfe2e5 !important;
+    border-color: #949ca4 !important;
+    color: #101418 !important;
+  }
+
+  .ant-btn-secondary:disabled {
+    background-color: #fafafa !important;
+    border-color: #dfe2e5 !important;
+    color: #949ca4 !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Tertiary Button - Black (#101418) */
+  .ant-btn-tertiary {
+    background-color: #101418 !important;
+    border-color: #101418 !important;
+    color: #ffffff !important;
+  }
+
+  .ant-btn-tertiary:hover {
+    background-color: #30373e !important;
+    border-color: #30373e !important;
+    color: #ffffff !important;
+  }
+
+  .ant-btn-tertiary:active,
+  .ant-btn-tertiary:focus {
+    background-color: #1b2127 !important;
+    border-color: #1b2127 !important;
+    color: #ffffff !important;
+  }
+
+  .ant-btn-tertiary:disabled {
+    background-color: #535c64 !important;
+    border-color: #535c64 !important;
+    color: #ffffff !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Danger Button */
+  .ant-btn-danger {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: #ffffff !important;
+  }
+
+  .ant-btn-danger:hover {
+    background-color: #bd2130 !important;
+    border-color: #bd2130 !important;
+    color: #ffffff !important;
+  }
+
+  .ant-btn-danger:active,
+  .ant-btn-danger:focus {
+    background-color: #a71d2a !important;
+    border-color: #a71d2a !important;
+    color: #ffffff !important;
+  }
+
+  .ant-btn-danger:disabled {
+    background-color: #e89aa3 !important;
+    border-color: #e89aa3 !important;
+    color: #ffffff !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Neutral Button */
+  .ant-btn-neutral {
+    background-color: #f3f4f5 !important;
+    border-color: #d4d8dc !important;
+    color: #101418 !important;
+  }
+
+  .ant-btn-neutral:hover {
+    background-color: #dfe2e5 !important;
+    border-color: #bfc5cb !important;
+    color: #101418 !important;
+  }
+
+  .ant-btn-neutral:active,
+  .ant-btn-neutral:focus {
+    background-color: #d4d8dc !important;
+    border-color: #949ca4 !important;
+    color: #101418 !important;
+  }
+
+  .ant-btn-neutral:disabled {
+    background-color: #fafafa !important;
+    border-color: #dfe2e5 !important;
+    color: #949ca4 !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Outline Button */
+  .ant-btn-outline {
+    background-color: transparent !important;
+    border-color: #d4d8dc !important;
+    color: #101418 !important;
+  }
+
+  .ant-btn-outline:hover {
+    background-color: #f5f5f5 !important;
+    border-color: #bfc5cb !important;
+    color: #101418 !important;
+  }
+
+  .ant-btn-outline:active,
+  .ant-btn-outline:focus {
+    background-color: #dfe2e5 !important;
+    border-color: #949ca4 !important;
+    color: #101418 !important;
+  }
+
+  .ant-btn-outline:disabled {
+    background-color: transparent !important;
+    border-color: #dfe2e5 !important;
+    color: #949ca4 !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Outline Primary Button - Oak */
+  .ant-btn-outline-primary {
+    background-color: transparent !important;
+    border-color: #d4704a !important;
+    color: #d4704a !important;
+  }
+
+  .ant-btn-outline-primary:hover {
+    background-color: #fef5f1 !important;
+    border-color: #c05f3d !important;
+    color: #c05f3d !important;
+  }
+
+  .ant-btn-outline-primary:active,
+  .ant-btn-outline-primary:focus {
+    background-color: #fde9e0 !important;
+    border-color: #a84f30 !important;
+    color: #a84f30 !important;
+  }
+
+  .ant-btn-outline-primary:disabled {
+    background-color: transparent !important;
+    border-color: #e8b39a !important;
+    color: #e8b39a !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Outline Secondary Button - White/Gray */
+  .ant-btn-outline-secondary {
+    background-color: transparent !important;
+    border-color: #949ca4 !important;
+    color: #535c64 !important;
+  }
+
+  .ant-btn-outline-secondary:hover {
+    background-color: #fafafa !important;
+    border-color: #535c64 !important;
+    color: #30373e !important;
+  }
+
+  .ant-btn-outline-secondary:active,
+  .ant-btn-outline-secondary:focus {
+    background-color: #f5f5f5 !important;
+    border-color: #30373e !important;
+    color: #1b2127 !important;
+  }
+
+  .ant-btn-outline-secondary:disabled {
+    background-color: transparent !important;
+    border-color: #d4d8dc !important;
+    color: #bfc5cb !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Outline Danger Button */
+  .ant-btn-outline-danger {
+    background-color: transparent !important;
+    border-color: #dc3545 !important;
+    color: #dc3545 !important;
+  }
+
+  .ant-btn-outline-danger:hover {
+    background-color: #fef5f6 !important;
+    border-color: #bd2130 !important;
+    color: #bd2130 !important;
+  }
+
+  .ant-btn-outline-danger:active,
+  .ant-btn-outline-danger:focus {
+    background-color: #fde9eb !important;
+    border-color: #a71d2a !important;
+    color: #a71d2a !important;
+  }
+
+  .ant-btn-outline-danger:disabled {
+    background-color: transparent !important;
+    border-color: #e89aa3 !important;
+    color: #e89aa3 !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Transparent Button */
+  .ant-btn-transparent {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: #101418 !important;
+  }
+
+  .ant-btn-transparent:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    border-color: transparent !important;
+    color: #101418 !important;
+  }
+
+  .ant-btn-transparent:active,
+  .ant-btn-transparent:focus {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+    border-color: transparent !important;
+    color: #101418 !important;
+  }
+
+  .ant-btn-transparent:disabled {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: #949ca4 !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Link Button */
+  .ant-btn-link {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: #d4704a !important;
+    text-decoration: none !important;
+  }
+
+  .ant-btn-link:hover {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: #c05f3d !important;
+    text-decoration: underline !important;
+  }
+
+  .ant-btn-link:active,
+  .ant-btn-link:focus {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: #a84f30 !important;
+  }
+
+  .ant-btn-link:disabled {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: #bfc5cb !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Loading state adjustments */
+  .ant-btn-primary.ant-btn-loading,
+  .ant-btn-tertiary.ant-btn-loading {
+    color: #ffffff !important;
+  }
+
+  .ant-btn-secondary.ant-btn-loading,
+  .ant-btn-neutral.ant-btn-loading {
+    color: #101418 !important;
+  }
+
+  /* Focus visible for accessibility */
+  .ant-btn:focus-visible {
+    outline: 2px solid #d4704a !important;
+    outline-offset: 2px;
+  }
 }

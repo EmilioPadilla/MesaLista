@@ -4,6 +4,7 @@ import { message } from 'antd';
 import { Check, Loader2 } from 'lucide-react';
 import { Button } from 'components/core/Button';
 import { useCreateUser, useLogin } from 'hooks/useUser';
+import { useCreateGiftList } from 'hooks/useGiftList';
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
 
 function SignupSuccess() {
@@ -13,6 +14,7 @@ function SignupSuccess() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const sessionId = searchParams.get('session_id');
   const { mutateAsync: createUser, isSuccess: isSuccessCreatedUser } = useCreateUser();
+  const { mutateAsync: createGiftList } = useCreateGiftList();
   const { mutateAsync: login, isSuccess: isSuccessLogin, isError: isFailedLogin } = useLogin();
   const trackEvent = useTrackEvent();
 
@@ -55,13 +57,13 @@ function SignupSuccess() {
     // Track registry purchase
     trackEvent('REGISTRY_PURCHASE', {
       planType: userData.planType,
-      coupleSlug: userData.coupleSlug,
+      slug: userData.slug,
     });
 
     // Redirect to user's registry after 3 seconds
     setTimeout(() => {
-      if (userData.coupleSlug) {
-        navigate(`/${userData.coupleSlug}`);
+      if (userData.slug) {
+        navigate(`/${userData.slug}`);
       } else {
         message.error('Something failed when creating your user');
       }
@@ -77,7 +79,7 @@ function SignupSuccess() {
       !userData.firstName ||
       !userData.lastName ||
       !userData.planType ||
-      !userData.coupleSlug ||
+      !userData.slug ||
       !userData.phoneNumber ||
       !userData.role
     ) {
@@ -85,9 +87,26 @@ function SignupSuccess() {
       setIsVerifying(false);
       return;
     }
-    createUser({
-      ...userData,
-    });
+
+    // Create user WITHOUT planType (it goes to GiftList now)
+    const { planType, discountCode, ...userDataWithoutPlan } = userData;
+    const createdUser = await createUser(userDataWithoutPlan);
+
+    // Create GiftList with planType and discountCodeId
+    if (createdUser) {
+      const coupleName = userData.spouseFirstName
+        ? `${userData.firstName} y ${userData.spouseFirstName}`
+        : `${userData.firstName} ${userData.lastName}`;
+
+      await createGiftList({
+        userId: createdUser.id,
+        title: `Mesa de Regalos de ${coupleName}`,
+        coupleName: coupleName,
+        eventDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(), // 6 months from now
+        planType: planType,
+        discountCodeId: discountCode?.id,
+      });
+    }
   };
 
   useEffect(() => {

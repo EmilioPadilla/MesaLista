@@ -8,7 +8,7 @@ export interface UserAnalytics {
   lastName: string;
   spouseFirstName: string | null;
   spouseLastName: string | null;
-  coupleSlug: string | null;
+  slug: string | null;
   phoneNumber: string | null;
   planType: 'FIXED' | 'COMMISSION' | null;
   discountCode: string | null;
@@ -35,7 +35,7 @@ export interface WeddingListAnalytics {
   createdAt: string;
   coupleEmail: string;
   couplePlanType: 'FIXED' | 'COMMISSION' | null;
-  coupleSlug: string | null;
+  slug: string | null;
   totalGifts: number;
   purchasedGifts: number;
   totalValue: number;

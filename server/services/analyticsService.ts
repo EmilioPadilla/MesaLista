@@ -183,12 +183,12 @@ export const analyticsService = {
       // If filtering by wedding list, get the owner's user hash
       let ownerUserHash: string | undefined;
       if (weddingListId) {
-        const weddingList = await prisma.weddingList.findUnique({
+        const weddingList = await prisma.giftList.findUnique({
           where: { id: weddingListId },
-          select: { coupleId: true },
+          select: { userId: true },
         });
         if (weddingList) {
-          ownerUserHash = this.hashUserId(weddingList.coupleId);
+          ownerUserHash = this.hashUserId(weddingList.userId);
         }
       }
 

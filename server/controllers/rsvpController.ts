@@ -34,6 +34,10 @@ export const rsvpController = {
     try {
       const { secretCode } = req.params;
 
+      if (Array.isArray(secretCode)) {
+        return res.status(400).json({ message: 'Invalid secret code' });
+      }
+
       if (!secretCode) {
         return res.status(400).json({
           success: false,
@@ -68,7 +72,7 @@ export const rsvpController = {
     try {
       const { secretCode } = req.params;
 
-      if (!secretCode) {
+      if (!secretCode || Array.isArray(secretCode)) {
         return res.status(400).json({
           success: false,
           valid: false,
@@ -76,7 +80,7 @@ export const rsvpController = {
         });
       }
 
-      const invitee = await rsvpService.getInviteeBySecretCode(secretCode);
+      const invitee = await rsvpService.getInviteeBySecretCode(secretCode as string);
 
       res.json({
         success: true,
@@ -189,6 +193,11 @@ export const rsvpController = {
       }
 
       const { id } = req.params;
+
+      if (Array.isArray(id)) {
+        return res.status(400).json({ message: 'Invalid ID' });
+      }
+
       const { firstName, lastName, tickets, secretCode } = req.body;
 
       // Verify the invitee belongs to this couple
@@ -235,8 +244,12 @@ export const rsvpController = {
 
       const { id } = req.params;
 
+      if (Array.isArray(id)) {
+        return res.status(400).json({ message: 'Invalid ID' });
+      }
+
       // Verify the invitee belongs to this couple
-      const existing = await rsvpService.getInviteeById(id);
+      const existing = await rsvpService.getInviteeById(id as string);
       if (!existing || existing.coupleId !== coupleId) {
         return res.status(404).json({
           success: false,
@@ -244,7 +257,7 @@ export const rsvpController = {
         });
       }
 
-      await rsvpService.deleteInvitee(id);
+      await rsvpService.deleteInvitee(id as string);
 
       res.json({
         success: true,
@@ -344,6 +357,10 @@ export const rsvpController = {
   respondToRsvp: async (req: Request, res: Response) => {
     try {
       const { secretCode } = req.params;
+
+      if (Array.isArray(secretCode)) {
+        return res.status(400).json({ message: 'Invalid secret code' });
+      }
       const { status, confirmedTickets, guestMessage } = req.body;
 
       if (!secretCode || !status) {
@@ -407,6 +424,10 @@ export const rsvpController = {
   getRsvpMessages: async (req: Request, res: Response) => {
     try {
       const { coupleId } = req.params;
+
+      if (Array.isArray(coupleId)) {
+        return res.status(400).json({ message: 'Invalid couple ID' });
+      }
 
       if (!coupleId) {
         return res.status(400).json({

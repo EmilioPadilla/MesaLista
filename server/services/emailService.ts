@@ -112,9 +112,9 @@ class EmailService {
             include: {
               gift: {
                 include: {
-                  weddingList: {
+                  giftList: {
                     include: {
-                      couple: true,
+                      user: true,
                     },
                   },
                 },
@@ -133,10 +133,10 @@ class EmailService {
         throw new Error(`No items found in cart: ${cartId}`);
       }
 
-      // Get couple info from the first item's wedding list
+      // Get couple info from the first item's gift list
       const firstItem = cart.items[0];
-      const weddingList = firstItem.gift.weddingList;
-      const couple = weddingList.couple;
+      const giftList = firstItem.gift.giftList;
+      const user = giftList.user;
 
       const emailData: PaymentEmailData = {
         cartId: cart.id,
@@ -156,14 +156,14 @@ class EmailService {
           imageUrl: item.gift.imageUrl || undefined,
         })),
         coupleInfo: {
-          coupleName: weddingList.coupleName,
-          firstName: couple.firstName,
-          lastName: couple.lastName,
-          spouseFirstName: couple.spouseFirstName || undefined,
-          spouseLastName: couple.spouseLastName || undefined,
-          email: couple.email,
-          weddingDate: weddingList.weddingDate,
-          weddingLocation: weddingList.weddingLocation || undefined,
+          coupleName: giftList.coupleName,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          spouseFirstName: user.spouseFirstName || undefined,
+          spouseLastName: user.spouseLastName || undefined,
+          email: user.email,
+          weddingDate: giftList.eventDate,
+          weddingLocation: giftList.eventLocation || undefined,
         },
       };
 
@@ -272,6 +272,73 @@ class EmailService {
   }
 
   /**
+   * Send gift list creation confirmation email
+   */
+  async sendGiftListCreationEmail(data: {
+    userId: number;
+    giftListId: number;
+    giftListTitle: string;
+    coupleName: string;
+    eventDate: Date;
+    planType: string;
+    amount: number;
+  }): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    try {
+      // Get user email
+      const user = await prisma.user.findUnique({
+        where: { id: data.userId },
+        select: {
+          email: true,
+          firstName: true,
+          lastName: true,
+          slug: true,
+        },
+      });
+
+      if (!user || !user.email) {
+        console.error('User not found or email missing');
+        return;
+      }
+
+      const userName = `${user.firstName} ${user.lastName}`;
+      const baseUrl = process.env.FRONTEND_URL || 'https://mesalista.com.mx';
+      const dashboardUrl = `${baseUrl}/${user.slug}/listas`;
+      const listUrl = `${baseUrl}/${user.slug}/regalos?listId=${data.giftListId}`;
+
+      const emailData = {
+        userName,
+        userEmail: user.email,
+        giftListTitle: data.giftListTitle,
+        coupleName: data.coupleName,
+        eventDate: data.eventDate,
+        planType: data.planType,
+        amount: data.amount,
+        dashboardUrl,
+        listUrl,
+      };
+
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: user.email,
+        Subject: '¡Tu Nueva Lista de Regalos Está Lista! 🎉',
+        HtmlBody: EmailTemplates.generateGiftListCreationEmailHTML(emailData),
+        TextBody: EmailTemplates.generateGiftListCreationEmailText(emailData),
+        MessageStream: 'outbound',
+      });
+
+      console.log(`Gift list creation email sent to: ${user.email}`);
+    } catch (error) {
+      console.error('Error sending gift list creation email:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Send password reset email
    */
   async sendPasswordResetEmail(email: string, firstName: string, resetLink: string): Promise<void> {
@@ -306,7 +373,7 @@ class EmailService {
     spouseLastName?: string;
     email: string;
     phoneNumber?: string;
-    coupleSlug: string;
+    slug: string;
     planType: 'FIXED' | 'COMMISSION';
     discountCode?: string;
     createdAt: Date;
@@ -357,7 +424,7 @@ class EmailService {
     email: string;
     firstName: string;
     spouseFirstName?: string;
-    coupleSlug: string;
+    slug: string;
     planType: 'FIXED' | 'COMMISSION';
   }): Promise<void> {
     if (!postmarkClient) {

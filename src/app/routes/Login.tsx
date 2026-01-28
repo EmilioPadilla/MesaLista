@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'compo
 import { ArrowLeft } from 'lucide-react';
 import { userService } from 'services/user.service';
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
+import { PageSEO } from 'src/components/seo';
 
 interface LoginFormValues {
   email: string;
@@ -28,8 +29,8 @@ const Login: React.FC = () => {
         if (isAuthenticated) {
           // Get current user to determine where to redirect
           const user = await userService.getCurrentUser();
-          if (user?.coupleSlug) {
-            navigate(`/${user.coupleSlug}`);
+          if (user?.slug) {
+            navigate(`/${user.slug}`);
           } else {
             navigate('/');
           }
@@ -101,7 +102,7 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     if (isLoginSuccess) {
-      navigate(`/${loginData?.coupleSlug}`);
+      navigate(`/${loginData?.slug}`);
     }
   }, [isLoginSuccess]);
 
@@ -116,6 +117,11 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-accent/20 flex items-center justify-center px-4 py-8">
+      <PageSEO
+        title="Iniciar Sesión - MesaLista"
+        description="Inicia sesión en tu cuenta de MesaLista para gestionar tu mesa de regalos."
+        noindex={true}
+      />
       {/* Background decorations */}
       <div className="absolute top-10 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 right-20 w-40 h-40 bg-accent/20 rounded-full blur-2xl"></div>

@@ -184,7 +184,15 @@ export const analyticsController = {
       }
 
       const timeSeries = await analyticsService.getTimeSeries(
-        metric as 'visitors' | 'signIns' | 'registryAttempts' | 'registryPurchases' | 'giftPurchases' | 'viewPricing' | 'viewRegistryBuilder' | 'startCheckouts',
+        metric as
+          | 'visitors'
+          | 'signIns'
+          | 'registryAttempts'
+          | 'registryPurchases'
+          | 'giftPurchases'
+          | 'viewPricing'
+          | 'viewRegistryBuilder'
+          | 'startCheckouts',
         fromDate,
         toDate,
         granularity as 'daily' | 'hourly',
@@ -303,17 +311,23 @@ export const analyticsController = {
    */
   deleteUserAnalytics: async (req: Request, res: Response) => {
     try {
-      const userId = parseInt(req.params.userId);
+      const { userId } = req.params;
 
-      if (isNaN(userId)) {
+      if (Array.isArray(userId)) {
         return res.status(400).json({ error: 'Invalid user ID' });
       }
 
-      await analyticsService.deleteUserAnalytics(userId);
+      const userIdNum = parseInt(userId);
+
+      if (isNaN(userIdNum)) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+      }
+
+      await analyticsService.deleteUserAnalytics(userIdNum);
 
       res.json({
         success: true,
-        message: `Analytics data deleted for user ${userId}`,
+        message: `Analytics data deleted for user ${userIdNum}`,
       });
     } catch (error: unknown) {
       console.error('Error deleting user analytics:', error);

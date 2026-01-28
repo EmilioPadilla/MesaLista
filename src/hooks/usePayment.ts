@@ -102,6 +102,15 @@ export const useCreatePlanCheckoutSession = () => {
 };
 
 /**
+ * Hook to create gift list checkout session
+ */
+export const useCreateGiftListCheckoutSession = () => {
+  return useMutation({
+    mutationFn: paymentService.createGiftListCheckoutSession,
+  });
+};
+
+/**
  * Hook to fetch purchased gifts by wedding list ID
  *
  * @param weddingListId ID of the wedding list

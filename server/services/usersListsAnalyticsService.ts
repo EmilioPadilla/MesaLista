@@ -7,7 +7,7 @@ export interface UserAnalytics {
   lastName: string;
   spouseFirstName: string | null;
   spouseLastName: string | null;
-  coupleSlug: string | null;
+  slug: string | null;
   phoneNumber: string | null;
   planType: 'FIXED' | 'COMMISSION' | null;
   discountCode: string | null;
@@ -34,7 +34,7 @@ export interface WeddingListAnalytics {
   createdAt: Date;
   coupleEmail: string;
   couplePlanType: 'FIXED' | 'COMMISSION' | null;
-  coupleSlug: string | null;
+  slug: string | null;
   totalGifts: number;
   purchasedGifts: number;
   totalValue: number;
@@ -76,31 +76,21 @@ class UsersListsAnalyticsService {
         : {};
 
     // Get user counts by role
-    const [totalUsers, usersByRole, usersByPlan] = await Promise.all([
+    const [totalUsers, usersByRole] = await Promise.all([
       prisma.user.count({ where: dateFilter }),
       prisma.user.groupBy({
         by: ['role'],
         where: dateFilter,
         _count: true,
       }),
-      prisma.user.groupBy({
-        by: ['planType'],
-        where: {
-          ...dateFilter,
-          role: 'COUPLE',
-        },
-        _count: true,
-      }),
     ]);
 
-    const totalCouples = usersByRole.find((r) => r.role === 'COUPLE')?._count || 0;
-    const totalGuests = usersByRole.find((r) => r.role === 'GUEST')?._count || 0;
-    const totalAdmins = usersByRole.find((r) => r.role === 'ADMIN')?._count || 0;
-    const fixedPlanUsers = usersByPlan.find((p) => p.planType === 'FIXED')?._count || 0;
-    const commissionPlanUsers = usersByPlan.find((p) => p.planType === 'COMMISSION')?._count || 0;
+    const totalCouples = usersByRole.find((r: any) => r.role === 'COUPLE')?._count || 0;
+    const totalGuests = usersByRole.find((r: any) => r.role === 'GUEST')?._count || 0;
+    const totalAdmins = usersByRole.find((r: any) => r.role === 'ADMIN')?._count || 0;
 
-    // Get wedding list statistics
-    const weddingLists = await prisma.weddingList.findMany({
+    // Get gift list statistics to calculate plan types
+    const giftLists = await prisma.giftList.findMany({
       where: dateFilter,
       include: {
         gifts: {
@@ -109,7 +99,7 @@ class UsersListsAnalyticsService {
             isPurchased: true,
           },
         },
-        couple: {
+        user: {
           select: {
             id: true,
           },
@@ -117,12 +107,14 @@ class UsersListsAnalyticsService {
       },
     });
 
-    const totalWeddingLists = weddingLists.length;
+    const totalWeddingLists = giftLists.length;
+    const fixedPlanUsers = giftLists.filter((gl) => gl.planType === 'FIXED').length;
+    const commissionPlanUsers = giftLists.filter((gl) => gl.planType === 'COMMISSION').length;
     let totalGiftsCreated = 0;
     let totalGiftsPurchased = 0;
     let totalRevenue = 0;
 
-    weddingLists.forEach((list) => {
+    giftLists.forEach((list) => {
       totalGiftsCreated += list.gifts.length;
       list.gifts.forEach((gift) => {
         if (gift.isPurchased) {
@@ -170,10 +162,10 @@ class UsersListsAnalyticsService {
     const users = await prisma.user.findMany({
       where: {
         ...dateFilter,
-        role: 'COUPLE', // Only get couples since they have wedding lists
+        role: 'COUPLE', // Only get couples since they have gift lists
       },
       include: {
-        weddingList: {
+        giftLists: {
           include: {
             gifts: {
               select: {
@@ -181,11 +173,6 @@ class UsersListsAnalyticsService {
                 isPurchased: true,
               },
             },
-          },
-        },
-        discountCode: {
-          select: {
-            code: true,
           },
         },
       },
@@ -196,25 +183,27 @@ class UsersListsAnalyticsService {
 
     return users.map((user) => {
       let weddingListData = null;
+      // Get the first gift list (users can have multiple now)
+      const giftList = user.giftLists && user.giftLists.length > 0 ? user.giftLists[0] : null;
 
-      if (user.weddingList) {
-        const totalGifts = user.weddingList.gifts.length;
-        const purchasedGifts = user.weddingList.gifts.filter((g) => g.isPurchased).length;
-        const totalValue = user.weddingList.gifts.reduce((sum, g) => sum + g.price, 0);
-        const totalReceived = user.weddingList.gifts.filter((g) => g.isPurchased).reduce((sum, g) => sum + g.price, 0);
+      if (giftList) {
+        const totalGifts = giftList.gifts.length;
+        const purchasedGifts = giftList.gifts.filter((g: any) => g.isPurchased).length;
+        const totalValue = giftList.gifts.reduce((sum: number, g: any) => sum + g.price, 0);
+        const totalReceived = giftList.gifts.filter((g: any) => g.isPurchased).reduce((sum: number, g: any) => sum + g.price, 0);
         const purchaseRate = totalGifts > 0 ? (purchasedGifts / totalGifts) * 100 : 0;
 
         weddingListData = {
-          id: user.weddingList.id,
-          title: user.weddingList.title,
-          coupleName: user.weddingList.coupleName,
-          weddingDate: user.weddingList.weddingDate,
+          id: giftList.id,
+          title: giftList.title,
+          coupleName: giftList.coupleName,
+          weddingDate: giftList.eventDate,
           totalGifts,
           purchasedGifts,
           totalValue,
           totalReceived,
           purchaseRate,
-          invitationCount: user.weddingList.invitationCount,
+          invitationCount: giftList.invitationCount,
         };
       }
 
@@ -225,10 +214,10 @@ class UsersListsAnalyticsService {
         lastName: user.lastName,
         spouseFirstName: user.spouseFirstName,
         spouseLastName: user.spouseLastName,
-        coupleSlug: user.coupleSlug,
+        slug: user.slug,
         phoneNumber: user.phoneNumber,
-        planType: user.planType as 'FIXED' | 'COMMISSION' | null,
-        discountCode: user.discountCode?.code || null,
+        planType: giftList?.planType as 'FIXED' | 'COMMISSION' | null,
+        discountCode: giftList?.discountCodeId ? 'Applied' : null,
         createdAt: user.createdAt,
         weddingList: weddingListData,
       };
@@ -249,14 +238,13 @@ class UsersListsAnalyticsService {
           }
         : {};
 
-    const weddingLists = await prisma.weddingList.findMany({
+    const weddingLists = await prisma.giftList.findMany({
       where: dateFilter,
       include: {
-        couple: {
+        user: {
           select: {
             email: true,
-            planType: true,
-            coupleSlug: true,
+            slug: true,
           },
         },
         gifts: {
@@ -274,24 +262,25 @@ class UsersListsAnalyticsService {
 
     return weddingLists.map((list) => {
       const totalGifts = list.gifts.length;
-      const purchasedGifts = list.gifts.filter((g) => g.isPurchased).length;
-      const totalValue = list.gifts.reduce((sum, g) => sum + g.price, 0);
-      const totalReceived = list.gifts.filter((g) => g.isPurchased).reduce((sum, g) => sum + g.price, 0);
+      const purchasedGifts = list.gifts.filter((g: any) => g.isPurchased).length;
+      const totalValue = list.gifts.reduce((sum: number, g: any) => sum + g.price, 0);
+      const totalReceived = list.gifts.filter((g: any) => g.isPurchased).reduce((sum: number, g: any) => sum + g.price, 0);
       const purchaseRate = totalGifts > 0 ? (purchasedGifts / totalGifts) * 100 : 0;
 
       // Find the most recent purchase date
-      const purchasedGiftDates = list.gifts.filter((g) => g.isPurchased).map((g) => g.updatedAt);
-      const lastPurchaseDate = purchasedGiftDates.length > 0 ? new Date(Math.max(...purchasedGiftDates.map((d) => d.getTime()))) : null;
+      const purchasedGiftDates = list.gifts.filter((g: any) => g.isPurchased).map((g: any) => g.updatedAt);
+      const lastPurchaseDate =
+        purchasedGiftDates.length > 0 ? new Date(Math.max(...purchasedGiftDates.map((d: any) => d.getTime()))) : null;
 
       return {
         id: list.id,
         title: list.title,
         coupleName: list.coupleName,
-        weddingDate: list.weddingDate,
+        weddingDate: list.eventDate,
         createdAt: list.createdAt,
-        coupleEmail: list.couple.email,
-        couplePlanType: list.couple.planType as 'FIXED' | 'COMMISSION' | null,
-        coupleSlug: list.couple.coupleSlug,
+        coupleEmail: list.user.email,
+        couplePlanType: list.planType as 'FIXED' | 'COMMISSION' | null,
+        slug: list.user.slug,
         totalGifts,
         purchasedGifts,
         totalValue,

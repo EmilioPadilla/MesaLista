@@ -40,8 +40,8 @@ export function UsersControlTab({ summary, usersData, isUsersLoading, onRefresh 
     setIsDetailModalOpen(true);
   };
 
-  const handleCopySlug = (slug: string) => {
-    navigator.clipboard.writeText(`https://mesalista.com.mx/${slug}/regalos`);
+  const handleCopySlug = (slug: string, listId: number) => {
+    navigator.clipboard.writeText(`https://mesalista.com.mx/${slug}/regalos?listId=${listId}`);
     message.success('Enlace copiado al portapapeles');
   };
 
@@ -110,7 +110,7 @@ export function UsersControlTab({ summary, usersData, isUsersLoading, onRefresh 
       user.firstName.toLowerCase().includes(searchLower) ||
       user.lastName.toLowerCase().includes(searchLower) ||
       (user.spouseFirstName && user.spouseFirstName.toLowerCase().includes(searchLower)) ||
-      (user.coupleSlug && user.coupleSlug.toLowerCase().includes(searchLower))
+      (user.slug && user.slug.toLowerCase().includes(searchLower))
     );
   });
 
@@ -130,9 +130,11 @@ export function UsersControlTab({ summary, usersData, isUsersLoading, onRefresh 
             <Mail className="h-3 w-3" />
             {record.email}
           </div>
-          {record.coupleSlug && (
-            <div className="text-xs text-blue-600 mt-1 cursor-pointer hover:underline" onClick={() => handleCopySlug(record.coupleSlug!)}>
-              /{record.coupleSlug}
+          {record.slug && record.weddingList && (
+            <div
+              className="text-xs text-blue-600 mt-1 cursor-pointer hover:underline"
+              onClick={() => handleCopySlug(record.slug!, record.weddingList!.id)}>
+              /{record.slug}
             </div>
           )}
         </div>

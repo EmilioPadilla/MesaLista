@@ -12,10 +12,10 @@ interface CartDrawerProps {
   cartData?: Cart;
   sessionId: string | null;
   afterOpenChange?: (open: boolean) => void;
-  coupleSlug: string;
+  slug: string;
 }
 
-export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData, sessionId, afterOpenChange, coupleSlug }) => {
+export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData, sessionId, afterOpenChange, slug }) => {
   const navigate = useNavigate();
   const { mutate: removeFromCart } = useRemoveGiftFromCart();
   const { mutate: updateCartQuantity } = useUpdateCartItemQuantity();
@@ -50,7 +50,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData,
             <span>Total:</span>
             <span className="text-primary">${cartTotal.toLocaleString()}</span>
           </div>
-          <Button disabled={cartItemCount === 0} className="w-full" type="primary" onClick={() => navigate(`/${coupleSlug}/checkout`)}>
+          <Button disabled={cartItemCount === 0} className="w-full" type="primary" onClick={() => navigate(`/${slug}/checkout`)}>
             <GiftIcon className="h-4 w-4 mr-2" />
             Proceder al Pago
           </Button>

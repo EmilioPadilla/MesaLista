@@ -15,22 +15,19 @@ model User {
   lastName      String
   spouseFirstName String?
   spouseLastName String?
-  coupleSlug    String?   @unique
+  slug          String?   @unique
   imageUrl      String?
   phoneNumber   String?
   role          UserRole  @default(GUEST)
-  planType      PlanType? @map("plan_type")
-  discountCodeId Int?     @map("discount_code_id") // Reference to applied discount code
   lockedUntil   DateTime? @map("locked_until") // Account lockout timestamp
   failedLoginAttempts Int @default(0) @map("failed_login_attempts")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
-  weddingList   WeddingList?
+  giftLists     GiftList[]
   sessions      Session[]
   passwordResets PasswordReset[]
   passwordHistory PasswordHistory[]
   loginAttempts LoginAttempt[]
-  discountCode  DiscountCode? @relation(fields: [discountCodeId], references: [id])
   
   @@map("users")
 }
@@ -46,24 +43,30 @@ enum PlanType {
   COMMISSION
 }
 
-model WeddingList {
+model GiftList {
   id            Int       @id @default(autoincrement())
-  coupleId      Int       @unique @map("couple_id")
+  userId        Int       @map("user_id")
   title         String
   description   String?
   coupleName    String
   invitationCount Int @default(0)
-  weddingDate   DateTime
-  weddingLocation String?
-  weddingVenue String?
-  imageUrl      String?
+  eventDate     DateTime  @map("event_date")
+  eventLocation String?   @map("event_location")
+  eventVenue    String?   @map("event_venue")
+  imageUrl      String?   @map("image_url")
+  planType      PlanType? @map("plan_type") // Payment plan for this list
+  discountCodeId Int?     @map("discount_code_id") // Discount code used for this list
+  isActive      Boolean   @default(true) @map("is_active") // Whether this list is currently active
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
-  couple        User      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  discountCode  DiscountCode? @relation(fields: [discountCodeId], references: [id])
   gifts         Gift[]
   categoriesOnGifts GiftCategoryOnGift[]
+  invitation    Invitation? // One-to-one relationship with Invitation
 
-  @@map("wedding_lists")
+  @@index([userId])
+  @@map("gift_lists")
 }
 
 model Gift {
@@ -75,12 +78,12 @@ model Gift {
   imagePosition Float?    @default(50) @map("image_position") // Percentage (0-100) for vertical positioning
   isPurchased   Boolean   @default(false)
   isMostWanted    Boolean   @default(false)
-  weddingListId Int       @map("wedding_list_id")
+  giftListId    Int       @map("gift_list_id")
   quantity      Int       @default(1)
   order         Int       @default(0)
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
-  weddingList   WeddingList @relation(fields: [weddingListId], references: [id], onDelete: Cascade)
+  giftList      GiftList  @relation(fields: [giftListId], references: [id], onDelete: Cascade)
   cartItems     CartItem[]
   categories    GiftCategoryOnGift[]
 
@@ -101,11 +104,11 @@ model GiftCategoryOnGift {
   id             Int          @id @default(autoincrement())
   giftId         Int          @map("gift_id")
   categoryId     Int          @map("category_id")
-  weddingListId  Int          @map("wedding_list_id")
+  giftListId     Int          @map("gift_list_id")
   createdAt      DateTime     @default(now()) @map("created_at")
   gift           Gift         @relation(fields: [giftId], references: [id], onDelete: Cascade)
   category       GiftCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  weddingList    WeddingList  @relation(fields: [weddingListId], references: [id], onDelete: Cascade)
+  giftList       GiftList     @relation(fields: [giftListId], references: [id], onDelete: Cascade)
 
   @@unique([giftId, categoryId])
   @@map("gift_categories_on_gifts")
@@ -304,7 +307,7 @@ model DiscountCode {
   expiresAt       DateTime? @map("expires_at") // Optional expiration date
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
-  users           User[]   // Users who used this discount code
+  giftLists       GiftList[] // Gift lists that used this discount code
 
   @@index([code])
   @@map("discount_codes")
@@ -499,4 +502,31 @@ model EmailAnalyticsDaily {
 
   @@index([date])
   @@map("email_analytics_daily")
+}
+
+// Invitation model for digital invitations linked to gift lists
+model Invitation {
+  id            Int       @id @default(autoincrement())
+  giftListId    Int       @unique @map("gift_list_id") // One-to-one relationship
+  templateId    String    @map("template_id") // Template identifier (e.g., "elegant-wedding")
+  eventName     String    @map("event_name") // Name of the event
+  htmlContent   String    @db.Text @map("html_content") // Rendered HTML template
+  formData      Json      @map("form_data") // JSON object with all form field values
+  customColors  Json?     @map("custom_colors") // Optional custom color scheme
+  status        InvitationStatus @default(DRAFT) // Publication status
+  publishedAt   DateTime? @map("published_at") // When the invitation was published
+  viewCount     Int       @default(0) @map("view_count") // Number of times viewed
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  giftList      GiftList  @relation(fields: [giftListId], references: [id], onDelete: Cascade)
+
+  @@index([giftListId])
+  @@index([status])
+  @@map("invitations")
+}
+
+enum InvitationStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }

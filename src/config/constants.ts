@@ -8,8 +8,7 @@ export const faqs = [
   },
   {
     question: '¿Cuándo estará disponible el servicio para mi evento?',
-    answer:
-      'Actualmente, estamos trabajando en la implementación de nuevos servicios y estamos en el proceso de lanzamiento. ¡Te invitamos a que te sigas al perfil de MesaLista para estar al tanto de los nuevos desarrollos!',
+    answer: 'Ya disponible!',
   },
   {
     question: '¿Qué tipo de pagos aceptas?',
@@ -47,7 +46,12 @@ export const plans = [
     bgColor: 'bg-[#d4704a]',
     bgGradient: 'from-white to-[#d4704a]/5',
     iconBg: 'bg-[#d4704a]/10',
-    features: ['Mesa de regalos ilimitada', 'Sin comisiones por ventas', 'Soporte al cliente', 'Listas de regalos inspiradas por nosotros'],
+    features: [
+      '1 Mesa de regalos ilimitada',
+      'Sin comisiones por ventas',
+      'Soporte al cliente',
+      'Listas de regalos inspiradas por nosotros',
+    ],
     limitations: [],
     popular: true,
     cta: 'Comenzar con Plan Fijo',
@@ -63,7 +67,7 @@ export const plans = [
     bgGradient: 'from-white to-green-50',
     iconBg: 'bg-green-100',
     features: [
-      'Mesa de regalos ilimitada',
+      '1 Mesa de regalos ilimitada',
       'Sin costo inicial',
       'Perfecto para comenzar',
       'Soporte al cliente',

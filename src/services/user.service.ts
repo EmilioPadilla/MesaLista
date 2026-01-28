@@ -27,8 +27,8 @@ export const userService = {
     return response.data;
   },
 
-  getBySlug: async (coupleSlug: string): Promise<User> => {
-    const response = await apiClient.get(user_endpoints.bySlug(coupleSlug), { skipAuth: true } as CustomAxiosRequestConfig);
+  getBySlug: async (slug: string): Promise<User> => {
+    const response = await apiClient.get(user_endpoints.bySlug(slug), { skipAuth: true } as CustomAxiosRequestConfig);
     return response.data;
   },
 
@@ -79,7 +79,7 @@ export const userService = {
     spouseFirstName?: string;
     spouseLastName?: string;
     phoneNumber?: string;
-    coupleSlug?: string;
+    slug?: string;
   }): Promise<User> => {
     const response = await apiClient.put(user_endpoints.updateProfile, userData);
     return response.data;

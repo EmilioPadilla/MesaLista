@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Spin, Tabs } from 'antd';
 import { useComponentMountControl } from 'hooks/useComponentMountControl';
-import { useGetCategoriesByWeddingList, useReorderGifts, useWeddingListByCouple } from 'src/hooks/useWeddingList';
+import { useReorderGifts } from 'src/hooks/useGiftList';
 import { OutletContextPrivateType } from 'routes/Dashboard';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { Gift as GiftInterface } from 'types/models/gift';
 import { useDeleteGift } from 'src/hooks/useGift';
 import { StatsCards } from 'src/features/manageRegistry/components/StatsCards';
@@ -15,6 +15,7 @@ import { GiftModal } from 'src/features/manageRegistry/components/GiftModal';
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
 import { useDebounce } from 'src/hooks/useDebounce';
 import { SettingOutlined } from '@ant-design/icons';
+import { useGetCategoriesByGiftList, useGiftListsByUser } from 'src/hooks/useGiftList';
 
 export interface GiftItem extends GiftInterface {
   purchasedBy?: string;
@@ -26,10 +27,23 @@ export type FilterOption = 'all' | 'purchased' | 'pending' | 'mostWanted';
 export const ManageRegistry = () => {
   const contextData = useOutletContext<OutletContextPrivateType>();
   const navigate = useNavigate();
-  // Use props if provided directly, otherwise use context from Outlet
-  const { data: weddinglist } = useWeddingListByCouple(contextData?.userData?.id);
-  const { data: weddingListCategories } = useGetCategoriesByWeddingList(weddinglist?.id);
-  const { mutate: reorderGifts } = useReorderGifts(weddinglist?.coupleId);
+  const [searchParams] = useSearchParams();
+  const listIdParam = searchParams.get('listId');
+
+  // Fetch all user's gift lists
+  const { data: giftLists } = useGiftListsByUser(contextData?.userData?.id);
+
+  // Find the specific list by ID from query params, fallback to first list if no ID provided
+  const giftList = useMemo(() => {
+    if (!giftLists) return undefined;
+    if (listIdParam) {
+      return giftLists.find((list) => list.id === parseInt(listIdParam));
+    }
+    return giftLists[0];
+  }, [giftLists, listIdParam]);
+
+  const { data: weddingListCategories } = useGetCategoriesByGiftList(giftList?.id);
+  const { mutate: reorderGifts } = useReorderGifts(giftList?.userId);
   const { mutate: deleteGift } = useDeleteGift();
   const trackEvent = useTrackEvent();
 
@@ -49,12 +63,12 @@ export const ManageRegistry = () => {
   }, []);
 
   useEffect(() => {
-    if (weddinglist?.gifts) {
+    if (giftList?.gifts) {
       // Sort gifts by their order property when initially loading
-      const sortedGifts = [...weddinglist.gifts].sort((a, b) => a.order - b.order);
+      const sortedGifts = [...giftList.gifts].sort((a, b) => a.order - b.order);
       setGifts(sortedGifts);
     }
-  }, [weddinglist?.gifts]);
+  }, [giftList?.gifts]);
 
   const {
     isOpen: showEditGiftModal,
@@ -81,9 +95,9 @@ export const ManageRegistry = () => {
     }));
 
     // Persist the new order to the backend
-    if (weddinglist?.id) {
+    if (giftList?.id) {
       reorderGifts({
-        weddingListId: weddinglist.id,
+        giftListId: giftList.id,
         giftOrders,
       });
     }
@@ -134,7 +148,7 @@ export const ManageRegistry = () => {
     return sortGifts(filtered);
   }, [gifts, filterBy, sortBy, debouncedSearchTerm]);
 
-  if (!gifts || !weddinglist)
+  if (!gifts || !giftList)
     return (
       <div className="flex justify-center items-center h-64">
         <Spin size="large" />
@@ -153,7 +167,7 @@ export const ManageRegistry = () => {
           <h1 className="text-3xl mb-2 text-primary">Gestionar Mesa de Regalos</h1>
           <p className="text-muted-foreground">Administra tu lista de regalos, ve estadísticas y mantén todo organizado para tu gran día</p>
         </div>
-        <Button type="primary" icon={<SettingOutlined />} onClick={() => navigate(`/${contextData?.userData?.coupleSlug}/configuracion`)}>
+        <Button type="primary" icon={<SettingOutlined />} onClick={() => navigate(`/${contextData?.userData?.slug}/configuracion`)}>
           <span className="hidden md:flex">Configuración</span>
         </Button>
       </div>
@@ -171,12 +185,12 @@ export const ManageRegistry = () => {
               <div className="space-y-6 mt-6">
                 {/* Add New Gift */}
                 <AddGiftForm
-                  weddingListId={weddinglist?.id}
+                  weddingListId={giftList?.id}
                   categoryOptions={categoryOptions}
                   onGiftCreated={() => {
                     // Refresh the gifts list when a new gift is created
-                    if (weddinglist?.gifts) {
-                      const sortedGifts = [...weddinglist.gifts].sort((a, b) => a.order - b.order);
+                    if (giftList?.gifts) {
+                      const sortedGifts = [...giftList.gifts].sort((a, b) => a.order - b.order);
                       setGifts(sortedGifts);
                     }
                   }}
@@ -208,7 +222,7 @@ export const ManageRegistry = () => {
             label: 'Regalos Comprados',
             children: (
               <div className="mt-6">
-                <PurchasedGiftsTab weddingListId={weddinglist?.id} />
+                <PurchasedGiftsTab weddingListId={giftList?.id} />
               </div>
             ),
           },
@@ -232,7 +246,8 @@ export const ManageRegistry = () => {
           onClose={() => setShowEditGiftModal(false)}
           // TODO: this is causing that the onSuccess of uploadFile is not being called
           // afterClose={handleAfterCloseEditGiftModal}
-          weddingListId={weddinglist?.id}
+          weddingListId={giftList?.id}
+          afterClose={handleAfterCloseEditGiftModal}
         />
       )}
     </div>

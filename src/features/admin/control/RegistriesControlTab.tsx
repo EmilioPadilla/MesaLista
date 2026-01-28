@@ -38,12 +38,12 @@ export function RegistriesControlTab({ summary, listsData, isListsLoading, onRef
     setIsDetailModalOpen(true);
   };
 
-  const handleViewPublicRegistry = (slug: string) => {
-    window.open(`https://mesalista.com.mx/${slug}/regalos`, '_blank');
+  const handleViewPublicRegistry = (slug: string, listId: number) => {
+    window.open(`https://mesalista.com.mx/${slug}/regalos?listId=${listId}`, '_blank');
   };
 
-  const handleCopyLink = (slug: string) => {
-    navigator.clipboard.writeText(`https://mesalista.com.mx/${slug}/regalos`);
+  const handleCopyLink = (slug: string, listId: number) => {
+    navigator.clipboard.writeText(`https://mesalista.com.mx/${slug}/regalos?listId=${listId}`);
     message.success('Enlace copiado al portapapeles');
   };
 
@@ -53,7 +53,7 @@ export function RegistriesControlTab({ summary, listsData, isListsLoading, onRef
       list.title.toLowerCase().includes(searchLower) ||
       list.coupleName.toLowerCase().includes(searchLower) ||
       list.coupleEmail.toLowerCase().includes(searchLower) ||
-      (list.coupleSlug && list.coupleSlug.toLowerCase().includes(searchLower))
+      (list.slug && list.slug.toLowerCase().includes(searchLower))
     );
   });
 
@@ -68,9 +68,11 @@ export function RegistriesControlTab({ summary, listsData, isListsLoading, onRef
           <div className="font-semibold text-gray-900">{record.title}</div>
           <div className="text-xs text-gray-600 mt-1">{record.coupleName}</div>
           <div className="text-xs text-gray-500 mt-1">{record.coupleEmail}</div>
-          {record.coupleSlug && (
-            <div className="text-xs text-blue-600 mt-1 cursor-pointer hover:underline" onClick={() => handleCopyLink(record.coupleSlug!)}>
-              /{record.coupleSlug}
+          {record.slug && (
+            <div
+              className="text-xs text-blue-600 mt-1 cursor-pointer hover:underline"
+              onClick={() => handleCopyLink(record.slug!, record.id)}>
+              /{record.slug}
             </div>
           )}
         </div>
@@ -182,12 +184,12 @@ export function RegistriesControlTab({ summary, listsData, isListsLoading, onRef
           <Button size="small" type="link" onClick={() => handleViewDetails(record)}>
             Ver Detalles
           </Button>
-          {record.coupleSlug && (
+          {record.slug && (
             <Button
               size="small"
               type="link"
               icon={<ExternalLink className="h-3 w-3" />}
-              onClick={() => handleViewPublicRegistry(record.coupleSlug!)}>
+              onClick={() => handleViewPublicRegistry(record.slug!, record.id)}>
               Ver Lista
             </Button>
           )}

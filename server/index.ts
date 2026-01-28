@@ -17,12 +17,13 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import emailRoutes from './routes/emailRoutes.js';
 import emailVerificationRoutes from './routes/emailVerificationRoutes.js';
 import fileUploadRouter from './routes/fileUpload.js';
-import weddingListRoutes from './routes/weddingListRoutes.js';
+import giftListRoutes from './routes/giftListRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import predesignedListRoutes from './routes/predesignedListRoutes.js';
 import discountCodeRoutes from './routes/discountCodeRoutes.js';
 import rsvpRoutes from './routes/rsvpRoutes.js';
 import usersListsAnalyticsRoutes from './routes/usersListsAnalyticsRoutes.js';
+import invitationRoutes from './routes/invitationRoutes.js';
 import bodyParser from 'body-parser';
 import paymentController from './controllers/paymentController.js';
 
@@ -148,13 +149,14 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/email-verification', emailVerificationRoutes);
-app.use('/api/wedding-list', weddingListRoutes);
+app.use('/api/gift-list', giftListRoutes);
 app.use('/api/upload', fileUploadRouter);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/predesigned-lists', predesignedListRoutes);
 app.use('/api/discount-codes', discountCodeRoutes);
 app.use('/api/rsvp', rsvpRoutes);
 app.use('/api/admin/users-lists-analytics', usersListsAnalyticsRoutes);
+app.use('/api/invitations', invitationRoutes);
 
 // Special case for login API endpoint
 app.post('/api/login', userRoutes);

@@ -1,5 +1,6 @@
 export interface WhereClause {
-  weddingListId: number;
+  weddingListId?: number;
+  giftListId?: number;
   categories?: {
     some: {
       category: {

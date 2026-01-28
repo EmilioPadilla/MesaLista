@@ -106,7 +106,7 @@ export const Footer = () => {
               Cookies
             </a>
           </div>
-          <p className="text-sm text-muted-foreground font-light">© 2025 MesaLista. Todos los derechos reservados.</p>
+          <p className="text-sm text-muted-foreground font-light">© 2026 MesaLista. Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>
