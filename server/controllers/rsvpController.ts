@@ -2,19 +2,27 @@ import { Request, Response } from 'express';
 import { rsvpService } from '../services/rsvpService.js';
 
 export const rsvpController = {
-  // Get all invitees for the authenticated couple
+  // Get all invitees for a gift list
   getInvitees: async (req: Request, res: Response) => {
     try {
-      const coupleId = req.user?.userId;
+      const userId = req.user?.userId;
+      const { giftListId } = req.query;
 
-      if (!coupleId) {
+      if (!userId) {
         return res.status(401).json({
           success: false,
           message: 'No autenticado',
         });
       }
 
-      const invitees = await rsvpService.getInviteesByCoupleId(coupleId);
+      if (!giftListId) {
+        return res.status(400).json({
+          success: false,
+          message: 'giftListId es requerido',
+        });
+      }
+
+      const invitees = await rsvpService.getInviteesByGiftListId(Number(giftListId));
 
       res.json({
         success: true,
@@ -100,16 +108,23 @@ export const rsvpController = {
   // Create a new invitee (supports partial data)
   createInvitee: async (req: Request, res: Response) => {
     try {
-      const coupleId = req.user?.userId;
+      const userId = req.user?.userId;
 
-      if (!coupleId) {
+      if (!userId) {
         return res.status(401).json({
           success: false,
           message: 'No autenticado',
         });
       }
 
-      const { firstName, lastName, tickets, secretCode, guestMessage, status } = req.body;
+      const { giftListId, firstName, lastName, tickets, secretCode, guestMessage, status } = req.body;
+
+      if (!giftListId) {
+        return res.status(400).json({
+          success: false,
+          message: 'giftListId es requerido',
+        });
+      }
 
       // Validate status if provided
       if (status && !['PENDING', 'CONFIRMED', 'REJECTED'].includes(status)) {
@@ -120,7 +135,7 @@ export const rsvpController = {
       }
 
       const invitee = await rsvpService.createInvitee({
-        coupleId,
+        giftListId: Number(giftListId),
         firstName: firstName?.trim() || undefined,
         lastName: lastName?.trim() || undefined,
         tickets: tickets ? parseInt(tickets) : undefined,
@@ -146,16 +161,23 @@ export const rsvpController = {
   // Bulk create invitees
   bulkCreateInvitees: async (req: Request, res: Response) => {
     try {
-      const coupleId = req.user?.userId;
+      const userId = req.user?.userId;
 
-      if (!coupleId) {
+      if (!userId) {
         return res.status(401).json({
           success: false,
           message: 'No autenticado',
         });
       }
 
-      const { invitees } = req.body;
+      const { giftListId, invitees } = req.body;
+
+      if (!giftListId) {
+        return res.status(400).json({
+          success: false,
+          message: 'giftListId es requerido',
+        });
+      }
 
       if (!Array.isArray(invitees) || invitees.length === 0) {
         return res.status(400).json({
@@ -164,7 +186,7 @@ export const rsvpController = {
         });
       }
 
-      const result = await rsvpService.bulkCreateInvitees(coupleId, invitees);
+      const result = await rsvpService.bulkCreateInvitees(Number(giftListId), invitees);
 
       res.status(201).json({
         success: true,
@@ -396,16 +418,24 @@ export const rsvpController = {
   // Get RSVP statistics
   getRsvpStats: async (req: Request, res: Response) => {
     try {
-      const coupleId = req.user?.userId;
+      const userId = req.user?.userId;
+      const { giftListId } = req.query;
 
-      if (!coupleId) {
+      if (!userId) {
         return res.status(401).json({
           success: false,
           message: 'No autenticado',
         });
       }
 
-      const stats = await rsvpService.getRsvpStats(coupleId);
+      if (!giftListId) {
+        return res.status(400).json({
+          success: false,
+          message: 'giftListId es requerido',
+        });
+      }
+
+      const stats = await rsvpService.getRsvpStats(Number(giftListId));
 
       res.json({
         success: true,

@@ -1,12 +1,14 @@
-import { PrismaClient, RsvpStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+
+type RsvpStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED';
 
 const prisma = new PrismaClient();
 
 export const rsvpService = {
-  // Get all invitees for a couple
-  async getInviteesByCoupleId(coupleId: number) {
+  // Get all invitees for a gift list
+  async getInviteesByGiftListId(giftListId: number) {
     return prisma.invitee.findMany({
-      where: { coupleId },
+      where: { giftListId },
       orderBy: { createdAt: 'desc' },
     });
   },
@@ -37,15 +39,15 @@ export const rsvpService = {
       for (let i = 0; i < 8; i++) {
         code += characters.charAt(Math.floor(Math.random() * characters.length));
       }
-      
+
       const existing = await prisma.invitee.findUnique({
         where: { secretCode: code },
       });
-      
+
       if (!existing) {
         return code;
       }
-      
+
       attempts++;
     } while (attempts < maxAttempts);
 
@@ -54,7 +56,7 @@ export const rsvpService = {
 
   // Create a new invitee (supports partial data)
   async createInvitee(data: {
-    coupleId: number;
+    giftListId: number;
     firstName?: string;
     lastName?: string;
     tickets?: number;
@@ -89,7 +91,7 @@ export const rsvpService = {
 
     return prisma.invitee.create({
       data: {
-        coupleId: data.coupleId,
+        giftListId: data.giftListId,
         firstName,
         lastName,
         tickets,
@@ -104,7 +106,7 @@ export const rsvpService = {
 
   // Bulk create invitees (supports partial data)
   async bulkCreateInvitees(
-    coupleId: number,
+    giftListId: number,
     invitees: Array<{
       firstName?: string;
       lastName?: string;
@@ -112,7 +114,7 @@ export const rsvpService = {
       secretCode?: string;
       guestMessage?: string;
       status?: 'PENDING' | 'CONFIRMED' | 'REJECTED';
-    }>
+    }>,
   ) {
     const results = {
       created: [] as any[],
@@ -122,7 +124,7 @@ export const rsvpService = {
     for (const invitee of invitees) {
       try {
         const created = await this.createInvitee({
-          coupleId,
+          giftListId,
           firstName: invitee.firstName,
           lastName: invitee.lastName,
           tickets: invitee.tickets,
@@ -150,7 +152,7 @@ export const rsvpService = {
       lastName?: string;
       tickets?: number;
       secretCode?: string;
-    }
+    },
   ) {
     // If updating secret code, check if it already exists
     if (data.secretCode) {
@@ -192,7 +194,7 @@ export const rsvpService = {
     // For bulk updates, we need to handle confirmedTickets properly
     // CONFIRMED: set confirmedTickets to tickets (max allowed)
     // REJECTED/PENDING: set confirmedTickets to 0
-    
+
     if (status === 'CONFIRMED') {
       // For CONFIRMED status, we need to update each invitee individually
       // to set confirmedTickets = tickets
@@ -202,7 +204,7 @@ export const rsvpService = {
       });
 
       await prisma.$transaction(
-        invitees.map((invitee) =>
+        invitees.map((invitee: { id: string; tickets: number }) =>
           prisma.invitee.update({
             where: { id: invitee.id },
             data: {
@@ -210,8 +212,8 @@ export const rsvpService = {
               confirmedTickets: invitee.tickets,
               respondedAt: new Date(),
             },
-          })
-        )
+          }),
+        ),
       );
 
       return { count: invitees.length };
@@ -259,21 +261,21 @@ export const rsvpService = {
     });
   },
 
-  // Get RSVP statistics for a couple
-  async getRsvpStats(coupleId: number) {
+  // Get RSVP statistics for a gift list
+  async getRsvpStats(giftListId: number) {
     const invitees = await prisma.invitee.findMany({
-      where: { coupleId },
+      where: { giftListId },
     });
 
     const stats = {
       total: invitees.length,
-      confirmed: invitees.filter((i) => i.status === 'CONFIRMED').length,
-      rejected: invitees.filter((i) => i.status === 'REJECTED').length,
-      pending: invitees.filter((i) => i.status === 'PENDING').length,
-      totalTickets: invitees.reduce((sum, i) => sum + i.tickets, 0),
-      confirmedTickets: invitees.reduce((sum, i) => sum + (i.confirmedTickets || 0), 0),
-      pendingTickets: invitees.filter((i) => i.status === 'PENDING').reduce((sum, i) => sum + i.tickets, 0),
-      rejectedTickets: invitees.filter((i) => i.status === 'REJECTED').reduce((sum, i) => sum + i.tickets, 0),
+      confirmed: invitees.filter((i: any) => i.status === 'CONFIRMED').length,
+      rejected: invitees.filter((i: any) => i.status === 'REJECTED').length,
+      pending: invitees.filter((i: any) => i.status === 'PENDING').length,
+      totalTickets: invitees.reduce((sum: number, i: any) => sum + i.tickets, 0),
+      confirmedTickets: invitees.reduce((sum: number, i: any) => sum + (i.confirmedTickets || 0), 0),
+      pendingTickets: invitees.filter((i: any) => i.status === 'PENDING').reduce((sum: number, i: any) => sum + i.tickets, 0),
+      rejectedTickets: invitees.filter((i: any) => i.status === 'REJECTED').reduce((sum: number, i: any) => sum + i.tickets, 0),
     };
 
     return stats;
@@ -303,7 +305,7 @@ export const rsvpService = {
     data: {
       confirmationMessage?: string;
       cancellationMessage?: string;
-    }
+    },
   ) {
     // Ensure messages exist first
     await this.getRsvpMessages(coupleId);

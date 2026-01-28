@@ -2,18 +2,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import rsvpService, { Invitee, CreateInviteeRequest, RsvpStats, RsvpMessages } from '../services/rsvp.service';
 
 const queryKeys = {
-  invitees: ['invitees'] as const,
+  invitees: (giftListId: number) => ['invitees', giftListId] as const,
   inviteeByCode: (code: string) => ['invitee', code] as const,
   validateCode: (code: string) => ['validate-rsvp-code', code] as const,
-  stats: ['rsvp-stats'] as const,
+  stats: (giftListId: number) => ['rsvp-stats', giftListId] as const,
   messages: (coupleId: number) => ['rsvp-messages', coupleId] as const,
 };
 
-// Query: Get all invitees for authenticated couple
-export const useInvitees = () => {
+// Query: Get all invitees for a gift list
+export const useInvitees = (giftListId: number) => {
   return useQuery<Invitee[], Error>({
-    queryKey: queryKeys.invitees,
-    queryFn: () => rsvpService.getInvitees(),
+    queryKey: queryKeys.invitees(giftListId),
+    queryFn: () => rsvpService.getInvitees(giftListId),
+    enabled: !!giftListId,
   });
 };
 
@@ -43,9 +44,9 @@ export const useCreateInvitee = () => {
 
   return useMutation<Invitee, Error, CreateInviteeRequest>({
     mutationFn: (data) => rsvpService.createInvitee(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.invitees });
-      queryClient.invalidateQueries({ queryKey: queryKeys.stats });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invitees(variables.giftListId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats(variables.giftListId) });
     },
   });
 };
@@ -57,12 +58,12 @@ export const useBulkCreateInvitees = () => {
   return useMutation<
     { created: Invitee[]; errors: any[] },
     Error,
-    CreateInviteeRequest[]
+    { giftListId: number; invitees: Omit<CreateInviteeRequest, 'giftListId'>[] }
   >({
-    mutationFn: (invitees) => rsvpService.bulkCreateInvitees(invitees),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.invitees });
-      queryClient.invalidateQueries({ queryKey: queryKeys.stats });
+    mutationFn: ({ giftListId, invitees }) => rsvpService.bulkCreateInvitees(giftListId, invitees),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invitees(variables.giftListId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats(variables.giftListId) });
     },
   });
 };
@@ -71,15 +72,11 @@ export const useBulkCreateInvitees = () => {
 export const useUpdateInvitee = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<
-    Invitee,
-    Error,
-    { id: string; data: Partial<CreateInviteeRequest> }
-  >({
+  return useMutation<Invitee, Error, { id: string; giftListId: number; data: Partial<CreateInviteeRequest> }>({
     mutationFn: ({ id, data }) => rsvpService.updateInvitee(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.invitees });
-      queryClient.invalidateQueries({ queryKey: queryKeys.stats });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invitees(variables.giftListId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats(variables.giftListId) });
     },
   });
 };
@@ -88,11 +85,11 @@ export const useUpdateInvitee = () => {
 export const useDeleteInvitee = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, string>({
-    mutationFn: (id) => rsvpService.deleteInvitee(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.invitees });
-      queryClient.invalidateQueries({ queryKey: queryKeys.stats });
+  return useMutation<void, Error, { id: string; giftListId: number }>({
+    mutationFn: ({ id }) => rsvpService.deleteInvitee(id),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invitees(variables.giftListId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats(variables.giftListId) });
     },
   });
 };
@@ -101,11 +98,11 @@ export const useDeleteInvitee = () => {
 export const useBulkDeleteInvitees = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<{ count: number }, Error, string[]>({
-    mutationFn: (ids) => rsvpService.bulkDeleteInvitees(ids),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.invitees });
-      queryClient.invalidateQueries({ queryKey: queryKeys.stats });
+  return useMutation<{ count: number }, Error, { ids: string[]; giftListId: number }>({
+    mutationFn: ({ ids }) => rsvpService.bulkDeleteInvitees(ids),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invitees(variables.giftListId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats(variables.giftListId) });
     },
   });
 };
@@ -114,15 +111,11 @@ export const useBulkDeleteInvitees = () => {
 export const useBulkUpdateInviteeStatus = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<
-    { count: number },
-    Error,
-    { ids: string[]; status: 'PENDING' | 'CONFIRMED' | 'REJECTED' }
-  >({
+  return useMutation<{ count: number }, Error, { ids: string[]; giftListId: number; status: 'PENDING' | 'CONFIRMED' | 'REJECTED' }>({
     mutationFn: ({ ids, status }) => rsvpService.bulkUpdateInviteeStatus(ids, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.invitees });
-      queryClient.invalidateQueries({ queryKey: queryKeys.stats });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invitees(variables.giftListId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats(variables.giftListId) });
     },
   });
 };
@@ -153,10 +146,11 @@ export const useRespondToRsvp = () => {
 };
 
 // Query: Get RSVP statistics
-export const useRsvpStats = () => {
+export const useRsvpStats = (giftListId: number) => {
   return useQuery<RsvpStats, Error>({
-    queryKey: queryKeys.stats,
-    queryFn: () => rsvpService.getStats(),
+    queryKey: queryKeys.stats(giftListId),
+    queryFn: () => rsvpService.getStats(giftListId),
+    enabled: !!giftListId,
   });
 };
 

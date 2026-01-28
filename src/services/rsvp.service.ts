@@ -3,7 +3,7 @@ import { endpoints } from './endpoints';
 
 export interface Invitee {
   id: string;
-  coupleId: number;
+  giftListId: number;
   firstName: string;
   lastName: string;
   tickets: number;
@@ -17,6 +17,7 @@ export interface Invitee {
 }
 
 export interface CreateInviteeRequest {
+  giftListId: number;
   firstName?: string;
   lastName?: string;
   tickets?: number;
@@ -46,9 +47,11 @@ export interface RsvpStats {
 }
 
 const rsvpService = {
-  // Get all invitees for authenticated couple
-  async getInvitees(): Promise<Invitee[]> {
-    const response = await apiClient.get(endpoints.rsvp.getInvitees);
+  // Get all invitees for a gift list
+  async getInvitees(giftListId: number): Promise<Invitee[]> {
+    const response = await apiClient.get(endpoints.rsvp.getInvitees, {
+      params: { giftListId },
+    });
     return response.data.data;
   },
 
@@ -71,11 +74,14 @@ const rsvpService = {
   },
 
   // Bulk create invitees
-  async bulkCreateInvitees(invitees: CreateInviteeRequest[]): Promise<{
+  async bulkCreateInvitees(
+    giftListId: number,
+    invitees: Omit<CreateInviteeRequest, 'giftListId'>[],
+  ): Promise<{
     created: Invitee[];
     errors: any[];
   }> {
-    const response = await apiClient.post(endpoints.rsvp.bulkCreateInvitees, { invitees });
+    const response = await apiClient.post(endpoints.rsvp.bulkCreateInvitees, { giftListId, invitees });
     return response.data.data;
   },
 
@@ -107,7 +113,7 @@ const rsvpService = {
     secretCode: string,
     status: 'PENDING' | 'CONFIRMED' | 'REJECTED',
     confirmedTickets?: number,
-    guestMessage?: string
+    guestMessage?: string,
   ): Promise<Invitee> {
     const response = await apiClient.post(endpoints.rsvp.respondToRsvp(secretCode), {
       status,
@@ -118,8 +124,10 @@ const rsvpService = {
   },
 
   // Get RSVP statistics
-  async getStats(): Promise<RsvpStats> {
-    const response = await apiClient.get(endpoints.rsvp.getStats);
+  async getStats(giftListId: number): Promise<RsvpStats> {
+    const response = await apiClient.get(endpoints.rsvp.getStats, {
+      params: { giftListId },
+    });
     return response.data.data;
   },
 
@@ -130,10 +138,7 @@ const rsvpService = {
   },
 
   // Update RSVP messages
-  async updateMessages(data: {
-    confirmationMessage?: string;
-    cancellationMessage?: string;
-  }): Promise<RsvpMessages> {
+  async updateMessages(data: { confirmationMessage?: string; cancellationMessage?: string }): Promise<RsvpMessages> {
     const response = await apiClient.put(endpoints.rsvp.updateMessages, data);
     return response.data.data;
   },

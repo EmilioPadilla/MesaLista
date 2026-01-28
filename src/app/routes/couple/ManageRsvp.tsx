@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Upload, Plus, Download, Users, RefreshCw, Copy, Check } from 'lucide-react';
-import { Button, Input, Select, message } from 'antd';
+import { Button, Input, Select, message, Tabs, Spin } from 'antd';
 import { AddInviteeModal } from 'src/features/rsvp/AddInviteeModal/AddInviteeModal';
 import { ImportInviteesModal } from 'src/features/rsvp/ImportInviteeModal/ImportInviteeModal';
 import { InviteesTable } from 'src/features/rsvp/InviteesTable';
@@ -17,6 +17,7 @@ import {
   useRsvpStats,
 } from 'src/hooks/useRsvp';
 import { useCurrentUser } from 'src/hooks/useUser';
+import { useGiftListsByUser } from 'src/hooks/useGiftList';
 
 interface Invitee {
   id: string;
@@ -45,14 +46,23 @@ export function ManageRSVP() {
   const [editingInvitee, setEditingInvitee] = useState<Invitee | null>(null);
   const [copied, setCopied] = useState(false);
   const [importErrors, setImportErrors] = useState<Array<{ row: number; error: string }>>([]);
+  const [activeGiftListId, setActiveGiftListId] = useState<number | null>(null);
 
-  // Get current user
+  // Get current user and gift lists
   const { data: user } = useCurrentUser();
   const slug = user?.slug;
+  const { data: giftLists = [], isLoading: isLoadingLists } = useGiftListsByUser(user?.id);
 
-  // React Query hooks
-  const { data: invitees = [], isLoading: loading, refetch } = useInvitees();
-  const { data: stats } = useRsvpStats();
+  // Set initial active gift list
+  useEffect(() => {
+    if (giftLists.length > 0 && !activeGiftListId) {
+      setActiveGiftListId(giftLists[0].id);
+    }
+  }, [giftLists, activeGiftListId]);
+
+  // React Query hooks - only fetch when we have an active gift list
+  const { data: invitees = [], isLoading: loading, refetch } = useInvitees(activeGiftListId!);
+  const { data: stats } = useRsvpStats(activeGiftListId!);
   const createInviteeMutation = useCreateInvitee();
   const updateInviteeMutation = useUpdateInvitee();
   const deleteInviteeMutation = useDeleteInvitee();
@@ -61,8 +71,9 @@ export function ManageRSVP() {
   const bulkUpdateStatusMutation = useBulkUpdateInviteeStatus();
 
   const handleAddInvitee = async (invitee: Omit<Invitee, 'id' | 'status'>) => {
+    if (!activeGiftListId) return;
     try {
-      await createInviteeMutation.mutateAsync(invitee);
+      await createInviteeMutation.mutateAsync({ ...invitee, giftListId: activeGiftListId });
       message.success('Invitado agregado');
     } catch (error) {
       console.error('Error creating invitee:', error);
@@ -71,8 +82,9 @@ export function ManageRSVP() {
   };
 
   const handleUpdateInvitee = async (id: string, updatedInvitee: Omit<Invitee, 'id' | 'status'>) => {
+    if (!activeGiftListId) return;
     try {
-      await updateInviteeMutation.mutateAsync({ id, data: updatedInvitee });
+      await updateInviteeMutation.mutateAsync({ id, giftListId: activeGiftListId, data: updatedInvitee });
       message.success('Invitado actualizado');
     } catch (error) {
       console.error('Error updating invitee:', error);
@@ -81,8 +93,9 @@ export function ManageRSVP() {
   };
 
   const handleDeleteInvitee = async (id: string) => {
+    if (!activeGiftListId) return;
     try {
-      await deleteInviteeMutation.mutateAsync(id);
+      await deleteInviteeMutation.mutateAsync({ id, giftListId: activeGiftListId });
       message.success('Invitado eliminado');
     } catch (error) {
       console.error('Error deleting invitee:', error);
@@ -91,8 +104,9 @@ export function ManageRSVP() {
   };
 
   const handleBulkDelete = async (ids: string[]) => {
+    if (!activeGiftListId) return;
     try {
-      const result = await bulkDeleteMutation.mutateAsync(ids);
+      const result = await bulkDeleteMutation.mutateAsync({ ids, giftListId: activeGiftListId });
       message.success(`${result.count} invitado(s) eliminado(s) exitosamente`);
     } catch (error) {
       console.error('Error bulk deleting invitees:', error);
@@ -101,8 +115,9 @@ export function ManageRSVP() {
   };
 
   const handleBulkUpdateStatus = async (ids: string[], status: 'PENDING' | 'CONFIRMED' | 'REJECTED') => {
+    if (!activeGiftListId) return;
     try {
-      const result = await bulkUpdateStatusMutation.mutateAsync({ ids, status });
+      const result = await bulkUpdateStatusMutation.mutateAsync({ ids, giftListId: activeGiftListId, status });
       const statusText = status === 'CONFIRMED' ? 'confirmados' : status === 'REJECTED' ? 'rechazados' : 'pendientes';
       message.success(`${result.count} invitado(s) marcado(s) como ${statusText}`);
     } catch (error) {
@@ -112,8 +127,9 @@ export function ManageRSVP() {
   };
 
   const handleImportInvitees = async (importedInvitees: ImportInvitee[]) => {
+    if (!activeGiftListId) return;
     try {
-      const result = await bulkCreateMutation.mutateAsync(importedInvitees);
+      const result = await bulkCreateMutation.mutateAsync({ giftListId: activeGiftListId, invitees: importedInvitees });
 
       if (result.errors && result.errors.length > 0) {
         setImportErrors(result.errors);
@@ -183,21 +199,30 @@ export function ManageRSVP() {
     rejectedTickets: 0,
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative py-10 px-4 sm:px-6 lg:px-8 bg-linear from-[#faf9f8] to-white">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#007aff]/10 mb-6">
-            <Users className="h-8 w-8 text-[#007aff]" />
-          </div>
-          <h1 className="mb-4 text-3xl text-foreground">Gestionar Invitados</h1>
-          <p className="max-w-2xl mx-auto text-muted-foreground">
-            Administra tu lista de invitados, controla las confirmaciones y mantén todo organizado en un solo lugar.
-          </p>
-        </div>
-      </section>
+  // Show loading spinner while fetching gift lists
+  if (isLoadingLists) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
+  // Show message if no gift lists
+  if (giftLists.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold mb-2">No tienes listas de regalos</h2>
+          <p className="text-muted-foreground">Crea una lista de regalos primero para gestionar invitados.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const renderContent = () => (
+    <>
       {/* Statistics Cards */}
       <RsvpStatistics stats={localStats} />
 
@@ -334,6 +359,41 @@ export function ManageRSVP() {
           setShowImportModal(false);
         }}
       />
+    </>
+  );
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="relative py-10 px-4 sm:px-6 lg:px-8 bg-linear from-[#faf9f8] to-white">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#007aff]/10 mb-6">
+            <Users className="h-8 w-8 text-[#007aff]" />
+          </div>
+          <h1 className="mb-4 text-3xl text-foreground">Gestionar Invitados</h1>
+          <p className="max-w-2xl mx-auto text-muted-foreground">
+            Administra tu lista de invitados, controla las confirmaciones y mantén todo organizado en un solo lugar.
+          </p>
+        </div>
+      </section>
+
+      {/* Tabs for multiple gift lists or direct content for single list */}
+      {giftLists.length > 1 ? (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Tabs
+            activeKey={activeGiftListId?.toString()}
+            onChange={(key) => setActiveGiftListId(Number(key))}
+            items={giftLists.map((list) => ({
+              key: list.id.toString(),
+              label: list.title,
+              children: renderContent(),
+            }))}
+            className="mb-6"
+          />
+        </div>
+      ) : (
+        renderContent()
+      )}
     </div>
   );
 }

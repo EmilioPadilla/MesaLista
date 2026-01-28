@@ -65,6 +65,7 @@ model GiftList {
   categoriesOnGifts GiftCategoryOnGift[]
   invitation    Invitation? // One-to-one relationship with Invitation
   carts         Cart[]    // Carts associated with this gift list
+  invitees      Invitee[] // Invitees for this gift list
 
   @@index([userId])
   @@map("gift_lists")
@@ -424,7 +425,7 @@ model AnalyticsHourly {
 
 model Invitee {
   id                String        @id @default(cuid())
-  coupleId          Int           @map("couple_id")
+  giftListId        Int           @map("gift_list_id")
   firstName         String        @map("first_name")
   lastName          String        @map("last_name")
   tickets           Int           @default(1) // Maximum number of people allowed
@@ -436,8 +437,9 @@ model Invitee {
   updatedAt         DateTime      @updatedAt @map("updated_at")
   respondedAt       DateTime?     @map("responded_at") // When they responded
   carts             Cart[]        // Purchases made by this invitee
+  giftList          GiftList      @relation(fields: [giftListId], references: [id], onDelete: Cascade)
 
-  @@index([coupleId])
+  @@index([giftListId])
   @@index([secretCode])
   @@index([status])
   @@map("invitees")
