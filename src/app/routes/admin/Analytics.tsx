@@ -3,9 +3,9 @@ import { Card, DatePicker, Select, Tabs } from 'antd';
 import { TrendingUp, Users } from 'lucide-react';
 import { useMetricsSummary, useTimeSeries, useFunnelBreakdown, useMetricAlerts } from 'hooks/useAnalytics';
 import { useUsersListsSummary, useUsersAnalytics, useWeddingListsAnalytics } from 'hooks/useUsersListsAnalytics';
-import { useWeddingLists } from 'hooks/useWeddingList';
 import { UserAnalyticsTab, UsersListsAnalyticsTab } from 'src/features/admin/analytics';
 import dayjs, { Dayjs } from 'dayjs';
+import { useGiftLists } from 'src/hooks/useGiftList';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -64,7 +64,7 @@ export function Analytics() {
   }, [dateRange, customDates]);
 
   // Fetch data
-  const { data: weddingLists } = useWeddingLists();
+  const { data: weddingLists } = useGiftLists();
   const { data: summary, isLoading: isSummaryLoading } = useMetricsSummary(from, to, selectedWeddingListId);
   const { data: timeSeriesData, isLoading: isTimeSeriesLoading } = useTimeSeries(
     selectedMetric as 'visitors' | 'signIns' | 'registryAttempts' | 'registryPurchases' | 'giftPurchases',

@@ -151,63 +151,104 @@ export default {
         const session = event.data.object;
 
         try {
-          // Get cart information from metadata
-          if (!session.metadata?.cartId) {
-            console.error('Missing metadata in checkout session');
-            return res.status(400).json({ error: 'Missing metadata' });
-          }
+          // Check if this is a gift list creation payment
+          if (session.metadata?.paymentFor === 'GIFT_LIST_CREATION') {
+            const userId = parseInt(session.metadata.userId);
+            const giftListData = JSON.parse(session.metadata.giftListData);
+            const discountCodeId = session.metadata.discountCodeId ? parseInt(session.metadata.discountCodeId) : undefined;
 
-          const cartId = parseInt(session.metadata.cartId);
+            console.log('Processing gift list creation for user:', userId);
+            console.log('Gift list data:', giftListData);
 
-          // Update cart with payment information
-          await prisma.cart.update({
-            where: { id: cartId },
-            data: {
-              status: 'PAID',
-              paymentId: session.payment_intent as string,
-            },
-          });
-
-          // Create payment record
-          await prisma.payment.create({
-            data: {
-              cartId,
-              paymentId: session.payment_intent as string,
-              amount: (session.amount_total || 0) / 100, // Convert from cents
-              currency: session.currency || 'mxn',
-              paymentType: 'STRIPE',
-              transactionFee: 0, // Stripe fees would be calculated separately
-              status: 'PAID',
-              metadata: JSON.stringify(session.metadata), // Convert object to string
-            },
-          });
-
-          // Get cart items and mark the corresponding gifts as purchased
-          const cartItems = await prisma.cartItem.findMany({
-            where: { cartId },
-            select: { giftId: true },
-          });
-
-          const giftIds = cartItems.map((item: { giftId: number }) => item.giftId);
-
-          // Update all gifts as purchased in a single query
-          if (giftIds.length > 0) {
-            await prisma.gift.updateMany({
-              where: {
-                id: { in: giftIds },
-              },
+            // Create the gift list with FIXED plan type
+            const createdList = await prisma.giftList.create({
               data: {
-                isPurchased: true,
+                userId: userId,
+                title: giftListData.title,
+                description: giftListData.description || '',
+                coupleName: giftListData.coupleName,
+                eventDate: new Date(giftListData.eventDate),
+                planType: 'FIXED',
+                isActive: true,
+                invitationCount: 0,
+                ...(discountCodeId && { discountCodeId }),
               },
             });
-          }
 
-          // Send payment confirmation emails
-          try {
-            await emailService.sendPaymentEmails(cartId);
-          } catch (emailError) {
-            console.error('Error sending payment emails:', emailError);
-            // Don't fail the webhook if email sending fails
+            console.log('Gift list created successfully after payment:', createdList.id);
+
+            // Send confirmation email to user
+            try {
+              await emailService.sendGiftListCreationEmail({
+                userId: userId,
+                giftListId: createdList.id,
+                giftListTitle: giftListData.title,
+                coupleName: giftListData.coupleName,
+                eventDate: new Date(giftListData.eventDate),
+                planType: 'FIXED',
+                amount: (session.amount_total || 0) / 100, // Convert from cents to MXN
+              });
+            } catch (emailError) {
+              console.error('Error sending gift list creation email:', emailError);
+              // Don't fail the webhook if email sending fails
+            }
+          } else if (session.metadata?.cartId) {
+            // Handle regular cart payment
+            const cartId = parseInt(session.metadata.cartId);
+
+            // Update cart with payment information
+            await prisma.cart.update({
+              where: { id: cartId },
+              data: {
+                status: 'PAID',
+                paymentId: session.payment_intent as string,
+              },
+            });
+
+            // Create payment record
+            await prisma.payment.create({
+              data: {
+                cartId,
+                paymentId: session.payment_intent as string,
+                amount: (session.amount_total || 0) / 100, // Convert from cents
+                currency: session.currency || 'mxn',
+                paymentType: 'STRIPE',
+                transactionFee: 0, // Stripe fees would be calculated separately
+                status: 'PAID',
+                metadata: JSON.stringify(session.metadata), // Convert object to string
+              },
+            });
+
+            // Get cart items and mark the corresponding gifts as purchased
+            const cartItems = await prisma.cartItem.findMany({
+              where: { cartId },
+              select: { giftId: true },
+            });
+
+            const giftIds = cartItems.map((item: { giftId: number }) => item.giftId);
+
+            // Update all gifts as purchased in a single query
+            if (giftIds.length > 0) {
+              await prisma.gift.updateMany({
+                where: {
+                  id: { in: giftIds },
+                },
+                data: {
+                  isPurchased: true,
+                },
+              });
+            }
+
+            // Send payment confirmation emails
+            try {
+              await emailService.sendPaymentEmails(cartId);
+            } catch (emailError) {
+              console.error('Error sending payment emails:', emailError);
+              // Don't fail the webhook if email sending fails
+            }
+          } else {
+            console.error('Missing metadata in checkout session');
+            return res.status(400).json({ error: 'Missing metadata' });
           }
         } catch (error) {
           console.error('Error processing webhook:', error);
@@ -729,15 +770,113 @@ export default {
     }
   },
 
+  // Create Stripe checkout session for additional gift list payment
+  createGiftListCheckoutSession: async (req: Request, res: Response) => {
+    try {
+      const { userId, planType, giftListData, successUrl, cancelUrl, discountCode } = req.body;
+
+      if (!userId || !planType || !giftListData) {
+        return res.status(400).json({
+          success: false,
+          message: 'User ID, plan type, and gift list data are required',
+        });
+      }
+
+      // Only fixed plan requires payment
+      if (planType !== 'FIXED') {
+        return res.status(400).json({
+          success: false,
+          message: 'Only fixed plan requires payment',
+        });
+      }
+
+      // Validate discount code if provided
+      let validatedDiscountCode = null;
+      let finalAmount = 100000; // $1,000 MXN in cents
+
+      if (discountCode) {
+        const validation = await discountCodeService.validateDiscountCode(discountCode);
+        if (!validation.valid) {
+          return res.status(400).json({
+            success: false,
+            message: validation.error,
+          });
+        }
+        validatedDiscountCode = validation.discountCode;
+
+        // Calculate discounted amount
+        const baseAmount = 1000; // $1,000 MXN
+        let discountedAmount = baseAmount;
+
+        if (validatedDiscountCode!.discountType === 'PERCENTAGE') {
+          discountedAmount = baseAmount - (baseAmount * validatedDiscountCode!.discountValue) / 100;
+        } else {
+          // FIXED_AMOUNT
+          discountedAmount = baseAmount - validatedDiscountCode!.discountValue;
+        }
+
+        finalAmount = Math.max(0, Math.round(discountedAmount * 100)); // Convert to cents
+      }
+
+      // Create line item for gift list payment
+      const lineItems = [
+        {
+          price_data: {
+            currency: 'mxn',
+            product_data: {
+              name: 'Nueva Lista de Regalos - Plan Fijo',
+              description: validatedDiscountCode
+                ? `Pago único para nueva lista de regalos sin comisiones (Código: ${validatedDiscountCode.code})`
+                : 'Pago único para nueva lista de regalos sin comisiones por ventas',
+            },
+            unit_amount: finalAmount,
+          },
+          quantity: 1,
+        },
+      ];
+
+      // Create Stripe checkout session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: lineItems,
+        mode: 'payment',
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        metadata: {
+          userId: userId.toString(),
+          planType: 'FIXED',
+          paymentFor: 'GIFT_LIST_CREATION',
+          giftListData: JSON.stringify(giftListData),
+          ...(validatedDiscountCode && {
+            discountCodeId: validatedDiscountCode.id.toString(),
+            discountCode: validatedDiscountCode.code,
+          }),
+        },
+      });
+
+      res.json({
+        success: true,
+        sessionId: session.id,
+        url: session.url,
+      });
+    } catch (error) {
+      console.error('Error creating gift list checkout session:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to create checkout session',
+      });
+    }
+  },
+
   // Get purchased gifts by wedding list ID
   getPurchasedGiftsByWeddingList: async (req: Request, res: Response) => {
     try {
       const { weddingListId } = req.params;
 
-      if (!weddingListId) {
+      if (!weddingListId || Array.isArray(weddingListId)) {
         return res.status(400).json({
           success: false,
-          message: 'Wedding list ID is required',
+          message: 'Gift list ID is required',
         });
       }
 
@@ -749,7 +888,7 @@ export default {
             items: {
               some: {
                 gift: {
-                  weddingListId: Number(weddingListId),
+                  giftListId: Number(weddingListId),
                 },
               },
             },
@@ -772,7 +911,7 @@ export default {
                 },
                 where: {
                   gift: {
-                    weddingListId: Number(weddingListId),
+                    giftListId: Number(weddingListId),
                   },
                 },
               },
@@ -796,10 +935,11 @@ export default {
           quantity: item.quantity,
           price: item.price,
           totalPrice: item.price * item.quantity,
-          categories: item.gift.categories
-            .map((catRel: any) => catRel.category?.name)
-            .filter(Boolean)
-            .join(', ') || 'Sin categoría',
+          categories:
+            item.gift.categories
+              .map((catRel: any) => catRel.category?.name)
+              .filter(Boolean)
+              .join(', ') || 'Sin categoría',
           paymentType: payment.paymentType,
           paymentDate: payment.createdAt.toISOString(),
           currency: payment.currency,

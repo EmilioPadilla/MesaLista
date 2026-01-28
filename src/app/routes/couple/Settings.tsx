@@ -6,12 +6,12 @@ import { Button } from 'components/core/Button';
 import { Collapsible } from 'components/core/Collapsible';
 import { Camera, Save, Trash2, MessageSquare } from 'lucide-react';
 import { useCurrentUser, useUpdateCurrentUserProfile, useUpdateCurrentUserPassword, useCheckSlugAvailability } from 'hooks/useUser';
-import { useWeddingListByCouple, useUpdateWeddingList } from 'hooks/useWeddingList';
 import { useUploadFile } from 'hooks/useFiles';
 import { PasswordStrengthIndicator } from 'components/auth/PasswordStrengthIndicator';
 import { useWatch } from 'antd/es/form/Form';
 import { DeleteCurrentUserModal } from 'components/shared/DeleteCurrentUserModal';
 import { useRsvpMessages, useUpdateRsvpMessages } from 'hooks/useRsvp';
+import { useGiftListsByUser, useUpdateGiftList } from 'src/hooks/useGiftList';
 
 export function Settings() {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ export function Settings() {
   const [coverImage, setCoverImage] = useState<string>('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isWeddingAccount, setIsWeddingAccount] = useState(false);
-  const [coupleSlug, setCoupleSlug] = useState('');
+  const [slug, setCoupleSlug] = useState('');
   const [debouncedSlug, setDebouncedSlug] = useState('');
   const [slugError, setSlugError] = useState('');
   const [hasProfileChanges, setHasProfileChanges] = useState(false);
@@ -32,13 +32,14 @@ export function Settings() {
 
   // Fetch current user data
   const { data: userData, isLoading: isLoadingUser } = useCurrentUser();
-  const { data: weddingListData, isLoading: isLoadingWeddingList } = useWeddingListByCouple(userData?.id);
+  const { data: giftLists, isLoading: isLoadingWeddingList } = useGiftListsByUser(userData?.id);
+  const giftListData = giftLists?.[0];
   const { data: rsvpMessages } = useRsvpMessages(userData?.id || 0, !!userData?.id);
 
   // Mutations
   const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useUpdateCurrentUserProfile();
   const { mutateAsync: updatePassword, isPending: isUpdatingPassword } = useUpdateCurrentUserPassword();
-  const { mutateAsync: updateWeddingList } = useUpdateWeddingList();
+  const { mutateAsync: updateGiftList } = useUpdateGiftList();
   const { mutateAsync: uploadFile } = useUploadFile();
   const { mutateAsync: updateRsvpMessages, isPending: isUpdatingRsvpMessages } = useUpdateRsvpMessages();
 
@@ -54,7 +55,7 @@ export function Settings() {
         spouseFirstName: userData.spouseFirstName || '',
         spouseLastName: userData.spouseLastName || '',
         phoneNumber: userData.phoneNumber || '',
-        coupleSlug: userData.coupleSlug || '',
+        slug: userData.slug || '',
       });
 
       // Check if user has spouse information to determine if it's a wedding account
@@ -62,8 +63,8 @@ export function Settings() {
       setIsWeddingAccount(hasSpouseInfo);
 
       // Set initial couple slug
-      if (userData.coupleSlug) {
-        setCoupleSlug(userData.coupleSlug);
+      if (userData.slug) {
+        setCoupleSlug(userData.slug);
       }
     }
   }, [userData, profileForm]);
@@ -81,48 +82,48 @@ export function Settings() {
   // Debounce slug input
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSlug(coupleSlug);
+      setDebouncedSlug(slug);
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [coupleSlug]);
+  }, [slug]);
 
   // Update slug error based on availability check
   useEffect(() => {
-    if (slugCheck && coupleSlug && coupleSlug !== userData?.coupleSlug) {
+    if (slugCheck && slug && slug !== userData?.slug) {
       if (!slugCheck.available) {
         setSlugError('Este enlace ya está en uso. Por favor elige otro.');
       } else {
         setSlugError('');
       }
-    } else if (coupleSlug === userData?.coupleSlug) {
+    } else if (slug === userData?.slug) {
       // Clear error if it's the user's current slug
       setSlugError('');
     }
-  }, [slugCheck, coupleSlug, userData?.coupleSlug]);
+  }, [slugCheck, slug, userData?.slug]);
 
-  // Load wedding list cover image, description, location, and venue
+  // Load gift list cover image, description, location, and venue
   useEffect(() => {
-    if (weddingListData?.imageUrl) {
-      setCoverImage(weddingListData.imageUrl);
+    if (giftListData?.imageUrl) {
+      setCoverImage(giftListData.imageUrl);
     }
-    if (weddingListData?.description) {
-      profileForm.setFieldValue('weddingListDescription', weddingListData.description);
+    if (giftListData?.description) {
+      profileForm.setFieldValue('weddingListDescription', giftListData.description);
     }
-    if (weddingListData?.weddingLocation) {
-      profileForm.setFieldValue('weddingLocation', weddingListData.weddingLocation);
+    if (giftListData?.eventLocation) {
+      profileForm.setFieldValue('weddingLocation', giftListData.eventLocation);
     }
-    if (weddingListData?.weddingVenue) {
-      profileForm.setFieldValue('weddingVenue', weddingListData.weddingVenue);
+    if (giftListData?.eventVenue) {
+      profileForm.setFieldValue('weddingVenue', giftListData.eventVenue);
     }
-    if (weddingListData?.weddingDate) {
-      profileForm.setFieldValue('weddingDate', dayjs(weddingListData.weddingDate));
+    if (giftListData?.eventDate) {
+      profileForm.setFieldValue('weddingDate', dayjs(giftListData.eventDate));
     }
-  }, [weddingListData, profileForm]);
+  }, [giftListData, profileForm]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !weddingListData) return;
+    if (!file || !giftListData) return;
 
     try {
       setIsUploadingImage(true);
@@ -131,9 +132,9 @@ export function Settings() {
       const uploadedFile = await uploadFile(file);
       const imageUrl = uploadedFile;
 
-      // Update wedding list with new image URL
-      await updateWeddingList({
-        id: weddingListData.id,
+      // Update gift list with new image URL
+      await updateGiftList({
+        id: giftListData.id,
         data: { imageUrl },
       });
 
@@ -150,8 +151,8 @@ export function Settings() {
   const handleSaveProfile = async () => {
     try {
       const values = await profileForm.validateFields();
-      const oldSlug = userData?.coupleSlug;
-      const newSlug = values.coupleSlug;
+      const oldSlug = userData?.slug;
+      const newSlug = values.slug;
 
       // Update user profile
       await updateProfile({
@@ -160,42 +161,42 @@ export function Settings() {
         spouseFirstName: values.spouseFirstName,
         spouseLastName: values.spouseLastName,
         phoneNumber: values.phoneNumber,
-        coupleSlug: values.coupleSlug,
+        slug: values.slug,
       });
 
-      // Update wedding list data if it exists
-      if (weddingListData) {
-        const weddingListUpdates: any = {};
+      // Update gift list data if it exists
+      if (giftListData) {
+        const giftListUpdates: any = {};
 
         // Update coupleName based on whether it's a wedding account
         if (isWeddingAccount && values.spouseFirstName) {
           // Wedding account: "FirstName y SpouseFirstName"
-          weddingListUpdates.coupleName = `${values.firstName}${values.spouseFirstName ? ' y ' + values.spouseFirstName : ''}`.trim();
-          weddingListUpdates.title = `Lista de ${values.firstName}${values.spouseFirstName ? ' y ' + values.spouseFirstName : ''}`.trim();
+          giftListUpdates.coupleName = `${values.firstName}${values.spouseFirstName ? ' y ' + values.spouseFirstName : ''}`.trim();
+          giftListUpdates.title = `Lista de ${values.firstName}${values.spouseFirstName ? ' y ' + values.spouseFirstName : ''}`.trim();
         } else {
           // Not a wedding account: just the user's first name
-          weddingListUpdates.coupleName = values.firstName;
-          weddingListUpdates.title = `Lista de ${values.firstName}`;
+          giftListUpdates.coupleName = values.firstName;
+          giftListUpdates.title = `Lista de ${values.firstName}`;
         }
 
         if (values.weddingListDescription !== undefined) {
-          weddingListUpdates.description = values.weddingListDescription;
+          giftListUpdates.description = values.weddingListDescription;
         }
         if (values.weddingLocation !== undefined) {
-          weddingListUpdates.weddingLocation = values.weddingLocation;
+          giftListUpdates.eventLocation = values.weddingLocation;
         }
         if (values.weddingVenue !== undefined) {
-          weddingListUpdates.weddingVenue = values.weddingVenue;
+          giftListUpdates.eventVenue = values.weddingVenue;
         }
         if (values.weddingDate !== undefined) {
-          weddingListUpdates.weddingDate = values.weddingDate ? values.weddingDate.toISOString() : null;
+          giftListUpdates.eventDate = values.weddingDate ? values.weddingDate.toISOString() : null;
         }
 
         // Only update if there are changes
-        if (Object.keys(weddingListUpdates).length > 0) {
-          await updateWeddingList({
-            id: weddingListData.id,
-            data: weddingListUpdates,
+        if (Object.keys(giftListUpdates).length > 0) {
+          await updateGiftList({
+            id: giftListData.id,
+            data: giftListUpdates,
           });
         }
       }
@@ -390,37 +391,37 @@ export function Settings() {
 
           <Form form={profileForm} layout="vertical" onValuesChange={() => setHasProfileChanges(true)}>
             <Form.Item
-              name="coupleSlug"
+              name="slug"
               className="!mb-0"
               label={<span className="text-sm text-muted-foreground">ID de la pareja</span>}
               rules={[{ required: true, message: 'El slug es requerido' }]}
               validateStatus={
-                slugError ? 'error' : coupleSlug && slugCheck?.available && coupleSlug !== userData?.coupleSlug ? 'success' : undefined
+                slugError ? 'error' : slug && slugCheck?.available && slug !== userData?.slug ? 'success' : undefined
               }
               help={null}>
               <Input
                 addonBefore="mesalista.com.mx/"
-                value={coupleSlug}
+                value={slug}
                 className="[&_input]:!bg-[#f5f5f7] [&_input]:h-12 [&_.ant-input-group-addon]:!bg-white [&_.ant-input-group-addon]:!border-border"
                 onChange={(e) => {
                   const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
                   setCoupleSlug(value);
-                  profileForm.setFieldValue('coupleSlug', value);
+                  profileForm.setFieldValue('slug', value);
                   setHasProfileChanges(true);
                 }}
               />
             </Form.Item>
             <div className="space-y-1 mt-1">
               <p className="text-sm text-muted-foreground font-light">Solo letras minúsculas, números y guiones</p>
-              {isCheckingSlug && coupleSlug && coupleSlug !== userData?.coupleSlug && (
+              {isCheckingSlug && slug && slug !== userData?.slug && (
                 <p className="text-sm text-muted-foreground">Verificando disponibilidad...</p>
               )}
-              {!isCheckingSlug && slugCheck && slugCheck.available && coupleSlug && coupleSlug !== userData?.coupleSlug && (
+              {!isCheckingSlug && slugCheck && slugCheck.available && slug && slug !== userData?.slug && (
                 <p className="text-sm text-green-600">✓ Este enlace está disponible</p>
               )}
               {slugError && <p className="text-sm text-red-500">{slugError}</p>}
             </div>
-            {coupleSlug && coupleSlug !== userData?.coupleSlug && (
+            {slug && slug !== userData?.slug && (
               <Alert
                 className="!my-3"
                 message="Al cambiar tu ID, la URL anterior dejará de funcionar. Recuerda compartir la nueva dirección con tus invitados."

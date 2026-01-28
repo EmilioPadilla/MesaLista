@@ -20,6 +20,7 @@ import antdThemeConfig from 'styles/config/antdThemeConfig';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { HomePage } from 'routes/HomePage';
 import { TopNav } from 'src/app/modules/navigation/topnav/TopNav';
+import { TopNavWrapper } from 'src/app/modules/navigation/topnav/TopNavWrapper';
 import { BuyGifts } from 'src/app/routes/guest/BuyGifts';
 import { Checkout } from 'routes/checkout/Checkout';
 import { OrderConfirmation } from 'routes/checkout/OrderConfirmation';
@@ -37,6 +38,10 @@ import { AdminPreDesignedLists } from './app/routes/admin/ManagePredesignedLists
 import { ManageDiscountCodes } from './app/routes/admin/ManageDiscountCodes';
 import { GuestConfirmation } from './app/routes/GuestConfirmation';
 import { ManageRSVP } from './app/routes/couple/ManageRsvp';
+import { Invitations } from './app/routes/couple/Invitations';
+import MyGiftLists from './app/routes/couple/MyGiftLists';
+import { CreateNewList } from './app/routes/couple/CreateNewList';
+import { PublicInvitationView } from './features/invitations/components/PublicInvitation/PublicInvitationView';
 
 function App() {
   const isLocalhost = window.location.hostname === 'localhost';
@@ -52,7 +57,9 @@ function App() {
             element={
               <>
                 <TopNav />
-                <HomePage />
+                <TopNavWrapper>
+                  <HomePage />
+                </TopNavWrapper>
               </>
             }
           />
@@ -64,7 +71,9 @@ function App() {
             element={
               <>
                 <TopNav />
-                <SearchPage />
+                <TopNavWrapper>
+                  <SearchPage />
+                </TopNavWrapper>
               </>
             }
           />
@@ -73,7 +82,9 @@ function App() {
             element={
               <>
                 <TopNav />
-                <Contact />
+                <TopNavWrapper>
+                  <Contact />
+                </TopNavWrapper>
               </>
             }
           />
@@ -84,17 +95,21 @@ function App() {
             element={
               <>
                 <TopNav />
-                <PricingPage />
+                <TopNavWrapper>
+                  <PricingPage />
+                </TopNavWrapper>
               </>
             }
           />
           <Route
-            path="/listas"
+            path="/colecciones"
             element={
               <>
                 <TopNav />
-                <PredesignedListsPage />
-                <Footer />
+                <TopNavWrapper>
+                  <PredesignedListsPage />
+                  <Footer />
+                </TopNavWrapper>
               </>
             }
           />
@@ -106,7 +121,9 @@ function App() {
               element={
                 <>
                   <TopNav />
-                  <Analytics />
+                  <TopNavWrapper>
+                    <Analytics />
+                  </TopNavWrapper>
                 </>
               }
             />
@@ -115,16 +132,20 @@ function App() {
               element={
                 <>
                   <TopNav />
-                  <AdminControl />
+                  <TopNavWrapper>
+                    <AdminControl />
+                  </TopNavWrapper>
                 </>
               }
             />
             <Route
-              path="/admin/listas"
+              path="/admin/colecciones"
               element={
                 <>
                   <TopNav />
-                  <AdminPreDesignedLists />
+                  <TopNavWrapper>
+                    <AdminPreDesignedLists />
+                  </TopNavWrapper>
                 </>
               }
             />
@@ -133,22 +154,30 @@ function App() {
               element={
                 <>
                   <TopNav />
-                  <ManageDiscountCodes />
+                  <TopNavWrapper>
+                    <ManageDiscountCodes />
+                  </TopNavWrapper>
                 </>
               }
             />
           </Route>
 
+          {/* Public invitation view - standalone without header */}
+          <Route path="/:slug/:giftListId/invitacion" element={<PublicInvitationView />} />
+
           {/* Public registry view for guests */}
-          <Route path="/:coupleSlug" element={<PublicRegistry />}>
+          <Route path="/:slug" element={<PublicRegistry />}>
             <Route index element={<HomePage />} />
             <Route path="rsvp" element={<GuestConfirmation />} />
             <Route path="regalos" element={<BuyGifts />} />
             <Route path="checkout" element={<Checkout />} />
+            <Route path="listas" element={<MyGiftLists />} />
+            <Route path="crear-lista" element={<CreateNewList />} />
             <Route path="pago-confirmado" element={<OrderConfirmation />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<Dashboard />}>
                 <Route path="gestionar" element={<ManageRegistry />} />
+                <Route path="invitacion" element={<Invitations />} />
                 <Route path="gestionar-rsvp" element={<ManageRSVP />} />
                 <Route path="configuracion" element={<Settings />} />
               </Route>

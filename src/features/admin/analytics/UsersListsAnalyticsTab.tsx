@@ -62,7 +62,7 @@ export function UsersListsAnalyticsTab({
                   {user.spouseFirstName && ` y ${user.spouseFirstName}`}
                 </div>
                 <div className="text-xs text-gray-500">{user.email}</div>
-                {user.coupleSlug && <div className="text-xs text-blue-600">/{user.coupleSlug}</div>}
+                {user.slug && <div className="text-xs text-blue-600">/{user.slug}</div>}
               </div>
             );
           } else {
@@ -71,7 +71,7 @@ export function UsersListsAnalyticsTab({
               <div>
                 <div className="font-semibold">{list.title}</div>
                 <div className="text-xs text-gray-500">{list.coupleName}</div>
-                {list.coupleSlug && <div className="text-xs text-blue-600">/{list.coupleSlug}</div>}
+                {list.slug && <div className="text-xs text-blue-600">/{list.slug}</div>}
               </div>
             );
           }

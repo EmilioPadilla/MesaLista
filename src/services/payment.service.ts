@@ -151,7 +151,9 @@ export const paymentService = {
    * @param data PayPal capture data
    * @returns PayPal capture response
    */
-  capturePayPalPayment: async (data: CapturePayPalPaymentRequest): Promise<{ success: boolean; cartId: number; paymentId: string; message: string }> => {
+  capturePayPalPayment: async (
+    data: CapturePayPalPaymentRequest,
+  ): Promise<{ success: boolean; cartId: number; paymentId: string; message: string }> => {
     const response = await apiClient.post(api_endpoints.payments.capturePayPalPayment, data);
     return response.data;
   },
@@ -162,7 +164,10 @@ export const paymentService = {
    * @param data Payment cancellation data
    * @returns Payment cancellation response
    */
-  cancelPayment: async (data: { cartId: string; paymentMethod?: string }): Promise<{ success: boolean; message: string; cartStatus: string }> => {
+  cancelPayment: async (data: {
+    cartId: string;
+    paymentMethod?: string;
+  }): Promise<{ success: boolean; message: string; cartStatus: string }> => {
     const response = await apiClient.post(api_endpoints.payments.cancelPayment, data);
     return response.data;
   },
@@ -181,6 +186,24 @@ export const paymentService = {
     discountCode?: string;
   }): Promise<{ success: boolean; sessionId: string; url: string }> => {
     const response = await apiClient.post(api_endpoints.payments.createPlanCheckoutSession, data);
+    return response.data;
+  },
+
+  /**
+   * Create Stripe checkout session for gift list payment
+   *
+   * @param data Gift list checkout session data
+   * @returns Checkout session response with URL
+   */
+  createGiftListCheckoutSession: async (data: {
+    userId: number;
+    planType: string;
+    giftListData: any;
+    successUrl: string;
+    cancelUrl: string;
+    discountCode?: string;
+  }): Promise<{ success: boolean; sessionId: string; url: string }> => {
+    const response = await apiClient.post(api_endpoints.payments.createGiftListCheckoutSession, data);
     return response.data;
   },
 

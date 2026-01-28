@@ -20,8 +20,8 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
 
-  // Extract coupleSlug from current URL path
-  const coupleSlug = location.pathname.split('/')[1];
+  // Extract slug from current URL path
+  const slug = location.pathname.split('/')[1];
 
   // Check URL query parameter to determine initial modal state
   const shouldShowModal = searchParams.get('addGift') === 'true';
@@ -113,7 +113,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
         <Button
           type="default"
           icon={<Eye className="h-4 w-4" />}
-          onClick={() => window.open(`/${coupleSlug}/regalos`, '_blank')}
+          onClick={() => window.open(`/${slug}/regalos${weddingListId ? `?listId=${weddingListId}` : ''}`, '_blank')}
           className="mt-2 group">
           Ver como Invitado <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
         </Button>

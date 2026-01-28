@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/:coupleId', weddingListController.getWeddingListByCouple);
 
 // Public route: get wedding list by couple slug (no authentication)
-router.get('/slug/:coupleSlug', weddingListController.getWeddingListBySlug);
+router.get('/slug/:slug', weddingListController.getWeddingListBySlug);
 
 router.get('/:weddingListId/wedding-list-by-category', weddingListController.getCategoriesInWeddingList);
 

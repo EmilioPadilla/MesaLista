@@ -7,12 +7,14 @@ import { faqs, plans } from 'src/config/constants';
 import { useCurrentUser } from 'hooks/useUser';
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
 import { useEffect } from 'react';
+import { PageSEO } from 'src/components/seo';
+import { faqSchema } from 'src/utils/structuredData';
 
 export function PricingPage() {
   const navigate = useNavigate();
   const { data: currentUser } = useCurrentUser();
   const trackEvent = useTrackEvent();
-  
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Track pricing page view
@@ -20,8 +22,20 @@ export function PricingPage() {
     trackEvent('VIEW_PRICING');
   }, []);
 
+  const faqStructuredData = faqSchema(faqs.map((faq) => ({ question: faq.question, answer: faq.answer })));
+
   return (
     <div className="flex flex-col min-h-screen">
+      <PageSEO
+        title="Precios - Mesa de Regalos Digital"
+        description="Planes flexibles para tu mesa de regalos. Sin costos ocultos, sin comisiones por transacción. Elige el plan perfecto para tu evento."
+        keywords="precios mesa de regalos, planes boda, costo mesa de regalos, precio lista de bodas, México"
+        customStructuredData={faqStructuredData}
+        breadcrumbs={[
+          { name: 'Inicio', url: 'https://www.mesalista.com.mx' },
+          { name: 'Precios', url: 'https://www.mesalista.com.mx/precios' },
+        ]}
+      />
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#faf8f6] via-white to-[#faf0f0] py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <motion.div

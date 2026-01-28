@@ -51,9 +51,9 @@ export const user_endpoints = {
    * Get user by couple slug
    * @method GET
    * @access Public
-   * @param coupleSlug Couple slug
+   * @param slug Couple slug
    */
-  bySlug: (coupleSlug: string) => `/user/slug/${coupleSlug}`,
+  bySlug: (slug: string) => `/user/slug/${slug}`,
 
   /**
    * Check if couple slug is available
@@ -183,9 +183,9 @@ export const weddingList_endpoints = {
    * Get wedding list by couple slug
    * @method GET
    * @access Public
-   * @param coupleSlug Couple slug
+   * @param slug Couple slug
    */
-  getBySlug: (coupleSlug: string) => `/wedding-list/slug/${coupleSlug}`,
+  getBySlug: (slug: string) => `/wedding-list/slug/${slug}`,
 
   /**
    * Update a wedding list
@@ -398,6 +398,14 @@ export const payment_endpoints = {
   createPlanCheckoutSession: `/payments/create-plan-checkout-session`,
 
   /**
+   * Create Stripe checkout session for gift list payment
+   * @method POST
+   * @access Protected
+   * @requires JWT token
+   */
+  createGiftListCheckoutSession: `/payments/create-gift-list-checkout-session`,
+
+  /**
    * Get purchased gifts by wedding list ID
    * @method GET
    * @access Protected
@@ -526,6 +534,87 @@ export const analytics_endpoints = {
    * @access Admin only
    */
   cleanup: `/analytics/admin/metrics/cleanup`,
+};
+
+/**
+ * Gift List Endpoints
+ */
+const giftList_endpoints = {
+  /**
+   * Base gift lists endpoint
+   */
+  base: `/gift-list`,
+
+  /**
+   * Get all gift lists
+   * @method GET
+   * @access Public
+   */
+  getAll: `/gift-list`,
+
+  /**
+   * Get gift lists by user ID
+   * @method GET
+   * @access Protected
+   * @param userId User ID
+   */
+  getByUser: (userId: number) => `/gift-list/user/${userId}`,
+
+  /**
+   * Get gift list by ID
+   * @method GET
+   * @access Public
+   * @param giftListId Gift list ID
+   */
+  getById: (giftListId: number) => `/gift-list/${giftListId}`,
+
+  /**
+   * Get first gift list by user slug (for backward compatibility)
+   * @method GET
+   * @access Public
+   * @param slug User slug
+   */
+  getBySlug: (slug: string) => `/gift-list/by-slug/${slug}`,
+
+  /**
+   * Update a gift list
+   * @method PUT
+   * @access Protected
+   * @param id Gift list ID
+   */
+  update: (id: number) => `/gift-list/${id}`,
+
+  /**
+   * Delete a gift list
+   * @method DELETE
+   * @access Protected
+   * @param id Gift list ID
+   */
+  delete: (id: number) => `/gift-list/${id}`,
+
+  /**
+   * Get gifts in a gift list
+   * @method GET
+   * @access Public
+   * @param giftListId Gift list ID
+   */
+  getGiftsByGiftList: (giftListId: number) => `/gift-list/${giftListId}/gifts`,
+
+  /**
+   * Get categories in a gift list
+   * @method GET
+   * @access Public
+   * @param giftListId Gift list ID
+   */
+  getCategoriesByGiftList: (giftListId: number) => `/gift-list/${giftListId}/categories`,
+
+  /**
+   * Reorder gifts in a gift list
+   * @method PUT
+   * @access Protected
+   * @param giftListId Gift list ID
+   */
+  reorderGifts: (giftListId: number) => `/gift-list/${giftListId}/reorder`,
 };
 
 /**
@@ -717,6 +806,21 @@ const rsvp_endpoints = {
 };
 
 /**
+ * Invitation endpoints
+ */
+export const invitation_endpoints = {
+  base: `/invitations`,
+  byGiftListId: (giftListId: number) => `/invitations/gift-list/${giftListId}`,
+  byGiftListIdPublic: (giftListId: number) => `/invitations/gift-list/${giftListId}/public`,
+  bySlug: (slug: string) => `/invitations/slug/${slug}`,
+  byId: (id: number) => `/invitations/${id}`,
+  create: `/invitations`,
+  update: (id: number) => `/invitations/${id}`,
+  publish: (id: number) => `/invitations/${id}/publish`,
+  delete: (id: number) => `/invitations/${id}`,
+};
+
+/**
  * Combined endpoints for easy access
  */
 export const endpoints = {
@@ -724,6 +828,7 @@ export const endpoints = {
   users: user_endpoints,
   gifts: gift_endpoints,
   weddingLists: weddingList_endpoints,
+  giftLists: giftList_endpoints,
   purchases: purchase_endpoints,
   payments: payment_endpoints,
   email: email_endpoints,
@@ -734,6 +839,7 @@ export const endpoints = {
   discountCodes: discountCode_endpoints,
   usersListsAnalytics: usersListsAnalytics_endpoints,
   rsvp: rsvp_endpoints,
+  invitations: invitation_endpoints,
 };
 
 export const api_endpoints = endpoints;

@@ -9,8 +9,8 @@ interface RegistryDetailModalProps {
   formatDate: (date: string) => string;
   formatDateTime: (date: string) => string;
   formatCurrency: (amount: number) => string;
-  onViewPublicRegistry: (slug: string) => void;
-  onCopyLink: (slug: string) => void;
+  onViewPublicRegistry: (slug: string, listId: number) => void;
+  onCopyLink: (slug: string, listId: number) => void;
 }
 
 export function RegistryDetailModal({
@@ -32,12 +32,12 @@ export function RegistryDetailModal({
         <Button key="close" onClick={onClose}>
           Cerrar
         </Button>,
-        registry?.coupleSlug && (
+        registry?.slug && (
           <Button
             key="view"
             type="primary"
             icon={<ExternalLink className="h-4 w-4" />}
-            onClick={() => onViewPublicRegistry(registry.coupleSlug!)}>
+            onClick={() => onViewPublicRegistry(registry.slug!, registry.id)}>
             Ver Lista Pública
           </Button>
         ),
@@ -62,8 +62,10 @@ export function RegistryDetailModal({
               </div>
               <div>
                 <span className="text-gray-500">Slug:</span>
-                <div className="font-medium text-blue-600 cursor-pointer hover:underline" onClick={() => onCopyLink(registry.coupleSlug!)}>
-                  {registry.coupleSlug || 'N/A'}
+                <div
+                  className="font-medium text-blue-600 cursor-pointer hover:underline"
+                  onClick={() => onCopyLink(registry.slug!, registry.id)}>
+                  {registry.slug || 'N/A'}
                 </div>
               </div>
               <div>

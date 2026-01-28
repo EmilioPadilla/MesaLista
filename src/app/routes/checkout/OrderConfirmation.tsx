@@ -5,24 +5,24 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGetCart } from 'src/hooks/useCart';
 import { useOutletContext } from 'react-router-dom';
 import { OutletContextType } from '../guest/PublicRegistry';
-import { useWeddingListBySlug } from 'src/hooks/useWeddingList';
 import { useEffect, useRef } from 'react';
 import { useCapturePayPalPayment } from 'src/hooks/usePayment';
 import { useResendPaymentToInvitee } from 'src/hooks/useEmail';
 import { motion } from 'motion/react';
 import { message } from 'antd';
 import { useTrackEvent } from 'src/hooks/useAnalyticsTracking';
+import { useGiftListBySlug } from 'src/hooks/useGiftList';
 
 export function OrderConfirmation() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const cartId = searchParams.get('cartId');
   const contextData = useOutletContext<OutletContextType>();
-  const { coupleSlug, regenerateGuestId } = contextData;
+  const { slug, regenerateGuestId } = contextData;
   const trackEvent = useTrackEvent();
   const hasTrackedPurchase = useRef(false);
 
-  const { data: weddinglist } = useWeddingListBySlug(coupleSlug);
+  const { data: weddinglist } = useGiftListBySlug(slug);
   const { data: cartData, isLoading: isLoadingCart, error: cartError } = useGetCart(cartId || '');
   const { mutate: capturePayPalPayment } = useCapturePayPalPayment();
   const { mutate: resendEmail, isPending: isResendingEmail } = useResendPaymentToInvitee();
@@ -40,12 +40,12 @@ export function OrderConfirmation() {
         {
           onError: (error) => {
             // Redirect back to checkout on error
-            navigate(`/${coupleSlug}/checkout`);
+            navigate(`/${slug}/checkout`);
           },
         },
       );
     }
-  }, [searchParams, cartData, capturePayPalPayment, navigate, coupleSlug]);
+  }, [searchParams, cartData, capturePayPalPayment, navigate, slug]);
 
   // Handle guest ID regeneration when cart is paid
   useEffect(() => {
@@ -407,7 +407,7 @@ export function OrderConfirmation() {
                 <div className="grid grid-cols-1 gap-3 pt-4">
                   <Button
                     className="h-12 bg-[#d4704a] text-white rounded-2xl font-medium border-0 shadow-lg hover:shadow-xl transition-all duration-300"
-                    onClick={() => navigate(`/${coupleSlug}/regalos`)}>
+                    onClick={() => navigate(`/${slug}/regalos${weddinglist?.id ? `?listId=${weddinglist.id}` : ''}`)}>
                     Ver más regalos
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -415,7 +415,7 @@ export function OrderConfirmation() {
                   <Button
                     variant="outline"
                     className="h-12 rounded-2xl bg-white border border-border/30 hover:bg-[#f5f5f7] transition-colors font-light"
-                    onClick={() => navigate(`/${coupleSlug}`)}>
+                    onClick={() => navigate(`/${slug}`)}>
                     <Home className="h-4 w-4 mr-2" />
                     Ir al inicio
                   </Button>

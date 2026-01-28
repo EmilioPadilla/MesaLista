@@ -4,19 +4,20 @@ import { X } from 'lucide-react';
 import { GiftItem } from 'app/routes/couple/ManageRegistry';
 import { GiftCategory } from 'types/models/gift';
 import { useUpdateGift } from 'hooks/useGift';
-import { useGetCategoriesByWeddingList } from 'hooks/useWeddingList';
 import { UploadOutlined } from '@ant-design/icons';
 import { UploadChangeParam } from 'antd/es/upload';
 import { useUploadFile } from 'hooks/useFiles';
+import { useGetCategoriesByGiftList } from 'src/hooks/useGiftList';
 
 interface GiftModalProps {
   gift: GiftItem | null;
   isOpen: boolean;
   onClose: () => void;
+  afterClose?: () => void;
   weddingListId?: number;
 }
 
-export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalProps) {
+export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: GiftModalProps) {
   const [form] = Form.useForm();
   const [imageState, setImageState] = useState<{
     file: File | null;
@@ -26,7 +27,7 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
   const [imagePosition, setImagePosition] = useState<number>(50);
   const { mutate: updateGift, isSuccess: updateSuccess, isError: updateError } = useUpdateGift();
   const { mutate: uploadFile } = useUploadFile();
-  const { data: categories } = useGetCategoriesByWeddingList(weddingListId);
+  const { data: categories } = useGetCategoriesByGiftList(weddingListId);
   const categoryOptions = categories?.categories?.map((category: any) => ({ value: category.name, label: category.name }));
 
   useEffect(() => {
@@ -117,7 +118,7 @@ export function GiftModal({ gift, isOpen, onClose, weddingListId }: GiftModalPro
   if (!gift) return null;
 
   return (
-    <Modal title="Editar Regalo" open={isOpen} onCancel={handleClose} footer={null} width={700}>
+    <Modal afterClose={afterClose} title="Editar Regalo" open={isOpen} onCancel={handleClose} footer={null} width={700}>
       <Form form={form} onFinish={handleFinish} layout="vertical" className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Form.Item name="title" label="Nombre del Regalo" rules={[{ required: true, message: 'Por favor ingresa el título del regalo' }]}>

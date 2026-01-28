@@ -19,6 +19,10 @@ export const predesignedListController = {
   async getPredesignedListById(req: Request, res: Response) {
     try {
       const { id } = req.params;
+
+      if (Array.isArray(id)) {
+        return res.status(400).json({ message: 'Invalid ID' });
+      }
       const list = await predesignedListService.getListById(parseInt(id));
 
       if (!list) {
@@ -37,15 +41,19 @@ export const predesignedListController = {
   async addGiftToWeddingList(req: Request, res: Response) {
     try {
       const { giftId } = req.params;
-      const { weddingListId } = req.body;
+
+      if (Array.isArray(giftId)) {
+        return res.status(400).json({ message: 'Invalid gift ID' });
+      }
+      const { giftListId } = req.body;
       const userId = req.user?.userId;
 
       if (!userId) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      if (!weddingListId) {
-        return res.status(400).json({ message: 'Wedding list ID is required' });
+      if (!giftListId) {
+        return res.status(400).json({ message: 'Gift list ID is required' });
       }
 
       // Get the predesigned gift
@@ -54,14 +62,14 @@ export const predesignedListController = {
         return res.status(404).json({ message: 'Predesigned gift not found' });
       }
 
-      // Create a new gift in the user's wedding list based on the predesigned gift
+      // Create a new gift in the user's gift list based on the predesigned gift
       const newGift = await prisma.gift.create({
         data: {
           title: predesignedGift.title,
           description: predesignedGift.description,
           price: predesignedGift.price,
           imageUrl: predesignedGift.imageUrl,
-          weddingListId,
+          giftListId,
           isPurchased: false,
           isMostWanted: false,
           quantity: 0,
@@ -84,7 +92,7 @@ export const predesignedListController = {
             data: {
               giftId: newGift.id,
               categoryId: category.id,
-              weddingListId,
+              giftListId,
             },
           });
         }
@@ -137,6 +145,10 @@ export const predesignedListController = {
   async updatePredesignedList(req: Request, res: Response) {
     try {
       const { id } = req.params;
+
+      if (Array.isArray(id)) {
+        return res.status(400).json({ message: 'Invalid ID' });
+      }
       const { name, description, imageUrl, icon, isActive } = req.body;
 
       const list = await predesignedListService.updateList(parseInt(id), {
@@ -158,6 +170,10 @@ export const predesignedListController = {
   async deletePredesignedList(req: Request, res: Response) {
     try {
       const { id } = req.params;
+
+      if (Array.isArray(id)) {
+        return res.status(400).json({ message: 'Invalid ID' });
+      }
       await predesignedListService.deleteList(parseInt(id));
       res.json({ message: 'Predesigned list deleted successfully' });
     } catch (error) {
@@ -187,6 +203,10 @@ export const predesignedListController = {
   async createPredesignedGift(req: Request, res: Response) {
     try {
       const { listId } = req.params;
+
+      if (Array.isArray(listId)) {
+        return res.status(400).json({ message: 'Invalid list ID' });
+      }
       const { title, description, price, imageUrl, categories, priority } = req.body;
 
       if (!title || !price || !imageUrl || !categories || !Array.isArray(categories) || categories.length === 0 || !priority) {
@@ -214,6 +234,10 @@ export const predesignedListController = {
   async updatePredesignedGift(req: Request, res: Response) {
     try {
       const { giftId } = req.params;
+
+      if (Array.isArray(giftId)) {
+        return res.status(400).json({ message: 'Invalid gift ID' });
+      }
       const { title, description, price, imageUrl, categories, priority } = req.body;
 
       const gift = await predesignedListService.updateGift(parseInt(giftId), {
@@ -236,6 +260,10 @@ export const predesignedListController = {
   async deletePredesignedGift(req: Request, res: Response) {
     try {
       const { giftId } = req.params;
+
+      if (Array.isArray(giftId)) {
+        return res.status(400).json({ message: 'Invalid gift ID' });
+      }
       await predesignedListService.deleteGift(parseInt(giftId));
       res.json({ message: 'Predesigned gift deleted successfully' });
     } catch (error) {

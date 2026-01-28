@@ -48,7 +48,7 @@ export function ManageRSVP() {
 
   // Get current user
   const { data: user } = useCurrentUser();
-  const coupleSlug = user?.coupleSlug;
+  const slug = user?.slug;
 
   // React Query hooks
   const { data: invitees = [], isLoading: loading, refetch } = useInvitees();
@@ -147,7 +147,7 @@ export function ManageRSVP() {
   };
 
   const handleCopyLink = async () => {
-    const rsvpLink = `${window.location.origin}/${coupleSlug}/rsvp`;
+    const rsvpLink = `${window.location.origin}/${slug}/rsvp`;
     try {
       await navigator.clipboard.writeText(rsvpLink);
       setCopied(true);
@@ -291,7 +291,7 @@ export function ManageRSVP() {
               onClick={handleCopyLink}
               className="flex-1 bg-white rounded-xl p-4 border border-border/30 cursor-pointer hover:bg-[#f5f5f7] transition-colors">
               <code className="text-sm text-foreground break-all">
-                {window.location.origin}/{coupleSlug}/rsvp
+                {window.location.origin}/{slug}/rsvp
               </code>
             </div>
             <Button

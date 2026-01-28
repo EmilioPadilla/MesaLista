@@ -557,7 +557,7 @@ Este mensaje fue enviado desde el formulario de contacto de MesaLista
                   <tr>
                     <td style="background-color: #f5f5f7; padding: 24px; text-align: center;">
                       <p style="color: #6e6e73; margin: 0; font-size: 14px;">
-                        © 2025 MesaLista. Todos los derechos reservados.
+                        © 2026 MesaLista. Todos los derechos reservados.
                       </p>
                     </td>
                   </tr>
@@ -586,7 +586,7 @@ Saludos,
 El equipo de MesaLista
 
 ---
-© 2025 MesaLista. Todos los derechos reservados.
+© 2026 MesaLista. Todos los derechos reservados.
     `.trim();
   }
 
@@ -646,7 +646,7 @@ El equipo de MesaLista
               <a href="mailto:info@mesalista.com.mx" style="color: #d4704a; text-decoration: none;">info@mesalista.com.mx</a>
             </p>
             <p style="margin: 16px 0 0 0; font-size: 12px; color: #9ca3af;">
-              © 2025 MesaLista. Todos los derechos reservados.
+              © 2026 MesaLista. Todos los derechos reservados.
             </p>
           </div>
         </div>
@@ -681,7 +681,7 @@ Este código es personal e intransferible. No lo compartas con nadie.
 
 ¿Necesitas ayuda? Contáctanos en info@mesalista.com.mx
 
-© 2025 MesaLista. Todos los derechos reservados.
+© 2026 MesaLista. Todos los derechos reservados.
     `.trim();
   }
 
@@ -755,7 +755,7 @@ Este código es personal e intransferible. No lo compartas con nadie.
               <a href="mailto:info@mesalista.com.mx" style="color: #d4704a; text-decoration: none;">info@mesalista.com.mx</a>
             </p>
             <p style="margin: 16px 0 0 0; font-size: 12px; color: #9ca3af;">
-              © 2025 MesaLista. Todos los derechos reservados.
+              © 2026 MesaLista. Todos los derechos reservados.
             </p>
           </div>
         </div>
@@ -790,7 +790,7 @@ Usa una contraseña única que no hayas usado en otros sitios. Combina letras ma
 
 ¿Necesitas ayuda? Contáctanos en info@mesalista.com.mx
 
-© 2025 MesaLista. Todos los derechos reservados.
+© 2026 MesaLista. Todos los derechos reservados.
     `.trim();
   }
 
@@ -804,7 +804,7 @@ Usa una contraseña única que no hayas usado en otros sitios. Combina letras ma
     spouseLastName?: string;
     email: string;
     phoneNumber?: string;
-    coupleSlug: string;
+    slug: string;
     planType: 'FIXED' | 'COMMISSION';
     discountCode?: string;
     createdAt: Date;
@@ -812,7 +812,7 @@ Usa una contraseña única que no hayas usado en otros sitios. Combina letras ma
     const coupleName = `${data.firstName}${data.spouseFirstName ? ' y ' + data.spouseFirstName : ''}`;
     const fullName = `${data.firstName} ${data.lastName}${data.spouseFirstName ? ' y ' + data.spouseFirstName + ' ' + (data.spouseLastName || data.lastName) : ''}`;
     const planTypeText = data.planType === 'FIXED' ? 'Plan Fijo ($2,000 MXN)' : 'Plan Comisión (5%)';
-    const registryUrl = `https://mesalista.com.mx/${data.coupleSlug}/regalos`;
+    const registryUrl = `https://mesalista.com.mx/${data.slug}/regalos`;
 
     return `
       <!DOCTYPE html>
@@ -849,7 +849,7 @@ Usa una contraseña única que no hayas usado en otros sitios. Combina letras ma
               <p style="margin: 0 0 8px 0;"><strong>Nombre de pareja:</strong> ${coupleName}</p>
               <p style="margin: 0 0 8px 0;"><strong>Email:</strong> <a href="mailto:${data.email}" style="color: #d4704a; text-decoration: none;">${data.email}</a></p>
               ${data.phoneNumber ? `<p style="margin: 0 0 8px 0;"><strong>Teléfono:</strong> <a href="tel:${data.phoneNumber}" style="color: #d4704a; text-decoration: none;">${data.phoneNumber}</a></p>` : ''}
-              <p style="margin: 0 0 8px 0;"><strong>Slug de pareja:</strong> <code style="background-color: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 14px;">${data.coupleSlug}</code></p>
+              <p style="margin: 0 0 8px 0;"><strong>Slug de pareja:</strong> <code style="background-color: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 14px;">${data.slug}</code></p>
               <p style="margin: 0;"><strong>Tipo de plan:</strong> <span style="color: ${data.planType === 'FIXED' ? '#059669' : '#3b82f6'}; font-weight: 600;">${planTypeText}</span></p>
             </div>
 
@@ -902,7 +902,7 @@ Usa una contraseña única que no hayas usado en otros sitios. Combina letras ma
     spouseLastName?: string;
     email: string;
     phoneNumber?: string;
-    coupleSlug: string;
+    slug: string;
     planType: 'FIXED' | 'COMMISSION';
     discountCode?: string;
     createdAt: Date;
@@ -910,7 +910,7 @@ Usa una contraseña única que no hayas usado en otros sitios. Combina letras ma
     const coupleName = `${data.firstName}${data.spouseFirstName ? ' y ' + data.spouseFirstName : ''}`;
     const fullName = `${data.firstName} ${data.lastName}${data.spouseFirstName ? ' y ' + data.spouseFirstName + ' ' + (data.spouseLastName || data.lastName) : ''}`;
     const planTypeText = data.planType === 'FIXED' ? 'Plan Fijo ($2,000 MXN)' : 'Plan Comisión (5%)';
-    const registryUrl = `https://mesalista.com.mx/${data.coupleSlug}/regalos`;
+    const registryUrl = `https://mesalista.com.mx/${data.slug}/regalos`;
 
     return `
 🎉 NUEVA CUENTA CREADA - MESALISTA
@@ -924,7 +924,7 @@ INFORMACIÓN DE LA PAREJA:
 - Nombre completo: ${fullName}
 - Nombre de pareja: ${coupleName}
 - Email: ${data.email}
-${data.phoneNumber ? `- Teléfono: ${data.phoneNumber}\n` : ''}- Slug de pareja: ${data.coupleSlug}
+${data.phoneNumber ? `- Teléfono: ${data.phoneNumber}\n` : ''}- Slug de pareja: ${data.slug}
 - Tipo de plan: ${planTypeText}
 
 ${
@@ -951,12 +951,12 @@ MesaLista Admin - Panel de administración
   static generateWelcomeEmailHTML(data: {
     firstName: string;
     spouseFirstName?: string;
-    coupleSlug: string;
+    slug: string;
     planType: 'FIXED' | 'COMMISSION';
   }): string {
     const coupleName = `${data.firstName}${data.spouseFirstName ? ' y ' + data.spouseFirstName : ''}`;
     const dashboardUrl = 'https://mesalista.com.mx/dashboard';
-    const registryUrl = `https://mesalista.com.mx/${data.coupleSlug}/regalos`;
+    const registryUrl = `https://mesalista.com.mx/${data.slug}/regalos`;
     const supportEmail = 'info@mesalista.com.mx';
 
     return `
@@ -1116,7 +1116,7 @@ MesaLista Admin - Panel de administración
               <a href="mailto:${supportEmail}" style="color: #d4704a; text-decoration: none;">${supportEmail}</a>
             </p>
             <p style="margin: 16px 0 0 0; font-size: 12px; color: #9ca3af;">
-              © 2025 MesaLista. Todos los derechos reservados.
+              © 2026 MesaLista. Todos los derechos reservados.
             </p>
           </div>
         </div>
@@ -1131,12 +1131,12 @@ MesaLista Admin - Panel de administración
   static generateWelcomeEmailText(data: {
     firstName: string;
     spouseFirstName?: string;
-    coupleSlug: string;
+    slug: string;
     planType: 'FIXED' | 'COMMISSION';
   }): string {
     const coupleName = `${data.firstName}${data.spouseFirstName ? ' y ' + data.spouseFirstName : ''}`;
     const dashboardUrl = 'https://mesalista.com.mx/dashboard';
-    const registryUrl = `https://mesalista.com.mx/${data.coupleSlug}/regalos`;
+    const registryUrl = `https://mesalista.com.mx/${data.slug}/regalos`;
     const supportEmail = 'info@mesalista.com.mx';
 
     return `
@@ -1188,7 +1188,228 @@ El equipo de MesaLista
 
 ¿Necesitas ayuda? Contáctanos en ${supportEmail}
 
-© 2025 MesaLista. Todos los derechos reservados.
+© 2026 MesaLista. Todos los derechos reservados.
+    `.trim();
+  }
+
+  /**
+   * Generate HTML email template for gift list creation confirmation
+   */
+  static generateGiftListCreationEmailHTML(data: {
+    userName: string;
+    userEmail: string;
+    giftListTitle: string;
+    coupleName: string;
+    eventDate: Date;
+    planType: string;
+    amount: number;
+    dashboardUrl: string;
+    listUrl: string;
+  }): string {
+    const formatCurrency = (amount: number) => this.formatCurrency(amount, 'MXN');
+    const formatDate = (date: Date) => this.formatDate(date);
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡Tu Nueva Lista de Regalos Está Lista!</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f7;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f7; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #d4704a 0%, #c05f3d 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 300;">¡Tu Nueva Lista Está Lista! 🎉</h1>
+            </td>
+          </tr>
+
+          <!-- Success Message -->
+          <tr>
+            <td style="padding: 40px 30px; text-align: center;">
+              <div style="width: 80px; height: 80px; background-color: #d4704a; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+                <span style="color: #ffffff; font-size: 40px;">✓</span>
+              </div>
+              <h2 style="color: #1d1d1f; margin: 0 0 10px; font-size: 24px; font-weight: 500;">Pago Procesado Exitosamente</h2>
+              <p style="color: #86868b; margin: 0; font-size: 16px; line-height: 1.5;">
+                Tu pago de <strong style="color: #d4704a;">${formatCurrency(data.amount)}</strong> ha sido confirmado
+              </p>
+            </td>
+          </tr>
+
+          <!-- Gift List Details -->
+          <tr>
+            <td style="padding: 0 30px 30px;">
+              <div style="background-color: #f5f5f7; border-radius: 12px; padding: 24px;">
+                <h3 style="color: #1d1d1f; margin: 0 0 20px; font-size: 18px; font-weight: 500;">Detalles de tu Lista</h3>
+                
+                <table width="100%" cellpadding="8" cellspacing="0">
+                  <tr>
+                    <td style="color: #86868b; font-size: 14px; padding: 8px 0;">Nombre de la Lista:</td>
+                    <td style="color: #1d1d1f; font-size: 14px; font-weight: 500; text-align: right; padding: 8px 0;">${data.giftListTitle}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #86868b; font-size: 14px; padding: 8px 0;">Pareja:</td>
+                    <td style="color: #1d1d1f; font-size: 14px; font-weight: 500; text-align: right; padding: 8px 0;">${data.coupleName}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #86868b; font-size: 14px; padding: 8px 0;">Fecha del Evento:</td>
+                    <td style="color: #1d1d1f; font-size: 14px; font-weight: 500; text-align: right; padding: 8px 0;">${formatDate(data.eventDate)}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #86868b; font-size: 14px; padding: 8px 0;">Plan:</td>
+                    <td style="color: #1d1d1f; font-size: 14px; font-weight: 500; text-align: right; padding: 8px 0;">Plan Fijo - Sin Comisiones</td>
+                  </tr>
+                </table>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Next Steps -->
+          <tr>
+            <td style="padding: 0 30px 30px;">
+              <h3 style="color: #1d1d1f; margin: 0 0 20px; font-size: 18px; font-weight: 500;">Próximos Pasos</h3>
+              
+              <div style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: start; margin-bottom: 12px;">
+                  <span style="color: #d4704a; font-size: 20px; margin-right: 12px;">1️⃣</span>
+                  <div>
+                    <strong style="color: #1d1d1f; font-size: 15px; display: block; margin-bottom: 4px;">Agrega tus regalos</strong>
+                    <p style="color: #86868b; margin: 0; font-size: 14px; line-height: 1.5;">Crea tu lista con fotos, descripciones y precios</p>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: start; margin-bottom: 12px;">
+                  <span style="color: #d4704a; font-size: 20px; margin-right: 12px;">2️⃣</span>
+                  <div>
+                    <strong style="color: #1d1d1f; font-size: 15px; display: block; margin-bottom: 4px;">Crea tu invitación digital</strong>
+                    <p style="color: #86868b; margin: 0; font-size: 14px; line-height: 1.5;">Diseña una hermosa invitación para tu evento</p>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: start;">
+                  <span style="color: #d4704a; font-size: 20px; margin-right: 12px;">3️⃣</span>
+                  <div>
+                    <strong style="color: #1d1d1f; font-size: 15px; display: block; margin-bottom: 4px;">Comparte con tus invitados</strong>
+                    <p style="color: #86868b; margin: 0; font-size: 14px; line-height: 1.5;">Envía el enlace a familiares y amigos</p>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Action Buttons -->
+          <tr>
+            <td style="padding: 0 30px 40px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding-bottom: 12px;">
+                    <a href="${data.dashboardUrl}" style="display: block; background-color: #d4704a; color: #ffffff; text-decoration: none; padding: 16px 24px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 500;">
+                      Ir a Mi Panel de Control
+                    </a>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <a href="${data.listUrl}" style="display: block; background-color: #f5f5f7; color: #1d1d1f; text-decoration: none; padding: 16px 24px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 500;">
+                      Ver Mi Lista Pública
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f5f5f7; padding: 30px; text-align: center; border-top: 1px solid #e5e5e7;">
+              <p style="color: #86868b; margin: 0 0 10px; font-size: 14px;">
+                ¿Necesitas ayuda? Contáctanos en <a href="mailto:info@mesalista.com.mx" style="color: #d4704a; text-decoration: none;">info@mesalista.com.mx</a>
+              </p>
+              <p style="color: #86868b; margin: 0; font-size: 12px;">
+                © 2026 MesaLista. Todos los derechos reservados.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `.trim();
+  }
+
+  /**
+   * Generate plain text email for gift list creation confirmation
+   */
+  static generateGiftListCreationEmailText(data: {
+    userName: string;
+    userEmail: string;
+    giftListTitle: string;
+    coupleName: string;
+    eventDate: Date;
+    planType: string;
+    amount: number;
+    dashboardUrl: string;
+    listUrl: string;
+  }): string {
+    const formatCurrency = (amount: number) => this.formatCurrency(amount, 'MXN');
+    const formatDate = (date: Date) => this.formatDate(date);
+
+    return `
+¡TU NUEVA LISTA DE REGALOS ESTÁ LISTA! 🎉
+
+✓ PAGO PROCESADO EXITOSAMENTE
+
+Tu pago de ${formatCurrency(data.amount)} ha sido confirmado y tu nueva lista de regalos ya está activa.
+
+DETALLES DE TU LISTA:
+- Nombre de la Lista: ${data.giftListTitle}
+- Pareja: ${data.coupleName}
+- Fecha del Evento: ${formatDate(data.eventDate)}
+- Plan: Plan Fijo - Sin Comisiones
+
+PRÓXIMOS PASOS:
+
+1️⃣ AGREGA TUS REGALOS
+Crea tu lista con fotos, descripciones y precios. Puedes agregar desde electrodomésticos hasta experiencias de viaje.
+
+2️⃣ CREA TU INVITACIÓN DIGITAL
+Diseña una hermosa invitación para tu evento y compártela con tus invitados.
+
+3️⃣ COMPARTE CON TUS INVITADOS
+Envía el enlace a familiares y amigos para que puedan ver y comprar tus regalos.
+
+ENLACES IMPORTANTES:
+- Panel de Control: ${data.dashboardUrl}
+- Tu Lista Pública: ${data.listUrl}
+
+💡 CONSEJOS ÚTILES:
+- Agrega fotos de alta calidad a tus regalos
+- Incluye descripciones detalladas
+- Varía los precios para todos los presupuestos
+- Revisa regularmente tu panel
+
+¿NECESITAS AYUDA?
+Contáctanos en info@mesalista.com.mx
+
+Con cariño,
+El equipo de MesaLista
+
+---
+© 2026 MesaLista. Todos los derechos reservados.
     `.trim();
   }
 }

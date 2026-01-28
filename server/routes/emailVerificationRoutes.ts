@@ -22,6 +22,6 @@ router.post('/verify', emailVerificationController.verifyCode);
  * @desc    Check if email was recently verified
  * @access  Public
  */
-router.get('/check/:email', emailVerificationController.checkVerificationStatus);
+router.get('/check/:email', emailVerificationController.checkEmailVerified);
 
 export default router;

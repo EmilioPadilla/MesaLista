@@ -5,9 +5,13 @@ import { DiscountType } from '@prisma/client';
 export const discountCodeController = {
   // ===================== Public ======================
   // Validate a discount code (used during signup)
-  async validateDiscountCode(req: Request, res: Response) {
+  validateDiscountCode: async (req: Request, res: Response) => {
     try {
       const { code } = req.params;
+
+      if (Array.isArray(code)) {
+        return res.status(400).json({ message: 'Invalid code' });
+      }
 
       if (!code) {
         return res.status(400).json({ message: 'Código de descuento requerido' });
@@ -45,9 +49,13 @@ export const discountCodeController = {
   },
 
   // Get discount code statistics
-  async getDiscountCodeStats(req: Request, res: Response) {
+  getDiscountCodeStats: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
+
+      if (Array.isArray(id)) {
+        return res.status(400).json({ message: 'Invalid ID' });
+      }
       const stats = await discountCodeService.getDiscountCodeStats(parseInt(id));
 
       if (!stats) {
@@ -122,9 +130,13 @@ export const discountCodeController = {
   },
 
   // Update a discount code
-  async updateDiscountCode(req: Request, res: Response) {
+  updateDiscountCode: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
+
+      if (Array.isArray(id)) {
+        return res.status(400).json({ message: 'Invalid ID' });
+      }
       const { code, discountType, discountValue, usageLimit, isActive, expiresAt } = req.body;
 
       // Validate discount type if provided
@@ -179,9 +191,13 @@ export const discountCodeController = {
   },
 
   // Delete a discount code
-  async deleteDiscountCode(req: Request, res: Response) {
+  deleteDiscountCode: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
+
+      if (Array.isArray(id)) {
+        return res.status(400).json({ message: 'Invalid ID' });
+      }
 
       await discountCodeService.deleteDiscountCode(parseInt(id));
 

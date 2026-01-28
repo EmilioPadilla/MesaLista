@@ -7,7 +7,7 @@
   <!-- Homepage -->
   <url>
     <loc>https://www.mesalista.com.mx</loc>
-    <lastmod>2025-01-05</lastmod>
+    <lastmod>2026-01-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -38,8 +38,8 @@
 
   <!-- Predesigned Lists -->
   <url>
-    <loc>https://www.mesalista.com.mx/listas</loc>
-    <lastmod>2025-01-05</lastmod>
+    <loc>https://www.mesalista.com.mx/colecciones</loc>
+    <lastmod>2026-01-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

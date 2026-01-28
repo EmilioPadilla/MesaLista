@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Outlet, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { TopNav } from 'src/app/modules/navigation/topnav/TopNav';
+import { TopNavWrapper } from 'src/app/modules/navigation/topnav/TopNavWrapper';
 
 // Utility for guest ID management
 function getOrCreateGuestId() {
@@ -24,12 +25,12 @@ function regenerateGuestId() {
 
 export type OutletContextType = {
   guestId: string | null;
-  coupleSlug: string | undefined;
+  slug: string | undefined;
   regenerateGuestId: () => void;
 };
 
 export default function PublicRegistry() {
-  const { coupleSlug } = useParams();
+  const { slug } = useParams();
   const [guestId, setGuestId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,11 +45,13 @@ export default function PublicRegistry() {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Layout>
-        <TopNav coupleSlug={coupleSlug} />
-        <Content>
-          {/* Child routes will be rendered here */}
-          <Outlet context={{ guestId, coupleSlug, regenerateGuestId: handleRegenerateGuestId }} />
-        </Content>
+        <TopNav slug={slug} />
+        <TopNavWrapper>
+          <Content>
+            {/* Child routes will be rendered here */}
+            <Outlet context={{ guestId, slug, regenerateGuestId: handleRegenerateGuestId }} />
+          </Content>
+        </TopNavWrapper>
         {/* <Footer className="text-center">MesaLista {new Date().getFullYear()} - Tu plataforma para listas de regalos de boda</Footer> */}
       </Layout>
     </Layout>

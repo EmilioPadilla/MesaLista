@@ -6,6 +6,7 @@ import { Mail, Lock, ArrowLeft, Phone, Edit3, ArrowRight, Check, CreditCard, Tre
 import { userService } from 'services/user.service';
 import { UserRole } from 'types/models/user';
 import { useIsAuthenticated, useCreateUser, useLogin, useCheckSlugAvailability } from 'hooks/useUser';
+import { useCreateGiftList } from 'hooks/useGiftList';
 import { useSendVerificationCode, useVerifyCode } from 'hooks/useEmailVerification';
 import { useCreatePlanCheckoutSession } from 'hooks/usePayment';
 import { motion, AnimatePresence } from 'motion/react';
@@ -14,14 +15,14 @@ import { PasswordStrengthIndicator } from 'components/auth/PasswordStrengthIndic
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
 import { useValidateDiscountCode } from 'hooks/useDiscountCode';
 
-type Step = 'details' | 'verification' | 'coupleSlug' | 'plan' | 'payment' | 'success';
+type Step = 'details' | 'verification' | 'slug' | 'plan' | 'payment' | 'success';
 
 function Signup() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [currentStep, setCurrentStep] = useState<Step>('details');
-  const [coupleSlug, setCoupleSlug] = useState('');
+  const [slug, setCoupleSlug] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<'fixed' | 'commission' | ''>('');
   const [isLoading, setIsLoading] = useState(false);
   const [slugError, setSlugError] = useState('');
@@ -36,6 +37,7 @@ function Signup() {
   const [discountCode, setDiscountCode] = useState('');
 
   const { mutateAsync: createUser, isSuccess: isSuccessCreatedUser } = useCreateUser();
+  const { mutateAsync: createGiftList } = useCreateGiftList();
   const { mutateAsync: login } = useLogin();
   const { mutateAsync: createPlanCheckout } = useCreatePlanCheckoutSession();
   const { mutateAsync: sendVerificationCode, isPending: isResendingCode } = useSendVerificationCode();
@@ -72,17 +74,17 @@ function Signup() {
   // Debounce slug for availability check
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (coupleSlug && coupleSlug.length > 2) {
-        setDebouncedSlug(coupleSlug);
+      if (slug && slug.length > 2) {
+        setDebouncedSlug(slug);
       }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [coupleSlug]);
+  }, [slug]);
 
   // Update slug error based on availability check
   useEffect(() => {
-    if (slugCheck && currentStep === 'coupleSlug') {
+    if (slugCheck && currentStep === 'slug') {
       if (!slugCheck.available) {
         setSlugError('Este enlace ya está en uso. Por favor elige otro.');
       } else {
@@ -103,7 +105,7 @@ function Signup() {
   // Do it after eight seconds of being in success step
   useEffect(() => {
     if (isSuccessCreatedUser && currentStep === 'success') {
-      setTimeout(() => navigate(`/${coupleSlug}`), 8000);
+      setTimeout(() => navigate(`/${slug}`), 8000);
     }
   }, [isSuccessCreatedUser, currentStep]);
 
@@ -118,8 +120,8 @@ function Signup() {
           console.log('Signup page - Auth check:', isAuthenticated);
           // Get current user to determine where to redirect
           const user = await userService.getCurrentUser();
-          if (user?.coupleSlug) {
-            navigate(`/${user.coupleSlug}`);
+          if (user?.slug) {
+            navigate(`/${user.slug}`);
           } else {
             message.error('Something failed when creating your user');
           }
@@ -152,7 +154,7 @@ function Signup() {
           spouseFirstName: values.spouseFirstName || '',
           spouseLastName: values.spouseLastName || '',
           phoneNumber: values.phone,
-          coupleSlug: coupleSlug,
+          slug: slug,
           role: 'COUPLE',
           planType: 'FIXED',
           ...(discountCode && discountCodeValid && { discountCode }),
@@ -185,14 +187,29 @@ function Signup() {
           spouseFirstName: values.spouseFirstName || '',
           spouseLastName: values.spouseLastName || '',
           phoneNumber: values.phone,
-          coupleSlug: coupleSlug,
+          slug: slug,
           role: 'COUPLE' as UserRole,
-          planType: selectedPlan.toUpperCase() as 'FIXED' | 'COMMISSION',
           updatedAt: new Date(),
-          ...(discountCode && discountCodeValid && { discountCode }),
         };
 
-        await createUser(userData);
+        const createdUser = await createUser(userData);
+
+        // Create GiftList with planType
+        if (createdUser) {
+          const coupleName = values.spouseFirstName
+            ? `${values.firstName} y ${values.spouseFirstName}`
+            : `${values.firstName} ${values.lastName}`;
+
+          await createGiftList({
+            userId: createdUser.id,
+            title: `Mesa de Regalos de ${coupleName}`,
+            coupleName: coupleName,
+            eventDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
+            planType: selectedPlan.toUpperCase() as 'FIXED' | 'COMMISSION',
+            ...(discountCode && discountCodeValid && discountCodeInfo && { discountCodeId: discountCodeInfo.id }),
+          });
+        }
+
         message.success('¡Cuenta creada exitosamente!');
 
         // Automatically log in the user
@@ -247,8 +264,8 @@ function Signup() {
         setVerificationError('');
         return true;
 
-      case 'coupleSlug':
-        if (!coupleSlug) {
+      case 'slug':
+        if (!slug) {
           setSlugError('El enlace de la pareja es requerido');
           return false;
         }
@@ -286,7 +303,7 @@ function Signup() {
         // Track registry purchase
         trackEvent('REGISTRY_ATTEMPT', {
           plan: selectedPlan,
-          coupleSlug: coupleSlug,
+          slug: slug,
         });
         const values = form.getFieldsValue();
         setFormData(values);
@@ -301,7 +318,7 @@ function Signup() {
           const result = await verifyCode({ email: formData.email, code: verificationCode });
           if (result.success) {
             message.success('¡Correo verificado exitosamente!');
-            setCurrentStep('coupleSlug');
+            setCurrentStep('slug');
           } else {
             setVerificationError(result.error || 'Código inválido');
           }
@@ -312,7 +329,7 @@ function Signup() {
           setIsLoading(false);
         }
         break;
-      case 'coupleSlug':
+      case 'slug':
         setCurrentStep('plan');
         break;
       case 'plan':
@@ -334,11 +351,11 @@ function Signup() {
       case 'verification':
         setCurrentStep('details');
         break;
-      case 'coupleSlug':
+      case 'slug':
         setCurrentStep('verification');
         break;
       case 'plan':
-        setCurrentStep('coupleSlug');
+        setCurrentStep('slug');
         break;
       case 'payment':
         setCurrentStep('plan');
@@ -349,7 +366,7 @@ function Signup() {
   };
 
   const getStepNumber = () => {
-    const steps = ['details', 'verification', 'coupleSlug', 'plan', 'payment', 'success'];
+    const steps = ['details', 'verification', 'slug', 'plan', 'payment', 'success'];
     return steps.indexOf(currentStep) + 1;
   };
 
@@ -739,7 +756,7 @@ function Signup() {
               </>
             )}
 
-            {currentStep === 'coupleSlug' && (
+            {currentStep === 'slug' && (
               <>
                 <div className="text-center mb-8">
                   <h1 className="text-3xl sm:text-4xl mb-4 text-foreground">Tu enlace personalizado</h1>
@@ -751,20 +768,20 @@ function Signup() {
                     <p className="text-sm text-muted-foreground mb-2">Tu enlace será:</p>
                     <div className="text-lg">
                       <span className="text-muted-foreground">mesalista.com.mx/</span>
-                      <span className="text-[#d4704a]">{coupleSlug}</span>
+                      <span className="text-[#d4704a]">{slug}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <label htmlFor="coupleSlug" className="text-sm">
+                  <label htmlFor="slug" className="text-sm">
                     Personalizar enlace
                   </label>
                   <div className="relative">
                     <Input
                       type="outline"
-                      id="coupleSlug"
-                      value={coupleSlug}
+                      id="slug"
+                      value={slug}
                       onChange={(e) => setCoupleSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
                       placeholder="maria-gonzalez"
                       className="h-12 rounded-xl border border-border!"
@@ -847,7 +864,7 @@ function Signup() {
                               </div>
                             )}
                             <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                              <li>• Mesa de regalos ilimitada</li>
+                              <li>• 1 Mesa de regalos ilimitada</li>
                               <li>• Sin comisiones por ventas</li>
                               <li>• Soporte al cliente</li>
                               <li>• Listas de regalos inspiradas por nosotros</li>
@@ -881,7 +898,7 @@ function Signup() {
                             </div>
                             <p className="text-muted-foreground">Comisión de 3.00% por cada venta</p>
                             <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                              <li>• Mesa de regalos ilimitada</li>
+                              <li>• 1 Mesa de regalos ilimitada</li>
                               <li>• Sin costo inicial</li>
                               <li>• Perfecto para comenzar</li>
                               <li>• Soporte al cliente</li>
@@ -991,7 +1008,7 @@ function Signup() {
                 <h1 className="text-3xl sm:text-4xl mb-4 text-foreground">¡Cuenta creada exitosamente!</h1>
                 <p className="text-xl text-muted-foreground mb-8">Tu mesa de regalos está lista. Te redirigiremos en unos segundos.</p>
                 <div className="bg-blue-50 rounded-2xl p-4 text-center">
-                  <p className="text-sm text-blue-700">Tu enlace: mesalista.com/{coupleSlug}</p>
+                  <p className="text-sm text-blue-700">Tu enlace: mesalista.com/{slug}</p>
                 </div>
               </div>
             )}

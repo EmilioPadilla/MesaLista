@@ -6,7 +6,7 @@ import { Collapsible } from 'core/Collapsible';
 import type { WeddingListWithGifts } from 'types/models/weddingList';
 import { FileUpload } from 'core/FileUpload';
 import { useUploadFile } from 'hooks/useFiles';
-import { useUpdateWeddingList } from 'hooks/useWeddingList';
+import { useUpdateGiftList } from 'src/hooks/useGiftList';
 
 interface EditCoupleHeaderProps {
   isOpen: boolean;
@@ -20,7 +20,7 @@ export const EditCoupleHeader = ({ isOpen, weddinglist, formattedWeddingDate }: 
   const [form] = Form.useForm();
 
   const { mutate: uploadFile, data: imageData } = useUploadFile();
-  const { mutate: updateWeddingList, isSuccess: updateSuccess, isError: updateError } = useUpdateWeddingList();
+  const { mutate: updateWeddingList, isSuccess: updateSuccess, isError: updateError } = useUpdateGiftList();
 
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [isEditingNote, setIsEditingNote] = useState(false);

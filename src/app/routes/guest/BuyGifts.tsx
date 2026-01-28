@@ -3,10 +3,10 @@ import { Filter, Gift as GiftIcon, ArrowUpDown, MapPin } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
 import { Button, Spin, Select, Col, Row, Input, Switch, Badge, Card } from 'antd';
 import type { Gift, GiftCategory } from 'types/models/gift';
-import { PlusCircleOutlined, SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useAddGiftToCart, useGetCart, useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'src/hooks/useCart';
 import { useComponentMountControl } from 'src/hooks/useComponentMountControl';
-import { useWeddingListBySlug, useGetCategoriesByWeddingList } from 'src/hooks/useWeddingList';
+import { useGiftListBySlug, useGetCategoriesByGiftList, useGiftListById } from 'src/hooks/useGiftList';
 import { OutletContextType } from './PublicRegistry';
 import { GiftDetailsModal } from 'src/features/buyRegistry/components/GiftDetailsModal';
 import { CartDrawer } from 'src/features/buyRegistry/components/CartDrawer';
@@ -21,7 +21,9 @@ dayjs.extend(utc);
 
 export function BuyGifts() {
   const contextData = useOutletContext<OutletContextType>();
-  const { coupleSlug, guestId } = contextData;
+  const { slug, guestId } = contextData;
+  const queryParams = new URLSearchParams(window.location.search);
+  const listIdFromQuery = queryParams.get('listId');
   const [sortBy, setSortBy] = useState<SortOption>('original');
   const [filterBy, setFilterBy] = useState<FilterOption>();
   const [gifts, setGifts] = useState<GiftItem[]>();
@@ -32,12 +34,19 @@ export function BuyGifts() {
 
   const { mutate: addGiftToCart } = useAddGiftToCart(guestId || undefined);
   const { data: cartData } = useGetCart(guestId || undefined);
-  const { data: weddinglist } = useWeddingListBySlug(coupleSlug);
-  const { data: weddingListCategories } = useGetCategoriesByWeddingList(weddinglist?.id);
+
+  // Fetch gift list by ID if listId is provided, otherwise fetch first list by user slug
+  const { data: giftListById } = useGiftListById(listIdFromQuery ? Number(listIdFromQuery) : undefined);
+  const { data: giftListBySlug } = useGiftListBySlug(!listIdFromQuery ? slug : undefined);
+
+  // Use whichever gift list was fetched
+  const giftList = listIdFromQuery ? giftListById : giftListBySlug;
+
+  const { data: giftListCategories } = useGetCategoriesByGiftList(giftList?.id);
   const { mutate: updateCartQuantity } = useUpdateCartItemQuantity();
   const { mutate: removeFromCart } = useRemoveGiftFromCart();
-  const formattedWeddingDate = weddinglist?.weddingDate ? dayjs.utc(weddinglist.weddingDate).format('MMM DD, YYYY') : '';
-  const note = weddinglist?.description || '';
+  const formattedEventDate = giftList?.eventDate ? dayjs.utc(giftList.eventDate).format('MMM DD, YYYY') : '';
+  const note = giftList?.description || '';
 
   const {
     isOpen: showGiftDetailsModal,
@@ -67,14 +76,14 @@ export function BuyGifts() {
   }, [showCartDrawer]);
 
   useEffect(() => {
-    if (weddinglist?.gifts) {
+    if (giftList?.gifts) {
       // Sort gifts by their order property when initially loading
-      const sortedGifts = [...weddinglist.gifts].sort((a, b) => a.order - b.order);
+      const sortedGifts = [...giftList.gifts].sort((a, b) => a.order - b.order);
       setGifts(sortedGifts);
     }
-  }, [weddinglist?.gifts]);
+  }, [giftList?.gifts]);
 
-  const categoryArray = weddingListCategories?.categories?.map((category: any) => category.name);
+  const categoryArray = giftListCategories?.categories?.map((category: any) => category.name);
 
   const handleAfterClose = (openedDrawer: boolean) => {
     if (!openedDrawer) {
@@ -166,7 +175,7 @@ export function BuyGifts() {
     return sortGifts(filtered);
   }, [gifts, filterBy, sortBy, searchTerm, categoryArray, showPurchased]);
 
-  if (!gifts || !weddinglist)
+  if (!gifts || !giftList)
     return (
       <div className="flex justify-center items-center h-64">
         <Spin size="large" />
@@ -198,8 +207,8 @@ export function BuyGifts() {
         <div className="h-[600px] md:h-[650px] relative overflow-hidden">
           {/* Background image container */}
           <div className="absolute inset-0 z-0">
-            {weddinglist?.imageUrl ? (
-              <img src={weddinglist.imageUrl} alt="Romantic couple wedding portrait" className="w-full h-full object-cover opacity-40" />
+            {giftList?.imageUrl ? (
+              <img src={giftList.imageUrl} alt="Romantic couple wedding portrait" className="w-full h-full object-cover opacity-40" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-gray-50 via-orange-50 to-amber-50 flex items-center justify-center">
                 <div className="text-center opacity-20">
@@ -230,12 +239,12 @@ export function BuyGifts() {
                 <Badge className="mb-6 px-6 py-2 text-foreground border border-border/30 text-base font-bold">Mesa de Regalos</Badge>
 
                 <h1 className="text-5xl md:text-7xl font-semibold tracking-tight text-foreground mb-4 leading-tight font-bold">
-                  {weddinglist?.coupleName}
+                  {giftList?.coupleName}
                 </h1>
-                <p className="text-2xl md:text-3xl mb-8 font-bold">{formattedWeddingDate}</p>
+                <p className="text-2xl md:text-3xl mb-8 font-bold">{formattedEventDate}</p>
                 <div className="flex items-center justify-center space-x-2 text-lg mb-12">
                   <MapPin className="h-5 w-5" />
-                  <span className="font-extrabold">{weddinglist?.weddingLocation}</span>
+                  <span className="font-extrabold">{giftList?.eventLocation}</span>
                 </div>
                 <p className={`${deviceType !== 'mobile' ? 'text-xl max-w-3xl' : 'text-lg'} mx-auto leading-relaxed font-extrabold`}>
                   {note}
@@ -293,7 +302,7 @@ export function BuyGifts() {
                   onChange={(value: FilterOption) => setFilterBy(value)}
                   options={[
                     { value: 'mostWanted', label: 'Más deseados' },
-                    ...(weddingListCategories?.categories?.map((category: GiftCategory) => ({
+                    ...(giftListCategories?.categories?.map((category: GiftCategory) => ({
                       value: category.name,
                       label: category.name,
                     })) || []),
@@ -350,14 +359,14 @@ export function BuyGifts() {
             onClose={() => setShowCartDrawer(false)}
             cartData={cartData}
             sessionId={guestId}
-            coupleSlug={coupleSlug || ''}
+            slug={slug || ''}
             afterOpenChange={handleAfterClose}
           />
         )}
 
         {renderGiftDetailsModal && (
           <GiftDetailsModal
-            weddingListId={weddinglist?.id}
+            weddingListId={giftList?.id}
             giftId={selectedGift?.id}
             open={showGiftDetailsModal}
             afterClose={handleAfterCloseGiftDetailsModal}

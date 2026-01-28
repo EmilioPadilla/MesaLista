@@ -51,7 +51,7 @@ export function UserDetailModal({ isOpen, onClose, user, formatDate, formatCurre
               </div>
               <div>
                 <span className="text-gray-500">Slug:</span>
-                <div className="font-medium text-blue-600">{user.coupleSlug || 'N/A'}</div>
+                <div className="font-medium text-blue-600">{user.slug || 'N/A'}</div>
               </div>
               <div>
                 <span className="text-gray-500">Fecha de Registro:</span>

@@ -14,17 +14,20 @@ import {
   Tag,
   Mail,
   Settings,
+  ListTodo,
+  MailOpen,
 } from 'lucide-react';
 import { message, Tooltip, Button, Divider } from 'antd';
 import { useGetUserBySlug, useIsAuthenticated, useLogout, useCurrentUser } from 'hooks/useUser';
 import { useDeviceType } from 'hooks/useDeviceType';
 
 interface TopNavProps {
-  coupleSlug?: string;
+  slug?: string;
+  sticky?: boolean;
 }
 
-export const TopNav = ({ coupleSlug }: TopNavProps) => {
-  const { data: guestViewUserData } = useGetUserBySlug(coupleSlug);
+export const TopNav = ({ slug, sticky = true }: TopNavProps) => {
+  const { data: guestViewUserData } = useGetUserBySlug(slug);
   const { data: currentUser } = useCurrentUser();
   const { data: isAuthenticated = false } = useIsAuthenticated();
   const currentPage = window.location.pathname;
@@ -34,8 +37,8 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
 
   // Use currentUser if authenticated, otherwise use guestViewUserData for guest view
   const userData = isAuthenticated ? currentUser : guestViewUserData;
-  // Get the actual coupleSlug from the authenticated user if available
-  const userCoupleSlug = isAuthenticated ? currentUser?.coupleSlug : coupleSlug;
+  // Get the actual slug from the authenticated user if available
+  const userCoupleSlug = isAuthenticated ? currentUser?.slug : slug;
 
   const handleLogout = async () => {
     await logout();
@@ -49,15 +52,11 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
   // Render checkout header if on checkout page
   if (isCheckout) {
     return (
-      <div className="bg-card border-b shadow-lg backdrop-blur-sm">
+      <div className={`bg-card border-b shadow-lg backdrop-blur-sm ${sticky ? 'fixed top-0 left-0 right-0 z-50' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button
-                type="text"
-                size="small"
-                onClick={() => navigate(`/${coupleSlug}/regalos`)}
-                className="flex items-center space-x-2 !mr-0">
+              <Button type="text" size="small" onClick={() => navigate(`/${slug}/regalos`)} className="flex items-center space-x-2 !mr-0">
                 <ArrowLeft className="h-4 w-4" />
                 <span>Volver a Regalos</span>
               </Button>
@@ -85,7 +84,8 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
 
   // Regular header for non-checkout pages
   return (
-    <header className="bg-card border-b border-border shadow-lg backdrop-blur-sm print:hidden">
+    <header
+      className={`bg-card border-b border-border shadow-lg backdrop-blur-sm print:hidden ${sticky ? 'fixed top-0 left-0 right-0 z-50' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div
@@ -111,40 +111,56 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                 </Button>
               </Tooltip>
               {/* Search Button */}
-              <Tooltip title={viewType === 'mobile' ? 'Buscar' : ''} placement="bottom">
-                <Button
-                  type={currentPage === '/buscar' ? 'primary' : 'text'}
-                  onClick={() => navigate('/buscar')}
-                  className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
-                  <Search className="h-4 w-4" />
-                  <span className="hidden md:block">Buscar</span>
-                </Button>
-              </Tooltip>
+              {!isAuthenticated && (
+                <Tooltip title={viewType === 'mobile' ? 'Buscar' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === '/buscar' ? 'primary' : 'text'}
+                    onClick={() => navigate('/buscar')}
+                    className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <Search className="h-4 w-4" />
+                    <span className="hidden md:block">Buscar</span>
+                  </Button>
+                </Tooltip>
+              )}
 
               {/* Predefined Lists Button */}
               {userData?.role !== 'ADMIN' && (
-                <Tooltip title={viewType === 'mobile' ? 'Listas Prediseñadas' : ''} placement="bottom">
+                <Tooltip title={viewType === 'mobile' ? 'Colecciones' : ''} placement="bottom">
                   <Button
-                    type={currentPage === '/listas' ? 'primary' : 'text'}
-                    onClick={() => navigate('/listas')}
+                    type={currentPage === '/colecciones' ? 'primary' : 'text'}
+                    onClick={() => navigate('/colecciones')}
                     className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <Lightbulb className="h-4 w-4" />
+                    <span className="hidden md:block">Colecciones</span>
+                  </Button>
+                </Tooltip>
+              )}
+
+              {!isAuthenticated && (
+                <Tooltip title={viewType === 'mobile' ? 'Precios' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === '/precios' ? 'primary' : 'text'}
+                    onClick={() => navigate('/precios')}
+                    className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <Gem className="h-4 w-4" />
+                    <span className="hidden md:block">Precios</span>
+                  </Button>
+                </Tooltip>
+              )}
+
+              {userData?.role === 'COUPLE' && isAuthenticated && userCoupleSlug && (
+                <Tooltip title={viewType === 'mobile' ? 'Mis Listas' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === `/${userCoupleSlug}/listas` ? 'primary' : 'text'}
+                    onClick={() => navigate(`/${userCoupleSlug}/listas`)}
+                    className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <GiftIcon className="h-4 w-4" />
                     <span className="hidden md:block">Listas</span>
                   </Button>
                 </Tooltip>
               )}
 
-              <Tooltip title={viewType === 'mobile' ? 'Precios' : ''} placement="bottom">
-                <Button
-                  type={currentPage === '/precios' ? 'primary' : 'text'}
-                  onClick={() => navigate('/precios')}
-                  className="flex items-center justify-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
-                  <Gem className="h-4 w-4" />
-                  <span className="hidden md:block">Precios</span>
-                </Button>
-              </Tooltip>
-
-              {userData?.role === 'COUPLE' && isAuthenticated && userCoupleSlug && (
+              {/* {userData?.role === 'COUPLE' && isAuthenticated && userCoupleSlug && (
                 <Tooltip title={viewType === 'mobile' ? 'Gestionar' : ''} placement="bottom">
                   <Button
                     type={currentPage === `/${userCoupleSlug}/gestionar` ? 'primary' : 'text'}
@@ -154,7 +170,19 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                     <span className="hidden md:block">Gestionar</span>
                   </Button>
                 </Tooltip>
-              )}
+              )} */}
+
+              {/* {userData?.role === 'COUPLE' && isAuthenticated && userCoupleSlug && (
+                <Tooltip title={viewType === 'mobile' ? 'Invitación' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === `/${userCoupleSlug}/invitaciones` ? 'primary' : 'text'}
+                    onClick={() => navigate(`/${userCoupleSlug}/invitaciones`)}
+                    className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <MailOpen className="h-4 w-4" />
+                    <span className="hidden md:block">Invitación</span>
+                  </Button>
+                </Tooltip>
+              )} */}
 
               {userData?.role === 'COUPLE' && isAuthenticated && userCoupleSlug && (
                 <Tooltip title={viewType === 'mobile' ? 'RSVP' : ''} placement="bottom">
@@ -162,7 +190,7 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
                     type={currentPage === `/${userCoupleSlug}/gestionar-rsvp` ? 'primary' : 'text'}
                     onClick={() => navigate(`/${userCoupleSlug}/gestionar-rsvp`)}
                     className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
-                    <Mail className="h-4 w-4" />
+                    <ListTodo className="h-4 w-4" />
                     <span className="hidden md:block">RSVP</span>
                   </Button>
                 </Tooltip>
@@ -193,13 +221,13 @@ export const TopNav = ({ coupleSlug }: TopNavProps) => {
               )}
 
               {userData?.role === 'ADMIN' && isAuthenticated && (
-                <Tooltip title={viewType === 'mobile' ? 'Listas Prediseñadas' : ''} placement="bottom">
+                <Tooltip title={viewType === 'mobile' ? 'Colecciones' : ''} placement="bottom">
                   <Button
-                    type={currentPage === '/admin/listas' ? 'primary' : 'text'}
-                    onClick={() => navigate('/admin/listas')}
+                    type={currentPage === '/admin/colecciones' ? 'primary' : 'text'}
+                    onClick={() => navigate('/admin/colecciones')}
                     className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <ListPlus className="h-4 w-4" />
-                    <span className="hidden md:block">Listas</span>
+                    <span className="hidden md:block">Colecciones</span>
                   </Button>
                 </Tooltip>
               )}

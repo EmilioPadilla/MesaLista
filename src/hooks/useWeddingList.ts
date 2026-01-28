@@ -36,14 +36,14 @@ export const useWeddingListByCouple = (coupleId: number | undefined, options?: P
 /**
  * Hook to fetch a wedding list by couple slug
  *
- * @param coupleSlug Slug of the couple
+ * @param slug Slug of the couple
  * @param options React Query options
  */
-export const useWeddingListBySlug = (coupleSlug: string | undefined, options?: Partial<UseQueryOptions<WeddingListWithGifts, Error>>) => {
+export const useWeddingListBySlug = (slug: string | undefined, options?: Partial<UseQueryOptions<WeddingListWithGifts, Error>>) => {
   return useQuery({
-    queryKey: [queryKeys.weddingListBySlug, coupleSlug],
-    queryFn: () => weddingListService.getWeddingListBySlug(coupleSlug!),
-    enabled: !!coupleSlug,
+    queryKey: [queryKeys.weddingListBySlug, slug],
+    queryFn: () => weddingListService.getWeddingListBySlug(slug!),
+    enabled: !!slug,
     ...options,
   });
 };

@@ -7,7 +7,7 @@ import { OutletContextType } from '../guest/PublicRegistry';
 import { message, Input, Button } from 'antd';
 import { useUpdateCartDetails } from 'src/hooks/useCart';
 import { motion } from 'motion/react';
-import { useWeddingListBySlug } from 'src/hooks/useWeddingList';
+import { useGiftListBySlug } from 'src/hooks/useGiftList';
 import { useCancelPayment } from 'src/hooks/usePayment';
 import { useSearchParams } from 'react-router-dom';
 import { useTrackEvent } from 'src/hooks/useAnalyticsTracking';
@@ -17,13 +17,13 @@ const { TextArea } = Input;
 
 export function Checkout() {
   const contextData = useOutletContext<OutletContextType>();
-  const { guestId, coupleSlug } = contextData;
+  const { guestId, slug } = contextData;
 
   const { data: cart } = useGetCart(guestId || undefined);
   const { mutate: updateCartDetails } = useUpdateCartDetails();
   const { mutate: createCheckoutSession, isPending: isCreatingSession } = useCreateCheckoutSession();
   const { mutate: createPayPalOrder, isPending: isCreatingPayPalOrder } = useCreatePayPalOrder();
-  const { data: weddinglist } = useWeddingListBySlug(coupleSlug);
+  const { data: giftList } = useGiftListBySlug(slug);
   const { mutate: cancelPayment } = useCancelPayment();
   const [searchParams] = useSearchParams();
   const cartId = searchParams.get('cartId');
@@ -31,7 +31,7 @@ export function Checkout() {
   const paymentMethod = searchParams.get('paymentMethod');
   const trackEvent = useTrackEvent();
 
-  const coupleName = weddinglist?.coupleName;
+  const coupleName = giftList?.coupleName;
 
   const [guestInfo, setGuestInfo] = useState({
     name: '',
@@ -138,8 +138,8 @@ export function Checkout() {
           createCheckoutSession(
             {
               cartId: cart.id,
-              successUrl: `${baseUrl}/${coupleSlug}/pago-confirmado?cartId=${cart.sessionId}`,
-              cancelUrl: `${baseUrl}/${coupleSlug}/checkout?cancelled=true&cartId=${cart.id}&paymentMethod=${selectedPaymentMethod}`,
+              successUrl: `${baseUrl}/${slug}/pago-confirmado?cartId=${cart.sessionId}`,
+              cancelUrl: `${baseUrl}/${slug}/checkout?cancelled=true&cartId=${cart.id}&paymentMethod=${selectedPaymentMethod}`,
               orderId: cart.id,
             },
             {
@@ -209,8 +209,8 @@ export function Checkout() {
           createPayPalOrder(
             {
               cartId: cart.id,
-              successUrl: `${baseUrl}/${coupleSlug}/pago-confirmado?cartId=${cart.sessionId}`,
-              cancelUrl: `${baseUrl}/${coupleSlug}/checkout?cancelled=true&cartId=${cart.id}&paymentMethod=${selectedPaymentMethod}`,
+              successUrl: `${baseUrl}/${slug}/pago-confirmado?cartId=${cart.sessionId}`,
+              cancelUrl: `${baseUrl}/${slug}/checkout?cancelled=true&cartId=${cart.id}&paymentMethod=${selectedPaymentMethod}`,
             },
             {
               onSuccess: (paypalResponse) => {

@@ -4,10 +4,11 @@ import { Heart, Plane, Home, Palette, Sparkles, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsAuthenticated, useCurrentUser } from 'hooks/useUser';
 import { usePredesignedLists, useAddPredesignedGiftToWeddingList } from 'hooks/usePredesignedList';
-import { useWeddingListByCouple } from 'hooks/useWeddingList';
+import { useGiftListsByUser } from 'hooks/useGiftList';
 import { PredesignedGift } from 'src/services/predesignedList.service';
 import { PredesignedListTabLabel } from 'src/features/predesignedLists/PredesignedListTabLabel';
 import { PredesignedListTabContent } from 'src/features/predesignedLists/PredesignedListTabContent';
+import { PageSEO } from 'src/components/seo';
 
 // Icon mapping from string to component
 const iconMap: Record<string, any> = {
@@ -24,8 +25,9 @@ export function PredesignedListsPage() {
   const { data: isAuthenticated = false } = useIsAuthenticated();
   const { data: registries, isLoading } = usePredesignedLists();
   const { data: currentUser } = useCurrentUser();
-  const { data: weddingList } = useWeddingListByCouple(currentUser?.id);
+  const { data: giftLists } = useGiftListsByUser(currentUser?.id);
   const { mutate: addGiftToWeddingList, isPending: isAddingGift } = useAddPredesignedGiftToWeddingList();
+  const giftList = giftLists?.[0];
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Scroll to top when component loads
@@ -39,13 +41,13 @@ export function PredesignedListsPage() {
       return;
     }
 
-    if (!weddingList?.id) {
+    if (!giftList?.id) {
       message.error('No se encontró tu mesa de regalos');
       return;
     }
 
     addGiftToWeddingList(
-      { giftId: gift.id, weddingListId: weddingList.id },
+      { giftId: gift.id, weddingListId: giftList.id },
       {
         onSuccess: () => {
           message.success(`"${gift.title}" agregado a tu mesa de regalos`);
@@ -68,6 +70,15 @@ export function PredesignedListsPage() {
 
   return (
     <div className="min-h-screen bg-[#fbfbfd]">
+      <PageSEO
+        title="Colecciones de Regalos - Listas Prediseñadas"
+        description="Descubre nuestras colecciones cuidadosamente seleccionadas para diferentes estilos de vida. Agrega los regalos que más te gusten a tu mesa personal."
+        keywords="colecciones regalos, listas prediseñadas, ideas regalos boda, regalos luna de miel, regalos hogar, México"
+        breadcrumbs={[
+          { name: 'Inicio', url: 'https://www.mesalista.com.mx' },
+          { name: 'Colecciones', url: 'https://www.mesalista.com.mx/colecciones' },
+        ]}
+      />
       {/* Hero Section */}
       <div className="bg-white border-b border-border/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">

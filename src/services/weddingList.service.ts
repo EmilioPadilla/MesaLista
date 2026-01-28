@@ -14,8 +14,8 @@ export const weddingListService = {
     return response.data;
   },
 
-  getWeddingListBySlug: async (coupleSlug: string): Promise<WeddingListWithGifts> => {
-    const response = await apiClient.get(api_endpoints.weddingLists.getBySlug(coupleSlug), { skipAuth: true } as CustomAxiosRequestConfig);
+  getWeddingListBySlug: async (slug: string): Promise<WeddingListWithGifts> => {
+    const response = await apiClient.get(api_endpoints.weddingLists.getBySlug(slug), { skipAuth: true } as CustomAxiosRequestConfig);
     return response.data;
   },
 

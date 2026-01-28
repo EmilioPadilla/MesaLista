@@ -9,7 +9,7 @@ router.post('/', userController.createUser); // Registration is public
 
 router.post('/login', userController.loginUser); // Login is public
 
-router.get('/slug/:coupleSlug', userController.getUserBySlug); // Get user by couple slug
+router.get('/slug/:slug', userController.getUserBySlug); // Get user by couple slug
 
 router.get('/check-slug/:slug', userController.checkSlugAvailability); // Check if slug is available
 
@@ -35,8 +35,6 @@ router.delete('/me', authenticateSession, userController.deleteCurrentUser); // 
 router.get('/', authenticateSession, userController.getAllUsers);
 
 router.get('/:id', authenticateSession, userController.getUserById);
-
-router.put('/:id/plan-type', authenticateSession, requireAdmin, userController.updateUserPlanType);
 
 router.delete('/:id', authenticateSession, requireAdmin, userController.deleteUser);
 
