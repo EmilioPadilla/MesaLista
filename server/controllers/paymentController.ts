@@ -7,6 +7,17 @@ import { discountCodeService } from '../services/discountCodeService.js';
 
 const prisma = new PrismaClient();
 
+function buildStripeUrl(rawUrl: string) {
+  const url = new URL(rawUrl);
+
+  // Decode first to avoid double-encoding, then encode
+  const decodedPathname = decodeURIComponent(url.pathname);
+  const segments = decodedPathname.split('/').map((segment) => encodeURIComponent(segment));
+  url.pathname = segments.join('/');
+
+  return url.toString();
+}
+
 // Stripe API configuration
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
@@ -87,8 +98,17 @@ export default {
         const price = item.price || item.gift.price;
         const productData: any = {
           name: item.gift.title,
-          images: item.gift.imageUrl ? [item.gift.imageUrl] : [],
         };
+
+        // Only include images if URL exists and encode it properly
+        if (item.gift.imageUrl) {
+          try {
+            productData.images = [buildStripeUrl(item.gift.imageUrl)];
+          } catch (error) {
+            // If URL encoding fails, skip the image
+            console.warn('Failed to encode image URL:', item.gift.imageUrl);
+          }
+        }
 
         // Only include description if it's not empty
         if (item.gift.description && item.gift.description.trim() !== '') {
