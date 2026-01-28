@@ -85,14 +85,20 @@ export default {
       // Create line items for Stripe
       const lineItems = cart.items.map((item: any) => {
         const price = item.price || item.gift.price;
+        const productData: any = {
+          name: item.gift.title,
+          images: item.gift.imageUrl ? [item.gift.imageUrl] : [],
+        };
+
+        // Only include description if it's not empty
+        if (item.gift.description && item.gift.description.trim() !== '') {
+          productData.description = item.gift.description;
+        }
+
         return {
           price_data: {
             currency: 'mxn',
-            product_data: {
-              name: item.gift.title,
-              description: item.gift.description || '',
-              images: item.gift.imageUrl ? [item.gift.imageUrl] : [],
-            },
+            product_data: productData,
             unit_amount: Math.round(price * 100), // Convert to cents
           },
           quantity: item.quantity,
