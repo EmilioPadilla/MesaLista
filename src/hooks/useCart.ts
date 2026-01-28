@@ -3,6 +3,7 @@ import { cartService } from '../services/cart.service';
 import { queryKeys } from './queryKeys';
 import type { CartDetailsRequest } from 'types/api/cart';
 import { message } from 'antd';
+import { useNotification } from '../contexts/NotificationContext';
 
 /**
  * Hook to fetch the current user's cart
@@ -24,7 +25,9 @@ export const useGetCart = (sessionId?: string, options?: Partial<UseQueryOptions
  */
 export const useAddGiftToCart = (sessionId?: string) => {
   const queryClient = useQueryClient();
-  return useMutation({
+  const notification = useNotification();
+
+  const mutation = useMutation({
     mutationFn: cartService.addToCart,
     onSuccess: () => {
       message.success('¡Artículo agregado exitosamente!');
@@ -33,14 +36,17 @@ export const useAddGiftToCart = (sessionId?: string) => {
     },
     onError: (error: any) => {
       if (error.response?.data?.error?.includes('different gift lists')) {
-        message.error(
-          'No puedes agregar artículos de diferentes listas de regalos al mismo carrito. Por favor completa tu compra actual primero.',
+        notification.error(
+          'Error al agregar al carrito',
+          'No puedes agregar artículos de diferentes listas de regalos al mismo carrito. Por favor completa tu compra actual primero o elimina los artículos de otros carritos.',
         );
       } else {
         message.error('Error al agregar el artículo al carrito');
       }
     },
   });
+
+  return mutation;
 };
 
 /**

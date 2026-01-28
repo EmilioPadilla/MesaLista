@@ -256,6 +256,19 @@ export default {
         },
       });
 
+      // If cart is now empty, clear the giftListId to allow items from other lists
+      if (updatedCart && updatedCart.items.length === 0) {
+        await prisma.cart.update({
+          where: { id: updatedCart.id },
+          data: {
+            giftListId: null,
+            totalAmount: 0,
+          },
+        });
+        updatedCart.giftListId = null;
+        updatedCart.totalAmount = 0;
+      }
+
       res.json(updatedCart);
     } catch (error) {
       console.error('Error removing from cart:', error);

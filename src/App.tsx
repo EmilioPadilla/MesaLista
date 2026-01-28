@@ -42,152 +42,155 @@ import { Invitations } from './app/routes/couple/Invitations';
 import MyGiftLists from './app/routes/couple/MyGiftLists';
 import { CreateNewList } from './app/routes/couple/CreateNewList';
 import { PublicInvitationView } from './features/invitations/components/PublicInvitation/PublicInvitationView';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 function App() {
   const isLocalhost = window.location.hostname === 'localhost';
 
   return (
     <ConfigProvider theme={antdThemeConfig}>
-      <BrowserRouter>
-        <PageViewTracker />
-        <Routes>
-          {/* Public routes */}
-          <Route
-            path="/"
-            element={
-              <>
-                <TopNav />
-                <TopNavWrapper>
-                  <HomePage />
-                </TopNavWrapper>
-              </>
-            }
-          />
-          <Route path="/login" element={<Login />} />
-          <Route path="/olvide-contrasena" element={<ForgotPassword />} />
-          <Route path="/restablecer-contrasena" element={<ResetPassword />} />
-          <Route
-            path="/buscar"
-            element={
-              <>
-                <TopNav />
-                <TopNavWrapper>
-                  <SearchPage />
-                </TopNavWrapper>
-              </>
-            }
-          />
-          <Route
-            path="/contacto"
-            element={
-              <>
-                <TopNav />
-                <TopNavWrapper>
-                  <Contact />
-                </TopNavWrapper>
-              </>
-            }
-          />
-          <Route path="/registro" element={<Signup />} />
-          <Route path="/registro-exitoso" element={<SignupSuccess />} />
-          <Route
-            path="/precios"
-            element={
-              <>
-                <TopNav />
-                <TopNavWrapper>
-                  <PricingPage />
-                </TopNavWrapper>
-              </>
-            }
-          />
-          <Route
-            path="/colecciones"
-            element={
-              <>
-                <TopNav />
-                <TopNavWrapper>
-                  <PredesignedListsPage />
-                  <Footer />
-                </TopNavWrapper>
-              </>
-            }
-          />
+      <NotificationProvider>
+        <BrowserRouter>
+          <PageViewTracker />
+          <Routes>
+            {/* Public routes */}
+            <Route
+              path="/"
+              element={
+                <>
+                  <TopNav />
+                  <TopNavWrapper>
+                    <HomePage />
+                  </TopNavWrapper>
+                </>
+              }
+            />
+            <Route path="/login" element={<Login />} />
+            <Route path="/olvide-contrasena" element={<ForgotPassword />} />
+            <Route path="/restablecer-contrasena" element={<ResetPassword />} />
+            <Route
+              path="/buscar"
+              element={
+                <>
+                  <TopNav />
+                  <TopNavWrapper>
+                    <SearchPage />
+                  </TopNavWrapper>
+                </>
+              }
+            />
+            <Route
+              path="/contacto"
+              element={
+                <>
+                  <TopNav />
+                  <TopNavWrapper>
+                    <Contact />
+                  </TopNavWrapper>
+                </>
+              }
+            />
+            <Route path="/registro" element={<Signup />} />
+            <Route path="/registro-exitoso" element={<SignupSuccess />} />
+            <Route
+              path="/precios"
+              element={
+                <>
+                  <TopNav />
+                  <TopNavWrapper>
+                    <PricingPage />
+                  </TopNavWrapper>
+                </>
+              }
+            />
+            <Route
+              path="/colecciones"
+              element={
+                <>
+                  <TopNav />
+                  <TopNavWrapper>
+                    <PredesignedListsPage />
+                    <Footer />
+                  </TopNavWrapper>
+                </>
+              }
+            />
 
-          {/* Admin routes */}
-          <Route element={<AdminRoute />}>
-            <Route
-              path="/admin/analytics"
-              element={
-                <>
-                  <TopNav />
-                  <TopNavWrapper>
-                    <Analytics />
-                  </TopNavWrapper>
-                </>
-              }
-            />
-            <Route
-              path="/admin/control"
-              element={
-                <>
-                  <TopNav />
-                  <TopNavWrapper>
-                    <AdminControl />
-                  </TopNavWrapper>
-                </>
-              }
-            />
-            <Route
-              path="/admin/colecciones"
-              element={
-                <>
-                  <TopNav />
-                  <TopNavWrapper>
-                    <AdminPreDesignedLists />
-                  </TopNavWrapper>
-                </>
-              }
-            />
-            <Route
-              path="/admin/codigos-descuento"
-              element={
-                <>
-                  <TopNav />
-                  <TopNavWrapper>
-                    <ManageDiscountCodes />
-                  </TopNavWrapper>
-                </>
-              }
-            />
-          </Route>
+            {/* Admin routes */}
+            <Route element={<AdminRoute />}>
+              <Route
+                path="/admin/analytics"
+                element={
+                  <>
+                    <TopNav />
+                    <TopNavWrapper>
+                      <Analytics />
+                    </TopNavWrapper>
+                  </>
+                }
+              />
+              <Route
+                path="/admin/control"
+                element={
+                  <>
+                    <TopNav />
+                    <TopNavWrapper>
+                      <AdminControl />
+                    </TopNavWrapper>
+                  </>
+                }
+              />
+              <Route
+                path="/admin/colecciones"
+                element={
+                  <>
+                    <TopNav />
+                    <TopNavWrapper>
+                      <AdminPreDesignedLists />
+                    </TopNavWrapper>
+                  </>
+                }
+              />
+              <Route
+                path="/admin/codigos-descuento"
+                element={
+                  <>
+                    <TopNav />
+                    <TopNavWrapper>
+                      <ManageDiscountCodes />
+                    </TopNavWrapper>
+                  </>
+                }
+              />
+            </Route>
 
-          {/* Public invitation view - standalone without header */}
-          <Route path="/:slug/:giftListId/invitacion" element={<PublicInvitationView />} />
+            {/* Public invitation view - standalone without header */}
+            <Route path="/:slug/:giftListId/invitacion" element={<PublicInvitationView />} />
 
-          {/* Public registry view for guests */}
-          <Route path="/:slug" element={<PublicRegistry />}>
-            <Route index element={<HomePage />} />
-            <Route path="rsvp" element={<GuestConfirmation />} />
-            <Route path="regalos" element={<BuyGifts />} />
-            <Route path="checkout" element={<Checkout />} />
-            <Route path="listas" element={<MyGiftLists />} />
-            <Route path="crear-lista" element={<CreateNewList />} />
-            <Route path="pago-confirmado" element={<OrderConfirmation />} />
-            <Route element={<ProtectedRoute />}>
-              <Route element={<Dashboard />}>
-                <Route path="gestionar" element={<ManageRegistry />} />
-                <Route path="invitacion" element={<Invitations />} />
-                <Route path="gestionar-rsvp" element={<ManageRSVP />} />
-                <Route path="configuracion" element={<Settings />} />
+            {/* Public registry view for guests */}
+            <Route path="/:slug" element={<PublicRegistry />}>
+              <Route index element={<HomePage />} />
+              <Route path="rsvp" element={<GuestConfirmation />} />
+              <Route path="regalos" element={<BuyGifts />} />
+              <Route path="checkout" element={<Checkout />} />
+              <Route path="listas" element={<MyGiftLists />} />
+              <Route path="crear-lista" element={<CreateNewList />} />
+              <Route path="pago-confirmado" element={<OrderConfirmation />} />
+              <Route element={<ProtectedRoute />}>
+                <Route element={<Dashboard />}>
+                  <Route path="gestionar" element={<ManageRegistry />} />
+                  <Route path="invitacion" element={<Invitations />} />
+                  <Route path="gestionar-rsvp" element={<ManageRSVP />} />
+                  <Route path="configuracion" element={<Settings />} />
+                </Route>
               </Route>
             </Route>
-          </Route>
 
-          {/* Redirect to login or dashboard based on auth status */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Redirect to login or dashboard based on auth status */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </BrowserRouter>
+      </NotificationProvider>
       {isLocalhost && <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />}
     </ConfigProvider>
   );
