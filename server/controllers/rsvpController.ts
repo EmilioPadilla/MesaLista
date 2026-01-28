@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { rsvpService } from '../services/rsvpService.js';
+import prisma from '../lib/prisma.js';
 
 export const rsvpController = {
   // Get all invitees for a gift list
@@ -205,9 +206,9 @@ export const rsvpController = {
   // Update an invitee
   updateInvitee: async (req: Request, res: Response) => {
     try {
-      const coupleId = req.user?.userId;
+      const userId = req.user?.userId;
 
-      if (!coupleId) {
+      if (!userId) {
         return res.status(401).json({
           success: false,
           message: 'No autenticado',
@@ -222,12 +223,25 @@ export const rsvpController = {
 
       const { firstName, lastName, tickets, secretCode } = req.body;
 
-      // Verify the invitee belongs to this couple
+      // Verify the invitee belongs to a gift list owned by this user
       const existing = await rsvpService.getInviteeById(id);
-      if (!existing || existing.coupleId !== coupleId) {
+      if (!existing) {
         return res.status(404).json({
           success: false,
           message: 'Invitado no encontrado',
+        });
+      }
+
+      // Verify ownership through gift list
+      const giftList = await prisma.giftList.findUnique({
+        where: { id: existing.giftListId },
+        select: { userId: true },
+      });
+
+      if (!giftList || giftList.userId !== userId) {
+        return res.status(403).json({
+          success: false,
+          message: 'No autorizado',
         });
       }
 
@@ -255,9 +269,9 @@ export const rsvpController = {
   // Delete an invitee
   deleteInvitee: async (req: Request, res: Response) => {
     try {
-      const coupleId = req.user?.userId;
+      const userId = req.user?.userId;
 
-      if (!coupleId) {
+      if (!userId) {
         return res.status(401).json({
           success: false,
           message: 'No autenticado',
@@ -270,12 +284,25 @@ export const rsvpController = {
         return res.status(400).json({ message: 'Invalid ID' });
       }
 
-      // Verify the invitee belongs to this couple
+      // Verify the invitee belongs to a gift list owned by this user
       const existing = await rsvpService.getInviteeById(id as string);
-      if (!existing || existing.coupleId !== coupleId) {
+      if (!existing) {
         return res.status(404).json({
           success: false,
           message: 'Invitado no encontrado',
+        });
+      }
+
+      // Verify ownership through gift list
+      const giftList = await prisma.giftList.findUnique({
+        where: { id: existing.giftListId },
+        select: { userId: true },
+      });
+
+      if (!giftList || giftList.userId !== userId) {
+        return res.status(403).json({
+          success: false,
+          message: 'No autorizado',
         });
       }
 
@@ -450,23 +477,23 @@ export const rsvpController = {
     }
   },
 
-  // Get RSVP messages for a couple (public for guests to see custom messages)
+  // Get RSVP messages for a gift list (public for guests to see custom messages)
   getRsvpMessages: async (req: Request, res: Response) => {
     try {
-      const { coupleId } = req.params;
+      const { giftListId } = req.params;
 
-      if (Array.isArray(coupleId)) {
-        return res.status(400).json({ message: 'Invalid couple ID' });
+      if (Array.isArray(giftListId)) {
+        return res.status(400).json({ message: 'Invalid gift list ID' });
       }
 
-      if (!coupleId) {
+      if (!giftListId) {
         return res.status(400).json({
           success: false,
-          message: 'ID de pareja requerido',
+          message: 'ID de lista de regalos requerido',
         });
       }
 
-      const messages = await rsvpService.getRsvpMessages(parseInt(coupleId));
+      const messages = await rsvpService.getRsvpMessages(parseInt(giftListId));
 
       res.json({
         success: true,
@@ -484,18 +511,18 @@ export const rsvpController = {
   // Update RSVP messages
   updateRsvpMessages: async (req: Request, res: Response) => {
     try {
-      const coupleId = req.user?.userId;
+      const { giftListId } = req.body;
 
-      if (!coupleId) {
-        return res.status(401).json({
+      if (!giftListId) {
+        return res.status(400).json({
           success: false,
-          message: 'No autenticado',
+          message: 'ID de lista de regalos requerido',
         });
       }
 
       const { confirmationMessage, cancellationMessage } = req.body;
 
-      const messages = await rsvpService.updateRsvpMessages(coupleId, {
+      const messages = await rsvpService.updateRsvpMessages(giftListId, {
         confirmationMessage,
         cancellationMessage,
       });

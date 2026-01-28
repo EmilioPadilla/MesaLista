@@ -6,7 +6,7 @@ const queryKeys = {
   inviteeByCode: (code: string) => ['invitee', code] as const,
   validateCode: (code: string) => ['validate-rsvp-code', code] as const,
   stats: (giftListId: number) => ['rsvp-stats', giftListId] as const,
-  messages: (coupleId: number) => ['rsvp-messages', coupleId] as const,
+  messages: (giftListId: number) => ['rsvp-messages', giftListId] as const,
 };
 
 // Query: Get all invitees for a gift list
@@ -154,12 +154,12 @@ export const useRsvpStats = (giftListId: number) => {
   });
 };
 
-// Query: Get RSVP messages for a couple (public)
-export const useRsvpMessages = (coupleId: number, enabled: boolean = true) => {
+// Query: Get RSVP messages for a gift list (public)
+export const useRsvpMessages = (giftListId: number, enabled: boolean = true) => {
   return useQuery<RsvpMessages, Error>({
-    queryKey: queryKeys.messages(coupleId),
-    queryFn: () => rsvpService.getMessages(coupleId),
-    enabled: enabled && !!coupleId,
+    queryKey: queryKeys.messages(giftListId),
+    queryFn: () => rsvpService.getMessages(giftListId),
+    enabled: enabled && !!giftListId,
   });
 };
 
@@ -171,6 +171,7 @@ export const useUpdateRsvpMessages = () => {
     RsvpMessages,
     Error,
     {
+      giftListId: number;
       confirmationMessage?: string;
       cancellationMessage?: string;
     }
@@ -178,7 +179,7 @@ export const useUpdateRsvpMessages = () => {
     mutationFn: (data) => rsvpService.updateMessages(data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.messages(data.coupleId),
+        queryKey: queryKeys.messages(data.giftListId),
       });
     },
   });

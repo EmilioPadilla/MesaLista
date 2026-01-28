@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/invitee/:secretCode', rsvpController.getInviteeByCode);
 router.get('/validate/:secretCode', rsvpController.validateRsvpCode);
 router.post('/respond/:secretCode', rsvpController.respondToRsvp);
-router.get('/messages/:coupleId', rsvpController.getRsvpMessages);
+router.get('/messages/:giftListId', rsvpController.getRsvpMessages);
 
 // Protected routes (for authenticated couples)
 router.get('/invitees', authenticateSession, rsvpController.getInvitees);

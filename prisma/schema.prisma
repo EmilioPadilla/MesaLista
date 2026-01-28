@@ -66,6 +66,7 @@ model GiftList {
   invitation    Invitation? // One-to-one relationship with Invitation
   carts         Cart[]    // Carts associated with this gift list
   invitees      Invitee[] // Invitees for this gift list
+  rsvpMessages  RsvpMessages? // RSVP messages for this gift list
 
   @@index([userId])
   @@map("gift_lists")
@@ -453,13 +454,14 @@ enum RsvpStatus {
 
 model RsvpMessages {
   id                    Int      @id @default(autoincrement())
-  coupleId              Int      @unique @map("couple_id")
+  giftListId            Int      @unique @map("gift_list_id")
+  giftList              GiftList @relation(fields: [giftListId], references: [id], onDelete: Cascade)
   confirmationMessage   String   @default("¡Gracias por confirmar tu asistencia! Nos encantará verte en nuestra boda.") @map("confirmation_message")
   cancellationMessage   String   @default("Lamentamos que no puedas asistir. ¡Gracias por avisarnos!") @map("cancellation_message")
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
-  @@index([coupleId])
+  @@index([giftListId])
   @@map("rsvp_messages")
 }
 

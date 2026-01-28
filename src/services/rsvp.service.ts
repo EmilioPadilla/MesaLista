@@ -28,7 +28,7 @@ export interface CreateInviteeRequest {
 
 export interface RsvpMessages {
   id: number;
-  coupleId: number;
+  giftListId: number;
   confirmationMessage: string;
   cancellationMessage: string;
   createdAt: string;
@@ -131,14 +131,14 @@ const rsvpService = {
     return response.data.data;
   },
 
-  // Get RSVP messages for a couple (public)
-  async getMessages(coupleId: number): Promise<RsvpMessages> {
-    const response = await apiClient.get(endpoints.rsvp.getMessages(coupleId));
+  // Get RSVP messages for a gift list (public)
+  async getMessages(giftListId: number): Promise<RsvpMessages> {
+    const response = await apiClient.get(endpoints.rsvp.getMessages(giftListId));
     return response.data.data;
   },
 
   // Update RSVP messages
-  async updateMessages(data: { confirmationMessage?: string; cancellationMessage?: string }): Promise<RsvpMessages> {
+  async updateMessages(data: { giftListId: number; confirmationMessage?: string; cancellationMessage?: string }): Promise<RsvpMessages> {
     const response = await apiClient.put(endpoints.rsvp.updateMessages, data);
     return response.data.data;
   },

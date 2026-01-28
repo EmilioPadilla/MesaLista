@@ -253,27 +253,27 @@ class UsersListsAnalyticsService {
       },
     });
 
-    // Fetch all invitees for all users at once
-    const userIds = weddingLists.map((list) => list.user.id);
+    // Fetch all invitees for all gift lists at once
+    const giftListIds = weddingLists.map((list) => list.id);
     const invitees = await prisma.invitee.findMany({
       where: {
-        coupleId: {
-          in: userIds,
+        giftListId: {
+          in: giftListIds,
         },
       },
       select: {
-        coupleId: true,
+        giftListId: true,
         status: true,
       },
     });
 
-    // Group invitees by coupleId
-    const inviteesByCouple = invitees.reduce(
+    // Group invitees by giftListId
+    const inviteesByGiftList = invitees.reduce(
       (acc, invitee) => {
-        if (!acc[invitee.coupleId]) {
-          acc[invitee.coupleId] = [];
+        if (!acc[invitee.giftListId]) {
+          acc[invitee.giftListId] = [];
         }
-        acc[invitee.coupleId].push(invitee);
+        acc[invitee.giftListId].push(invitee);
         return acc;
       },
       {} as Record<number, typeof invitees>,
@@ -291,12 +291,12 @@ class UsersListsAnalyticsService {
       const lastPurchaseDate =
         purchasedGiftDates.length > 0 ? new Date(Math.max(...purchasedGiftDates.map((d: any) => d.getTime()))) : null;
 
-      // Get invitee statistics for this couple
-      const coupleInvitees = inviteesByCouple[list.user.id] || [];
-      const invitationCount = coupleInvitees.length;
-      const invitationsAccepted = coupleInvitees.filter((inv) => inv.status === 'CONFIRMED').length;
-      const invitationsRejected = coupleInvitees.filter((inv) => inv.status === 'REJECTED').length;
-      const invitationsPending = coupleInvitees.filter((inv) => inv.status === 'PENDING').length;
+      // Get invitee statistics for this gift list
+      const giftListInvitees = inviteesByGiftList[list.id] || [];
+      const invitationCount = giftListInvitees.length;
+      const invitationsAccepted = giftListInvitees.filter((inv) => inv.status === 'CONFIRMED').length;
+      const invitationsRejected = giftListInvitees.filter((inv) => inv.status === 'REJECTED').length;
+      const invitationsPending = giftListInvitees.filter((inv) => inv.status === 'PENDING').length;
 
       return {
         id: list.id,

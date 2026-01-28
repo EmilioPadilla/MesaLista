@@ -25,7 +25,7 @@ export function GuestConfirmation() {
 
   // React Query hooks
   const { data: invitee, refetch: searchInvitee, isLoading: searchLoading } = useInviteeByCode(searchCode, false);
-  const { data: messages } = useRsvpMessages(invitee?.coupleId || 0, !!invitee);
+  const { data: messages } = useRsvpMessages(invitee?.giftListId || 0, !!invitee);
   const respondMutation = useRespondToRsvp();
 
   // Update confirmed tickets when invitee is found

@@ -790,12 +790,12 @@ const rsvp_endpoints = {
   getStats: `/rsvp/stats`,
 
   /**
-   * Get RSVP messages for a couple
+   * Get RSVP messages for a gift list
    * @method GET
    * @access Public
-   * @param coupleId Couple ID
+   * @param giftListId Gift List ID
    */
-  getMessages: (coupleId: number) => `/rsvp/messages/${coupleId}`,
+  getMessages: (giftListId: number) => `/rsvp/messages/${giftListId}`,
 
   /**
    * Update RSVP messages

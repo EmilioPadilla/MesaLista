@@ -281,17 +281,17 @@ export const rsvpService = {
     return stats;
   },
 
-  // Get or create RSVP messages for a couple
-  async getRsvpMessages(coupleId: number) {
+  // Get or create RSVP messages for a gift list
+  async getRsvpMessages(giftListId: number) {
     let messages = await prisma.rsvpMessages.findUnique({
-      where: { coupleId },
+      where: { giftListId },
     });
 
     // Create default messages if they don't exist
     if (!messages) {
       messages = await prisma.rsvpMessages.create({
         data: {
-          coupleId,
+          giftListId,
         },
       });
     }
@@ -299,19 +299,19 @@ export const rsvpService = {
     return messages;
   },
 
-  // Update RSVP messages for a couple
+  // Update RSVP messages for a gift list
   async updateRsvpMessages(
-    coupleId: number,
+    giftListId: number,
     data: {
       confirmationMessage?: string;
       cancellationMessage?: string;
     },
   ) {
     // Ensure messages exist first
-    await this.getRsvpMessages(coupleId);
+    await this.getRsvpMessages(giftListId);
 
     return prisma.rsvpMessages.update({
-      where: { coupleId },
+      where: { giftListId },
       data,
     });
   },

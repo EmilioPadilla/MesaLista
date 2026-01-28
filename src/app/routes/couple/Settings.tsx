@@ -34,7 +34,7 @@ export function Settings() {
   const { data: userData, isLoading: isLoadingUser } = useCurrentUser();
   const { data: giftLists, isLoading: isLoadingWeddingList } = useGiftListsByUser(userData?.id);
   const giftListData = giftLists?.[0];
-  const { data: rsvpMessages } = useRsvpMessages(userData?.id || 0, !!userData?.id);
+  const { data: rsvpMessages } = useRsvpMessages(giftListData?.id || 0, !!giftListData?.id);
 
   // Mutations
   const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useUpdateCurrentUserProfile();
@@ -229,8 +229,13 @@ export function Settings() {
 
   const handleSaveRsvpMessages = async () => {
     try {
+      if (!giftListData?.id) {
+        message.error('No se encontró la lista de regalos');
+        return;
+      }
       const values = await rsvpMessagesForm.validateFields();
       await updateRsvpMessages({
+        giftListId: giftListData.id,
         confirmationMessage: values.confirmationMessage,
         cancellationMessage: values.cancellationMessage,
       });
@@ -395,9 +400,7 @@ export function Settings() {
               className="!mb-0"
               label={<span className="text-sm text-muted-foreground">ID de la pareja</span>}
               rules={[{ required: true, message: 'El slug es requerido' }]}
-              validateStatus={
-                slugError ? 'error' : slug && slugCheck?.available && slug !== userData?.slug ? 'success' : undefined
-              }
+              validateStatus={slugError ? 'error' : slug && slugCheck?.available && slug !== userData?.slug ? 'success' : undefined}
               help={null}>
               <Input
                 addonBefore="mesalista.com.mx/"
