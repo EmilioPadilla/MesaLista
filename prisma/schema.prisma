@@ -64,6 +64,7 @@ model GiftList {
   gifts         Gift[]
   categoriesOnGifts GiftCategoryOnGift[]
   invitation    Invitation? // One-to-one relationship with Invitation
+  carts         Cart[]    // Carts associated with this gift list
 
   @@index([userId])
   @@map("gift_lists")
@@ -171,6 +172,7 @@ enum CartStatus {
 model Cart {
   id            Int            @id @default(autoincrement())
   sessionId     String         @unique @map("session_id")
+  giftListId    Int?           @map("gift_list_id") // Gift list this cart belongs to
   inviteeName   String?        @map("invitee_name") // Name of the person shopping
   inviteeEmail  String?        @map("invitee_email") // Email of the person shopping
   country       String?
@@ -185,8 +187,10 @@ model Cart {
   items         CartItem[]
   payment       Payment?       // One-to-one relation
   invitee       Invitee?       @relation(fields: [rsvpCode], references: [secretCode])
+  giftList      GiftList?      @relation(fields: [giftListId], references: [id], onDelete: SetNull)
 
   @@index([rsvpCode])
+  @@index([giftListId])
   @@map("carts")
 }
 

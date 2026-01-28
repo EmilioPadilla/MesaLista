@@ -42,9 +42,7 @@ export default {
    */
   getWeddingListsAnalytics: async (req: Request, res: Response) => {
     try {
-      const { from, to } = req.query;
-
-      const lists = await usersListsAnalyticsService.getWeddingListsAnalytics(from as string | undefined, to as string | undefined);
+      const lists = await usersListsAnalyticsService.getWeddingListsAnalytics();
 
       res.json(lists);
     } catch (error) {

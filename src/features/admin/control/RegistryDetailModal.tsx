@@ -117,9 +117,29 @@ export function RegistryDetailModal({
                     </Tag>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-lg mb-2">Estadísticas de Invitaciones</h3>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-gray-500">Invitaciones:</span>
+                  <span className="text-gray-500">Total Invitaciones:</span>
                   <div className="font-medium text-2xl">{registry.invitationCount || 0}</div>
+                </div>
+                <div>
+                  <span className="text-gray-500">Aceptadas:</span>
+                  <div className="font-medium text-2xl text-green-600">{registry.invitationsAccepted || 0}</div>
+                </div>
+                <div>
+                  <span className="text-gray-500">Rechazadas:</span>
+                  <div className="font-medium text-2xl text-red-600">{registry.invitationsRejected || 0}</div>
+                </div>
+                <div>
+                  <span className="text-gray-500">Pendientes:</span>
+                  <div className="font-medium text-2xl text-orange-600">{registry.invitationsPending || 0}</div>
                 </div>
               </div>
             </div>

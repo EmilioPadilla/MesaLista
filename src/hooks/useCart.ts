@@ -31,6 +31,15 @@ export const useAddGiftToCart = (sessionId?: string) => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.cart, sessionId] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.cartItems] });
     },
+    onError: (error: any) => {
+      if (error.response?.data?.error?.includes('different gift lists')) {
+        message.error(
+          'No puedes agregar artículos de diferentes listas de regalos al mismo carrito. Por favor completa tu compra actual primero.',
+        );
+      } else {
+        message.error('Error al agregar el artículo al carrito');
+      }
+    },
   });
 };
 

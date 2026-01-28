@@ -1,5 +1,5 @@
 import { Layout } from 'antd';
-import { Content, Footer } from 'antd/es/layout/layout';
+import { Content } from 'antd/es/layout/layout';
 import { useEffect, useState, useCallback } from 'react';
 import { Outlet, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';

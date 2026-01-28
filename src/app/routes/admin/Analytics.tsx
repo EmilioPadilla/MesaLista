@@ -76,9 +76,9 @@ export function Analytics() {
   const { data: alerts } = useMetricAlerts();
 
   // Users and lists analytics data
-  const { data: usersListsSummary, isLoading: isUsersListsSummaryLoading } = useUsersListsSummary(from, to);
-  const { data: usersData, isLoading: isUsersDataLoading } = useUsersAnalytics(from, to);
-  const { data: listsData, isLoading: isListsDataLoading } = useWeddingListsAnalytics(from, to);
+  const { data: usersListsSummary, isLoading: isUsersListsSummaryLoading } = useUsersListsSummary();
+  const { data: usersData, isLoading: isUsersDataLoading } = useUsersAnalytics();
+  const { data: listsData, isLoading: isListsDataLoading } = useWeddingListsAnalytics();
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">

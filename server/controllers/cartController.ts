@@ -62,6 +62,7 @@ export default {
       // Check if the gift exists and is not purchased
       const gift = await prisma.gift.findUnique({
         where: { id: giftId },
+        include: { giftList: true },
       });
 
       if (!gift) {
@@ -72,6 +73,8 @@ export default {
         return res.status(400).json({ error: 'Gift is already purchased' });
       }
 
+      const giftListId = gift.giftListId;
+
       // Find or create cart
       let cart = await prisma.cart.findUnique({
         where: { sessionId: sessionId as string },
@@ -81,8 +84,26 @@ export default {
         cart = await prisma.cart.create({
           data: {
             sessionId: sessionId as string,
+            giftListId,
           },
         });
+      } else {
+        // Check if cart already has a giftListId and it's different
+        if (cart.giftListId && cart.giftListId !== giftListId) {
+          return res.status(400).json({
+            error: 'Cannot add items from different gift lists to the same cart. Please complete your current purchase first.',
+            currentGiftListId: cart.giftListId,
+            attemptedGiftListId: giftListId,
+          });
+        }
+
+        // Set giftListId if not set yet
+        if (!cart.giftListId) {
+          cart = await prisma.cart.update({
+            where: { id: cart.id },
+            data: { giftListId },
+          });
+        }
       }
 
       // Check if the item is already in the cart
@@ -128,7 +149,7 @@ export default {
         include: { gift: true },
       });
 
-      const totalAmount = cartItems.reduce((sum: number, item) => {
+      const totalAmount = cartItems.reduce((sum: number, item: { price: number; quantity: number }) => {
         return sum + item.price * item.quantity;
       }, 0);
 
@@ -258,7 +279,7 @@ export default {
         const invitee = await prisma.invitee.findUnique({
           where: { secretCode: rsvpCode.trim() },
         });
-        
+
         // Only set the code if it exists (foreign key constraint requires it)
         if (invitee) {
           validatedRsvpCode = rsvpCode.trim();

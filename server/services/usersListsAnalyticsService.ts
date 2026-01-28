@@ -41,6 +41,9 @@ export interface WeddingListAnalytics {
   totalReceived: number;
   purchaseRate: number;
   invitationCount: number;
+  invitationsAccepted: number;
+  invitationsRejected: number;
+  invitationsPending: number;
   lastPurchaseDate: Date | null;
 }
 
@@ -227,22 +230,12 @@ class UsersListsAnalyticsService {
   /**
    * Get detailed analytics for all wedding lists
    */
-  async getWeddingListsAnalytics(from?: string, to?: string): Promise<WeddingListAnalytics[]> {
-    const dateFilter =
-      from && to
-        ? {
-            createdAt: {
-              gte: new Date(from),
-              lte: new Date(to),
-            },
-          }
-        : {};
-
+  async getWeddingListsAnalytics(): Promise<WeddingListAnalytics[]> {
     const weddingLists = await prisma.giftList.findMany({
-      where: dateFilter,
       include: {
         user: {
           select: {
+            id: true,
             email: true,
             slug: true,
           },
@@ -260,6 +253,32 @@ class UsersListsAnalyticsService {
       },
     });
 
+    // Fetch all invitees for all users at once
+    const userIds = weddingLists.map((list) => list.user.id);
+    const invitees = await prisma.invitee.findMany({
+      where: {
+        coupleId: {
+          in: userIds,
+        },
+      },
+      select: {
+        coupleId: true,
+        status: true,
+      },
+    });
+
+    // Group invitees by coupleId
+    const inviteesByCouple = invitees.reduce(
+      (acc, invitee) => {
+        if (!acc[invitee.coupleId]) {
+          acc[invitee.coupleId] = [];
+        }
+        acc[invitee.coupleId].push(invitee);
+        return acc;
+      },
+      {} as Record<number, typeof invitees>,
+    );
+
     return weddingLists.map((list) => {
       const totalGifts = list.gifts.length;
       const purchasedGifts = list.gifts.filter((g: any) => g.isPurchased).length;
@@ -271,6 +290,13 @@ class UsersListsAnalyticsService {
       const purchasedGiftDates = list.gifts.filter((g: any) => g.isPurchased).map((g: any) => g.updatedAt);
       const lastPurchaseDate =
         purchasedGiftDates.length > 0 ? new Date(Math.max(...purchasedGiftDates.map((d: any) => d.getTime()))) : null;
+
+      // Get invitee statistics for this couple
+      const coupleInvitees = inviteesByCouple[list.user.id] || [];
+      const invitationCount = coupleInvitees.length;
+      const invitationsAccepted = coupleInvitees.filter((inv) => inv.status === 'CONFIRMED').length;
+      const invitationsRejected = coupleInvitees.filter((inv) => inv.status === 'REJECTED').length;
+      const invitationsPending = coupleInvitees.filter((inv) => inv.status === 'PENDING').length;
 
       return {
         id: list.id,
@@ -286,7 +312,10 @@ class UsersListsAnalyticsService {
         totalValue,
         totalReceived,
         purchaseRate,
-        invitationCount: list.invitationCount,
+        invitationCount,
+        invitationsAccepted,
+        invitationsRejected,
+        invitationsPending,
         lastPurchaseDate,
       };
     });

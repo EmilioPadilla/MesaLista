@@ -30,6 +30,7 @@ export interface CartItem {
 export interface Cart {
   id: number;
   sessionId: string;
+  giftListId?: number;
   inviteeName?: string;
   inviteeEmail?: string;
   country?: string;

@@ -141,9 +141,15 @@ export function RegistriesControlTab({ summary, listsData, isListsLoading, onRef
     {
       title: 'Invitaciones',
       key: 'invitationCount',
-      width: 100,
+      width: 120,
       align: 'center',
-      render: (_, record) => record.invitationCount || 0,
+      render: (_, record) => (
+        <div>
+          <div className="font-semibold text-gray-900">{record.invitationCount || 0}</div>
+          <div className="text-xs text-green-600">{record.invitationsAccepted || 0} aceptadas</div>
+          <div className="text-xs text-red-600">{record.invitationsRejected || 0} rechazadas</div>
+        </div>
+      ),
       sorter: (a, b) => (a.invitationCount || 0) - (b.invitationCount || 0),
     },
     {

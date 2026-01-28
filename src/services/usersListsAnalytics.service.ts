@@ -42,6 +42,9 @@ export interface WeddingListAnalytics {
   totalReceived: number;
   purchaseRate: number;
   invitationCount: number;
+  invitationsAccepted: number;
+  invitationsRejected: number;
+  invitationsPending: number;
   lastPurchaseDate: string | null;
 }
 
@@ -65,36 +68,24 @@ const usersListsAnalyticsService = {
   /**
    * Get summary statistics for users and wedding lists
    */
-  getSummary: async (from?: string, to?: string): Promise<UsersListsSummary> => {
-    const params = new URLSearchParams();
-    if (from) params.append('from', from);
-    if (to) params.append('to', to);
-
-    const response = await apiClient.get<UsersListsSummary>(`${endpoints.usersListsAnalytics.summary}?${params.toString()}`);
+  getSummary: async (): Promise<UsersListsSummary> => {
+    const response = await apiClient.get<UsersListsSummary>(`${endpoints.usersListsAnalytics.summary}`);
     return response.data;
   },
 
   /**
    * Get detailed analytics for all users with their wedding lists
    */
-  getUsersAnalytics: async (from?: string, to?: string): Promise<UserAnalytics[]> => {
-    const params = new URLSearchParams();
-    if (from) params.append('from', from);
-    if (to) params.append('to', to);
-
-    const response = await apiClient.get<UserAnalytics[]>(`${endpoints.usersListsAnalytics.users}?${params.toString()}`);
+  getUsersAnalytics: async (): Promise<UserAnalytics[]> => {
+    const response = await apiClient.get<UserAnalytics[]>(`${endpoints.usersListsAnalytics.users}`);
     return response.data;
   },
 
   /**
    * Get detailed analytics for all wedding lists
    */
-  getWeddingListsAnalytics: async (from?: string, to?: string): Promise<WeddingListAnalytics[]> => {
-    const params = new URLSearchParams();
-    if (from) params.append('from', from);
-    if (to) params.append('to', to);
-
-    const response = await apiClient.get<WeddingListAnalytics[]>(`${endpoints.usersListsAnalytics.lists}?${params.toString()}`);
+  getWeddingListsAnalytics: async (): Promise<WeddingListAnalytics[]> => {
+    const response = await apiClient.get<WeddingListAnalytics[]>(`${endpoints.usersListsAnalytics.lists}`);
     return response.data;
   },
 };

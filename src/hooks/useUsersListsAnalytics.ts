@@ -4,10 +4,10 @@ import usersListsAnalyticsService, { UserAnalytics, WeddingListAnalytics, UsersL
 /**
  * Hook to fetch users/lists analytics summary
  */
-export const useUsersListsSummary = (from?: string, to?: string) => {
+export const useUsersListsSummary = () => {
   return useQuery<UsersListsSummary>({
-    queryKey: ['usersListsAnalytics', 'summary', from, to],
-    queryFn: () => usersListsAnalyticsService.getSummary(from, to),
+    queryKey: ['usersListsAnalytics', 'summary'],
+    queryFn: () => usersListsAnalyticsService.getSummary(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
@@ -15,10 +15,10 @@ export const useUsersListsSummary = (from?: string, to?: string) => {
 /**
  * Hook to fetch detailed users analytics
  */
-export const useUsersAnalytics = (from?: string, to?: string) => {
+export const useUsersAnalytics = () => {
   return useQuery<UserAnalytics[]>({
-    queryKey: ['usersListsAnalytics', 'users', from, to],
-    queryFn: () => usersListsAnalyticsService.getUsersAnalytics(from, to),
+    queryKey: ['usersListsAnalytics', 'users'],
+    queryFn: () => usersListsAnalyticsService.getUsersAnalytics(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
@@ -26,10 +26,10 @@ export const useUsersAnalytics = (from?: string, to?: string) => {
 /**
  * Hook to fetch detailed wedding lists analytics
  */
-export const useWeddingListsAnalytics = (from?: string, to?: string) => {
+export const useWeddingListsAnalytics = () => {
   return useQuery<WeddingListAnalytics[]>({
-    queryKey: ['usersListsAnalytics', 'lists', from, to],
-    queryFn: () => usersListsAnalyticsService.getWeddingListsAnalytics(from, to),
+    queryKey: ['usersListsAnalytics', 'lists'],
+    queryFn: () => usersListsAnalyticsService.getWeddingListsAnalytics(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };

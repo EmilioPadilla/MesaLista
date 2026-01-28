@@ -358,7 +358,6 @@ export function BuyGifts() {
             open={showCartDrawer}
             onClose={() => setShowCartDrawer(false)}
             cartData={cartData}
-            sessionId={guestId}
             slug={slug || ''}
             afterOpenChange={handleAfterClose}
           />

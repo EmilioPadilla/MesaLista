@@ -319,7 +319,7 @@ export function UserAnalyticsTab({
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" tickFormatter={(value: string) => dayjs(value).format('MMM DD')} />
               <YAxis />
-              <Tooltip labelFormatter={(value: string) => dayjs(value).format('YYYY-MM-DD')} />
+              <Tooltip />
               <Legend />
               <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} name={selectedMetric} />
             </LineChart>

@@ -10,12 +10,11 @@ interface CartDrawerProps {
   open: boolean;
   onClose: () => void;
   cartData?: Cart;
-  sessionId: string | null;
   afterOpenChange?: (open: boolean) => void;
   slug: string;
 }
 
-export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData, sessionId, afterOpenChange, slug }) => {
+export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData, afterOpenChange, slug }) => {
   const navigate = useNavigate();
   const { mutate: removeFromCart } = useRemoveGiftFromCart();
   const { mutate: updateCartQuantity } = useUpdateCartItemQuantity();
