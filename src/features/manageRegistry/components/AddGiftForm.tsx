@@ -10,12 +10,12 @@ import { useCreateGift } from 'src/hooks/useGift';
 import { useUploadFile } from 'src/hooks/useFiles';
 
 interface AddGiftFormProps {
-  weddingListId?: number;
+  giftListId?: number;
   categoryOptions?: Array<{ value: string; label: string }>;
   onGiftCreated?: () => void;
 }
 
-export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categoryOptions = [], onGiftCreated }) => {
+export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOptions = [], onGiftCreated }) => {
   const [form] = useForm();
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
@@ -73,7 +73,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
           const newGift = {
             ...values,
             categories: categoriesPayload,
-            weddingListId: weddingListId,
+            giftListId: giftListId,
             imageUrl: data,
             isPurchased: false,
           };
@@ -84,7 +84,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
       const newGift = {
         ...values,
         categories: categoriesPayload,
-        weddingListId: weddingListId,
+        giftListId: giftListId,
         imageUrl: undefined,
         isPurchased: false,
       };
@@ -113,7 +113,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ weddingListId, categor
         <Button
           type="default"
           icon={<Eye className="h-4 w-4" />}
-          onClick={() => window.open(`/${slug}/regalos${weddingListId ? `?listId=${weddingListId}` : ''}`, '_blank')}
+          onClick={() => window.open(`/${slug}/regalos${giftListId ? `?listId=${giftListId}` : ''}`, '_blank')}
           className="mt-2 group">
           Ver como Invitado <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
         </Button>

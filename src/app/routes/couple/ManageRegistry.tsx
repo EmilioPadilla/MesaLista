@@ -185,7 +185,7 @@ export const ManageRegistry = () => {
               <div className="space-y-6 mt-6">
                 {/* Add New Gift */}
                 <AddGiftForm
-                  weddingListId={giftList?.id}
+                  giftListId={giftList?.id}
                   categoryOptions={categoryOptions}
                   onGiftCreated={() => {
                     // Refresh the gifts list when a new gift is created

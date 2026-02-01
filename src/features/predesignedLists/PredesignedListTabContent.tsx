@@ -20,7 +20,7 @@ export function PredesignedListTabContent({ registry, addedGifts, onAddGift }: P
     imageUrl: gift.imageUrl,
     isPurchased: false,
     isMostWanted: false,
-    weddingListId: gift.predesignedListId,
+    giftListId: gift.predesignedListId,
     quantity: 0,
     order: gift.order,
     createdAt: new Date(gift.createdAt),

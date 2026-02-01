@@ -10,7 +10,7 @@ export interface Gift {
   imagePosition?: number;
   isPurchased: boolean;
   isMostWanted: boolean;
-  weddingListId: number;
+  giftListId: number;
   quantity: number;
   categories?: GiftCategory[];
   order: number;

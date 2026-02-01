@@ -25,10 +25,14 @@ export const useCreateGift = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: giftService.createGift,
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [queryKeys.giftsByWeddingList, variables.weddingListId] });
-      queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple] });
-      queryClient.invalidateQueries({ queryKey: [queryKeys.categoriesByWeddingList] });
+    onSuccess: () => {
+      // Invalidate all gift list related queries to ensure UI updates
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftListsByUser] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftListById] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftListBySlug] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftsByGiftList] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.categoriesByGiftList] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.gifts] });
     },
   });
 };
@@ -41,8 +45,13 @@ export const useUpdateGift = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<Gift> }) => giftService.updateGift(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKeys.weddingListByCouple] });
-      queryClient.invalidateQueries({ queryKey: [queryKeys.categoriesByWeddingList] });
+      // Invalidate all gift list related queries to ensure UI updates
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftListsByUser] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftListById] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftListBySlug] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftsByGiftList] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.categoriesByGiftList] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.gifts] });
     },
   });
 };
@@ -55,8 +64,13 @@ export const useDeleteGift = () => {
   return useMutation({
     mutationFn: giftService.deleteGift,
     onSuccess: () => {
-      // Invalidate all gifts queries since we don't know which wedding list this gift belonged to
-      queryClient.invalidateQueries({ queryKey: [queryKeys.giftsByWeddingList] });
+      // Invalidate all gift list related queries to ensure UI updates
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftListsByUser] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftListById] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftListBySlug] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftsByGiftList] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.categoriesByGiftList] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.gifts] });
     },
   });
 };
