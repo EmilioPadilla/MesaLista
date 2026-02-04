@@ -446,6 +446,55 @@ export const email_endpoints = {
    * @access Public
    */
   sendContactForm: `/email/contact`,
+
+  /**
+   * Send Marketing Email 1 to all commission-based users
+   * @method POST
+   * @access Admin only
+   */
+  sendMarketingEmail1: `/email/marketing/email1`,
+
+  /**
+   * Send Marketing Email 2 to all commission-based users
+   * @method POST
+   * @access Admin only
+   */
+  sendMarketingEmail2: `/email/marketing/email2`,
+
+  /**
+   * Send Marketing Email 3 to all commission-based users
+   * @method POST
+   * @access Admin only
+   */
+  sendMarketingEmail3: `/email/marketing/email3`,
+
+  /**
+   * Send Marketing Email 4 to all commission-based users
+   * @method POST
+   * @access Admin only
+   */
+  sendMarketingEmail4: `/email/marketing/email4`,
+
+  /**
+   * Get list of commission-based users
+   * @method GET
+   * @access Admin only
+   */
+  getCommissionUsers: `/email/marketing/commission-users`,
+
+  /**
+   * Send marketing email to selected users
+   * @method POST
+   * @access Admin only
+   */
+  sendToSelectedUsers: `/email/marketing/send-to-selected`,
+
+  /**
+   * Get marketing email preview
+   * @method GET
+   * @access Admin only
+   */
+  getEmailPreview: (emailType: number, userId: number) => `/email/marketing/preview?emailType=${emailType}&userId=${userId}`,
 };
 
 /**

@@ -307,7 +307,7 @@ class EmailService {
 
       const userName = `${user.firstName} ${user.lastName}`;
       const baseUrl = process.env.FRONTEND_URL || 'https://mesalista.com.mx';
-      const dashboardUrl = `${baseUrl}/${user.slug}/listas`;
+      const dashboardUrl = `${baseUrl}/${user.slug}/colecciones`;
       const listUrl = `${baseUrl}/${user.slug}/regalos?listId=${data.giftListId}`;
 
       const emailData = {
@@ -448,6 +448,408 @@ class EmailService {
     } catch (error) {
       console.error('Error sending welcome email:', error);
       // Don't throw error - we don't want to fail user creation if email fails
+    }
+  }
+
+  /**
+   * Send Marketing Email 1: Welcome & Feature Overview
+   * Best for: 1-2 days after registration
+   */
+  async sendMarketingEmail1(userId: number): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          email: true,
+          firstName: true,
+          slug: true,
+        },
+      });
+
+      if (!user || !user.email || !user.slug) {
+        throw new Error('User not found or email/slug missing');
+      }
+
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: user.email,
+        Subject: `¡Hola ${user.firstName}! Bienvenido a MesaLista 👋`,
+        HtmlBody: EmailTemplates.generateMarketingEmail1HTML(user.firstName, user.slug),
+        TextBody: EmailTemplates.generateMarketingEmail1Text(user.firstName, user.slug),
+        MessageStream: 'outbound',
+      });
+
+      console.log(`Marketing Email 1 sent to: ${user.email}`);
+    } catch (error) {
+      console.error('Error sending Marketing Email 1:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send Marketing Email 2: Quick Start Guide
+   * Best for: 3-4 days after registration if no activity
+   */
+  async sendMarketingEmail2(userId: number): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          email: true,
+          firstName: true,
+          slug: true,
+        },
+      });
+
+      if (!user || !user.email || !user.slug) {
+        throw new Error('User not found or email/slug missing');
+      }
+
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: user.email,
+        Subject: `${user.firstName}, tu mesa de regalos en 3 pasos simples`,
+        HtmlBody: EmailTemplates.generateMarketingEmail2HTML(user.firstName, user.slug),
+        TextBody: EmailTemplates.generateMarketingEmail2Text(user.firstName, user.slug),
+        MessageStream: 'outbound',
+      });
+
+      console.log(`Marketing Email 2 sent to: ${user.email}`);
+    } catch (error) {
+      console.error('Error sending Marketing Email 2:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send Marketing Email 3: Social Proof & Success Stories
+   * Best for: 7 days after registration
+   */
+  async sendMarketingEmail3(userId: number): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          email: true,
+          firstName: true,
+          slug: true,
+        },
+      });
+
+      if (!user || !user.email || !user.slug) {
+        throw new Error('User not found or email/slug missing');
+      }
+
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: user.email,
+        Subject: `${user.firstName}, mira lo que otras parejas están logrando con MesaLista`,
+        HtmlBody: EmailTemplates.generateMarketingEmail3HTML(user.firstName, user.slug),
+        TextBody: EmailTemplates.generateMarketingEmail3Text(user.firstName, user.slug),
+        MessageStream: 'outbound',
+      });
+
+      console.log(`Marketing Email 3 sent to: ${user.email}`);
+    } catch (error) {
+      console.error('Error sending Marketing Email 3:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send Marketing Email 4: Re-engagement & Special Offer
+   * Best for: 14 days after registration if still inactive
+   */
+  async sendMarketingEmail4(userId: number): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          email: true,
+          firstName: true,
+          slug: true,
+        },
+      });
+
+      if (!user || !user.email || !user.slug) {
+        throw new Error('User not found or email/slug missing');
+      }
+
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: user.email,
+        Subject: `${user.firstName}, te extrañamos 💜 - Oferta especial dentro`,
+        HtmlBody: EmailTemplates.generateMarketingEmail4HTML(user.firstName, user.slug),
+        TextBody: EmailTemplates.generateMarketingEmail4Text(user.firstName, user.slug),
+        MessageStream: 'outbound',
+      });
+
+      console.log(`Marketing Email 4 sent to: ${user.email}`);
+    } catch (error) {
+      console.error('Error sending Marketing Email 4:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send marketing emails to users based on plan type
+   * Filters users based on planType and sends appropriate email
+   * @param emailType - The email campaign type (1-4)
+   * @param planTypes - Array of plan types to target (defaults to ['COMMISSION'])
+   */
+  async sendMarketingEmailToCommissionUsers(
+    emailType: 1 | 2 | 3 | 4,
+    planTypes: ('COMMISSION' | 'FIXED')[] = ['COMMISSION'],
+  ): Promise<{ sent: number; failed: number }> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return { sent: 0, failed: 0 };
+    }
+
+    try {
+      // Get all users with specified plan types
+      const users = await prisma.user.findMany({
+        where: {
+          role: 'COUPLE',
+          giftLists: {
+            some: {
+              planType: {
+                in: planTypes,
+              },
+            },
+          },
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+        },
+      });
+
+      console.log(`Found ${users.length} users with plan types [${planTypes.join(', ')}] for Marketing Email ${emailType}`);
+
+      let sent = 0;
+      let failed = 0;
+
+      // Send emails in batches to avoid overwhelming the email service
+      for (const user of users) {
+        try {
+          switch (emailType) {
+            case 1:
+              await this.sendMarketingEmail1(user.id);
+              break;
+            case 2:
+              await this.sendMarketingEmail2(user.id);
+              break;
+            case 3:
+              await this.sendMarketingEmail3(user.id);
+              break;
+            case 4:
+              await this.sendMarketingEmail4(user.id);
+              break;
+          }
+          sent++;
+        } catch (error) {
+          console.error(`Failed to send Marketing Email ${emailType} to user ${user.id}:`, error);
+          failed++;
+        }
+      }
+
+      console.log(`Marketing Email ${emailType} campaign complete: ${sent} sent, ${failed} failed`);
+      return { sent, failed };
+    } catch (error) {
+      console.error('Error sending marketing emails to commission users:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get list of users with specific plan types for selection
+   * @param planTypes - Array of plan types to filter (defaults to ['COMMISSION'])
+   */
+  async getCommissionUsers(planTypes: ('COMMISSION' | 'FIXED')[] = ['COMMISSION']): Promise<
+    Array<{
+      id: number;
+      email: string;
+      firstName: string;
+      lastName: string;
+      spouseFirstName: string | null;
+      spouseLastName: string | null;
+      slug: string;
+      createdAt: Date;
+      giftListCount: number;
+      planType: string;
+    }>
+  > {
+    try {
+      const users = await prisma.user.findMany({
+        where: {
+          role: 'COUPLE',
+          giftLists: {
+            some: {
+              planType: {
+                in: planTypes,
+              },
+            },
+          },
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          spouseFirstName: true,
+          spouseLastName: true,
+          slug: true,
+          createdAt: true,
+          giftLists: {
+            where: {
+              planType: {
+                in: planTypes,
+              },
+            },
+            select: {
+              id: true,
+              planType: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      return users
+        .filter((user) => user.slug !== null)
+        .map((user) => ({
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          spouseFirstName: user.spouseFirstName,
+          spouseLastName: user.spouseLastName,
+          slug: user.slug as string,
+          createdAt: user.createdAt,
+          giftListCount: user.giftLists.length,
+          planType: user.giftLists[0]?.planType || 'COMMISSION',
+        }));
+    } catch (error) {
+      console.error('Error getting users by plan type:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send marketing email to specific users
+   */
+  async sendMarketingEmailToSelectedUsers(emailType: 1 | 2 | 3 | 4, userIds: number[]): Promise<{ sent: number; failed: number }> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return { sent: 0, failed: 0 };
+    }
+
+    try {
+      console.log(`Sending Marketing Email ${emailType} to ${userIds.length} selected users`);
+
+      let sent = 0;
+      let failed = 0;
+
+      for (const userId of userIds) {
+        try {
+          switch (emailType) {
+            case 1:
+              await this.sendMarketingEmail1(userId);
+              break;
+            case 2:
+              await this.sendMarketingEmail2(userId);
+              break;
+            case 3:
+              await this.sendMarketingEmail3(userId);
+              break;
+            case 4:
+              await this.sendMarketingEmail4(userId);
+              break;
+          }
+          sent++;
+        } catch (error) {
+          console.error(`Failed to send Marketing Email ${emailType} to user ${userId}:`, error);
+          failed++;
+        }
+      }
+
+      console.log(`Marketing Email ${emailType} campaign complete: ${sent} sent, ${failed} failed`);
+      return { sent, failed };
+    } catch (error) {
+      console.error('Error sending marketing emails to selected users:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate email preview HTML for a specific user and email type
+   */
+  async getMarketingEmailPreview(emailType: 1 | 2 | 3 | 4, userId: number): Promise<{ html: string; subject: string }> {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          firstName: true,
+          slug: true,
+        },
+      });
+
+      if (!user || !user.slug) {
+        throw new Error('User not found or slug missing');
+      }
+
+      let html: string;
+      let subject: string;
+
+      switch (emailType) {
+        case 1:
+          html = EmailTemplates.generateMarketingEmail1HTML(user.firstName, user.slug);
+          subject = `¡Hola ${user.firstName}! Bienvenido a MesaLista 👋`;
+          break;
+        case 2:
+          html = EmailTemplates.generateMarketingEmail2HTML(user.firstName, user.slug);
+          subject = `${user.firstName}, tu mesa de regalos en 3 pasos simples`;
+          break;
+        case 3:
+          html = EmailTemplates.generateMarketingEmail3HTML(user.firstName, user.slug);
+          subject = `${user.firstName}, mira lo que otras parejas están logrando con MesaLista`;
+          break;
+        case 4:
+          html = EmailTemplates.generateMarketingEmail4HTML(user.firstName, user.slug);
+          subject = `${user.firstName}, te extrañamos 💜 - Oferta especial dentro`;
+          break;
+        default:
+          throw new Error('Invalid email type');
+      }
+
+      return { html, subject };
+    } catch (error) {
+      console.error('Error generating email preview:', error);
+      throw error;
     }
   }
 }

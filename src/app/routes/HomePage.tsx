@@ -756,7 +756,7 @@ export const HomePage = () => {
                 transition={{ duration: 0.8, delay: index * 0.2 }}
                 viewport={{ once: true }}
                 className="group cursor-pointer"
-                onClick={() => navigate('/listas')}>
+                onClick={() => navigate('/colecciones')}>
                 <div className="relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 border border-transparent hover:border-primary/20">
                   {/* Badge */}
                   <div className="absolute top-6 right-6 z-10">
@@ -821,7 +821,7 @@ export const HomePage = () => {
             ].map((collection, idx) => (
               <button
                 key={idx}
-                onClick={() => navigate('/listas')}
+                onClick={() => navigate('/colecciones')}
                 className="bg-white rounded-2xl p-6 shadow-sm border border-border/30 hover:shadow-xl hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 text-left group">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary/10 to-[#34c759]/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
@@ -867,7 +867,7 @@ export const HomePage = () => {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                   <Button
                     size="large"
-                    onClick={() => navigate('/listas')}
+                    onClick={() => navigate('/colecciones')}
                     className="px-10 py-4 text-lg bg-white! hover:bg-gray-100! text-primary! rounded-full! border-0! shadow-lg! hover:shadow-xl! transition-all! duration-300! hover:scale-105!">
                     Ver Todas las Colecciones
                     <ArrowRight className="ml-2 h-5 w-5" />

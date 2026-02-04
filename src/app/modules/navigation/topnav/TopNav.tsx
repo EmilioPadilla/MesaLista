@@ -151,8 +151,8 @@ export const TopNav = ({ slug, sticky = true }: TopNavProps) => {
               {userData?.role === 'COUPLE' && isAuthenticated && userCoupleSlug && (
                 <Tooltip title={viewType === 'mobile' ? 'Mis Listas' : ''} placement="bottom">
                   <Button
-                    type={currentPage === `/${userCoupleSlug}/listas` ? 'primary' : 'text'}
-                    onClick={() => navigate(`/${userCoupleSlug}/listas`)}
+                    type={currentPage === `/${userCoupleSlug}/colecciones` ? 'primary' : 'text'}
+                    onClick={() => navigate(`/${userCoupleSlug}/colecciones`)}
                     className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <GiftIcon className="h-4 w-4" />
                     <span className="hidden md:block">Listas</span>

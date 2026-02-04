@@ -1412,4 +1412,631 @@ El equipo de MesaLista
 © 2026 MesaLista. Todos los derechos reservados.
     `.trim();
   }
+
+  /**
+   * Marketing Email 1: Welcome & Feature Overview
+   * Purpose: Remind users why they chose MesaLista and introduce key features
+   * Best Practice: Send 1-2 days after registration
+   */
+  static generateMarketingEmail1HTML(firstName: string, coupleSlug: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>¡Bienvenido a MesaLista!</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f9fafb;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #d4704a 0%, #d4a574 100%); color: white; padding: 40px 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 32px; font-weight: bold;">¡Hola ${firstName}! 👋</h1>
+            <p style="margin: 12px 0 0 0; font-size: 18px; opacity: 0.95;">Bienvenido a MesaLista</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 40px 24px;">
+            <p style="font-size: 18px; margin: 0 0 24px 0; color: #1f2937;">
+              Nos emociona que hayas elegido <strong>MesaLista</strong> para crear tu mesa de regalos. Estás a punto de descubrir lo fácil que es gestionar todo en un solo lugar.
+            </p>
+
+            <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; margin-bottom: 32px; border-radius: 8px;">
+              <p style="margin: 0; color: #1e40af; font-size: 16px;">
+                <strong>💡 ¿Sabías que?</strong> Con MesaLista puedes tener tu mesa de regalos lista en solo 5 minutos usando nuestras listas prediseñadas.
+              </p>
+            </div>
+
+            <h2 style="color: #1f2937; margin: 32px 0 20px 0; font-size: 24px;">Todo lo que puedes hacer:</h2>
+
+            <!-- Feature 1 -->
+            <div style="margin-bottom: 24px; padding: 20px; background-color: #f9fafb; border-radius: 12px;">
+              <div style="display: flex; align-items: start;">
+                <div style="font-size: 32px; margin-right: 16px;">🎁</div>
+                <div>
+                  <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 18px;">Listas Prediseñadas</h3>
+                  <p style="margin: 0; color: #6b7280; line-height: 1.6;">
+                    Elige entre 6+ colecciones curadas por expertos: Luna de Miel, Hogar Nuevo, Redecoración y más. Más de 200 productos premium listos para agregar.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div style="margin-bottom: 24px; padding: 20px; background-color: #f9fafb; border-radius: 12px;">
+              <div style="display: flex; align-items: start;">
+                <div style="font-size: 32px; margin-right: 16px;">💌</div>
+                <div>
+                  <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 18px;">Invitaciones Digitales</h3>
+                  <p style="margin: 0; color: #6b7280; line-height: 1.6;">
+                    Crea invitaciones hermosas y compartibles con plantillas premium. Incluye el enlace directo a tu mesa de regalos.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div style="margin-bottom: 24px; padding: 20px; background-color: #f9fafb; border-radius: 12px;">
+              <div style="display: flex; align-items: start;">
+                <div style="font-size: 32px; margin-right: 16px;">✅</div>
+                <div>
+                  <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 18px;">Gestión de RSVPs</h3>
+                  <p style="margin: 0; color: #6b7280; line-height: 1.6;">
+                    Administra confirmaciones de asistencia con códigos únicos. Tus invitados pueden confirmar y dejar mensajes especiales.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Feature 4 -->
+            <div style="margin-bottom: 32px; padding: 20px; background-color: #f9fafb; border-radius: 12px;">
+              <div style="display: flex; align-items: start;">
+                <div style="font-size: 32px; margin-right: 16px;">📊</div>
+                <div>
+                  <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 18px;">Estadísticas en Tiempo Real</h3>
+                  <p style="margin: 0; color: #6b7280; line-height: 1.6;">
+                    Ve quién ha comprado qué, cuánto has recaudado y el progreso de tu lista con análisis detallados.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 40px 0;">
+              <a href="https://mesalista.com.mx/${coupleSlug}/gestionar" 
+                 style="display: inline-block; background: linear-gradient(135deg, #d4704a 0%, #d4a574 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(212, 112, 74, 0.3);">
+                Comenzar Ahora →
+              </a>
+            </div>
+
+            <div style="background-color: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 20px; margin-top: 32px;">
+              <p style="margin: 0; color: #92400e; font-size: 14px; text-align: center;">
+                <strong>🎉 Sin costo inicial</strong> - Solo pagas una pequeña comisión cuando recibes regalos. ¡Cero riesgo para ti!
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">¿Necesitas ayuda? Escríbenos a info@mesalista.com.mx</p>
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">
+              <strong>MesaLista</strong> - Haciendo los regalos de boda más fáciles
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  static generateMarketingEmail1Text(firstName: string, coupleSlug: string): string {
+    return `
+¡HOLA ${firstName.toUpperCase()}! 👋
+
+Bienvenido a MesaLista
+
+Nos emociona que hayas elegido MesaLista para crear tu mesa de regalos. Estás a punto de descubrir lo fácil que es gestionar todo en un solo lugar.
+
+💡 ¿SABÍAS QUE?
+Con MesaLista puedes tener tu mesa de regalos lista en solo 5 minutos usando nuestras listas prediseñadas.
+
+TODO LO QUE PUEDES HACER:
+
+🎁 LISTAS PREDISEÑADAS
+Elige entre 6+ colecciones curadas por expertos: Luna de Miel, Hogar Nuevo, Redecoración y más. Más de 200 productos premium listos para agregar.
+
+💌 INVITACIONES DIGITALES
+Crea invitaciones hermosas y compartibles con plantillas premium. Incluye el enlace directo a tu mesa de regalos.
+
+✅ GESTIÓN DE RSVPs
+Administra confirmaciones de asistencia con códigos únicos. Tus invitados pueden confirmar y dejar mensajes especiales.
+
+📊 ESTADÍSTICAS EN TIEMPO REAL
+Ve quién ha comprado qué, cuánto has recaudado y el progreso de tu lista con análisis detallados.
+
+COMENZAR AHORA:
+https://mesalista.com.mx/${coupleSlug}/gestionar
+
+🎉 SIN COSTO INICIAL
+Solo pagas una pequeña comisión cuando recibes regalos. ¡Cero riesgo para ti!
+
+¿Necesitas ayuda? Escríbenos a info@mesalista.com.mx
+
+Con cariño,
+El equipo de MesaLista
+    `.trim();
+  }
+
+  /**
+   * Marketing Email 2: Quick Start Guide
+   * Purpose: Help users take their first steps with actionable tips
+   * Best Practice: Send 3-4 days after registration if no activity
+   */
+  static generateMarketingEmail2HTML(firstName: string, coupleSlug: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tu Mesa de Regalos en 3 Pasos</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f9fafb;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; padding: 40px 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 32px; font-weight: bold;">Tu Mesa Lista en 3 Pasos</h1>
+            <p style="margin: 12px 0 0 0; font-size: 18px; opacity: 0.95;">Guía rápida para ${firstName}</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 40px 24px;">
+            <p style="font-size: 18px; margin: 0 0 32px 0; color: #1f2937;">
+              Hola ${firstName}, notamos que aún no has completado tu mesa de regalos. ¡No te preocupes! Te mostramos cómo hacerlo en minutos.
+            </p>
+
+            <!-- Step 1 -->
+            <div style="margin-bottom: 32px; position: relative; padding-left: 60px;">
+              <div style="position: absolute; left: 0; top: 0; width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">1</div>
+              <h3 style="margin: 0 0 12px 0; color: #1f2937; font-size: 20px;">Explora las Listas Prediseñadas</h3>
+              <p style="margin: 0 0 12px 0; color: #6b7280; line-height: 1.6;">
+                Ahorra tiempo explorando nuestras 6+ colecciones curadas. Desde Luna de Miel hasta Hogar Nuevo, tenemos todo lo que necesitas.
+              </p>
+              <a href="https://mesalista.com.mx/colecciones" 
+                 style="color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 14px;">
+                Ver Colecciones →
+              </a>
+            </div>
+
+            <!-- Step 2 -->
+            <div style="margin-bottom: 32px; position: relative; padding-left: 60px;">
+              <div style="position: absolute; left: 0; top: 0; width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">2</div>
+              <h3 style="margin: 0 0 12px 0; color: #1f2937; font-size: 20px;">Agrega Regalos a Tu Lista</h3>
+              <p style="margin: 0 0 12px 0; color: #6b7280; line-height: 1.6;">
+                Selecciona productos de nuestras colecciones o agrega los tuyos propios. Incluye fotos, descripciones y precios para cada regalo.
+              </p>
+              <a href="https://mesalista.com.mx/${coupleSlug}/gestionar?addGift=true" 
+                 style="color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 14px;">
+                Agregar Regalos →
+              </a>
+            </div>
+
+            <!-- Step 3 -->
+            <div style="margin-bottom: 32px; position: relative; padding-left: 60px;">
+              <div style="position: absolute; left: 0; top: 0; width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">3</div>
+              <h3 style="margin: 0 0 12px 0; color: #1f2937; font-size: 20px;">Comparte con Tus Invitados</h3>
+              <p style="margin: 0 0 12px 0; color: #6b7280; line-height: 1.6;">
+                Crea una invitación digital hermosa o simplemente comparte tu enlace único. Tus invitados podrán ver y comprar regalos al instante.
+              </p>
+              <a href="https://mesalista.com.mx/${coupleSlug}/regalos" 
+                 style="color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 14px;">
+                Ver Mi Mesa →
+              </a>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 40px 0;">
+              <a href="https://mesalista.com.mx/${coupleSlug}/gestionar" 
+                 style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                Completar Mi Mesa Ahora →
+              </a>
+            </div>
+
+            <!-- Pro Tips -->
+            <div style="background-color: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 24px; margin-top: 32px;">
+              <h3 style="margin: 0 0 16px 0; color: #166534; font-size: 18px;">💡 Tips Pro:</h3>
+              <ul style="margin: 0; padding-left: 20px; color: #166534;">
+                <li style="margin-bottom: 8px;">Incluye regalos de diferentes rangos de precio (desde $500 hasta $5,000+)</li>
+                <li style="margin-bottom: 8px;">Agrega fotos de alta calidad para hacer tus regalos más atractivos</li>
+                <li style="margin-bottom: 8px;">Usa las descripciones para explicar por qué quieres cada regalo</li>
+                <li>Revisa tu panel regularmente para ver el progreso</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">¿Tienes preguntas? Estamos aquí para ayudarte</p>
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">
+              <strong>MesaLista</strong> - info@mesalista.com.mx
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  static generateMarketingEmail2Text(firstName: string, coupleSlug: string): string {
+    return `
+TU MESA LISTA EN 3 PASOS
+
+Guía rápida para ${firstName}
+
+Hola ${firstName}, notamos que aún no has completado tu mesa de regalos. ¡No te preocupes! Te mostramos cómo hacerlo en minutos.
+
+PASO 1: EXPLORA LAS LISTAS PREDISEÑADAS
+Ahorra tiempo explorando nuestras 6+ colecciones curadas. Desde Luna de Miel hasta Hogar Nuevo, tenemos todo lo que necesitas.
+→ Ver Colecciones: https://mesalista.com.mx/colecciones
+
+PASO 2: AGREGA REGALOS A TU LISTA
+Selecciona productos de nuestras colecciones o agrega los tuyos propios. Incluye fotos, descripciones y precios para cada regalo.
+→ Agregar Regalos: https://mesalista.com.mx/${coupleSlug}/gestionar?addGift=true
+
+PASO 3: COMPARTE CON TUS INVITADOS
+Crea una invitación digital hermosa o simplemente comparte tu enlace único. Tus invitados podrán ver y comprar regalos al instante.
+→ Ver Mi Mesa: https://mesalista.com.mx/${coupleSlug}/regalos
+
+COMPLETAR MI MESA AHORA:
+https://mesalista.com.mx/${coupleSlug}/gestionar
+
+💡 TIPS PRO:
+- Incluye regalos de diferentes rangos de precio (desde $500 hasta $5,000+)
+- Agrega fotos de alta calidad para hacer tus regalos más atractivos
+- Usa las descripciones para explicar por qué quieres cada regalo
+- Revisa tu panel regularmente para ver el progreso
+
+¿Tienes preguntas? Estamos aquí para ayudarte
+info@mesalista.com.mx
+
+Con cariño,
+El equipo de MesaLista
+    `.trim();
+  }
+
+  /**
+   * Marketing Email 3: Social Proof & Success Stories
+   * Purpose: Build trust with testimonials and showcase platform benefits
+   * Best Practice: Send 7 days after registration
+   */
+  static generateMarketingEmail3HTML(firstName: string, coupleSlug: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Parejas como tú están usando MesaLista</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f9fafb;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); color: white; padding: 40px 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 32px; font-weight: bold;">Historias de Éxito</h1>
+            <p style="margin: 12px 0 0 0; font-size: 18px; opacity: 0.95;">Parejas reales, resultados reales</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 40px 24px;">
+            <p style="font-size: 18px; margin: 0 0 32px 0; color: #1f2937;">
+              Hola ${firstName}, ¿sabías que cientos de parejas ya están usando MesaLista para hacer sus eventos más especiales? Aquí te compartimos algunas historias.
+            </p>
+
+            <!-- Testimonial 1 -->
+            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 24px; margin-bottom: 24px; border-radius: 8px;">
+              <p style="margin: 0 0 16px 0; color: #92400e; font-size: 16px; font-style: italic; line-height: 1.7;">
+                "MesaLista transformó completamente nuestra experiencia de boda. En solo 10 minutos teníamos nuestra lista completa usando las colecciones prediseñadas. ¡Recibimos más de $85,000 en regalos!"
+              </p>
+              <div style="display: flex; align-items: center;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; margin-right: 12px;">❤️</div>
+                <div>
+                  <p style="margin: 0; color: #92400e; font-weight: 600;">María y Carlos</p>
+                  <p style="margin: 0; color: #92400e; font-size: 14px;">Ciudad de México • Boda 2025</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Testimonial 2 -->
+            <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 24px; margin-bottom: 24px; border-radius: 8px;">
+              <p style="margin: 0 0 16px 0; color: #1e40af; font-size: 16px; font-style: italic; line-height: 1.7;">
+                "Las invitaciones digitales son hermosas y el sistema de RSVP nos ahorró muchísimo tiempo. Pudimos gestionar 150 invitados sin ningún problema. ¡Súper recomendado!"
+              </p>
+              <div style="display: flex; align-items: center;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; margin-right: 12px;">💕</div>
+                <div>
+                  <p style="margin: 0; color: #1e40af; font-weight: 600;">Ana y Luis</p>
+                  <p style="margin: 0; color: #1e40af; font-size: 14px;">Guadalajara • Boda 2025</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Testimonial 3 -->
+            <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 24px; margin-bottom: 32px; border-radius: 8px;">
+              <p style="margin: 0 0 16px 0; color: #166534; font-size: 16px; font-style: italic; line-height: 1.7;">
+                "Lo mejor es que no pagamos nada por adelantado. Solo una pequeña comisión cuando recibimos regalos. ¡Cero riesgo y máxima flexibilidad!"
+              </p>
+              <div style="display: flex; align-items: center;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; margin-right: 12px;">💚</div>
+                <div>
+                  <p style="margin: 0; color: #166534; font-weight: 600;">Carmen y Roberto</p>
+                  <p style="margin: 0; color: #166534; font-size: 14px;">Monterrey • Boda 2026</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div style="background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); border-radius: 16px; padding: 32px; margin-bottom: 32px; text-align: center;">
+              <h3 style="margin: 0 0 24px 0; color: white; font-size: 22px;">MesaLista en Números</h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 12px; padding: 20px;">
+                  <p style="margin: 0; color: white; font-size: 32px; font-weight: bold;">500+</p>
+                  <p style="margin: 8px 0 0 0; color: white; font-size: 14px; opacity: 0.9;">Parejas Felices</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 12px; padding: 20px;">
+                  <p style="margin: 0; color: white; font-size: 32px; font-weight: bold;">95%</p>
+                  <p style="margin: 8px 0 0 0; color: white; font-size: 14px; opacity: 0.9;">Satisfacción</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 12px; padding: 20px;">
+                  <p style="margin: 0; color: white; font-size: 32px; font-weight: bold;">5 min</p>
+                  <p style="margin: 8px 0 0 0; color: white; font-size: 14px; opacity: 0.9;">Setup Promedio</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 12px; padding: 20px;">
+                  <p style="margin: 0; color: white; font-size: 32px; font-weight: bold;">$0</p>
+                  <p style="margin: 8px 0 0 0; color: white; font-size: 14px; opacity: 0.9;">Costo Inicial</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 40px 0;">
+              <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 16px;">¿Listo para unirte a estas parejas exitosas?</p>
+              <a href="https://mesalista.com.mx/${coupleSlug}/gestionar" 
+                 style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);">
+                Crear Mi Mesa Ahora →
+              </a>
+            </div>
+
+            <div style="background-color: #eff6ff; border: 1px solid #93c5fd; border-radius: 8px; padding: 20px; margin-top: 32px; text-align: center;">
+              <p style="margin: 0; color: #1e40af; font-size: 14px;">
+                <strong>🎁 Garantía MesaLista:</strong> Si no estás satisfecho en los primeros 30 días, te ayudamos a migrar tu lista sin costo alguno.
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">¿Quieres compartir tu historia? Escríbenos</p>
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">
+              <strong>MesaLista</strong> - info@mesalista.com.mx
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  static generateMarketingEmail3Text(firstName: string, coupleSlug: string): string {
+    return `
+HISTORIAS DE ÉXITO
+
+Parejas reales, resultados reales
+
+Hola ${firstName}, ¿sabías que cientos de parejas ya están usando MesaLista para hacer sus eventos más especiales? Aquí te compartimos algunas historias.
+
+❤️ MARÍA Y CARLOS - CIUDAD DE MÉXICO
+"MesaLista transformó completamente nuestra experiencia de boda. En solo 10 minutos teníamos nuestra lista completa usando las colecciones prediseñadas. ¡Recibimos más de $85,000 en regalos!"
+
+💕 ANA Y LUIS - GUADALAJARA
+"Las invitaciones digitales son hermosas y el sistema de RSVP nos ahorró muchísimo tiempo. Pudimos gestionar 150 invitados sin ningún problema. ¡Súper recomendado!"
+
+💚 CARMEN Y ROBERTO - MONTERREY
+"Lo mejor es que no pagamos nada por adelantado. Solo una pequeña comisión cuando recibimos regalos. ¡Cero riesgo y máxima flexibilidad!"
+
+MESALISTA EN NÚMEROS:
+
+500+ Parejas Felices
+95% Satisfacción
+5 min Setup Promedio
+$0 Costo Inicial
+
+¿Listo para unirte a estas parejas exitosas?
+
+CREAR MI MESA AHORA:
+https://mesalista.com.mx/${coupleSlug}/gestionar
+
+🎁 GARANTÍA MESALISTA:
+Si no estás satisfecho en los primeros 30 días, te ayudamos a migrar tu lista sin costo alguno.
+
+¿Quieres compartir tu historia? Escríbenos
+info@mesalista.com.mx
+
+Con cariño,
+El equipo de MesaLista
+    `.trim();
+  }
+
+  /**
+   * Marketing Email 4: Re-engagement & Special Offer
+   * Purpose: Final push to activate dormant users with urgency
+   * Best Practice: Send 14 days after registration if still inactive
+   */
+  static generateMarketingEmail4HTML(firstName: string, coupleSlug: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>¿Aún no has completado tu mesa?</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f9fafb;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); color: white; padding: 40px 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 32px; font-weight: bold;">Te extrañamos, ${firstName} 💜</h1>
+            <p style="margin: 12px 0 0 0; font-size: 18px; opacity: 0.95;">Tu mesa de regalos te está esperando</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 40px 24px;">
+            <p style="font-size: 18px; margin: 0 0 24px 0; color: #1f2937;">
+              Hola ${firstName}, notamos que aún no has completado tu mesa de regalos. Sabemos que planear un evento puede ser abrumador, pero estamos aquí para hacerlo más fácil.
+            </p>
+
+            <!-- Urgency Box -->
+            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border: 2px solid #f59e0b; border-radius: 16px; padding: 24px; margin-bottom: 32px; text-align: center;">
+              <div style="font-size: 48px; margin-bottom: 12px;">⏰</div>
+              <h3 style="margin: 0 0 12px 0; color: #92400e; font-size: 22px;">¡No dejes pasar más tiempo!</h3>
+              <p style="margin: 0; color: #92400e; font-size: 16px; line-height: 1.6;">
+                Mientras más pronto compartas tu mesa de regalos, más tiempo tendrán tus invitados para elegir el regalo perfecto.
+              </p>
+            </div>
+
+            <h2 style="color: #1f2937; margin: 32px 0 20px 0; font-size: 24px; text-align: center;">¿Qué te está deteniendo?</h2>
+
+            <!-- Common Objections -->
+            <div style="margin-bottom: 24px; padding: 20px; background-color: #f9fafb; border-radius: 12px; border-left: 4px solid #8b5cf6;">
+              <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px;">❓ "No tengo tiempo para crear una lista completa"</h3>
+              <p style="margin: 0; color: #6b7280; line-height: 1.6; font-size: 14px;">
+                <strong>Solución:</strong> Usa nuestras listas prediseñadas. En 5 minutos tendrás una lista completa con productos curados por expertos. ¡Solo elige y listo!
+              </p>
+            </div>
+
+            <div style="margin-bottom: 24px; padding: 20px; background-color: #f9fafb; border-radius: 12px; border-left: 4px solid #ec4899;">
+              <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px;">❓ "Me preocupa el costo"</h3>
+              <p style="margin: 0; color: #6b7280; line-height: 1.6; font-size: 14px;">
+                <strong>Solución:</strong> Con el plan de comisión, ¡no pagas nada por adelantado! Solo una pequeña comisión cuando recibes regalos. Cero riesgo para ti.
+              </p>
+            </div>
+
+            <div style="margin-bottom: 24px; padding: 20px; background-color: #f9fafb; border-radius: 12px; border-left: 4px solid #3b82f6;">
+              <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px;">❓ "No sé qué regalos pedir"</h3>
+              <p style="margin: 0; color: #6b7280; line-height: 1.6; font-size: 14px;">
+                <strong>Solución:</strong> Nuestras 6+ colecciones tienen más de 200 productos premium seleccionados. Desde viajes hasta electrodomésticos, tenemos ideas para todos los gustos.
+              </p>
+            </div>
+
+            <div style="margin-bottom: 32px; padding: 20px; background-color: #f9fafb; border-radius: 12px; border-left: 4px solid #22c55e;">
+              <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px;">❓ "Es complicado de usar"</h3>
+              <p style="margin: 0; color: #6b7280; line-height: 1.6; font-size: 14px;">
+                <strong>Solución:</strong> MesaLista es tan fácil como usar Instagram. Interfaz intuitiva, sin curva de aprendizaje. Y si necesitas ayuda, nuestro equipo está a un email de distancia.
+              </p>
+            </div>
+
+            <!-- Special Offer -->
+            <div style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); border-radius: 16px; padding: 32px; margin-bottom: 32px; text-align: center; color: white;">
+              <div style="font-size: 48px; margin-bottom: 16px;">🎁</div>
+              <h3 style="margin: 0 0 16px 0; font-size: 24px;">Oferta Especial para Ti</h3>
+              <p style="margin: 0 0 24px 0; font-size: 16px; opacity: 0.95; line-height: 1.6;">
+                Completa tu mesa de regalos en los próximos 7 días y recibe <strong>soporte prioritario gratuito</strong> durante todo tu evento. Además, te ayudamos a crear tu primera invitación digital sin costo.
+              </p>
+              <div style="background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); border-radius: 12px; padding: 16px; display: inline-block;">
+                <p style="margin: 0; font-size: 14px; opacity: 0.9;">Valor: $1,500 MXN</p>
+                <p style="margin: 4px 0 0 0; font-size: 28px; font-weight: bold;">¡GRATIS!</p>
+              </div>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 40px 0;">
+              <a href="https://mesalista.com.mx/${coupleSlug}/gestionar" 
+                 style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); color: white; padding: 18px 48px; text-decoration: none; border-radius: 50px; font-weight: 700; font-size: 18px; box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
+                Activar Mi Oferta Ahora →
+              </a>
+              <p style="margin: 16px 0 0 0; color: #6b7280; font-size: 14px;">Oferta válida por 7 días</p>
+            </div>
+
+            <!-- Final Push -->
+            <div style="background-color: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 20px; margin-top: 32px; text-align: center;">
+              <p style="margin: 0; color: #991b1b; font-size: 14px; line-height: 1.6;">
+                <strong>⚠️ Última oportunidad:</strong> Si no activamos tu cuenta en los próximos 30 días, tendremos que liberar tu espacio para otras parejas en lista de espera.
+              </p>
+            </div>
+
+            <!-- Help Section -->
+            <div style="margin-top: 32px; padding: 24px; background-color: #eff6ff; border-radius: 12px; text-align: center;">
+              <h3 style="margin: 0 0 12px 0; color: #1e40af; font-size: 18px;">¿Necesitas ayuda para empezar?</h3>
+              <p style="margin: 0 0 16px 0; color: #1e40af; font-size: 14px;">
+                Nuestro equipo está listo para ayudarte. Responde a este email o escríbenos directamente.
+              </p>
+              <a href="mailto:info@mesalista.com.mx?subject=Ayuda%20para%20completar%20mi%20mesa" 
+                 style="color: #2563eb; text-decoration: none; font-weight: 600;">
+                info@mesalista.com.mx →
+              </a>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">Estamos aquí para hacer tu evento inolvidable</p>
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">
+              <strong>MesaLista</strong> - Tu aliado en momentos especiales
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  static generateMarketingEmail4Text(firstName: string, coupleSlug: string): string {
+    return `
+TE EXTRAÑAMOS, ${firstName.toUpperCase()} 💜
+
+Tu mesa de regalos te está esperando
+
+Hola ${firstName}, notamos que aún no has completado tu mesa de regalos. Sabemos que planear un evento puede ser abrumador, pero estamos aquí para hacerlo más fácil.
+
+⏰ ¡NO DEJES PASAR MÁS TIEMPO!
+Mientras más pronto compartas tu mesa de regalos, más tiempo tendrán tus invitados para elegir el regalo perfecto.
+
+¿QUÉ TE ESTÁ DETENIENDO?
+
+❓ "No tengo tiempo para crear una lista completa"
+SOLUCIÓN: Usa nuestras listas prediseñadas. En 5 minutos tendrás una lista completa con productos curados por expertos. ¡Solo elige y listo!
+
+❓ "Me preocupa el costo"
+SOLUCIÓN: Con el plan de comisión, ¡no pagas nada por adelantado! Solo una pequeña comisión cuando recibes regalos. Cero riesgo para ti.
+
+❓ "No sé qué regalos pedir"
+SOLUCIÓN: Nuestras 6+ colecciones tienen más de 200 productos premium seleccionados. Desde viajes hasta electrodomésticos, tenemos ideas para todos los gustos.
+
+❓ "Es complicado de usar"
+SOLUCIÓN: MesaLista es tan fácil como usar Instagram. Interfaz intuitiva, sin curva de aprendizaje. Y si necesitas ayuda, nuestro equipo está a un email de distancia.
+
+🎁 OFERTA ESPECIAL PARA TI
+
+Completa tu mesa de regalos en los próximos 7 días y recibe:
+- Soporte prioritario gratuito durante todo tu evento
+- Primera invitación digital sin costo
+- Valor: $1,500 MXN - ¡GRATIS!
+
+ACTIVAR MI OFERTA AHORA:
+https://mesalista.com.mx/${coupleSlug}/gestionar
+
+Oferta válida por 7 días
+
+⚠️ ÚLTIMA OPORTUNIDAD:
+Si no activamos tu cuenta en los próximos 30 días, tendremos que liberar tu espacio para otras parejas en lista de espera.
+
+¿NECESITAS AYUDA PARA EMPEZAR?
+Nuestro equipo está listo para ayudarte. Responde a este email o escríbenos:
+info@mesalista.com.mx
+
+Estamos aquí para hacer tu evento inolvidable
+
+Con cariño,
+El equipo de MesaLista
+    `.trim();
+  }
 }

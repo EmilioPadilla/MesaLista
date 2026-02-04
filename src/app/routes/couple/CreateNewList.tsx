@@ -74,7 +74,7 @@ export function CreateNewList() {
           userId: user.id,
           planType: 'FIXED',
           giftListData: giftListData,
-          successUrl: `${baseUrl}/${user.slug}/listas?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+          successUrl: `${baseUrl}/${user.slug}/colecciones?payment=success&session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${baseUrl}/${user.slug}/crear-lista?payment=cancelled`,
         });
 

@@ -181,7 +181,7 @@ export function AdminPreDesignedLists() {
               <h1 className="text-4xl mb-2 text-primary">Administrar Listas Prediseñadas</h1>
               <p className="text-lg text-muted-foreground">Gestiona las colecciones de regalos para diferentes estilos de vida</p>
             </div>
-            <Button onClick={() => navigate('/listas')} variant="outlined" className="!border-primary !text-primary rounded-full">
+            <Button onClick={() => navigate('/colecciones')} variant="outlined" className="!border-primary !text-primary rounded-full">
               <Eye className="h-4 w-4 mr-2" />
               Vista Pública
             </Button>

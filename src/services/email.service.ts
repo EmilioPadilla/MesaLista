@@ -47,6 +47,41 @@ export interface CheckVerificationStatusResponse {
   verified: boolean;
 }
 
+export interface MarketingEmailResponse {
+  success: boolean;
+  message: string;
+  data: {
+    sent: number;
+    failed: number;
+  };
+}
+
+export interface CommissionUser {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  spouseFirstName: string | null;
+  spouseLastName: string | null;
+  slug: string;
+  createdAt: string;
+  giftListCount: number;
+  planType: string;
+}
+
+export interface CommissionUsersResponse {
+  success: boolean;
+  data: CommissionUser[];
+}
+
+export interface EmailPreviewResponse {
+  success: boolean;
+  data: {
+    html: string;
+    subject: string;
+  };
+}
+
 const emailService = {
   /**
    * Resend payment confirmation emails to both admin and invitee
@@ -108,6 +143,77 @@ const emailService = {
    */
   checkVerificationStatus: async (email: string): Promise<CheckVerificationStatusResponse> => {
     const response = await apiClient.get<CheckVerificationStatusResponse>(endpoints.emailVerification.checkStatus(email));
+    return response.data;
+  },
+
+  /**
+   * Send Marketing Email 1 (Welcome) to users with specified plan types
+   * Admin only - sends to users with specified plan types (defaults to COMMISSION)
+   */
+  sendMarketingEmail1: async (planTypes: ('COMMISSION' | 'FIXED')[] = ['COMMISSION']): Promise<MarketingEmailResponse> => {
+    const params = new URLSearchParams({ planTypes: planTypes.join(',') });
+    const response = await apiClient.post<MarketingEmailResponse>(`${endpoints.email.sendMarketingEmail1}?${params}`);
+    return response.data;
+  },
+
+  /**
+   * Send Marketing Email 2 (Quick Start Guide) to users with specified plan types
+   * Admin only - sends to users with specified plan types (defaults to COMMISSION)
+   */
+  sendMarketingEmail2: async (planTypes: ('COMMISSION' | 'FIXED')[] = ['COMMISSION']): Promise<MarketingEmailResponse> => {
+    const params = new URLSearchParams({ planTypes: planTypes.join(',') });
+    const response = await apiClient.post<MarketingEmailResponse>(`${endpoints.email.sendMarketingEmail2}?${params}`);
+    return response.data;
+  },
+
+  /**
+   * Send Marketing Email 3 (Social Proof) to users with specified plan types
+   * Admin only - sends to users with specified plan types (defaults to COMMISSION)
+   */
+  sendMarketingEmail3: async (planTypes: ('COMMISSION' | 'FIXED')[] = ['COMMISSION']): Promise<MarketingEmailResponse> => {
+    const params = new URLSearchParams({ planTypes: planTypes.join(',') });
+    const response = await apiClient.post<MarketingEmailResponse>(`${endpoints.email.sendMarketingEmail3}?${params}`);
+    return response.data;
+  },
+
+  /**
+   * Send Marketing Email 4 (Re-engagement) to users with specified plan types
+   * Admin only - sends to users with specified plan types (defaults to COMMISSION)
+   */
+  sendMarketingEmail4: async (planTypes: ('COMMISSION' | 'FIXED')[] = ['COMMISSION']): Promise<MarketingEmailResponse> => {
+    const params = new URLSearchParams({ planTypes: planTypes.join(',') });
+    const response = await apiClient.post<MarketingEmailResponse>(`${endpoints.email.sendMarketingEmail4}?${params}`);
+    return response.data;
+  },
+
+  /**
+   * Get list of users with specified plan types
+   * Admin only - returns users with specified plan types (defaults to COMMISSION)
+   */
+  getCommissionUsers: async (planTypes: ('COMMISSION' | 'FIXED')[] = ['COMMISSION']): Promise<CommissionUsersResponse> => {
+    const params = new URLSearchParams({ planTypes: planTypes.join(',') });
+    const response = await apiClient.get<CommissionUsersResponse>(`${endpoints.email.getCommissionUsers}?${params}`);
+    return response.data;
+  },
+
+  /**
+   * Send marketing email to selected users
+   * Admin only - sends email to specific user IDs
+   */
+  sendToSelectedUsers: async (emailType: 1 | 2 | 3 | 4, userIds: number[]): Promise<MarketingEmailResponse> => {
+    const response = await apiClient.post<MarketingEmailResponse>(endpoints.email.sendToSelectedUsers, {
+      emailType,
+      userIds,
+    });
+    return response.data;
+  },
+
+  /**
+   * Get marketing email preview
+   * Admin only - returns HTML preview of email for specific user
+   */
+  getEmailPreview: async (emailType: 1 | 2 | 3 | 4, userId: number): Promise<EmailPreviewResponse> => {
+    const response = await apiClient.get<EmailPreviewResponse>(endpoints.email.getEmailPreview(emailType, userId));
     return response.data;
   },
 };

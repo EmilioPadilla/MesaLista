@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Card, DatePicker, Select, Tabs } from 'antd';
-import { TrendingUp, Users } from 'lucide-react';
+import { TrendingUp, Users, Mail } from 'lucide-react';
 import { useMetricsSummary, useTimeSeries, useFunnelBreakdown, useMetricAlerts } from 'hooks/useAnalytics';
 import { useUsersListsSummary, useUsersAnalytics, useWeddingListsAnalytics } from 'hooks/useUsersListsAnalytics';
-import { UserAnalyticsTab, UsersListsAnalyticsTab } from 'src/features/admin/analytics';
+import { UserAnalyticsTab, UsersListsAnalyticsTab, MarketingTab } from 'src/features/admin/analytics';
 import dayjs, { Dayjs } from 'dayjs';
 import { useGiftLists } from 'src/hooks/useGiftList';
 
@@ -168,6 +168,17 @@ export function Analytics() {
               listsData={listsData}
               isListsLoading={isListsDataLoading}
             />
+          </Tabs.TabPane>
+
+          <Tabs.TabPane
+            tab={
+              <span>
+                <Mail className="inline mr-2" size={16} />
+                Marketing
+              </span>
+            }
+            key="marketing">
+            <MarketingTab />
           </Tabs.TabPane>
         </Tabs>
       </div>
