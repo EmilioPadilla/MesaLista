@@ -17,23 +17,38 @@ import {
   DollarSign,
   MapPin,
   Share2,
+  Plane,
+  Palette,
+  Home,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useGetUserBySlug, useIsAuthenticated } from 'hooks/useUser';
 import { OutletContextType } from './guest/PublicRegistry';
 import { useGiftListsByUser } from 'hooks/useGiftList';
+import { usePredesignedLists } from 'hooks/usePredesignedList';
 import { Badge, Button, Card, Skeleton } from 'antd';
 import { Footer } from '../modules/navigation/Footer';
 import { PageSEO } from 'src/components/seo';
 import { MLButton } from 'src/components/core/MLButton';
 import { InvitationTemplateCarousel } from 'src/components/invitations/InvitationTemplateCarousel';
 
+// Icon mapping from emoji strings to Lucide components
+const iconMap: Record<string, any> = {
+  '❤️': Heart,
+  '✈️': Plane,
+  '✨': Sparkles,
+  '🎨': Palette,
+  '🏠': Home,
+  '📍': MapPin,
+};
+
 export const HomePage = () => {
   const contextData = useOutletContext<OutletContextType>();
   const { data: userData, isLoading: isLoadingUser } = useGetUserBySlug(contextData?.slug);
   const { data: giftLists } = useGiftListsByUser(userData?.id);
   const { data: isAuthenticated = false } = useIsAuthenticated();
+  const { data: predesignedLists, isLoading: isLoadingPredesignedLists } = usePredesignedLists();
   const navigate = useNavigate();
 
   const hasMultipleLists = (giftLists?.length || 0) > 1;
@@ -723,88 +738,74 @@ export const HomePage = () => {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8 mb-16">
-            {[
-              {
-                title: 'Luna de Miel',
-                description: 'Viajes inolvidables a Italia, Hawái, Bali e Islandia',
-                image:
-                  'https://images.unsplash.com/photo-1675267374972-45358f240163?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpdGFsaWFuJTIwY29hc3QlMjBhbWFsZml8ZW58MXx8fHwxNzYwOTY4NzQzfDA&ixlib=rb-4.1.0&q=80&w=1080',
-                items: '28',
-                badge: 'Popular',
-              },
-              {
-                title: 'Redecoración',
-                description: 'Actualiza tu espacio actual con estilo moderno',
-                image:
-                  'https://images.unsplash.com/photo-1600210492493-0946911123ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBob21lJTIwaW50ZXJpb3J8ZW58MXx8fHwxNzYwODk5MjYyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-                items: '35',
-                badge: 'Tendencia',
-              },
-              {
-                title: 'Hogar Nuevo',
-                description: 'Equipa el nuevo hogar de tu familia con todo lo esencial',
-                image:
-                  'https://images.unsplash.com/photo-1581573950452-5a438c5f390f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxuZXclMjBob21lJTIwbW92aW5nfGVufDF8fHx8MTc2MDk2ODc0NHww&ixlib=rb-4.1.0&q=80&w=1080',
-                items: '42',
-                badge: 'Completa',
-              },
-            ].map((registry, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                className="group cursor-pointer"
-                onClick={() => navigate('/colecciones')}>
-                <div className="relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 border border-transparent hover:border-primary/20">
-                  {/* Badge */}
-                  <div className="absolute top-6 right-6 z-10">
-                    <Badge className="bg-white/95! backdrop-blur-sm! text-primary! border-0! shadow-lg! px-4! py-1.5! rounded-lg">
-                      {registry.badge}
-                    </Badge>
-                  </div>
-
-                  {/* Image with gradient overlay */}
-                  <div className="relative h-80 overflow-hidden">
-                    <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <img
-                      src={registry.image}
-                      alt={registry.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    {/* Item count badge on image */}
-                    <div className="absolute bottom-6 left-6 z-10 bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg">
-                      <div className="flex items-center gap-2">
-                        <Gift className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium text-foreground">{registry.items} productos</span>
-                      </div>
+            {isLoadingPredesignedLists
+              ? Array.from({ length: 3 }).map((_, index) => (
+                  <div key={index} className="bg-white rounded-3xl overflow-hidden shadow-lg">
+                    <Skeleton.Image active className="w-full h-80" />
+                    <div className="p-8">
+                      <Skeleton active paragraph={{ rows: 3 }} />
                     </div>
                   </div>
+                ))
+              : (predesignedLists?.slice(0, 3) || []).map((registry, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: index * 0.2 }}
+                    viewport={{ once: true }}
+                    className="group cursor-pointer"
+                    onClick={() => navigate(`/colecciones?list=${registry.id}`)}>
+                    <div className="relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 border border-transparent hover:border-primary/20">
+                      {/* Badge */}
+                      {index === 0 && (
+                        <div className="absolute top-6 right-6 z-10">
+                          <Badge className="bg-white/95! backdrop-blur-sm! text-primary! border-0! shadow-lg! px-4! py-1.5! rounded-lg">
+                            Popular
+                          </Badge>
+                        </div>
+                      )}
 
-                  <div className="p-8">
-                    <h3 className="text-2xl font-semibold text-foreground mb-3 tracking-tight group-hover:text-primary transition-colors">
-                      {registry.title}
-                    </h3>
-                    <p className="text-muted-foreground leading-relaxed font-light mb-6">{registry.description}</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-primary font-medium group-hover:gap-2 transition-all">
-                        <span>Ver colección</span>
-                        <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-2 transition-transform duration-300" />
+                      {/* Image with gradient overlay */}
+                      <div className="relative h-80 overflow-hidden">
+                        <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <img
+                          src={registry.imageUrl}
+                          alt={registry.name}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        {/* Item count badge on image */}
+                        <div className="absolute bottom-6 left-6 z-10 bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg">
+                          <div className="flex items-center gap-2">
+                            <Gift className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium text-foreground">{registry.gifts?.length || 0} productos</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
-                        <Star className="h-5 w-5 text-primary group-hover:text-white transition-colors duration-300" />
+
+                      <div className="p-8">
+                        <h3 className="text-2xl font-semibold text-foreground mb-3 tracking-tight group-hover:text-primary transition-colors">
+                          {registry.name}
+                        </h3>
+                        <p className="text-muted-foreground leading-relaxed font-light mb-6">{registry.description}</p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center text-primary font-medium group-hover:gap-2 transition-all">
+                            <span>Ver colección</span>
+                            <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-2 transition-transform duration-300" />
+                          </div>
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
+                            <Star className="h-5 w-5 text-primary group-hover:text-white transition-colors duration-300" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Hover shine effect */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                        <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Hover shine effect */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-                    <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                  </motion.div>
+                ))}
           </div>
 
           {/* More collections teaser */}
@@ -814,32 +815,37 @@ export const HomePage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
             viewport={{ once: true }}>
-            {[
-              { title: 'Cocina Gourmet', items: '32', icon: Sparkles },
-              { title: 'Experiencias Únicas', items: '18', icon: Heart },
-              { title: 'Tech & Smart Home', items: '25', icon: Star },
-            ].map((collection, idx) => (
-              <button
-                key={idx}
-                onClick={() => navigate('/colecciones')}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-border/30 hover:shadow-xl hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 text-left group">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary/10 to-[#34c759]/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <collection.icon className="h-6 w-6 text-primary" />
+            {isLoadingPredesignedLists
+              ? Array.from({ length: 3 }).map((_, idx) => (
+                  <div key={idx} className="bg-white rounded-2xl p-6 shadow-sm">
+                    <Skeleton active paragraph={{ rows: 2 }} />
                   </div>
-                  <Badge className="bg-[#f5f5f7]! text-foreground! border-0! rounded-lg! text-xs! px-2! py-1!">
-                    {collection.items} items
-                  </Badge>
-                </div>
-                <h4 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                  {collection.title}
-                </h4>
-                <div className="flex items-center text-primary text-sm font-medium">
-                  <span>Ver colección</span>
-                  <ArrowRight className="h-3.5 w-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </button>
-            ))}
+                ))
+              : (predesignedLists?.slice(3, 6) || []).map((collection, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => navigate(`/colecciones?list=${collection.id}`)}
+                    className="bg-white rounded-2xl p-6 shadow-sm border border-border/30 hover:shadow-xl hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 text-left group">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary/10 to-[#34c759]/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        {(() => {
+                          const IconComponent = iconMap[collection.icon] || Heart;
+                          return <IconComponent className="h-6 w-6 text-primary" />;
+                        })()}
+                      </div>
+                      <Badge className="bg-[#f5f5f7]! text-foreground! border-0! rounded-lg! text-xs! px-2! py-1!">
+                        {collection.gifts?.length || 0} items
+                      </Badge>
+                    </div>
+                    <h4 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                      {collection.name}
+                    </h4>
+                    <div className="flex items-center text-primary text-sm font-medium">
+                      <span>Ver colección</span>
+                      <ArrowRight className="h-3.5 w-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </button>
+                ))}
           </motion.div>
 
           {/* Enhanced CTA Card */}

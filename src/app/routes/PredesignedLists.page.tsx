@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button, message, Tabs, Modal, Spin } from 'antd';
 import { Heart, Plane, Home, Palette, Sparkles, MapPin } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useIsAuthenticated, useCurrentUser } from 'hooks/useUser';
 import { usePredesignedLists, useAddPredesignedGiftToWeddingList } from 'hooks/usePredesignedList';
 import { useGiftListsByUser } from 'hooks/useGiftList';
@@ -22,6 +22,7 @@ const iconMap: Record<string, any> = {
 
 export function PredesignedListsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: isAuthenticated = false } = useIsAuthenticated();
   const { data: registries, isLoading } = usePredesignedLists();
   const { data: currentUser } = useCurrentUser();
@@ -29,6 +30,10 @@ export function PredesignedListsPage() {
   const { mutate: addGiftToWeddingList, isPending: isAddingGift } = useAddPredesignedGiftToWeddingList();
   const giftList = giftLists?.[0];
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Get the list ID from query params
+  const listIdParam = searchParams.get('list');
+  const defaultActiveKey = listIdParam || registries?.[0]?.id.toString();
 
   // Scroll to top when component loads
   useEffect(() => {
@@ -93,7 +98,8 @@ export function PredesignedListsPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <Tabs
-          defaultActiveKey={registries?.[0].id.toString()}
+          activeKey={defaultActiveKey}
+          onChange={(key) => setSearchParams({ list: key })}
           className="w-full"
           items={registries?.map((registry) => {
             const Icon = iconMap[registry.icon] || Heart;
