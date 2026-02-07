@@ -227,10 +227,10 @@ function Signup() {
     }
   };
 
-  const handleSendVerificationCode = async (email: string) => {
+  const handleSendVerificationCode = async (email: string, extra?: { firstName?: string; lastName?: string; phone?: string }) => {
     try {
       setIsLoading(true);
-      await sendVerificationCode({ email });
+      await sendVerificationCode({ email, ...extra });
       message.success('Código de verificación enviado a tu correo');
       setResendTimer(60); // 60 seconds cooldown
     } catch (error: any) {
@@ -307,7 +307,11 @@ function Signup() {
         });
         const values = form.getFieldsValue();
         setFormData(values);
-        await handleSendVerificationCode(values.email);
+        await handleSendVerificationCode(values.email, {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          phone: values.phone,
+        });
         setCurrentStep('verification');
         break;
 

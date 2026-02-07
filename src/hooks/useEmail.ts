@@ -111,6 +111,16 @@ export const useSendToSelectedUsers = () => {
 };
 
 /**
+ * Hook to send marketing email to selected leads (signup emails)
+ * Admin only
+ */
+export const useSendToLeads = () => {
+  return useMutation<MarketingEmailResponse, Error, { emailType: 1 | 2 | 3 | 4; leads: { email: string; firstName?: string | null }[] }>({
+    mutationFn: ({ emailType, leads }) => emailService.sendToLeads(emailType, leads),
+  });
+};
+
+/**
  * Hook to get marketing email preview
  * Admin only
  */

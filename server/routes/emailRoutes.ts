@@ -76,6 +76,13 @@ router.get('/marketing/commission-users', authenticateSession, requireAdmin, ema
 router.post('/marketing/send-to-selected', authenticateSession, requireAdmin, emailController.sendMarketingEmailToSelectedUsers);
 
 /**
+ * @route   POST /api/email/marketing/send-to-leads
+ * @desc    Send marketing email to selected leads (signup emails)
+ * @access  Admin only
+ */
+router.post('/marketing/send-to-leads', authenticateSession, requireAdmin, emailController.sendMarketingEmailToLeads);
+
+/**
  * @route   GET /api/email/marketing/preview
  * @desc    Get marketing email preview
  * @access  Admin only

@@ -169,8 +169,6 @@ enum CartStatus {
   CANCELLED
 }
 
-
-
 model Cart {
   id            Int            @id @default(autoincrement())
   sessionId     String         @unique @map("session_id")
@@ -195,8 +193,6 @@ model Cart {
   @@index([giftListId])
   @@map("carts")
 }
-
-
 
 model CartItem {
   id            Int            @id @default(autoincrement())
@@ -537,4 +533,21 @@ enum InvitationStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+// Marketing: Collected emails from signup attempts and manual additions
+model SignupEmail {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  source      String   @default("signup") // "signup" or "manual"
+  firstName   String?  @map("first_name")
+  lastName    String?  @map("last_name")
+  phone       String?
+  convertedToUser Boolean @default(false) @map("converted_to_user")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([email])
+  @@index([source])
+  @@map("signup_emails")
 }

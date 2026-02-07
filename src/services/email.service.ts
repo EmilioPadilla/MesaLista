@@ -25,6 +25,9 @@ export interface ContactFormResponse {
 
 export interface SendVerificationCodeRequest {
   email: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
 }
 
 export interface SendVerificationCodeResponse {
@@ -204,6 +207,18 @@ const emailService = {
     const response = await apiClient.post<MarketingEmailResponse>(endpoints.email.sendToSelectedUsers, {
       emailType,
       userIds,
+    });
+    return response.data;
+  },
+
+  /**
+   * Send marketing email to selected leads (signup emails)
+   * Admin only - sends email to specific lead email addresses
+   */
+  sendToLeads: async (emailType: 1 | 2 | 3 | 4, leads: { email: string; firstName?: string | null }[]): Promise<MarketingEmailResponse> => {
+    const response = await apiClient.post<MarketingEmailResponse>(endpoints.email.sendToLeads, {
+      emailType,
+      leads,
     });
     return response.data;
   },

@@ -806,6 +806,82 @@ class EmailService {
   }
 
   /**
+   * Send marketing email to a lead (signup email) by email address
+   * Uses firstName if available, otherwise generic greeting. Uses generic signup link.
+   */
+  async sendMarketingEmailToLead(emailType: 1 | 2 | 3 | 4, email: string, firstName?: string | null): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    const name = firstName || 'amigo/a';
+    const genericSlug = 'registro'; // Generic link pointing to signup
+
+    let subject: string;
+    let htmlBody: string;
+    let textBody: string;
+
+    switch (emailType) {
+      case 1:
+        subject = `¡Hola ${name}! Bienvenido a MesaLista 👋`;
+        htmlBody = EmailTemplates.generateMarketingEmail1HTML(name, genericSlug);
+        textBody = EmailTemplates.generateMarketingEmail1Text(name, genericSlug);
+        break;
+      case 2:
+        subject = `${name}, tu mesa de regalos en 3 pasos simples`;
+        htmlBody = EmailTemplates.generateMarketingEmail2HTML(name, genericSlug);
+        textBody = EmailTemplates.generateMarketingEmail2Text(name, genericSlug);
+        break;
+      case 3:
+        subject = `${name}, mira lo que otras parejas están logrando con MesaLista`;
+        htmlBody = EmailTemplates.generateMarketingEmail3HTML(name, genericSlug);
+        textBody = EmailTemplates.generateMarketingEmail3Text(name, genericSlug);
+        break;
+      case 4:
+        subject = `${name}, te extrañamos 💜 - Oferta especial dentro`;
+        htmlBody = EmailTemplates.generateMarketingEmail4HTML(name, genericSlug);
+        textBody = EmailTemplates.generateMarketingEmail4Text(name, genericSlug);
+        break;
+    }
+
+    await postmarkClient.sendEmail({
+      From: FROM_EMAIL,
+      To: email,
+      Subject: subject,
+      HtmlBody: htmlBody,
+      TextBody: textBody,
+      MessageStream: 'outbound',
+    });
+
+    console.log(`Marketing Email ${emailType} sent to lead: ${email}`);
+  }
+
+  /**
+   * Send marketing email to multiple leads by their signup email IDs
+   */
+  async sendMarketingEmailToLeads(
+    emailType: 1 | 2 | 3 | 4,
+    leadEmails: { email: string; firstName?: string | null }[],
+  ): Promise<{ sent: number; failed: number }> {
+    let sent = 0;
+    let failed = 0;
+
+    for (const lead of leadEmails) {
+      try {
+        await this.sendMarketingEmailToLead(emailType, lead.email, lead.firstName);
+        sent++;
+      } catch (error) {
+        console.error(`Failed to send Marketing Email ${emailType} to lead ${lead.email}:`, error);
+        failed++;
+      }
+    }
+
+    console.log(`Marketing Email ${emailType} to leads complete: ${sent} sent, ${failed} failed`);
+    return { sent, failed };
+  }
+
+  /**
    * Generate email preview HTML for a specific user and email type
    */
   async getMarketingEmailPreview(emailType: 1 | 2 | 3 | 4, userId: number): Promise<{ html: string; subject: string }> {

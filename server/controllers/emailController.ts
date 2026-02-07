@@ -440,6 +440,52 @@ export default {
   },
 
   /**
+   * Send marketing email to selected leads (signup emails)
+   * Admin only endpoint
+   */
+  sendMarketingEmailToLeads: async (req: Request, res: Response) => {
+    try {
+      const { emailType, leads } = req.body;
+
+      if (!emailType || !leads || !Array.isArray(leads)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email type and leads array are required',
+        });
+      }
+
+      if (![1, 2, 3, 4].includes(emailType)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid email type. Must be 1, 2, 3, or 4',
+        });
+      }
+
+      if (leads.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'At least one lead is required',
+        });
+      }
+
+      const result = await emailService.sendMarketingEmailToLeads(emailType, leads);
+
+      res.json({
+        success: true,
+        message: `Marketing Email ${emailType} sent to leads: ${result.sent} sent, ${result.failed} failed`,
+        data: result,
+      });
+    } catch (error) {
+      console.error('Error sending marketing email to leads:', error);
+
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to send marketing email to leads',
+      });
+    }
+  },
+
+  /**
    * Get marketing email preview
    * Admin only endpoint
    */

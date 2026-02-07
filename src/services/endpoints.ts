@@ -495,6 +495,13 @@ export const email_endpoints = {
    * @access Admin only
    */
   getEmailPreview: (emailType: number, userId: number) => `/email/marketing/preview?emailType=${emailType}&userId=${userId}`,
+
+  /**
+   * Send marketing email to selected leads
+   * @method POST
+   * @access Admin only
+   */
+  sendToLeads: `/email/marketing/send-to-leads`,
 };
 
 /**
@@ -870,6 +877,46 @@ export const invitation_endpoints = {
 };
 
 /**
+ * Signup email endpoints (marketing lead collection)
+ */
+export const signupEmail_endpoints = {
+  /**
+   * Save email from signup attempt
+   * @method POST
+   * @access Public
+   */
+  save: `/signup-emails`,
+
+  /**
+   * Get all signup emails
+   * @method GET
+   * @access Admin only
+   */
+  getAll: `/signup-emails`,
+
+  /**
+   * Add email manually
+   * @method POST
+   * @access Admin only
+   */
+  addManual: `/signup-emails/manual`,
+
+  /**
+   * Delete a signup email
+   * @method DELETE
+   * @access Admin only
+   */
+  delete: (id: number) => `/signup-emails/${id}`,
+
+  /**
+   * Mark email as converted
+   * @method POST
+   * @access Admin only
+   */
+  markConverted: `/signup-emails/mark-converted`,
+};
+
+/**
  * Combined endpoints for easy access
  */
 export const endpoints = {
@@ -889,6 +936,7 @@ export const endpoints = {
   usersListsAnalytics: usersListsAnalytics_endpoints,
   rsvp: rsvp_endpoints,
   invitations: invitation_endpoints,
+  signupEmails: signupEmail_endpoints,
 };
 
 export const api_endpoints = endpoints;

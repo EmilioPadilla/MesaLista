@@ -24,6 +24,7 @@ import discountCodeRoutes from './routes/discountCodeRoutes.js';
 import rsvpRoutes from './routes/rsvpRoutes.js';
 import usersListsAnalyticsRoutes from './routes/usersListsAnalyticsRoutes.js';
 import invitationRoutes from './routes/invitationRoutes.js';
+import signupEmailRoutes from './routes/signupEmailRoutes.js';
 import bodyParser from 'body-parser';
 import paymentController from './controllers/paymentController.js';
 
@@ -157,6 +158,7 @@ app.use('/api/discount-codes', discountCodeRoutes);
 app.use('/api/rsvp', rsvpRoutes);
 app.use('/api/admin/users-lists-analytics', usersListsAnalyticsRoutes);
 app.use('/api/invitations', invitationRoutes);
+app.use('/api/signup-emails', signupEmailRoutes);
 
 // Special case for login API endpoint
 app.post('/api/login', userRoutes);

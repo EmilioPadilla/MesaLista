@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import emailVerificationService from '../services/emailVerificationService.js';
 import emailService from '../services/emailService.js';
+import { signupEmailService } from '../services/signupEmailService.js';
 
 export const emailVerificationController = {
   /**
@@ -8,7 +9,7 @@ export const emailVerificationController = {
    * POST /api/email-verification/send
    */
   sendVerificationCode: async (req: Request, res: Response) => {
-    const { email } = req.body;
+    const { email, firstName, lastName, phone } = req.body;
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
@@ -21,6 +22,9 @@ export const emailVerificationController = {
     }
 
     try {
+      // Silently save signup email for marketing (fire-and-forget)
+      signupEmailService.saveFromSignup({ email, firstName, lastName, phone }).catch(() => {});
+
       // Generate verification code
       const code = await emailVerificationService.createVerificationCode(email);
 
