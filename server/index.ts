@@ -191,6 +191,15 @@ prisma
   .$connect()
   .then(() => {
     console.log('✅ Database connected successfully');
+
+    setInterval(
+      async () => {
+        await prisma.$queryRaw`SELECT 1`;
+        console.log('💓 DB heartbeat');
+      },
+      5 * 60 * 1000,
+    );
+
     // Start session cleanup job after database connection
     SessionCleanupJob.start();
     // Start analytics aggregation job
