@@ -27,6 +27,9 @@ import invitationRoutes from './routes/invitationRoutes.js';
 import signupEmailRoutes from './routes/signupEmailRoutes.js';
 import bodyParser from 'body-parser';
 import paymentController from './controllers/paymentController.js';
+import SessionCleanupJob from './lib/sessionCleanup.js';
+import AnalyticsAggregationJob from './lib/analyticsAggregation.js';
+import fs from 'fs';
 
 // Load environment variables
 dotenv.config();
@@ -35,12 +38,9 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 // Import session cleanup
-import SessionCleanupJob from './lib/sessionCleanup.js';
-import AnalyticsAggregationJob from './lib/analyticsAggregation.js';
 
 // Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Create Express app
 const app = express();
@@ -107,9 +107,8 @@ app.post('/api/payments/capture-paypal-payment', paymentController.capturePayPal
 // Development (tsx): __dirname = /path/to/MesaLista/server -> ../dist
 // Production (node): __dirname = /path/to/MesaLista/server/dist/dist/dist/server -> ../../../dist
 const isDevelopment = __filename.endsWith('.ts');
-const distPath = isDevelopment
-  ? path.resolve(__dirname, '../dist') // Development: server/index.ts -> dist/
-  : path.resolve(__dirname, '../../../dist'); // Production: server/dist/server/index.js -> dist/
+const distPath = path.join(process.cwd(), 'dist');
+console.log('DIST EXISTS:', fs.existsSync(distPath));
 
 console.log(`[Static Files] Serving from: ${distPath} (${isDevelopment ? 'development' : 'production'} mode)`);
 app.use(express.static(distPath));
