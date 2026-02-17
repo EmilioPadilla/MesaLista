@@ -69,13 +69,14 @@ export default {
         });
       }
 
-      // Get cart with items
+      // Get cart with items and gift list
       const cart = await prisma.cart.findUnique({
         where: { id: cartId },
         include: {
           items: {
             include: { gift: true },
           },
+          giftList: true,
         },
       });
 
@@ -93,9 +94,21 @@ export default {
         });
       }
 
+      // Get fee preference from gift list (default to 'couple' if not set)
+      const feePreference = cart.giftList?.feePreference || 'couple';
+      const STRIPE_FEE_PERCENT = 0.036;
+      const STRIPE_FEE_FIXED = 3;
+
       // Create line items for Stripe
       const lineItems = cart.items.map((item: any) => {
-        const price = item.price || item.gift.price;
+        let price = item.price || item.gift.price;
+
+        // If guest pays fees, add Stripe fees to the price
+        if (feePreference === 'guest') {
+          const stripeFee = price * STRIPE_FEE_PERCENT + STRIPE_FEE_FIXED;
+          price = price + stripeFee;
+        }
+
         const productData: any = {
           name: item.gift.title,
         };
@@ -420,13 +433,14 @@ export default {
         });
       }
 
-      // Get cart with items
+      // Get cart with items and gift list
       const cart = await prisma.cart.findUnique({
         where: { id: cartId },
         include: {
           items: {
             include: { gift: true },
           },
+          giftList: true,
         },
       });
 
@@ -444,11 +458,22 @@ export default {
         });
       }
 
+      // Get fee preference from gift list (default to 'couple' if not set)
+      const feePreference = cart.giftList?.feePreference || 'couple';
+      const PAYPAL_FEE_PERCENT = 0.0399;
+      const PAYPAL_FEE_FIXED = 4;
+
       // Calculate total amount
-      const totalAmount = cart.items.reduce((sum: number, item: any) => {
+      let totalAmount = cart.items.reduce((sum: number, item: any) => {
         const price = item.price || item.gift.price;
         return sum + price * item.quantity;
       }, 0);
+
+      // If guest pays fees, add PayPal fees to the total
+      if (feePreference === 'guest') {
+        const paypalFee = totalAmount * PAYPAL_FEE_PERCENT + PAYPAL_FEE_FIXED;
+        totalAmount = totalAmount + paypalFee;
+      }
 
       // Create PayPal order
       const accessToken = await getPayPalAccessToken();

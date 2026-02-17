@@ -70,7 +70,22 @@ export function Checkout() {
   }, [cancelled, cartId, paymentMethod]);
 
   const cartTotal = cart?.items?.reduce((sum: number, item: any) => sum + (item.gift?.price || 0) * item.quantity, 0) || 0;
-  const finalTotal = cartTotal;
+
+  // Get fee preference from gift list (default to 'couple')
+  const feePreference = giftList?.feePreference || 'couple';
+
+  // Calculate fees based on payment method
+  const STRIPE_FEE_PERCENT = 0.036;
+  const STRIPE_FEE_FIXED = 3;
+  const PAYPAL_FEE_PERCENT = 0.0399;
+  const PAYPAL_FEE_FIXED = 4;
+
+  const stripeFee = cartTotal * STRIPE_FEE_PERCENT + STRIPE_FEE_FIXED;
+  const paypalFee = cartTotal * PAYPAL_FEE_PERCENT + PAYPAL_FEE_FIXED;
+
+  // Calculate final total based on fee preference and payment method
+  const currentFee = selectedPaymentMethod === 'paypal' ? paypalFee : stripeFee;
+  const finalTotal = feePreference === 'guest' ? cartTotal + currentFee : cartTotal;
 
   // Debounce RSVP code input
   useEffect(() => {
@@ -430,12 +445,57 @@ export function Checkout() {
                 </div>
 
                 <div className="border-t border-border/30 pt-6 space-y-4">
-                  <div className="border-t border-border/30 pt-4">
+                  {/* Show breakdown only when payment method is selected */}
+                  {selectedPaymentMethod ? (
+                    <>
+                      {/* Subtotal */}
+                      <div className="flex justify-between text-base">
+                        <span className="text-muted-foreground">Subtotal:</span>
+                        <span className="font-medium text-foreground">${cartTotal.toLocaleString()}</span>
+                      </div>
+
+                      {/* Processing Fee */}
+                      <div className="flex justify-between text-base">
+                        <span className="text-muted-foreground">
+                          Comisión de pago ({selectedPaymentMethod === 'stripe' ? 'Stripe' : 'PayPal'}):
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {feePreference === 'guest' ? `$${currentFee.toFixed(2)}` : 'Incluida'}
+                        </span>
+                      </div>
+
+                      {/* Fee Info Message */}
+                      {feePreference === 'couple' && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                          <p className="text-xs text-blue-800">
+                            La pareja absorbe las comisiones de pago. Tu pago completo irá directamente a ellos.
+                          </p>
+                        </div>
+                      )}
+
+                      {feePreference === 'guest' && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                          <p className="text-xs text-amber-800">
+                            Las comisiones de pago están incluidas en el total. La pareja recibirá ${cartTotal.toLocaleString()}.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Total */}
+                      <div className="border-t border-border/30 pt-4">
+                        <div className="flex justify-between text-xl">
+                          <span className="font-semibold text-foreground">Total:</span>
+                          <span className="font-semibold text-[#d4704a]">${finalTotal.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    /* Show only total when no payment method selected */
                     <div className="flex justify-between text-xl">
                       <span className="font-semibold text-foreground">Total:</span>
-                      <span className="font-semibold text-[#d4704a]">${finalTotal.toLocaleString()}</span>
+                      <span className="font-semibold text-[#d4704a]">${cartTotal.toLocaleString()}</span>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Payment Method Selection */}

@@ -23,4 +23,6 @@ export interface UpdateGiftListRequest {
   invitationCount?: number;
   planType?: PlanType;
   isActive?: boolean;
+  isPublic?: boolean;
+  feePreference?: 'couple' | 'guest';
 }

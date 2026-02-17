@@ -6,6 +6,10 @@
   font-display: swap;
 }
 
-.chamberi-heading {
-  font-family: 'Chamberi Headline', sans-serif;
+@font-face {
+  font-family: 'Zalando';
+  src: url('/fonts/ZalandoSansSemiExpanded-Medium.ttf') format('opentype');
+  font-weight: 400;
+  font-style: light;
+  font-display: swap;
 }

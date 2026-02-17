@@ -57,6 +57,8 @@ model GiftList {
   planType      PlanType? @map("plan_type") // Payment plan for this list
   discountCodeId Int?     @map("discount_code_id") // Discount code used for this list
   isActive      Boolean   @default(true) @map("is_active") // Whether this list is currently active
+  isPublic      Boolean   @default(true) @map("is_public") // Whether this list appears in search results
+  feePreference String    @default("couple") @map("fee_preference") // "couple" or "guest" — who pays payment processing fees
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)

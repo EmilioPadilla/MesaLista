@@ -192,13 +192,15 @@ prisma
   .then(() => {
     console.log('✅ Database connected successfully');
 
-    setInterval(
+    const heartbeat = setInterval(
       async () => {
         await prisma.$queryRaw`SELECT 1`;
         console.log('💓 DB heartbeat');
       },
       5 * 60 * 1000,
     );
+
+    process.on('SIGTERM', () => clearInterval(heartbeat));
 
     // Start session cleanup job after database connection
     SessionCleanupJob.start();

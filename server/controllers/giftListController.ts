@@ -11,6 +11,7 @@ const giftListController = {
       const giftLists = await prisma.giftList.findMany({
         where: {
           isActive: true,
+          isPublic: true,
         },
         include: {
           gifts: true,
@@ -258,8 +259,20 @@ const giftListController = {
 
   updateGiftList: async (req: Request, res: Response) => {
     const { giftListId } = req.params;
-    const { title, description, coupleName, eventDate, eventLocation, eventVenue, imageUrl, invitationCount, planType, isActive } =
-      req.body as UpdateGiftListRequest;
+    const {
+      title,
+      description,
+      coupleName,
+      eventDate,
+      eventLocation,
+      eventVenue,
+      imageUrl,
+      invitationCount,
+      planType,
+      isActive,
+      isPublic,
+      feePreference,
+    } = req.body as UpdateGiftListRequest;
 
     if (!giftListId) {
       return res.status(400).json({ error: 'Gift list ID is required' });
@@ -279,6 +292,8 @@ const giftListController = {
           ...(invitationCount !== undefined && { invitationCount }),
           ...(planType !== undefined && { planType }),
           ...(isActive !== undefined && { isActive }),
+          ...(isPublic !== undefined && { isPublic }),
+          ...(feePreference !== undefined && { feePreference }),
         },
       });
 

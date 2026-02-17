@@ -16,9 +16,9 @@
   --breakpoint-xl: 1200px;
   --breakpoint-2xl: 1400px;
 
-  --font-sans: 'Chamberi Headline', sans-serif;
-  --font-serif: 'Chamberi Headline', serif;
-  --font-mono: 'Chamberi Headline', monospace;
+  --font-sans: 'Zalando', sans-serif;
+  --font-serif: 'Zalando', serif;
+  --font-mono: 'Zalando', monospace;
 
   --text-md: 0.875rem; /* 14px */
   --!text-md: 0.8125rem; /* 13px */

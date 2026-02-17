@@ -1,5 +1,5 @@
 import { Button, Card } from 'antd';
-import { Heart, Check, Zap, Shield, Users, Headphones } from 'lucide-react';
+import { Heart, Check, Zap, Shield, Mail, BarChart3, Star, Lock, CreditCard, MessageSquare } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from 'src/components/core/Badge';
@@ -37,7 +37,7 @@ export function PricingPage() {
         ]}
       />
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-[#faf8f6] via-white to-[#faf0f0] py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <section className="relative bg-linear-to-br from-[#faf8f6] via-white to-[#faf0f0] py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <motion.div
           className="absolute top-10 left-10 w-32 h-32 bg-[#d4704a]/10 rounded-full blur-3xl"
           animate={{
@@ -112,7 +112,7 @@ export function PricingPage() {
                 )}
 
                 <Card
-                  className={`!border-2 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 !bg-gradient-to-br !${plan.bgGradient} h-full ${plan.popular ? '!border-[#d4704a]/30' : '!border-border/20'}`}>
+                  className={`border-2! shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-linear-to-br! !${plan.bgGradient} h-full ${plan.popular ? 'border-[#d4704a]/30!' : 'border-border/20!'}`}>
                   <div className="text-center pb-8">
                     <div className={`mx-auto w-16 h-16 ${plan.iconBg} rounded-full flex items-center justify-center mb-6`}>
                       <plan.icon className={`h-8 w-8 ${plan.color}`} />
@@ -130,8 +130,8 @@ export function PricingPage() {
                       size="large"
                       className={`w-full transition-all duration-300 border-0 ${
                         plan.popular
-                          ? '!bg-[#d4704a] hover:!bg-[#c06140] !text-white shadow-lg hover:!shadow-xl'
-                          : '!bg-green-600 hover:!bg-green-700 !text-white shadow-md hover:!shadow-lg'
+                          ? 'bg-[#d4704a]! hover:bg-[#c06140]! text-white shadow-lg hover:shadow-xl!'
+                          : 'bg-green-600! hover:bg-green-700! text-white shadow-md hover:shadow-lg!'
                       }`}
                       onClick={() => navigate('/registro')}>
                       {plan.cta}
@@ -175,22 +175,42 @@ export function PricingPage() {
               {
                 icon: Shield,
                 title: 'Pagos Seguros',
-                description: 'Encriptación SSL y cumplimiento PCI',
+                description: 'Stripe y PayPal integrados con encriptación SSL y cumplimiento PCI',
+              },
+              {
+                icon: Mail,
+                title: 'Invitaciones Digitales',
+                description: 'Plantillas premium personalizables con URL única para compartir',
+              },
+              {
+                icon: MessageSquare,
+                title: 'Gestión de RSVPs',
+                description: 'Códigos únicos de invitación, mensajes personalizados y estadísticas en vivo',
+              },
+              {
+                icon: Star,
+                title: 'Listas Prediseñadas',
+                description: '6+ colecciones curadas por expertos con 200+ productos premium',
+              },
+              {
+                icon: BarChart3,
+                title: 'Estadísticas en Tiempo Real',
+                description: 'Análisis detallados de regalos, progreso y actividad de invitados',
+              },
+              {
+                icon: Lock,
+                title: 'Control de Privacidad',
+                description: 'Decide si tu mesa aparece en búsquedas o solo es accesible por URL',
+              },
+              {
+                icon: CreditCard,
+                title: 'Comisiones Flexibles',
+                description: 'Elige si tú o tus invitados absorben las comisiones de pago',
               },
               {
                 icon: Zap,
                 title: 'Configuración Rápida',
-                description: 'Lista en menos de 5 minutos',
-              },
-              {
-                icon: Users,
-                title: 'Invitados Ilimitados',
-                description: 'Sin límite en el número de invitados',
-              },
-              {
-                icon: Headphones,
-                title: 'Soporte Dedicado',
-                description: 'Ayuda cuando la necesites',
+                description: 'Tu mesa de regalos lista en menos de 5 minutos',
               },
             ].map((feature, index) => (
               <motion.div
@@ -246,12 +266,12 @@ export function PricingPage() {
 
       {/* CTA Section */}
       <motion.section
-        className="bg-gradient-to-br from-[#d4704a] via-[#d4704a]/95 to-[#c06140] py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+        className="bg-linear-to-br from-[#d4704a] via-[#d4704a]/95 to-[#c06140] py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         transition={{ duration: 1 }}
         viewport={{ once: true }}>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/5 to-transparent"></div>
 
         <div className="relative max-w-4xl mx-auto text-center">
           <motion.h2
@@ -279,7 +299,7 @@ export function PricingPage() {
               viewport={{ once: true }}>
               <Button
                 size="large"
-                className="px-8 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-0 bg-white hover:!bg-white/95 !text-[#d4704a]"
+                className="px-8 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-0 bg-white hover:bg-white/95! text-[#d4704a]!"
                 onClick={() => navigate('/registro')}>
                 <Heart className="mr-2 h-5 w-5" />
                 Comenzar Ahora

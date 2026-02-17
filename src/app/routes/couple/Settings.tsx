@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Form, Input, message, Checkbox, DatePicker, Alert } from 'antd';
+import { Form, Input, message, Checkbox, DatePicker, Alert, Tabs } from 'antd';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'components/core/Button';
 import { Collapsible } from 'components/core/Collapsible';
-import { Camera, Save, Trash2, MessageSquare } from 'lucide-react';
+import { Camera, Save, Trash2 } from 'lucide-react';
 import { useCurrentUser, useUpdateCurrentUserProfile, useUpdateCurrentUserPassword, useCheckSlugAvailability } from 'hooks/useUser';
 import { useUploadFile } from 'hooks/useFiles';
 import { PasswordStrengthIndicator } from 'components/auth/PasswordStrengthIndicator';
@@ -12,6 +12,7 @@ import { useWatch } from 'antd/es/form/Form';
 import { DeleteCurrentUserModal } from 'components/shared/DeleteCurrentUserModal';
 import { useRsvpMessages, useUpdateRsvpMessages } from 'hooks/useRsvp';
 import { useGiftListsByUser, useUpdateGiftList } from 'src/hooks/useGiftList';
+import { RsvpMessagesSection, PrivacySection, FeePreferenceSection } from 'src/features/settings/components';
 
 export function Settings() {
   const navigate = useNavigate();
@@ -29,11 +30,23 @@ export function Settings() {
   const [hasPasswordChanges, setHasPasswordChanges] = useState(false);
   const [hasRsvpMessagesChanges, setHasRsvpMessagesChanges] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
+  const [feePreference, setFeePreference] = useState<'couple' | 'guest'>('couple');
+  const [hasSettingsChanges, setHasSettingsChanges] = useState(false);
+  const [activeGiftListId, setActiveGiftListId] = useState<number | null>(null);
 
   // Fetch current user data
   const { data: userData, isLoading: isLoadingUser } = useCurrentUser();
   const { data: giftLists, isLoading: isLoadingWeddingList } = useGiftListsByUser(userData?.id);
-  const giftListData = giftLists?.[0];
+
+  // Set active gift list to first one if not set
+  useEffect(() => {
+    if (giftLists && giftLists.length > 0 && !activeGiftListId) {
+      setActiveGiftListId(giftLists[0].id);
+    }
+  }, [giftLists, activeGiftListId]);
+
+  const giftListData = giftLists?.find((list) => list.id === activeGiftListId) || giftLists?.[0];
   const { data: rsvpMessages } = useRsvpMessages(giftListData?.id || 0, !!giftListData?.id);
 
   // Mutations
@@ -102,7 +115,7 @@ export function Settings() {
     }
   }, [slugCheck, slug, userData?.slug]);
 
-  // Load gift list cover image, description, location, and venue
+  // Load gift list cover image, description, location, venue, privacy, and fee preference
   useEffect(() => {
     if (giftListData?.imageUrl) {
       setCoverImage(giftListData.imageUrl);
@@ -118,6 +131,12 @@ export function Settings() {
     }
     if (giftListData?.eventDate) {
       profileForm.setFieldValue('weddingDate', dayjs(giftListData.eventDate));
+    }
+    if (giftListData?.isPublic !== undefined) {
+      setIsPublic(giftListData.isPublic);
+    }
+    if (giftListData?.feePreference) {
+      setFeePreference(giftListData.feePreference as 'couple' | 'guest');
     }
   }, [giftListData, profileForm]);
 
@@ -227,6 +246,21 @@ export function Settings() {
     }
   };
 
+  const handleSaveSettings = async () => {
+    if (!giftListData) return;
+    try {
+      await updateGiftList({
+        id: giftListData.id,
+        data: { isPublic, feePreference },
+      });
+      setHasSettingsChanges(false);
+      message.success('Configuración actualizada');
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      message.error('Error al actualizar configuración');
+    }
+  };
+
   const handleSaveRsvpMessages = async () => {
     try {
       if (!giftListData?.id) {
@@ -258,7 +292,7 @@ export function Settings() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="bg-gradient-to-b from-[#faf9f8] to-white">
+      <div className="bg-linear-to-b from-[#faf9f8] to-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
           <div className="text-center space-y-4">
             <h1 className="text-5xl sm:text-6xl tracking-tight text-foreground">Configuración</h1>
@@ -317,29 +351,29 @@ export function Settings() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Form.Item
                 name="firstName"
-                className="!mb-0"
+                className="mb-0!"
                 label={<span className="text-sm text-muted-foreground">Nombre</span>}
                 rules={[{ required: true, message: 'El nombre es requerido' }]}>
-                <Input className="h-12 px-4 !bg-[#f5f5f7]" />
+                <Input className="h-12 px-4 bg-[#f5f5f7]!" />
               </Form.Item>
 
               <Form.Item
                 name="lastName"
-                className="!mb-0"
+                className="mb-0!"
                 label={<span className="text-sm text-muted-foreground">Apellido</span>}
                 rules={[{ required: true, message: 'El apellido es requerido' }]}>
-                <Input className="h-12 px-4 !bg-[#f5f5f7]" />
+                <Input className="h-12 px-4 bg-[#f5f5f7]!" />
               </Form.Item>
 
               <Form.Item
                 name="phoneNumber"
                 label={<span className="text-sm text-muted-foreground">Teléfono</span>}
-                className="md:col-span-2 !mb-0"
+                className="md:col-span-2 mb-0!"
                 rules={[
                   { required: true, message: 'El teléfono es requerido' },
                   { pattern: /^[\d\s\-\+\(\)]{10,}$/, message: 'Teléfono inválido' },
                 ]}>
-                <Input className="h-12 px-4 !bg-[#f5f5f7]" placeholder="55 1234 5678" />
+                <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="55 1234 5678" />
               </Form.Item>
             </div>
           </Form>
@@ -375,11 +409,11 @@ export function Settings() {
               <Form form={profileForm} layout="vertical" onValuesChange={() => setHasProfileChanges(true)}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Form.Item name="spouseFirstName" label={<span className="text-sm text-muted-foreground">Nombre de la pareja</span>}>
-                    <Input className="h-12 px-4 !bg-[#f5f5f7]" placeholder="Ej: María" />
+                    <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: María" />
                   </Form.Item>
 
                   <Form.Item name="spouseLastName" label={<span className="text-sm text-muted-foreground">Apellido de la pareja</span>}>
-                    <Input className="h-12 px-4 !bg-[#f5f5f7]" placeholder="Ej: García" />
+                    <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: García" />
                   </Form.Item>
                 </div>
               </Form>
@@ -389,7 +423,7 @@ export function Settings() {
 
         {/* Couple Slug */}
         <section className="space-y-6">
-          <div className="!mb-2">
+          <div className="mb-2!">
             <h2 className="text-3xl tracking-tight text-foreground mb-2">Información de la mesa de regalos</h2>
             <p className="text-muted-foreground font-light">Esta será la dirección web de tu mesa de regalos</p>
           </div>
@@ -397,7 +431,7 @@ export function Settings() {
           <Form form={profileForm} layout="vertical" onValuesChange={() => setHasProfileChanges(true)}>
             <Form.Item
               name="slug"
-              className="!mb-0"
+              className="mb-0!"
               label={<span className="text-sm text-muted-foreground">ID de la pareja</span>}
               rules={[{ required: true, message: 'El slug es requerido' }]}
               validateStatus={slugError ? 'error' : slug && slugCheck?.available && slug !== userData?.slug ? 'success' : undefined}
@@ -405,7 +439,7 @@ export function Settings() {
               <Input
                 addonBefore="mesalista.com.mx/"
                 value={slug}
-                className="[&_input]:!bg-[#f5f5f7] [&_input]:h-12 [&_.ant-input-group-addon]:!bg-white [&_.ant-input-group-addon]:!border-border"
+                className="[&_input]:bg-[#f5f5f7]! [&_input]:h-12 [&_.ant-input-group-addon]:bg-white! [&_.ant-input-group-addon]:border-border!"
                 onChange={(e) => {
                   const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
                   setCoupleSlug(value);
@@ -426,7 +460,7 @@ export function Settings() {
             </div>
             {slug && slug !== userData?.slug && (
               <Alert
-                className="!my-3"
+                className="my-3!"
                 message="Al cambiar tu ID, la URL anterior dejará de funcionar. Recuerda compartir la nueva dirección con tus invitados."
                 type="warning"
                 showIcon
@@ -434,16 +468,16 @@ export function Settings() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <Form.Item name="weddingVenue" label={<span className="text-sm text-muted-foreground !mb-0">Lugar del evento</span>}>
-                <Input className="h-12 px-4 !bg-[#f5f5f7]" placeholder="Ej: Hacienda San José" />
+              <Form.Item name="weddingVenue" label={<span className="text-sm text-muted-foreground mb-0!">Lugar del evento</span>}>
+                <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: Hacienda San José" />
               </Form.Item>
 
-              <Form.Item name="weddingLocation" label={<span className="text-sm text-muted-foreground !mb-0">Ciudad, Estado</span>}>
-                <Input className="h-12 px-4 !bg-[#f5f5f7]" placeholder="Ej: Guadalajara, Jalisco" />
+              <Form.Item name="weddingLocation" label={<span className="text-sm text-muted-foreground mb-0!">Ciudad, Estado</span>}>
+                <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: Guadalajara, Jalisco" />
               </Form.Item>
 
               <Form.Item name="weddingDate" label={<span className="text-sm text-muted-foreground">Fecha del evento</span>}>
-                <DatePicker className="w-full h-12 !bg-[#f5f5f7] !border-none" format="MMM DD, YYYY" placeholder="Selecciona la fecha" />
+                <DatePicker className="w-full h-12 bg-[#f5f5f7]! border-none!" format="MMM DD, YYYY" placeholder="Selecciona la fecha" />
               </Form.Item>
             </div>
 
@@ -454,7 +488,7 @@ export function Settings() {
               <Input.TextArea
                 rows={4}
                 placeholder="Describe tu mesa de regalos, comparte tu historia o deja un mensaje para tus invitados..."
-                className="!bg-[#f5f5f7] resize-none"
+                className="bg-[#f5f5f7]! resize-none"
                 maxLength={500}
                 showCount
               />
@@ -476,58 +510,64 @@ export function Settings() {
         {/* Divider */}
         <div className="border-t border-border/30" />
 
-        {/* RSVP Messages Section */}
-        <section className="space-y-6">
-          <div>
-            <h2 className="text-3xl tracking-tight text-foreground mb-2 flex items-center gap-2">
-              <MessageSquare className="h-8 w-8" />
-              Mensajes de confirmación
-            </h2>
-            <p className="text-muted-foreground font-light">
-              Personaliza los mensajes que verán tus invitados al confirmar o cancelar su asistencia
+        {/* Gift List Selector (if multiple lists) */}
+        {giftLists && giftLists.length > 1 && (
+          <section className="space-y-4">
+            <div>
+              <h2 className="text-3xl tracking-tight text-foreground mb-2">Configuración de Mesa de Regalos</h2>
+              <p className="text-muted-foreground font-light">Selecciona la mesa de regalos que deseas configurar</p>
+            </div>
+            <Tabs
+              activeKey={activeGiftListId?.toString()}
+              onChange={(key) => setActiveGiftListId(parseInt(key))}
+              items={giftLists.map((list) => ({
+                key: list.id.toString(),
+                label: list.title || list.coupleName,
+              }))}
+              className="[&_.ant-tabs-nav]:mb-0"
+            />
+          </section>
+        )}
+
+        {/* Current Gift List Info */}
+        {giftListData && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <p className="text-sm text-blue-800">
+              <strong>Configurando:</strong> {giftListData.title || giftListData.coupleName}
             </p>
           </div>
+        )}
 
-          <Form form={rsvpMessagesForm} layout="vertical" onValuesChange={() => setHasRsvpMessagesChanges(true)}>
-            <div className="space-y-4">
-              <Form.Item
-                name="confirmationMessage"
-                label={<span className="text-sm text-muted-foreground">Mensaje de confirmación</span>}
-                rules={[{ required: true, message: 'El mensaje de confirmación es requerido' }]}>
-                <Input.TextArea
-                  rows={3}
-                  maxLength={200}
-                  showCount
-                  placeholder="¡Gracias por confirmar tu asistencia! Nos encantará verte en nuestra boda."
-                  className="px-4 py-3 bg-[#f5f5f7]!"
-                />
-              </Form.Item>
+        {/* Gift List Sections */}
+        <RsvpMessagesSection
+          form={rsvpMessagesForm}
+          isUpdating={isUpdatingRsvpMessages}
+          hasChanges={hasRsvpMessagesChanges}
+          onSave={handleSaveRsvpMessages}
+          onValuesChange={() => setHasRsvpMessagesChanges(true)}
+        />
 
-              <Form.Item
-                name="cancellationMessage"
-                label={<span className="text-sm text-muted-foreground">Mensaje de cancelación</span>}
-                rules={[{ required: true, message: 'El mensaje de cancelación es requerido' }]}>
-                <Input.TextArea
-                  rows={3}
-                  maxLength={200}
-                  showCount
-                  placeholder="Lamentamos que no puedas asistir. ¡Gracias por avisarnos!"
-                  className="px-4 py-3 bg-[#f5f5f7]!"
-                />
-              </Form.Item>
-            </div>
-          </Form>
+        {/* Divider */}
+        <div className="border-t border-border/30" />
 
-          <div className="flex justify-center pt-4">
-            <Button
-              onClick={handleSaveRsvpMessages}
-              disabled={isUpdatingRsvpMessages || !hasRsvpMessagesChanges}
-              className="px-8 py-3 bg-[#d4704a] hover:bg-[#c25f3a] text-white rounded-full transition-all duration-200 flex items-center gap-2 border-0 disabled:opacity-50 disabled:cursor-not-allowed">
-              <Save className="h-5 w-5" />
-              {isUpdatingRsvpMessages ? 'Guardando...' : 'Guardar mensajes'}
-            </Button>
-          </div>
-        </section>
+        <PrivacySection
+          isPublic={isPublic}
+          userSlug={userData?.slug}
+          onPublicChange={(value) => {
+            setIsPublic(value);
+            setHasSettingsChanges(true);
+          }}
+        />
+
+        <FeePreferenceSection
+          feePreference={feePreference}
+          onFeePreferenceChange={(value) => {
+            setFeePreference(value);
+            setHasSettingsChanges(true);
+          }}
+          onSave={handleSaveSettings}
+          hasChanges={hasSettingsChanges}
+        />
 
         {/* Divider */}
         <div className="border-t border-border/30" />
@@ -545,7 +585,7 @@ export function Settings() {
                 name="currentPassword"
                 label={<span className="text-sm text-muted-foreground">Contraseña actual</span>}
                 rules={[{ required: true, message: 'La contraseña actual es requerida' }]}>
-                <Input.Password className="h-12 px-4 !bg-[#f5f5f7]" />
+                <Input.Password className="h-12 px-4 bg-[#f5f5f7]!" />
               </Form.Item>
 
               <Form.Item
@@ -555,7 +595,7 @@ export function Settings() {
                   { required: true, message: 'La nueva contraseña es requerida' },
                   { min: 8, message: 'La contraseña debe tener al menos 8 caracteres' },
                 ]}>
-                <Input.Password className="h-12 px-4 !bg-[#f5f5f7]" />
+                <Input.Password className="h-12 px-4 bg-[#f5f5f7]!" />
               </Form.Item>
 
               {password && <PasswordStrengthIndicator password={password} />}
@@ -575,7 +615,7 @@ export function Settings() {
                     },
                   }),
                 ]}>
-                <Input.Password className="h-12 px-4 !bg-[#f5f5f7]" />
+                <Input.Password className="h-12 px-4 bg-[#f5f5f7]!" />
               </Form.Item>
             </div>
           </Form>

@@ -14,7 +14,7 @@ const cssValues = {
   },
 
   fonts: {
-    fontFamilySansSerif: '"Chamberi Headline", "Segoe UI", Roboto, Arial, sans-serif',
+    fontFamilySansSerif: '"Zalando", "Segoe UI", Roboto, Arial, sans-serif',
   },
 
   colors: {

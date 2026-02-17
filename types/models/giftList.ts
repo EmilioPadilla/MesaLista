@@ -16,6 +16,8 @@ export interface GiftList {
   planType?: PlanType;
   discountCodeId?: number;
   isActive: boolean;
+  isPublic: boolean;
+  feePreference: string;
   createdAt: Date;
   updatedAt: Date;
   user: User;
@@ -81,4 +83,6 @@ export interface UpdateGiftListRequest {
   invitationCount?: number;
   planType?: PlanType;
   isActive?: boolean;
+  isPublic?: boolean;
+  feePreference?: 'couple' | 'guest';
 }
