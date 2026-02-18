@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { message } from 'antd';
 import emailService, {
   ResendEmailRequest,
   ResendEmailResponse,
@@ -8,6 +9,7 @@ import emailService, {
   CommissionUsersResponse,
   EmailPreviewResponse,
 } from '../services/email.service';
+import { MarketingEmailType } from 'src/config/marketingEmailTemplates';
 
 /**
  * Hook to resend payment confirmation emails to both admin and invitee
@@ -50,46 +52,6 @@ export const useSendContactForm = () => {
 };
 
 /**
- * Hook to send Marketing Email 1 (Welcome) to users with specified plan types
- * Admin only
- */
-export const useSendMarketingEmail1 = () => {
-  return useMutation<MarketingEmailResponse, Error, ('COMMISSION' | 'FIXED')[]>({
-    mutationFn: (planTypes = ['COMMISSION']) => emailService.sendMarketingEmail1(planTypes),
-  });
-};
-
-/**
- * Hook to send Marketing Email 2 (Quick Start Guide) to users with specified plan types
- * Admin only
- */
-export const useSendMarketingEmail2 = () => {
-  return useMutation<MarketingEmailResponse, Error, ('COMMISSION' | 'FIXED')[]>({
-    mutationFn: (planTypes = ['COMMISSION']) => emailService.sendMarketingEmail2(planTypes),
-  });
-};
-
-/**
- * Hook to send Marketing Email 3 (Social Proof) to users with specified plan types
- * Admin only
- */
-export const useSendMarketingEmail3 = () => {
-  return useMutation<MarketingEmailResponse, Error, ('COMMISSION' | 'FIXED')[]>({
-    mutationFn: (planTypes = ['COMMISSION']) => emailService.sendMarketingEmail3(planTypes),
-  });
-};
-
-/**
- * Hook to send Marketing Email 4 (Re-engagement) to users with specified plan types
- * Admin only
- */
-export const useSendMarketingEmail4 = () => {
-  return useMutation<MarketingEmailResponse, Error, ('COMMISSION' | 'FIXED')[]>({
-    mutationFn: (planTypes = ['COMMISSION']) => emailService.sendMarketingEmail4(planTypes),
-  });
-};
-
-/**
  * Hook to get list of users with specified plan types
  * Admin only
  */
@@ -105,7 +67,7 @@ export const useCommissionUsers = (planTypes: ('COMMISSION' | 'FIXED')[] = ['COM
  * Admin only
  */
 export const useSendToSelectedUsers = () => {
-  return useMutation<MarketingEmailResponse, Error, { emailType: 1 | 2 | 3 | 4; userIds: number[] }>({
+  return useMutation<MarketingEmailResponse, Error, { emailType: MarketingEmailType; userIds: number[] }>({
     mutationFn: ({ emailType, userIds }) => emailService.sendToSelectedUsers(emailType, userIds),
   });
 };
@@ -115,7 +77,11 @@ export const useSendToSelectedUsers = () => {
  * Admin only
  */
 export const useSendToLeads = () => {
-  return useMutation<MarketingEmailResponse, Error, { emailType: 1 | 2 | 3 | 4; leads: { email: string; firstName?: string | null }[] }>({
+  return useMutation<
+    MarketingEmailResponse,
+    Error,
+    { emailType: MarketingEmailType; leads: { email: string; firstName?: string | null }[] }
+  >({
     mutationFn: ({ emailType, leads }) => emailService.sendToLeads(emailType, leads),
   });
 };
@@ -124,10 +90,26 @@ export const useSendToLeads = () => {
  * Hook to get marketing email preview
  * Admin only
  */
-export const useEmailPreview = (emailType: 1 | 2 | 3 | 4, userId: number, enabled: boolean = false) => {
+export const useEmailPreview = (emailType: MarketingEmailType, userId: number, enabled: boolean = false) => {
   return useQuery<EmailPreviewResponse, Error>({
     queryKey: ['emailPreview', emailType, userId],
     queryFn: () => emailService.getEmailPreview(emailType, userId),
     enabled,
+  });
+};
+
+/**
+ * Hook to send marketing email to a specific user
+ * Admin only
+ */
+export const useSendMarketingEmailToUser = () => {
+  return useMutation<ResendEmailResponse, Error, { userId: number; emailType: MarketingEmailType }>({
+    mutationFn: ({ userId, emailType }) => emailService.sendMarketingEmailToUser(userId, emailType),
+    onSuccess: () => {
+      message.success('Email de marketing enviado exitosamente');
+    },
+    onError: (error) => {
+      message.error(error.message || 'Error al enviar email de marketing');
+    },
   });
 };

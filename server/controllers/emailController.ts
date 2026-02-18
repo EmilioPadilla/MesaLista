@@ -3,6 +3,73 @@ import emailService from '../services/emailService.js';
 
 export default {
   /**
+   * Send marketing email to a specific user
+   */
+  sendMarketingEmail: async (req: Request, res: Response) => {
+    try {
+      const { userId, emailType } = req.body;
+
+      if (!userId || !emailType) {
+        return res.status(400).json({
+          success: false,
+          message: 'User ID and email type are required',
+        });
+      }
+
+      // Validate userId is a number
+      const parsedUserId = parseInt(userId);
+      if (isNaN(parsedUserId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid user ID format',
+        });
+      }
+
+      // Validate email type
+      const validEmailTypes = [1, 2, 3, 4, 'inactive_warning'];
+      if (!validEmailTypes.includes(emailType)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid email type',
+        });
+      }
+
+      // Send the appropriate marketing email
+      if (emailType === 'inactive_warning') {
+        await emailService.sendInactiveUserWarning(parsedUserId);
+      } else {
+        // For email types 1-4, we'll need to implement these in the future
+        // For now, return a not implemented error
+        return res.status(501).json({
+          success: false,
+          message: `Email type ${emailType} is not yet implemented. Only 'inactive_warning' is currently supported.`,
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Marketing email sent successfully',
+      });
+    } catch (error) {
+      console.error('Error sending marketing email:', error);
+
+      if (error instanceof Error) {
+        if (error.message.includes('User not found')) {
+          return res.status(404).json({
+            success: false,
+            message: 'User not found',
+          });
+        }
+      }
+
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send marketing email',
+      });
+    }
+  },
+
+  /**
    * Resend payment confirmation emails to both admin and invitee
    * Sends both guest confirmation and owner notification emails
    */
@@ -235,134 +302,6 @@ export default {
   },
 
   /**
-   * Send Marketing Email 1 to users with specified plan types
-   * Admin only endpoint
-   * Query params: planTypes (optional) - comma-separated list of plan types (COMMISSION, FIXED)
-   */
-  sendMarketingEmail1: async (req: Request, res: Response) => {
-    try {
-      const planTypesParam = req.query.planTypes as string | undefined;
-      let planTypes: ('COMMISSION' | 'FIXED')[] = ['COMMISSION'];
-
-      if (planTypesParam) {
-        const parsed = planTypesParam.split(',').filter((pt) => pt === 'COMMISSION' || pt === 'FIXED') as ('COMMISSION' | 'FIXED')[];
-        if (parsed.length > 0) planTypes = parsed;
-      }
-
-      const result = await emailService.sendMarketingEmailToCommissionUsers(1, planTypes);
-
-      res.json({
-        success: true,
-        message: `Marketing Email 1 campaign completed: ${result.sent} sent, ${result.failed} failed`,
-        data: result,
-      });
-    } catch (error) {
-      console.error('Error sending Marketing Email 1 campaign:', error);
-
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to send Marketing Email 1 campaign',
-      });
-    }
-  },
-
-  /**
-   * Send Marketing Email 2 to users with specified plan types
-   * Admin only endpoint
-   * Query params: planTypes (optional) - comma-separated list of plan types (COMMISSION, FIXED)
-   */
-  sendMarketingEmail2: async (req: Request, res: Response) => {
-    try {
-      const planTypesParam = req.query.planTypes as string | undefined;
-      let planTypes: ('COMMISSION' | 'FIXED')[] = ['COMMISSION'];
-
-      if (planTypesParam) {
-        const parsed = planTypesParam.split(',').filter((pt) => pt === 'COMMISSION' || pt === 'FIXED') as ('COMMISSION' | 'FIXED')[];
-        if (parsed.length > 0) planTypes = parsed;
-      }
-
-      const result = await emailService.sendMarketingEmailToCommissionUsers(2, planTypes);
-
-      res.json({
-        success: true,
-        message: `Marketing Email 2 campaign completed: ${result.sent} sent, ${result.failed} failed`,
-        data: result,
-      });
-    } catch (error) {
-      console.error('Error sending Marketing Email 2 campaign:', error);
-
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to send Marketing Email 2 campaign',
-      });
-    }
-  },
-
-  /**
-   * Send Marketing Email 3 to users with specified plan types
-   * Admin only endpoint
-   * Query params: planTypes (optional) - comma-separated list of plan types (COMMISSION, FIXED)
-   */
-  sendMarketingEmail3: async (req: Request, res: Response) => {
-    try {
-      const planTypesParam = req.query.planTypes as string | undefined;
-      let planTypes: ('COMMISSION' | 'FIXED')[] = ['COMMISSION'];
-
-      if (planTypesParam) {
-        const parsed = planTypesParam.split(',').filter((pt) => pt === 'COMMISSION' || pt === 'FIXED') as ('COMMISSION' | 'FIXED')[];
-        if (parsed.length > 0) planTypes = parsed;
-      }
-
-      const result = await emailService.sendMarketingEmailToCommissionUsers(3, planTypes);
-
-      res.json({
-        success: true,
-        message: `Marketing Email 3 campaign completed: ${result.sent} sent, ${result.failed} failed`,
-        data: result,
-      });
-    } catch (error) {
-      console.error('Error sending Marketing Email 3 campaign:', error);
-
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to send Marketing Email 3 campaign',
-      });
-    }
-  },
-
-  /**
-   * Send Marketing Email 4 to users with specified plan types
-   * Admin only endpoint
-   * Query params: planTypes (optional) - comma-separated list of plan types (COMMISSION, FIXED)
-   */
-  sendMarketingEmail4: async (req: Request, res: Response) => {
-    try {
-      const planTypesParam = req.query.planTypes as string | undefined;
-      let planTypes: ('COMMISSION' | 'FIXED')[] = ['COMMISSION'];
-
-      if (planTypesParam) {
-        const parsed = planTypesParam.split(',').filter((pt) => pt === 'COMMISSION' || pt === 'FIXED') as ('COMMISSION' | 'FIXED')[];
-        if (parsed.length > 0) planTypes = parsed;
-      }
-
-      const result = await emailService.sendMarketingEmailToCommissionUsers(4, planTypes);
-
-      res.json({
-        success: true,
-        message: `Marketing Email 4 campaign completed: ${result.sent} sent, ${result.failed} failed`,
-        data: result,
-      });
-    } catch (error) {
-      console.error('Error sending Marketing Email 4 campaign:', error);
-
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to send Marketing Email 4 campaign',
-      });
-    }
-  },
-
-  /**
    * Get list of users with specified plan types
    * Admin only endpoint
    * Query params: planTypes (optional) - comma-separated list of plan types (COMMISSION, FIXED)
@@ -408,10 +347,11 @@ export default {
         });
       }
 
-      if (![1, 2, 3, 4].includes(emailType)) {
+      const validEmailTypes = [1, 2, 3, 4, 'inactive_warning'];
+      if (!validEmailTypes.includes(emailType)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid email type. Must be 1, 2, 3, or 4',
+          message: 'Invalid email type. Must be 1, 2, 3, 4, or inactive_warning',
         });
       }
 
@@ -454,10 +394,11 @@ export default {
         });
       }
 
-      if (![1, 2, 3, 4].includes(emailType)) {
+      const validEmailTypes = [1, 2, 3, 4, 'inactive_warning'];
+      if (!validEmailTypes.includes(emailType)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid email type. Must be 1, 2, 3, or 4',
+          message: 'Invalid email type. Must be 1, 2, 3, 4, or inactive_warning',
         });
       }
 
@@ -500,15 +441,7 @@ export default {
         });
       }
 
-      const emailTypeNum = parseInt(emailType as string);
       const userIdNum = parseInt(userId as string);
-
-      if (![1, 2, 3, 4].includes(emailTypeNum)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid email type. Must be 1, 2, 3, or 4',
-        });
-      }
 
       if (isNaN(userIdNum)) {
         return res.status(400).json({
@@ -517,7 +450,18 @@ export default {
         });
       }
 
-      const preview = await emailService.getMarketingEmailPreview(emailTypeNum as 1 | 2 | 3 | 4, userIdNum);
+      // Parse email type - can be number or string
+      const parsedEmailType = isNaN(Number(emailType)) ? emailType : Number(emailType);
+      const validEmailTypes = [1, 2, 3, 4, 'inactive_warning'];
+
+      if (!validEmailTypes.includes(parsedEmailType as any)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid email type. Must be 1, 2, 3, 4, or inactive_warning',
+        });
+      }
+
+      const preview = await emailService.getMarketingEmailPreview(parsedEmailType as any, userIdNum);
 
       res.json({
         success: true,

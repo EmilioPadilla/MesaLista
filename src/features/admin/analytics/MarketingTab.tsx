@@ -1,25 +1,18 @@
 import { useState } from 'react';
 import { Card, Button, Alert, Spin, Modal, Checkbox, Input, Table, Tag, message, Popconfirm } from 'antd';
 import { Mail, Send, CheckCircle, AlertCircle, Eye, Users, Plus, Trash2, UserPlus } from 'lucide-react';
-import {
-  useSendMarketingEmail1,
-  useSendMarketingEmail2,
-  useSendMarketingEmail3,
-  useSendMarketingEmail4,
-  useCommissionUsers,
-  useSendToSelectedUsers,
-  useSendToLeads,
-} from 'hooks/useEmail';
+import { useSendMarketingEmailToUser, useCommissionUsers, useSendToSelectedUsers, useSendToLeads } from 'hooks/useEmail';
 import { useSignupEmails, useAddManualSignupEmail, useDeleteSignupEmail } from 'hooks/useSignupEmail';
 import { UserSelectionModal } from './UserSelectionModal';
 import { EmailPreviewModal } from './EmailPreviewModal';
+import { MARKETING_EMAIL_TEMPLATES, MarketingEmailType } from 'src/config/marketingEmailTemplates';
 import dayjs from 'dayjs';
 
 export function MarketingTab() {
-  const [lastResult, setLastResult] = useState<{ type: number; sent: number; failed: number } | null>(null);
+  const [lastResult, setLastResult] = useState<{ type: MarketingEmailType; sent: number; failed: number } | null>(null);
   const [userSelectionOpen, setUserSelectionOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [selectedEmailType, setSelectedEmailType] = useState<1 | 2 | 3 | 4>(1);
+  const [selectedEmailType, setSelectedEmailType] = useState<MarketingEmailType>(1);
   const [selectedEmailTitle, setSelectedEmailTitle] = useState('');
   const [selectedPlanTypes, setSelectedPlanTypes] = useState<('COMMISSION' | 'FIXED')[]>(['COMMISSION']);
   const [manualEmail, setManualEmail] = useState('');
@@ -27,10 +20,7 @@ export function MarketingTab() {
   const [manualLastName, setManualLastName] = useState('');
   const [includeLeads, setIncludeLeads] = useState(false);
 
-  const email1Mutation = useSendMarketingEmail1();
-  const email2Mutation = useSendMarketingEmail2();
-  const email3Mutation = useSendMarketingEmail3();
-  const email4Mutation = useSendMarketingEmail4();
+  const sendEmailToUserMutation = useSendMarketingEmailToUser();
   const { data: usersData, isLoading: isLoadingUsers } = useCommissionUsers(selectedPlanTypes);
   const sendToSelectedMutation = useSendToSelectedUsers();
   const sendToLeadsMutation = useSendToLeads();
@@ -74,13 +64,13 @@ export function MarketingTab() {
     }
   };
 
-  const handleOpenUserSelection = (emailType: 1 | 2 | 3 | 4, emailTitle: string) => {
+  const handleOpenUserSelection = (emailType: MarketingEmailType, emailTitle: string) => {
     setSelectedEmailType(emailType);
     setSelectedEmailTitle(emailTitle);
     setUserSelectionOpen(true);
   };
 
-  const handleOpenPreview = (emailType: 1 | 2 | 3 | 4, emailTitle: string) => {
+  const handleOpenPreview = (emailType: MarketingEmailType, emailTitle: string) => {
     setSelectedEmailType(emailType);
     setSelectedEmailTitle(emailTitle);
     setPreviewOpen(true);
@@ -127,7 +117,7 @@ export function MarketingTab() {
     }
   };
 
-  const handleSendEmail = async (emailType: 1 | 2 | 3 | 4, emailName: string) => {
+  const handleSendEmail = async (emailType: MarketingEmailType, emailName: string) => {
     const parts: string[] = [];
     if (selectedPlanTypes.includes('COMMISSION')) parts.push('usuarios con plan de comisión');
     if (selectedPlanTypes.includes('FIXED')) parts.push('usuarios con plan fijo');
@@ -144,24 +134,17 @@ export function MarketingTab() {
           let totalSent = 0;
           let totalFailed = 0;
 
-          if (selectedPlanTypes.length > 0) {
-            let result;
-            switch (emailType) {
-              case 1:
-                result = await email1Mutation.mutateAsync(selectedPlanTypes);
-                break;
-              case 2:
-                result = await email2Mutation.mutateAsync(selectedPlanTypes);
-                break;
-              case 3:
-                result = await email3Mutation.mutateAsync(selectedPlanTypes);
-                break;
-              case 4:
-                result = await email4Mutation.mutateAsync(selectedPlanTypes);
-                break;
+          if (selectedPlanTypes.length > 0 && usersData?.data) {
+            // Send email to each user individually
+            for (const user of usersData.data) {
+              try {
+                await sendEmailToUserMutation.mutateAsync({ userId: user.id, emailType });
+                totalSent++;
+              } catch (error) {
+                console.error(`Failed to send email to user ${user.id}:`, error);
+                totalFailed++;
+              }
             }
-            totalSent += result.data.sent;
-            totalFailed += result.data.failed;
           }
 
           if (includeLeads && nonConvertedEmails.length > 0) {
@@ -182,51 +165,18 @@ export function MarketingTab() {
     });
   };
 
-  const emailCampaigns = [
-    {
-      type: 1 as const,
-      title: 'Email 1: Bienvenida y Características',
-      description: 'Presenta las características principales de MesaLista y recuerda por qué eligieron la plataforma.',
-      icon: '👋',
-      color: 'from-orange-400 to-orange-600',
-      timing: 'Enviar 1-2 días después del registro',
-      mutation: email1Mutation,
-    },
-    {
-      type: 2 as const,
-      title: 'Email 2: Guía de Inicio Rápido',
-      description: 'Guía paso a paso para completar su mesa de regalos en 3 pasos simples.',
-      icon: '🚀',
-      color: 'from-blue-400 to-purple-600',
-      timing: 'Enviar 3-4 días después si no hay actividad',
-      mutation: email2Mutation,
-    },
-    {
-      type: 3 as const,
-      title: 'Email 3: Prueba Social e Historias de Éxito',
-      description: 'Testimonios de parejas reales y estadísticas de la plataforma para generar confianza.',
-      icon: '⭐',
-      color: 'from-pink-400 to-orange-500',
-      timing: 'Enviar 7 días después del registro',
-      mutation: email3Mutation,
-    },
-    {
-      type: 4 as const,
-      title: 'Email 4: Re-engagement y Oferta Especial',
-      description: 'Último empujón con urgencia y oferta especial para usuarios inactivos.',
-      icon: '💜',
-      color: 'from-purple-500 to-pink-500',
-      timing: 'Enviar 14 días después si aún inactivo',
-      mutation: email4Mutation,
-    },
-  ];
+  // Use all templates for sending
+  const emailCampaigns = MARKETING_EMAIL_TEMPLATES.map((template) => ({
+    ...template,
+    mutation: sendEmailToUserMutation,
+  }));
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <Card>
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
             <Mail className="h-6 w-6 text-white" />
           </div>
           <div className="flex-1">
@@ -281,7 +231,7 @@ export function MarketingTab() {
       {/* Signup Emails (Leads) Section */}
       <Card>
         <div className="flex items-start gap-4 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-linear-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
             <UserPlus className="h-6 w-6 text-white" />
           </div>
           <div className="flex-1">
@@ -399,7 +349,7 @@ export function MarketingTab() {
             styles={{ body: { padding: '0px' } }}
             onClick={() => handleOpenPreview(campaign.type, campaign.title)}
             style={{ cursor: 'pointer' }}>
-            <div className={`bg-gradient-to-r ${campaign.color} p-6 text-white`}>
+            <div className={`bg-linear-to-r ${campaign.color} p-6 text-white`}>
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-3xl">{campaign.icon}</span>
                 <h3 className="text-xl font-bold">{campaign.title}</h3>

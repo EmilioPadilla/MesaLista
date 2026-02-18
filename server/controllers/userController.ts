@@ -321,9 +321,15 @@ export const userController = {
         });
       }
 
-      // Successful login - reset failed attempts
+      // Successful login - reset failed attempts and update last login timestamp
       await passwordValidationService.resetFailedLoginAttempts(user.id);
       await passwordValidationService.recordLoginAttempt(email, user.id, true, ipAddress, userAgent);
+
+      // Update last login timestamp
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() },
+      });
 
       // Create session and set HttpOnly cookie
       await createSessionAndSetCookie(res, user.id, userAgent, ipAddress);

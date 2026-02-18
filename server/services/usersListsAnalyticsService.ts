@@ -12,6 +12,7 @@ export interface UserAnalytics {
   planType: 'FIXED' | 'COMMISSION' | null;
   discountCode: string | null;
   createdAt: Date;
+  lastLoginAt: Date | null;
   weddingList: {
     id: number;
     title: string;
@@ -222,6 +223,7 @@ class UsersListsAnalyticsService {
         planType: giftList?.planType as 'FIXED' | 'COMMISSION' | null,
         discountCode: giftList?.discountCodeId ? 'Applied' : null,
         createdAt: user.createdAt,
+        lastLoginAt: user.lastLoginAt,
         weddingList: weddingListData,
       };
     });

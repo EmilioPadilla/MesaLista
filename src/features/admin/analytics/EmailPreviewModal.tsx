@@ -3,12 +3,13 @@ import { Eye, Mail } from 'lucide-react';
 import { useEmailPreview, useCommissionUsers } from 'hooks/useEmail';
 import { useState } from 'react';
 import { CommissionUser } from 'src/services/email.service';
+import { MarketingEmailType } from 'src/config/marketingEmailTemplates';
 
 interface EmailPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   users: CommissionUser[];
-  emailType: 1 | 2 | 3 | 4;
+  emailType: MarketingEmailType;
   emailTitle: string;
 }
 
@@ -30,7 +31,7 @@ export function EmailPreviewModal({ isOpen, onClose, users, emailType, emailTitl
     <Modal
       title={
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-green-500 to-blue-500 flex items-center justify-center">
             <Eye className="h-5 w-5 text-white" />
           </div>
           <div>

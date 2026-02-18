@@ -200,6 +200,52 @@ class EmailService {
   }
 
   /**
+   * Send inactive user warning email
+   */
+  async sendInactiveUserWarning(userId: number): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    try {
+      // Get user and gift list data
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          giftLists: {
+            include: {
+              gifts: true,
+            },
+          },
+        },
+      });
+
+      if (!user) {
+        throw new Error(`User not found: ${userId}`);
+      }
+
+      const giftList = user.giftLists[0];
+      const firstName = user.firstName;
+      const coupleName = giftList?.coupleName || `${user.firstName} ${user.lastName}`;
+      const giftCount = giftList?.gifts.length || 0;
+
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: user.email,
+        Subject: '¡Tu mesa de regalos te está esperando! - MesaLista',
+        HtmlBody: EmailTemplates.generateInactiveUserWarningHTML(firstName, coupleName, giftCount),
+        TextBody: EmailTemplates.generateInactiveUserWarningText(firstName, coupleName, giftCount),
+        MessageStream: 'outbound',
+      });
+      console.log(`Inactive user warning email sent to: ${user.email}`);
+    } catch (error) {
+      console.error('Error sending inactive user warning email:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Send email verification code
    */
   async sendVerificationCodeEmail(email: string, code: string): Promise<void> {
@@ -762,7 +808,10 @@ class EmailService {
   /**
    * Send marketing email to specific users
    */
-  async sendMarketingEmailToSelectedUsers(emailType: 1 | 2 | 3 | 4, userIds: number[]): Promise<{ sent: number; failed: number }> {
+  async sendMarketingEmailToSelectedUsers(
+    emailType: 1 | 2 | 3 | 4 | 'inactive_warning',
+    userIds: number[],
+  ): Promise<{ sent: number; failed: number }> {
     if (!postmarkClient) {
       console.warn('Postmark API key not configured. Skipping email.');
       return { sent: 0, failed: 0 };
@@ -789,6 +838,9 @@ class EmailService {
             case 4:
               await this.sendMarketingEmail4(userId);
               break;
+            case 'inactive_warning':
+              await this.sendInactiveUserWarning(userId);
+              break;
           }
           sent++;
         } catch (error) {
@@ -809,7 +861,7 @@ class EmailService {
    * Send marketing email to a lead (signup email) by email address
    * Uses firstName if available, otherwise generic greeting. Uses generic signup link.
    */
-  async sendMarketingEmailToLead(emailType: 1 | 2 | 3 | 4, email: string, firstName?: string | null): Promise<void> {
+  async sendMarketingEmailToLead(emailType: 1 | 2 | 3 | 4 | 'inactive_warning', email: string, firstName?: string | null): Promise<void> {
     if (!postmarkClient) {
       console.warn('Postmark API key not configured. Skipping email.');
       return;
@@ -843,6 +895,11 @@ class EmailService {
         htmlBody = EmailTemplates.generateMarketingEmail4HTML(name, genericSlug);
         textBody = EmailTemplates.generateMarketingEmail4Text(name, genericSlug);
         break;
+      case 'inactive_warning':
+        subject = `⚠️ ${name}, tu cuenta de MesaLista será cerrada pronto`;
+        htmlBody = EmailTemplates.generateInactiveUserWarningHTML(name, 'tu mesa de regalos', 0);
+        textBody = EmailTemplates.generateInactiveUserWarningText(name, 'tu mesa de regalos', 0);
+        break;
     }
 
     await postmarkClient.sendEmail({
@@ -861,7 +918,7 @@ class EmailService {
    * Send marketing email to multiple leads by their signup email IDs
    */
   async sendMarketingEmailToLeads(
-    emailType: 1 | 2 | 3 | 4,
+    emailType: 1 | 2 | 3 | 4 | 'inactive_warning',
     leadEmails: { email: string; firstName?: string | null }[],
   ): Promise<{ sent: number; failed: number }> {
     let sent = 0;
@@ -884,12 +941,18 @@ class EmailService {
   /**
    * Generate email preview HTML for a specific user and email type
    */
-  async getMarketingEmailPreview(emailType: 1 | 2 | 3 | 4, userId: number): Promise<{ html: string; subject: string }> {
+  async getMarketingEmailPreview(
+    emailType: 1 | 2 | 3 | 4 | 'inactive_warning',
+    userId: number,
+  ): Promise<{ html: string; subject: string }> {
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
           firstName: true,
+          lastName: true,
+          spouseFirstName: true,
+          spouseLastName: true,
           slug: true,
         },
       });
@@ -897,6 +960,10 @@ class EmailService {
       if (!user || !user.slug) {
         throw new Error('User not found or slug missing');
       }
+
+      // For preview purposes, use placeholder values
+      const giftCount = 0;
+      const coupleName = `${user.firstName} ${user.lastName}${user.spouseFirstName ? ` y ${user.spouseFirstName} ${user.spouseLastName || ''}` : ''}`;
 
       let html: string;
       let subject: string;
@@ -917,6 +984,10 @@ class EmailService {
         case 4:
           html = EmailTemplates.generateMarketingEmail4HTML(user.firstName, user.slug);
           subject = `${user.firstName}, te extrañamos 💜 - Oferta especial dentro`;
+          break;
+        case 'inactive_warning':
+          html = EmailTemplates.generateInactiveUserWarningHTML(user.firstName, coupleName, giftCount);
+          subject = `⚠️ ${user.firstName}, tu cuenta de MesaLista será cerrada pronto`;
           break;
         default:
           throw new Error('Invalid email type');

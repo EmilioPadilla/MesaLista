@@ -13,6 +13,7 @@ export interface UserAnalytics {
   planType: 'FIXED' | 'COMMISSION' | null;
   discountCode: string | null;
   createdAt: string;
+  lastLoginAt: string | null;
   weddingList: {
     id: number;
     title: string;

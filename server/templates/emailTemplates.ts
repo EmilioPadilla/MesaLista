@@ -2039,4 +2039,148 @@ Con cariño,
 El equipo de MesaLista
     `.trim();
   }
+
+  /**
+   * Generate HTML email template for inactive user warning
+   */
+  static generateInactiveUserWarningHTML(firstName: string, coupleName: string, giftCount: number): string {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f7; }
+    .container { max-width: 600px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #d4704a 0%, #c25f3a 100%); padding: 40px 30px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
+    .content { padding: 40px 30px; }
+    .greeting { font-size: 18px; color: #333; margin-bottom: 20px; }
+    .message { font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px; }
+    .warning-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 30px 0; border-radius: 8px; }
+    .warning-box p { margin: 0; color: #856404; font-size: 15px; }
+    .cta-button { display: inline-block; background: #d4704a; color: white; padding: 16px 40px; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 16px; margin: 20px 0; transition: background 0.3s; }
+    .cta-button:hover { background: #c25f3a; }
+    .benefits { background: #f8f9fa; padding: 25px; border-radius: 12px; margin: 30px 0; }
+    .benefits h3 { color: #d4704a; margin-top: 0; font-size: 18px; }
+    .benefits ul { margin: 15px 0; padding-left: 20px; }
+    .benefits li { margin: 10px 0; color: #555; }
+    .footer { background: #f8f9fa; padding: 30px; text-align: center; color: #888; font-size: 14px; }
+    .footer a { color: #d4704a; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>¡Tu Mesa de Regalos Te Está Esperando!</h1>
+    </div>
+    
+    <div class="content">
+      <p class="greeting">Hola ${firstName},</p>
+      
+      <p class="message">
+        Esperamos que estés disfrutando de la emoción de planear tu evento especial. Notamos que creaste tu cuenta en MesaLista hace más de un mes, pero aún no has comenzado a personalizar tu mesa de regalos.
+      </p>
+
+      ${
+        giftCount === 0
+          ? `
+      <p class="message">
+        Sabemos que organizar un evento puede ser abrumador, y queremos ayudarte a que este proceso sea lo más sencillo y agradable posible. Tu mesa de regalos está lista para ser configurada, ¡y solo te tomará unos minutos!
+      </p>
+      `
+          : `
+      <p class="message">
+        Vemos que has agregado ${giftCount} ${giftCount === 1 ? 'regalo' : 'regalos'} a tu lista. ¡Excelente inicio! Sin embargo, notamos que no has iniciado sesión recientemente. Queremos asegurarnos de que aproveches al máximo todas las funcionalidades de MesaLista.
+      </p>
+      `
+      }
+
+      <div class="warning-box">
+        <p><strong>⚠️ Importante:</strong> Para mantener la calidad de nuestro servicio y asegurar que todas las cuentas activas reciban la mejor atención, necesitamos que completes la configuración de tu mesa de regalos. Si no vemos actividad en los próximos 30 días, tendremos que cerrar tu cuenta de manera permanente.</p>
+      </div>
+
+      <div class="benefits">
+        <h3>✨ ¿Por qué completar tu mesa de regalos ahora?</h3>
+        <ul>
+          <li><strong>Comparte con anticipación:</strong> Tus invitados tendrán más tiempo para elegir el regalo perfecto</li>
+          <li><strong>Listas prediseñadas:</strong> Ahorra tiempo con nuestras colecciones curadas por expertos</li>
+          <li><strong>Gestión sencilla:</strong> Interfaz intuitiva que hace todo el proceso muy fácil</li>
+          <li><strong>Sin costos ocultos:</strong> Transparencia total en nuestros planes y comisiones</li>
+          <li><strong>Soporte dedicado:</strong> Nuestro equipo está aquí para ayudarte en cada paso</li>
+        </ul>
+      </div>
+
+      <p class="message">
+        Entendemos que la vida puede ser ocupada, pero no queremos que pierdas esta oportunidad. Estamos aquí para hacer que tu experiencia sea excepcional.
+      </p>
+
+      <center>
+        <a href="https://mesalista.com.mx/login" class="cta-button">Completar Mi Mesa de Regalos</a>
+      </center>
+
+      <p class="message" style="margin-top: 30px;">
+        Si tienes alguna pregunta o necesitas ayuda para comenzar, no dudes en responder a este correo. Nuestro equipo estará encantado de asistirte.
+      </p>
+
+      <p class="message">
+        Con cariño y los mejores deseos para tu evento,<br>
+        <strong>El equipo de MesaLista</strong>
+      </p>
+    </div>
+    
+    <div class="footer">
+      <p>MesaLista - Tu mesa de regalos, hecha simple</p>
+      <p><a href="https://mesalista.com.mx">mesalista.com.mx</a> | <a href="mailto:info@mesalista.com.mx">info@mesalista.com.mx</a></p>
+    </div>
+  </div>
+</body>
+</html>
+    `.trim();
+  }
+
+  /**
+   * Generate plain text email template for inactive user warning
+   */
+  static generateInactiveUserWarningText(firstName: string, coupleName: string, giftCount: number): string {
+    return `
+¡TU MESA DE REGALOS TE ESTÁ ESPERANDO!
+
+Hola ${firstName},
+
+Esperamos que estés disfrutando de la emoción de planear tu evento especial. Notamos que creaste tu cuenta en MesaLista hace más de un mes, pero aún no has comenzado a personalizar tu mesa de regalos.
+
+${
+  giftCount === 0
+    ? 'Sabemos que organizar un evento puede ser abrumador, y queremos ayudarte a que este proceso sea lo más sencillo y agradable posible. Tu mesa de regalos está lista para ser configurada, ¡y solo te tomará unos minutos!'
+    : `Vemos que has agregado ${giftCount} ${giftCount === 1 ? 'regalo' : 'regalos'} a tu lista. ¡Excelente inicio! Sin embargo, notamos que no has iniciado sesión recientemente. Queremos asegurarnos de que aproveches al máximo todas las funcionalidades de MesaLista.`
+}
+
+⚠️ IMPORTANTE:
+Para mantener la calidad de nuestro servicio y asegurar que todas las cuentas activas reciban la mejor atención, necesitamos que completes la configuración de tu mesa de regalos. Si no vemos actividad en los próximos 30 días, tendremos que cerrar tu cuenta de manera permanente.
+
+✨ ¿POR QUÉ COMPLETAR TU MESA DE REGALOS AHORA?
+
+• Comparte con anticipación: Tus invitados tendrán más tiempo para elegir el regalo perfecto
+• Listas prediseñadas: Ahorra tiempo con nuestras colecciones curadas por expertos
+• Gestión sencilla: Interfaz intuitiva que hace todo el proceso muy fácil
+• Sin costos ocultos: Transparencia total en nuestros planes y comisiones
+• Soporte dedicado: Nuestro equipo está aquí para ayudarte en cada paso
+
+Entendemos que la vida puede ser ocupada, pero no queremos que pierdas esta oportunidad. Estamos aquí para hacer que tu experiencia sea excepcional.
+
+COMPLETAR MI MESA DE REGALOS:
+https://mesalista.com.mx/login
+
+Si tienes alguna pregunta o necesitas ayuda para comenzar, no dudes en responder a este correo. Nuestro equipo estará encantado de asistirte.
+
+Con cariño y los mejores deseos para tu evento,
+El equipo de MesaLista
+
+---
+MesaLista - Tu mesa de regalos, hecha simple
+mesalista.com.mx | info@mesalista.com.mx
+    `.trim();
+  }
 }

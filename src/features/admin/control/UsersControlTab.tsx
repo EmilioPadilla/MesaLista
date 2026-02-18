@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Table, Tag, Button, Space, Input, Modal, message, Statistic, Row, Col, Card } from 'antd';
-import { Search, RefreshCw, Mail, Phone, Calendar, Users, DollarSign, UserCheck, UserX, Trash2, Edit } from 'lucide-react';
+import { Search, RefreshCw, Mail, Phone, Calendar, Users, DollarSign, UserCheck, UserX, Trash2, Edit, Send } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
 import type { UserAnalytics, UsersListsSummary } from 'services/usersListsAnalytics.service';
 import { useDeleteUser, useUpdateUserPlanType } from 'src/hooks/useUser';
-import { UserDetailModal, PlanTypeUpdateModal } from './index';
+import { useSendMarketingEmailToUser } from 'src/hooks/useEmail';
+import { UserDetailModal, PlanTypeUpdateModal, SendMarketingEmailModal } from './index';
+import type { MarketingEmailType } from 'src/config/marketingEmailTemplates';
 
 interface UsersControlTabProps {
   summary: UsersListsSummary | undefined;
@@ -19,10 +21,13 @@ export function UsersControlTab({ summary, usersData, isUsersLoading, onRefresh 
   const [selectedUser, setSelectedUser] = useState<UserAnalytics | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isPlanTypeModalOpen, setIsPlanTypeModalOpen] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [editingPlanUser, setEditingPlanUser] = useState<UserAnalytics | null>(null);
+  const [emailUser, setEmailUser] = useState<UserAnalytics | null>(null);
   const [newPlanType, setNewPlanType] = useState<'FIXED' | 'COMMISSION' | null>(null);
   const deleteUserMutation = useDeleteUser();
   const updatePlanTypeMutation = useUpdateUserPlanType();
+  const sendEmailMutation = useSendMarketingEmailToUser();
 
   const formatDate = (date: string) => {
     return dayjs(date).format('DD/MMM/YYYY HH:mm');
@@ -98,6 +103,23 @@ export function UsersControlTab({ summary, usersData, isUsersLoading, onRefresh 
       setEditingPlanUser(null);
       setNewPlanType(null);
       onRefresh();
+    } catch (error) {
+      // Error is already handled by the mutation hook
+    }
+  };
+
+  const handleOpenEmailModal = (user: UserAnalytics) => {
+    setEmailUser(user);
+    setIsEmailModalOpen(true);
+  };
+
+  const handleSendEmail = async (emailType: MarketingEmailType) => {
+    if (!emailUser) return;
+
+    try {
+      await sendEmailMutation.mutateAsync({ userId: emailUser.id, emailType });
+      setIsEmailModalOpen(false);
+      setEmailUser(null);
     } catch (error) {
       // Error is already handled by the mutation hook
     }
@@ -216,6 +238,35 @@ export function UsersControlTab({ summary, usersData, isUsersLoading, onRefresh 
       },
     },
     {
+      title: 'Último Login',
+      key: 'lastLoginAt',
+      width: 150,
+      render: (_, record) => {
+        if (!record.lastLoginAt) {
+          return <span className="text-gray-400 text-xs">Nunca</span>;
+        }
+
+        const lastLogin = dayjs(record.lastLoginAt);
+        const oneMonthAgo = dayjs().subtract(1, 'month');
+        const isOld = lastLogin.isBefore(oneMonthAgo);
+
+        return (
+          <div className={`text-xs ${isOld ? 'text-red-600 font-semibold' : ''}`}>
+            <div className="flex items-center gap-1">
+              <UserCheck className="h-3 w-3" />
+              {formatDate(record.lastLoginAt)}
+            </div>
+            {isOld && <div className="text-xs mt-1">⚠️ Inactivo &gt;1 mes</div>}
+          </div>
+        );
+      },
+      sorter: (a, b) => {
+        if (!a.lastLoginAt) return 1;
+        if (!b.lastLoginAt) return -1;
+        return new Date(a.lastLoginAt).getTime() - new Date(b.lastLoginAt).getTime();
+      },
+    },
+    {
       title: 'Fecha Registro',
       key: 'createdAt',
       width: 150,
@@ -234,11 +285,19 @@ export function UsersControlTab({ summary, usersData, isUsersLoading, onRefresh 
       title: 'Acciones',
       key: 'actions',
       fixed: 'right',
-      width: 250,
+      width: 300,
       render: (_, record) => (
-        <Space size="small" wrap>
+        <Space size="small" wrap className="flex gap-2">
           <Button size="small" type="primary" onClick={() => handleViewDetails(record)}>
             Ver Detalles
+          </Button>
+          <Button
+            size="small"
+            type="default"
+            icon={<Send className="h-3 w-3" />}
+            onClick={() => handleOpenEmailModal(record)}
+            className="bg-purple-50 hover:bg-purple-100 border-purple-300">
+            Email
           </Button>
           {record.planType && (
             <Button size="small" type="default" icon={<Edit className="h-3 w-3" />} onClick={() => handleOpenPlanTypeModal(record)}>
@@ -354,6 +413,17 @@ export function UsersControlTab({ summary, usersData, isUsersLoading, onRefresh 
         newPlanType={newPlanType}
         onPlanTypeChange={setNewPlanType}
         isLoading={updatePlanTypeMutation.isPending}
+      />
+
+      <SendMarketingEmailModal
+        isOpen={isEmailModalOpen}
+        onClose={() => {
+          setIsEmailModalOpen(false);
+          setEmailUser(null);
+        }}
+        userName={emailUser ? `${emailUser.firstName} ${emailUser.lastName}` : ''}
+        userEmail={emailUser?.email || ''}
+        onSend={handleSendEmail}
       />
     </div>
   );
