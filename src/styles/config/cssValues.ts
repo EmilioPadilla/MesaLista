@@ -14,7 +14,7 @@ const cssValues = {
   },
 
   fonts: {
-    fontFamilySansSerif: '"Zalando", "Segoe UI", Roboto, Arial, sans-serif',
+    fontFamilySansSerif: '"Questrial", "Segoe UI", Roboto, Arial, sans-serif',
   },
 
   colors: {
