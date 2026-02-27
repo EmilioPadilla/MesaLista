@@ -30,6 +30,11 @@ export const faqs = [
       'Sí, todo nuestro soporte está disponible en español e inglés. Nuestro equipo está ubicado en México y entiende perfectamente las tradiciones locales.',
   },
   {
+    question: '¿Las plataformas cobran comisión por uso?',
+    answer:
+      'Sí, tanto Stripe como PayPal cobran un porcentaje en cada transacción por el uso de su plataforma, por lo general es entre un 3.00% y un 4.50%. En la configuración de tu mesa puedes elegir si quieres absorber tú esa comisión o si prefieres que a tus invitados se les cobre a la hora de hacer el pago.',
+  },
+  {
     question: '¿Cómo se maneja la información de mi tarjeta?',
     answer: 'Nuestro sistema no almacena información de formas de pago. Todo el manejo de pagos se realiza a través de Stripe y Paypal.',
   },

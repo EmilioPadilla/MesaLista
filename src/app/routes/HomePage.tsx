@@ -297,10 +297,10 @@ export const HomePage = () => {
       </section>
 
       {/* Digital Invitations Section - New Feature */}
-      <section className="relative bg-white py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      {/* <section className="relative bg-white py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            {/* Left side - Visual showcase with carousel */}
+            {/* Left side - Visual showcase with carousel 
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -310,7 +310,7 @@ export const HomePage = () => {
               <InvitationTemplateCarousel />
             </motion.div>
 
-            {/* Right side - Features */}
+            {/* Right side - Features 
             <motion.div
               className="space-y-8 order-1 lg:order-2"
               initial={{ opacity: 0, x: 50 }}
@@ -379,7 +379,7 @@ export const HomePage = () => {
             </motion.div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Features Section - Apple Product Grid Style */}
       <section className="bg-[#f5f5f7] py-24 px-4 sm:px-6 lg:px-8">

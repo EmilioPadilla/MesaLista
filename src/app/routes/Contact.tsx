@@ -196,7 +196,7 @@ export function Contact() {
                           rules={[{ required: true, message: 'Por favor selecciona un tema' }]}>
                           <Select
                             placeholder="Selecciona un tema"
-                            className="w-full !h-12"
+                            className="w-full h-12!"
                             rootClassName="rounded-2xl"
                             options={[
                               { value: 'crear-lista', label: 'Crear lista de regalos' },
@@ -237,7 +237,7 @@ export function Contact() {
               </motion.div>
 
               {/* Emergency Support */}
-              <div className="bg-gradient-to-br from-[#ff3b30]/5 to-[#ff3b30]/10 rounded-3xl p-8 border border-[#ff3b30]/20 mt-10">
+              <div className="bg-linear-to-br from-[#ff3b30]/5 to-[#ff3b30]/10 rounded-3xl p-8 border border-[#ff3b30]/20 mt-10">
                 <div className="flex items-start space-x-4">
                   <div className="w-12 h-12 bg-[#ff3b30]/10 rounded-full flex items-center justify-center flex-shrink-0">
                     <HelpCircle className="h-6 w-6 text-[#ff3b30]" />
@@ -249,7 +249,7 @@ export function Contact() {
                     </p>
                     <Button
                       onClick={() => window.open('https://wa.me/524463069982', '_blank')}
-                      className="!bg-[#25d366] hover:bg-[#1da851] !text-white rounded-full px-6">
+                      className="bg-[#25d366]! hover:bg-[#1da851] text-white! rounded-full px-6">
                       WhatsApp: +52 446 306 9982
                     </Button>
                   </div>
@@ -315,7 +315,7 @@ export function Contact() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-[#f5f5f7] to-white">
+      <section className="py-20 lg:py-32 bg-linear-to-br from-[#f5f5f7] to-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-4xl mb-6 text-foreground">¿Listo para crear tu lista perfecta?</h2>
           <p className="text-xl text-muted-foreground mb-8">
