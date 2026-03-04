@@ -244,7 +244,7 @@ const GiftCardComponent = ({
                   <Popconfirm
                     title="Delete Gift"
                     className="pop-delete ml-1"
-                    description="Are you sure you want to delete this gift?"
+                    description="Estas seguro de querer eliminar este regalo?"
                     onConfirm={handleDelete}
                     okText="Yes"
                     icon={<ExclamationCircleFilled />}

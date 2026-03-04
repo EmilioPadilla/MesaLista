@@ -23,7 +23,7 @@ type MetricType =
 type FunnelDimension = 'utm_source' | 'landing_page';
 
 export function Analytics() {
-  const [dateRange, setDateRange] = useState<DateRange>('last30days');
+  const [dateRange, setDateRange] = useState<DateRange>('last7days');
   const [customDates, setCustomDates] = useState<[Dayjs, Dayjs] | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<MetricType>('visitors');
   const [funnelDimension, setFunnelDimension] = useState<FunnelDimension>('landing_page');
@@ -90,10 +90,10 @@ export function Analytics() {
         </div>
 
         {/* Filters */}
-        <Card className="!mb-6">
+        <Card className="mb-6">
           <div className="flex flex-wrap gap-4 items-center">
             <Select
-              className="!shadow-sm !rounded-md"
+              className="shadow-sm! rounded-md!"
               value={dateRange}
               onChange={(value) => setDateRange(value as DateRange)}
               style={{ width: 200 }}>
@@ -108,7 +108,7 @@ export function Analytics() {
             )}
 
             <Select
-              className="!shadow-sm !rounded-md"
+              className="shadow-sm! rounded-md!"
               value={selectedWeddingListId}
               onChange={(value) => setSelectedWeddingListId(value)}
               placeholder="Filtrar por mesa de regalos"
