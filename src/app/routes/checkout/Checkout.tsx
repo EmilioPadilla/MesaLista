@@ -12,6 +12,7 @@ import { useCancelPayment } from 'src/hooks/usePayment';
 import { useSearchParams } from 'react-router-dom';
 import { useTrackEvent } from 'src/hooks/useAnalyticsTracking';
 import { useValidateRsvpCode, useInviteeByCode } from 'src/hooks/useRsvp';
+import { stripeMexico, paypalMexico, stripeMexicoBreakdown, paypalMexicoBreakdown } from 'src/utils/feeUtils';
 
 const { TextArea } = Input;
 
@@ -74,18 +75,28 @@ export function Checkout() {
   // Get fee preference from gift list (default to 'couple')
   const feePreference = giftList?.feePreference || 'couple';
 
-  // Calculate fees based on payment method
-  const STRIPE_FEE_PERCENT = 0.036;
-  const STRIPE_FEE_FIXED = 3;
-  const PAYPAL_FEE_PERCENT = 0.0399;
-  const PAYPAL_FEE_FIXED = 4;
+  // Calculate fees based on payment method (includes IVA)
+  // When guests pay fees, they pay the gross amount (cartTotal + fees)
+  // When couple absorbs fees, couple receives net amount (cartTotal - fees)
+  let stripeFee: number, paypalFee: number, finalTotal: number;
 
-  const stripeFee = cartTotal * STRIPE_FEE_PERCENT + STRIPE_FEE_FIXED;
-  const paypalFee = cartTotal * PAYPAL_FEE_PERCENT + PAYPAL_FEE_FIXED;
+  if (feePreference === 'guest') {
+    // Guests pay: calculate gross from net amount (cartTotal is what couple receives)
+    const stripeGross = stripeMexico(cartTotal);
+    const paypalGross = paypalMexico(cartTotal);
+    stripeFee = stripeGross - cartTotal;
+    paypalFee = paypalGross - cartTotal;
+    finalTotal = selectedPaymentMethod === 'paypal' ? paypalGross : stripeGross;
+  } else {
+    // Couple absorbs: calculate net from gross amount (cartTotal is what guest pays)
+    const stripeBreakdown = stripeMexicoBreakdown(cartTotal);
+    const paypalBreakdown = paypalMexicoBreakdown(cartTotal);
+    stripeFee = stripeBreakdown.totalFee;
+    paypalFee = paypalBreakdown.totalFee;
+    finalTotal = cartTotal;
+  }
 
-  // Calculate final total based on fee preference and payment method
   const currentFee = selectedPaymentMethod === 'paypal' ? paypalFee : stripeFee;
-  const finalTotal = feePreference === 'guest' ? cartTotal + currentFee : cartTotal;
 
   // Debounce RSVP code input
   useEffect(() => {

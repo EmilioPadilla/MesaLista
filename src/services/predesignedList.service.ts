@@ -42,7 +42,7 @@ export const predesignedListService = {
 
   async addGiftToWeddingList(giftId: number, weddingListId: number): Promise<any> {
     const response = await apiClient.post(endpoints.predesignedLists.addGiftToWeddingList(giftId, weddingListId), {
-      weddingListId,
+      giftListId: weddingListId,
     });
     return response.data;
   },

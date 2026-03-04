@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useLogAnalyticsEvent, useUpsertAnalyticsSession } from './useAnalytics';
-import { getSessionId, getUTMParameters, getReferrer, isNewSession } from '../utils/analytics';
+import { getSessionId, getUTMParameters, getReferrer, isNewSession } from '../utils/analyticsUtils';
 import { useCurrentUser } from './useUser';
 import type { AnalyticsEventType } from '../services/analytics.service';
 
@@ -17,17 +17,17 @@ export const useAnalyticsSessionInit = () => {
   useEffect(() => {
     // Only initialize session once per page load
     if (sessionInitialized.current) return;
-    
+
     const sessionId = getSessionId();
     const isNew = isNewSession();
-    
+
     // Only send session data if it's a new session or has UTM parameters
     const utmParams = getUTMParameters(location.search);
-    const hasUTM = Object.values(utmParams).some(v => v !== undefined);
-    
+    const hasUTM = Object.values(utmParams).some((v) => v !== undefined);
+
     if (isNew || hasUTM) {
       const referrer = getReferrer();
-      
+
       upsertSession({
         sessionId,
         userId: currentUser?.id,
@@ -35,7 +35,7 @@ export const useAnalyticsSessionInit = () => {
         referrer,
         landingPage: location.pathname,
       });
-      
+
       sessionInitialized.current = true;
     }
   }, [location.pathname, location.search, currentUser?.id]);
@@ -71,14 +71,17 @@ export const useTrackEvent = () => {
   const { mutate: logEvent } = useLogAnalyticsEvent();
   const { data: currentUser } = useCurrentUser();
 
-  return useCallback((eventType: AnalyticsEventType, metadata?: Record<string, any>) => {
-    const sessionId = getSessionId();
+  return useCallback(
+    (eventType: AnalyticsEventType, metadata?: Record<string, any>) => {
+      const sessionId = getSessionId();
 
-    logEvent({
-      sessionId,
-      eventType,
-      userId: currentUser?.id,
-      metadata,
-    });
-  }, [logEvent, currentUser?.id]);
+      logEvent({
+        sessionId,
+        eventType,
+        userId: currentUser?.id,
+        metadata,
+      });
+    },
+    [logEvent, currentUser?.id],
+  );
 };

@@ -22,6 +22,7 @@ import analyticsRoutes from './routes/analyticsRoutes.js';
 import predesignedListRoutes from './routes/predesignedListRoutes.js';
 import discountCodeRoutes from './routes/discountCodeRoutes.js';
 import rsvpRoutes from './routes/rsvpRoutes.js';
+import weddingListRoutes from './routes/weddingListRoutes.js';
 import usersListsAnalyticsRoutes from './routes/usersListsAnalyticsRoutes.js';
 import invitationRoutes from './routes/invitationRoutes.js';
 import signupEmailRoutes from './routes/signupEmailRoutes.js';
@@ -158,6 +159,7 @@ app.use('/api/rsvp', rsvpRoutes);
 app.use('/api/admin/users-lists-analytics', usersListsAnalyticsRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/signup-emails', signupEmailRoutes);
+app.use('/api/wedding-list', weddingListRoutes);
 
 // Special case for login API endpoint
 app.post('/api/login', userRoutes);

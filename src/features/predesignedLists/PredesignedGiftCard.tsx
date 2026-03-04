@@ -1,13 +1,14 @@
 import { Card, Tag, Tooltip, Button } from 'antd';
-import { Plus } from 'lucide-react';
+import { Plus, Check } from 'lucide-react';
 import { GiftItem } from 'src/app/routes/couple/ManageRegistry';
 
 interface PredesignedGiftCardProps {
   gift: GiftItem;
   onAddToCart: (giftId: number) => void;
+  added?: boolean;
 }
 
-export const PredesignedGiftCard = ({ gift, onAddToCart }: PredesignedGiftCardProps) => {
+export const PredesignedGiftCard = ({ gift, onAddToCart, added = false }: PredesignedGiftCardProps) => {
   const handleAddToCart = () => {
     onAddToCart(gift.id);
   };
@@ -59,10 +60,24 @@ export const PredesignedGiftCard = ({ gift, onAddToCart }: PredesignedGiftCardPr
           </div>
           <Button
             onClick={handleAddToCart}
-            className="rounded-full transition-all duration-200 !border-primary !text-primary hover:!bg-primary hover:!text-white w-full"
+            disabled={added}
+            className={`rounded-full flex items-center justify-center transition-all duration-200 w-full ${
+              added
+                ? 'bg-green-500! text-white! border-green-500! cursor-not-allowed!'
+                : 'border-primary! text-primary! hover:bg-primary! hover:text-white!'
+            }`}
             size="large">
-            <Plus className="h-4 w-4 mr-2" />
-            Agregar
+            {added ? (
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 mr-2" />
+                Agregado
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Plus className="h-4 w-4 mr-2" />
+                Agregar
+              </div>
+            )}
           </Button>
         </div>
       </div>

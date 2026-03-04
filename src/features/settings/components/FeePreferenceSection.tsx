@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CreditCard, Calculator, TrendingUp, AlertCircle, Save } from 'lucide-react';
 import { Input } from 'antd';
 import { Button } from 'components/core/Button';
+import { stripeMexico, paypalMexico, stripeMexicoBreakdown, paypalMexicoBreakdown } from 'utils/feeUtils';
 
 interface FeePreferenceSectionProps {
   feePreference: 'couple' | 'guest';
@@ -15,12 +16,33 @@ export function FeePreferenceSection({ feePreference, onFeePreferenceChange, onS
 
   // Fee calculator logic
   const calcAmount = parseFloat(calculatorAmount || '0');
-  const stripeFee = calcAmount * 0.036 + 3;
-  const paypalFee = calcAmount * 0.0399 + 4;
-  const stripeTotal = feePreference === 'guest' ? calcAmount + stripeFee : calcAmount;
-  const paypalTotal = feePreference === 'guest' ? calcAmount + paypalFee : calcAmount;
-  const coupleReceivesStripe = calcAmount - stripeFee;
-  const coupleReceivesPaypal = calcAmount - paypalFee;
+
+  // When guests pay fees, they pay the gross amount (calcAmount + fees)
+  // When couple absorbs fees, couple receives net amount (calcAmount - fees)
+  let stripeFee: number, paypalFee: number, stripeTotal: number, paypalTotal: number;
+  let coupleReceivesStripe: number, coupleReceivesPaypal: number;
+
+  if (feePreference === 'guest') {
+    // Guests pay: calculate gross from net amount
+    const stripeGross = stripeMexico(calcAmount);
+    const paypalGross = paypalMexico(calcAmount);
+    stripeFee = stripeGross - calcAmount;
+    paypalFee = paypalGross - calcAmount;
+    stripeTotal = stripeGross;
+    paypalTotal = paypalGross;
+    coupleReceivesStripe = calcAmount;
+    coupleReceivesPaypal = calcAmount;
+  } else {
+    // Couple absorbs: calculate net from gross amount
+    const stripeBreakdown = stripeMexicoBreakdown(calcAmount);
+    const paypalBreakdown = paypalMexicoBreakdown(calcAmount);
+    stripeFee = stripeBreakdown.totalFee;
+    paypalFee = paypalBreakdown.totalFee;
+    stripeTotal = calcAmount;
+    paypalTotal = calcAmount;
+    coupleReceivesStripe = stripeBreakdown.net;
+    coupleReceivesPaypal = paypalBreakdown.net;
+  }
 
   return (
     <section className="space-y-6">
@@ -29,9 +51,7 @@ export function FeePreferenceSection({ feePreference, onFeePreferenceChange, onS
           <CreditCard className="h-8 w-8 text-[#d4704a]" />
           Comisiones de Pago
         </h2>
-        <p className="text-muted-foreground font-light">
-          Decide cómo manejar las comisiones de las plataformas de pago (Stripe y PayPal)
-        </p>
+        <p className="text-muted-foreground font-light">Decide cómo manejar las comisiones de las plataformas de pago (Stripe y PayPal)</p>
       </div>
 
       {/* Fee Preference Selection */}
@@ -116,9 +136,7 @@ export function FeePreferenceSection({ feePreference, onFeePreferenceChange, onS
                   <span className="font-medium text-foreground">${stripeFee.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {feePreference === 'guest' ? 'Total a pagar:' : 'Ustedes reciben:'}
-                  </span>
+                  <span className="text-muted-foreground">{feePreference === 'guest' ? 'Total a pagar:' : 'Ustedes reciben:'}</span>
                   <span className="font-semibold text-[#635BFF]">
                     ${(feePreference === 'guest' ? stripeTotal : coupleReceivesStripe).toFixed(2)}
                   </span>
@@ -142,9 +160,7 @@ export function FeePreferenceSection({ feePreference, onFeePreferenceChange, onS
                   <span className="font-medium text-foreground">${paypalFee.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {feePreference === 'guest' ? 'Total a pagar:' : 'Ustedes reciben:'}
-                  </span>
+                  <span className="text-muted-foreground">{feePreference === 'guest' ? 'Total a pagar:' : 'Ustedes reciben:'}</span>
                   <span className="font-semibold text-[#0070BA]">
                     ${(feePreference === 'guest' ? paypalTotal : coupleReceivesPaypal).toFixed(2)}
                   </span>

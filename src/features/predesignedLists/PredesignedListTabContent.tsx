@@ -5,12 +5,12 @@ import { PredesignedGiftCard } from './PredesignedGiftCard';
 
 interface PredesignedListTabContentProps {
   registry: PredesignedList;
-  addedGifts: Set<number>;
+  addedGifts: Set<string>;
   onAddGift: (gift: PredesignedGift, registryName: string) => void;
 }
 
 export function PredesignedListTabContent({ registry, addedGifts, onAddGift }: PredesignedListTabContentProps) {
-  const isGiftAdded = (giftId: number) => addedGifts.has(giftId);
+  const isGiftAdded = (giftTitle: string) => addedGifts.has(giftTitle.toLowerCase());
 
   const convertPredesignedGiftToGiftItem = (gift: PredesignedGift): GiftItem => ({
     id: gift.id,
@@ -36,7 +36,7 @@ export function PredesignedListTabContent({ registry, addedGifts, onAddGift }: P
       <div className="relative rounded-3xl overflow-hidden shadow-2xl">
         <div className="h-96 relative">
           <img src={registry.imageUrl} alt={registry.name} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+          <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent"></div>
           <div className="absolute bottom-0 left-0 right-0 p-12 text-white">
             <h2 className="text-4xl mb-3">{registry.name}</h2>
             <p className="text-xl opacity-90 max-w-2xl">{registry.description}</p>
@@ -77,13 +77,10 @@ export function PredesignedListTabContent({ registry, addedGifts, onAddGift }: P
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {registry.gifts.map((gift: PredesignedGift) => {
             const giftItem = convertPredesignedGiftToGiftItem(gift);
-            const added = isGiftAdded(gift.id);
+            const added = isGiftAdded(gift.title);
             return (
-              <div
-                key={gift.id}
-                onClick={() => !added && onAddGift(gift, registry.name)}
-                className={`h-full ${added ? 'opacity-75 pointer-events-none' : ''}`}>
-                <PredesignedGiftCard gift={giftItem} onAddToCart={() => onAddGift(gift, registry.name)} />
+              <div key={gift.id} className="h-full">
+                <PredesignedGiftCard gift={giftItem} onAddToCart={() => onAddGift(gift, registry.name)} added={added} />
               </div>
             );
           })}

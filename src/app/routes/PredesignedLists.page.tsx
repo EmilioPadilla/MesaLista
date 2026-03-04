@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useIsAuthenticated, useCurrentUser } from 'hooks/useUser';
 import { usePredesignedLists, useAddPredesignedGiftToWeddingList } from 'hooks/usePredesignedList';
 import { useGiftListsByUser } from 'hooks/useGiftList';
+import { useGiftsByWeddingList } from 'hooks/useWeddingList';
 import { PredesignedGift } from 'src/services/predesignedList.service';
 import { PredesignedListTabLabel } from 'src/features/predesignedLists/PredesignedListTabLabel';
 import { PredesignedListTabContent } from 'src/features/predesignedLists/PredesignedListTabContent';
@@ -27,9 +28,14 @@ export function PredesignedListsPage() {
   const { data: registries, isLoading } = usePredesignedLists();
   const { data: currentUser } = useCurrentUser();
   const { data: giftLists } = useGiftListsByUser(currentUser?.id);
-  const { mutate: addGiftToWeddingList, isPending: isAddingGift } = useAddPredesignedGiftToWeddingList();
+  const { mutate: addGiftToWeddingList } = useAddPredesignedGiftToWeddingList();
   const giftList = giftLists?.[0];
+  const { data: userGifts } = useGiftsByWeddingList(giftList?.id);
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Create a Set of gift titles that have been added to track duplicates
+  // Since predesigned gifts create new gifts with the same title, we track by title
+  const addedGifts = new Set(userGifts?.map((gift) => gift.title.toLowerCase()) || []);
 
   // Get the list ID from query params
   const listIdParam = searchParams.get('list');
@@ -106,7 +112,7 @@ export function PredesignedListsPage() {
             return {
               key: registry.id.toString(),
               label: <PredesignedListTabLabel icon={<Icon className="h-4 w-4" />} name={registry.name} />,
-              children: <PredesignedListTabContent registry={registry} addedGifts={new Set()} onAddGift={handleAddGift} />,
+              children: <PredesignedListTabContent registry={registry} addedGifts={addedGifts} onAddGift={handleAddGift} />,
             };
           })}
         />
