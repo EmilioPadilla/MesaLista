@@ -188,6 +188,7 @@ export default {
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object;
+        console.log('Payment completed via checkout.session.completed');
 
         try {
           // Check if this is a gift list creation payment

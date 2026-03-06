@@ -194,6 +194,9 @@ function Signup() {
 
         const createdUser = await createUser(userData);
 
+        // Automatically log in the user
+        await login({ email: values.email, password: values.password });
+
         // Create GiftList with planType
         if (createdUser) {
           const coupleName = values.spouseFirstName
@@ -205,15 +208,12 @@ function Signup() {
             title: `Mesa de Regalos de ${coupleName}`,
             coupleName: coupleName,
             eventDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
-            planType: selectedPlan.toUpperCase() as 'FIXED' | 'COMMISSION',
+            planType: 'COMMISSION',
             ...(discountCode && discountCodeValid && discountCodeInfo && { discountCodeId: discountCodeInfo.id }),
           });
         }
 
         message.success('¡Cuenta creada exitosamente!');
-
-        // Automatically log in the user
-        await login({ email: values.email, password: values.password });
 
         // Go to success
         setCurrentStep('success');

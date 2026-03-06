@@ -3,7 +3,6 @@
  */
 
 export default {
-
   // Maximum line length before wrapping (wider for modern screens, adjust if needed)
   printWidth: 140,
 

@@ -33,12 +33,12 @@ function SignupSuccess() {
   useEffect(() => {
     if (!sessionId) {
       message.error('No se encontró la sesión de pago');
+
       setIsVerifying(false);
       return;
     }
 
     const userData = retrieveInfo();
-
     login({
       email: userData.email,
       password: userData.password,
@@ -71,6 +71,8 @@ function SignupSuccess() {
   };
 
   const createUserAndLogin = async () => {
+    console.log('Could not login, creating user and creating gift list');
+
     const userData = retrieveInfo();
     // Verify Information before creating user
     if (
@@ -91,6 +93,11 @@ function SignupSuccess() {
     // Create user WITHOUT planType (it goes to GiftList now)
     const { planType, discountCode, ...userDataWithoutPlan } = userData;
     const createdUser = await createUser(userDataWithoutPlan);
+
+    await login({
+      email: userData.email,
+      password: userData.password,
+    });
 
     // Create GiftList with planType and discountCodeId
     if (createdUser) {
@@ -120,17 +127,6 @@ function SignupSuccess() {
       createUserAndLogin();
     }
   }, [isFailedLogin]);
-
-  useEffect(() => {
-    if (isSuccessCreatedUser) {
-      const userData = retrieveInfo();
-
-      login({
-        email: userData.email,
-        password: userData.password,
-      });
-    }
-  }, [isSuccessCreatedUser]);
 
   if (isVerifying) {
     return (
