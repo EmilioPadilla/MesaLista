@@ -101,6 +101,17 @@ export const useCreatePlanCheckoutSession = () => {
   });
 };
 
+export const useCompletePlanSignupSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: paymentService.completePlanSignupSession,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.isAuthenticated] });
+    },
+  });
+};
+
 /**
  * Hook to create gift list checkout session
  */

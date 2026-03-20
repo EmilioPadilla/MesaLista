@@ -2,8 +2,10 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import Stripe from 'stripe';
 import axios from 'axios';
+import bcrypt from 'bcrypt';
 import emailService from '../services/emailService.js';
 import { discountCodeService } from '../services/discountCodeService.js';
+import { createSessionAndSetCookie } from '../middleware/auth.js';
 
 const prisma = new PrismaClient();
 
@@ -34,6 +36,174 @@ const PAYPAL_BASE_URL = 'https://api-m.paypal.com';
 // PayPal access token cache
 let paypalAccessToken: string | null = null;
 let tokenExpiry: number = 0;
+
+const getDefaultEventDate = () => new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);
+
+const buildCoupleName = (firstName: string, lastName: string, spouseFirstName?: string | null) => {
+  return spouseFirstName ? `${firstName} y ${spouseFirstName}` : `${firstName} ${lastName}`;
+};
+
+const provisionFixedPlanSignupFromMetadata = async ({
+  metadata,
+  amount,
+  source,
+}: {
+  metadata?: Stripe.Metadata | null;
+  amount: number;
+  source: 'checkout.session.completed' | 'payment_intent.succeeded' | 'success_page_recovery';
+}) => {
+  if (metadata?.paymentFor !== 'PLAN_SUBSCRIPTION' || !metadata.email) {
+    return null;
+  }
+
+  console.log(`Processing plan subscription payment via ${source}`);
+
+  const discountCodeId = metadata.discountCodeId ? parseInt(metadata.discountCodeId) : undefined;
+
+  let user = await prisma.user.findUnique({
+    where: { email: metadata.email },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      spouseFirstName: true,
+      spouseLastName: true,
+      phoneNumber: true,
+      slug: true,
+      role: true,
+    },
+  });
+
+  if (!user) {
+    if (!metadata.passwordHash || !metadata.firstName || !metadata.lastName || !metadata.phoneNumber || !metadata.slug) {
+      console.error(`Missing signup metadata for fixed plan provisioning via ${source}`);
+      return null;
+    }
+
+    try {
+      user = await prisma.user.create({
+        data: {
+          email: metadata.email,
+          firstName: metadata.firstName,
+          lastName: metadata.lastName,
+          spouseFirstName: metadata.spouseFirstName || '',
+          spouseLastName: metadata.spouseLastName || '',
+          password: metadata.passwordHash,
+          phoneNumber: metadata.phoneNumber,
+          role: 'COUPLE',
+          slug: metadata.slug,
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          spouseFirstName: true,
+          spouseLastName: true,
+          phoneNumber: true,
+          slug: true,
+          role: true,
+        },
+      });
+
+      if (discountCodeId) {
+        try {
+          await prisma.discountCode.update({
+            where: { id: discountCodeId },
+            data: {
+              usageCount: {
+                increment: 1,
+              },
+            },
+          });
+        } catch (discountError) {
+          console.error('Error incrementing discount code usage count:', discountError);
+        }
+      }
+    } catch (error: any) {
+      if (error?.code === 'P2002') {
+        user = await prisma.user.findUnique({
+          where: { email: metadata.email },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            spouseFirstName: true,
+            spouseLastName: true,
+            phoneNumber: true,
+            slug: true,
+            role: true,
+          },
+        });
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  const existingGiftList = await prisma.giftList.findFirst({
+    where: {
+      userId: user.id,
+      planType: 'FIXED',
+    },
+    select: {
+      id: true,
+      title: true,
+      coupleName: true,
+      eventDate: true,
+    },
+  });
+
+  if (existingGiftList) {
+    console.log('User already has fixed plan gift list, skipping creation (deduplication)');
+    return { user, giftList: existingGiftList, created: false };
+  }
+
+  const coupleName = buildCoupleName(user.firstName, user.lastName, user.spouseFirstName);
+  const createdList = await prisma.giftList.create({
+    data: {
+      userId: user.id,
+      title: `Mesa de Regalos de ${coupleName}`,
+      description: '',
+      coupleName,
+      eventDate: getDefaultEventDate(),
+      planType: 'FIXED',
+      isActive: true,
+      invitationCount: 0,
+      ...(discountCodeId && { discountCodeId }),
+    },
+    select: {
+      id: true,
+      title: true,
+      coupleName: true,
+      eventDate: true,
+    },
+  });
+
+  console.log(`Gift list created successfully via ${source}:`, createdList.id);
+
+  try {
+    await emailService.sendGiftListCreationEmail({
+      userId: user.id,
+      giftListId: createdList.id,
+      giftListTitle: createdList.title,
+      coupleName,
+      eventDate: createdList.eventDate,
+      planType: 'FIXED',
+      amount,
+    });
+  } catch (emailError) {
+    console.error('Error sending gift list creation email:', emailError);
+  }
+
+  return { user, giftList: createdList, created: true };
+};
 
 // Get PayPal access token
 const getPayPalAccessToken = async (): Promise<string> => {
@@ -188,7 +358,7 @@ export default {
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object;
-        console.log('Payment completed via checkout.session.completed');
+        console.log('checkout.session.completed event received:', event.id);
 
         try {
           // Check if this is a gift list creation payment
@@ -232,6 +402,12 @@ export default {
               console.error('Error sending gift list creation email:', emailError);
               // Don't fail the webhook if email sending fails
             }
+          } else if (session.metadata?.paymentFor === 'PLAN_SUBSCRIPTION' && session.metadata?.email) {
+            await provisionFixedPlanSignupFromMetadata({
+              metadata: session.metadata,
+              amount: (session.amount_total || 0) / 100,
+              source: 'checkout.session.completed',
+            });
           } else if (session.metadata?.cartId) {
             // Handle regular cart payment
             const cartId = parseInt(session.metadata.cartId);
@@ -329,7 +505,26 @@ export default {
 
       case 'payment_intent.succeeded':
         console.log('Payment intent succeeded event received:', event.id);
-        // This event is also handled by checkout.session.completed
+        const paymentIntent = event.data.object;
+
+        try {
+          const sessions = await stripe.checkout.sessions.list({
+            payment_intent: paymentIntent.id,
+            limit: 1,
+          });
+
+          if (sessions.data.length > 0) {
+            const checkoutSession = sessions.data[0];
+
+            await provisionFixedPlanSignupFromMetadata({
+              metadata: checkoutSession.metadata,
+              amount: paymentIntent.amount / 100,
+              source: 'payment_intent.succeeded',
+            });
+          }
+        } catch (error) {
+          console.error('Error processing payment_intent.succeeded:', error);
+        }
         break;
 
       case 'payment_intent.created':
@@ -727,12 +922,25 @@ export default {
   // Create Stripe checkout session for plan payment (signup)
   createPlanCheckoutSession: async (req: Request, res: Response) => {
     try {
-      const { planType, email, successUrl, cancelUrl, discountCode } = req.body;
+      const {
+        planType,
+        email,
+        password,
+        firstName,
+        lastName,
+        spouseFirstName,
+        spouseLastName,
+        phoneNumber,
+        slug,
+        successUrl,
+        cancelUrl,
+        discountCode,
+      } = req.body;
 
-      if (!planType || !email) {
+      if (!planType || !email || !password || !firstName || !lastName || !phoneNumber || !slug) {
         return res.status(400).json({
           success: false,
-          message: 'Plan type and email are required',
+          message: 'Missing required signup data for plan checkout',
         });
       }
 
@@ -772,6 +980,8 @@ export default {
         finalAmount = Math.max(0, Math.round(discountedAmount * 100)); // Convert to cents
       }
 
+      const passwordHash = await bcrypt.hash(password, 10);
+
       // Create line item for plan payment
       const lineItems = [
         {
@@ -801,6 +1011,13 @@ export default {
           planType: 'FIXED',
           email: email,
           paymentFor: 'PLAN_SUBSCRIPTION',
+          passwordHash,
+          firstName,
+          lastName,
+          spouseFirstName: spouseFirstName || '',
+          spouseLastName: spouseLastName || '',
+          phoneNumber,
+          slug,
           ...(validatedDiscountCode && {
             discountCodeId: validatedDiscountCode.id.toString(),
             discountCode: validatedDiscountCode.code,
@@ -818,6 +1035,54 @@ export default {
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : 'Failed to create checkout session',
+      });
+    }
+  },
+
+  completePlanSignupSession: async (req: Request, res: Response) => {
+    try {
+      const { sessionId } = req.body;
+
+      if (!sessionId) {
+        return res.status(400).json({ success: false, message: 'Session ID is required' });
+      }
+
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      if (session.metadata?.paymentFor !== 'PLAN_SUBSCRIPTION') {
+        return res.status(400).json({ success: false, message: 'Invalid checkout session' });
+      }
+
+      if (session.payment_status !== 'paid') {
+        return res.status(409).json({ success: false, message: 'Payment has not been completed yet' });
+      }
+
+      const provisioned = await provisionFixedPlanSignupFromMetadata({
+        metadata: session.metadata,
+        amount: (session.amount_total || 0) / 100,
+        source: 'success_page_recovery',
+      });
+
+      if (!provisioned?.user) {
+        return res.status(500).json({ success: false, message: 'Failed to provision account' });
+      }
+
+      const userAgent = req.get('User-Agent') || 'Unknown';
+      const ipAddress = req.ip || req.connection.remoteAddress;
+
+      await createSessionAndSetCookie(res, provisioned.user.id, userAgent, ipAddress);
+
+      res.json({
+        success: true,
+        slug: provisioned.user.slug,
+        planType: 'FIXED',
+        giftListId: provisioned.giftList.id,
+      });
+    } catch (error) {
+      console.error('Error completing fixed plan signup session:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to complete plan signup',
       });
     }
   },

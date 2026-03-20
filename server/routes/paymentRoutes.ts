@@ -8,6 +8,8 @@ router.post('/create-checkout-session', paymentController.createCheckoutSession)
 
 router.post('/create-plan-checkout-session', paymentController.createPlanCheckoutSession);
 
+router.post('/complete-plan-signup-session', paymentController.completePlanSignupSession);
+
 router.post('/create-gift-list-checkout-session', authenticateSession, paymentController.createGiftListCheckoutSession);
 
 router.post('/cancel-payment', paymentController.handlePaymentCancellation);

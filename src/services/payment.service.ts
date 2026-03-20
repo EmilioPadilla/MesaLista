@@ -181,11 +181,25 @@ export const paymentService = {
   createPlanCheckoutSession: async (data: {
     planType: string;
     email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    spouseFirstName?: string;
+    spouseLastName?: string;
+    phoneNumber: string;
+    slug: string;
     successUrl: string;
     cancelUrl: string;
     discountCode?: string;
   }): Promise<{ success: boolean; sessionId: string; url: string }> => {
     const response = await apiClient.post(api_endpoints.payments.createPlanCheckoutSession, data);
+    return response.data;
+  },
+
+  completePlanSignupSession: async (data: {
+    sessionId: string;
+  }): Promise<{ success: boolean; slug: string; planType: 'FIXED'; giftListId: number }> => {
+    const response = await apiClient.post(api_endpoints.payments.completePlanSignupSession, data);
     return response.data;
   },
 

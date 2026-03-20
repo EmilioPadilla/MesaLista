@@ -3,8 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { message } from 'antd';
 import { Check, Loader2 } from 'lucide-react';
 import { Button } from 'components/core/Button';
-import { useCreateUser, useLogin } from 'hooks/useUser';
-import { useCreateGiftList } from 'hooks/useGiftList';
+import { useCompletePlanSignupSession } from 'hooks/usePayment';
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
 
 function SignupSuccess() {
@@ -12,121 +11,48 @@ function SignupSuccess() {
   const [searchParams] = useSearchParams();
   const [isVerifying, setIsVerifying] = useState(true);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [signupSlug, setSignupSlug] = useState('');
   const sessionId = searchParams.get('session_id');
-  const { mutateAsync: createUser, isSuccess: isSuccessCreatedUser } = useCreateUser();
-  const { mutateAsync: createGiftList } = useCreateGiftList();
-  const { mutateAsync: login, isSuccess: isSuccessLogin, isError: isFailedLogin } = useLogin();
+  const { mutateAsync: completePlanSignupSession } = useCompletePlanSignupSession();
   const trackEvent = useTrackEvent();
 
-  const retrieveInfo = () => {
-    const pendingUserDataStr = sessionStorage.getItem('pendingUserData');
-    if (!pendingUserDataStr) {
-      message.error('No se encontraron los datos de la cuenta');
-      setIsVerifying(false);
-      return;
-    }
-
-    const pendingUserData = JSON.parse(pendingUserDataStr);
-    return pendingUserData;
-  };
-
   useEffect(() => {
-    if (!sessionId) {
-      message.error('No se encontró la sesión de pago');
-
-      setIsVerifying(false);
-      return;
-    }
-
-    const userData = retrieveInfo();
-    login({
-      email: userData.email,
-      password: userData.password,
-    });
-  }, [sessionId]);
-
-  const goToCouplePage = async () => {
-    const userData = retrieveInfo();
-
-    setIsVerifying(false);
-    // If login succeeds, account already exists
-    sessionStorage.removeItem('pendingUserData');
-    setPaymentSuccess(true);
-    setIsVerifying(false);
-
-    // Track registry purchase
-    trackEvent('REGISTRY_PURCHASE', {
-      planType: userData.planType,
-      slug: userData.slug,
-    });
-
-    // Redirect to user's registry after 3 seconds
-    setTimeout(() => {
-      if (userData.slug) {
-        navigate(`/${userData.slug}`);
-      } else {
-        message.error('Something failed when creating your user');
+    const finalizeSignup = async () => {
+      if (!sessionId) {
+        message.error('No se encontró la sesión de pago');
+        setIsVerifying(false);
+        return;
       }
-    }, 6000);
-  };
 
-  const createUserAndLogin = async () => {
-    console.log('Could not login, creating user and creating gift list');
+      try {
+        const result = await completePlanSignupSession({ sessionId });
 
-    const userData = retrieveInfo();
-    // Verify Information before creating user
-    if (
-      !userData.email ||
-      !userData.password ||
-      !userData.firstName ||
-      !userData.lastName ||
-      !userData.planType ||
-      !userData.slug ||
-      !userData.phoneNumber ||
-      !userData.role
-    ) {
-      message.error('Faltan datos para crear la cuenta');
-      setIsVerifying(false);
-      return;
-    }
+        sessionStorage.removeItem('pendingUserData');
+        setSignupSlug(result.slug);
+        setPaymentSuccess(true);
+        setIsVerifying(false);
 
-    // Create user WITHOUT planType (it goes to GiftList now)
-    const { planType, discountCode, ...userDataWithoutPlan } = userData;
-    const createdUser = await createUser(userDataWithoutPlan);
+        trackEvent('REGISTRY_PURCHASE', {
+          planType: result.planType,
+          slug: result.slug,
+        });
 
-    await login({
-      email: userData.email,
-      password: userData.password,
-    });
+        setTimeout(() => {
+          if (result.slug) {
+            navigate(`/${result.slug}`);
+          } else {
+            message.error('Something failed when creating your user');
+          }
+        }, 6000);
+      } catch (error: any) {
+        console.error('Error completing plan signup:', error);
+        message.error(error.response?.data?.message || 'Hubo un problema al procesar tu pago. Por favor intenta de nuevo.');
+        setIsVerifying(false);
+      }
+    };
 
-    // Create GiftList with planType and discountCodeId
-    if (createdUser) {
-      const coupleName = userData.spouseFirstName
-        ? `${userData.firstName} y ${userData.spouseFirstName}`
-        : `${userData.firstName} ${userData.lastName}`;
-
-      await createGiftList({
-        userId: createdUser.id,
-        title: `Mesa de Regalos de ${coupleName}`,
-        coupleName: coupleName,
-        eventDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(), // 6 months from now
-        planType: planType,
-        discountCodeId: discountCode?.id,
-      });
-    }
-  };
-
-  useEffect(() => {
-    if (isSuccessLogin) {
-      goToCouplePage();
-    }
-  }, [isSuccessLogin]);
-
-  useEffect(() => {
-    if (isFailedLogin) {
-      createUserAndLogin();
-    }
-  }, [isFailedLogin]);
+    finalizeSignup();
+  }, [sessionId]);
 
   if (isVerifying) {
     return (
@@ -171,7 +97,7 @@ function SignupSuccess() {
           <p className="text-muted-foreground mb-8">Serás redirigido a tu mesa de regalos en unos segundos...</p>
           <div className="bg-[#d4704a]/10 rounded-2xl p-4">
             <p className="text-sm text-[#d4704a] font-semibold">✓ Plan Fijo activado</p>
-            <p className="text-xs text-muted-foreground mt-1">Sin comisiones por ventas</p>
+            <p className="text-xs text-muted-foreground mt-1">Tu enlace: mesalista.com/{signupSlug}</p>
           </div>
         </div>
       </div>

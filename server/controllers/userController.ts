@@ -16,6 +16,12 @@ import emailService from '../services/emailService.js';
 import passwordValidationService from '../services/passwordValidationService.js';
 import { discountCodeService } from '../services/discountCodeService.js';
 
+const getDefaultEventDate = () => new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);
+
+const buildCoupleName = (firstName: string, lastName: string, spouseFirstName?: string | null) => {
+  return spouseFirstName ? `${firstName} y ${spouseFirstName}` : `${firstName} ${lastName}`;
+};
+
 export const userController = {
   // Get all users
   getAllUsers: async (req: Request, res: Response) => {
@@ -155,6 +161,111 @@ export const userController = {
     } catch (error: unknown) {
       console.error('Error fetching user:', error);
       res.status(500).json({ error: 'Failed to fetch user' });
+    }
+  },
+
+  signupCommission: async (req: Request, res: Response) => {
+    const { email, firstName, lastName, spouseFirstName, spouseLastName, password, phoneNumber, slug, discountCode } =
+      req.body as UserCreateRequest & { discountCode?: string };
+
+    if (!email || !password || !firstName || !lastName || !phoneNumber || !slug) {
+      return res.status(400).json({ error: 'Email, password, first name, last name, phone number, and slug are required' });
+    }
+
+    const userAgent = req.get('User-Agent') || 'Unknown';
+    const ipAddress = req.ip || req.connection.remoteAddress;
+
+    try {
+      let discountCodeRecord = null;
+
+      if (discountCode) {
+        const validation = await discountCodeService.validateDiscountCode(discountCode);
+        if (!validation.valid) {
+          return res.status(400).json({ error: validation.error || 'Invalid discount code' });
+        }
+
+        discountCodeRecord = validation.discountCode;
+      }
+
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      const coupleName = buildCoupleName(firstName, lastName, spouseFirstName);
+
+      const result = await prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            email,
+            firstName,
+            lastName,
+            spouseFirstName,
+            spouseLastName,
+            password: hashedPassword,
+            phoneNumber,
+            role: 'COUPLE',
+            slug,
+          },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            spouseFirstName: true,
+            spouseLastName: true,
+            slug: true,
+            imageUrl: true,
+            phoneNumber: true,
+            role: true,
+            createdAt: true,
+          },
+        });
+
+        const giftList = await tx.giftList.create({
+          data: {
+            userId: user.id,
+            title: `Mesa de Regalos de ${coupleName}`,
+            description: '',
+            coupleName,
+            eventDate: getDefaultEventDate(),
+            planType: 'COMMISSION',
+            isActive: true,
+            invitationCount: 0,
+            ...(discountCodeRecord && { discountCodeId: discountCodeRecord.id }),
+          },
+          select: {
+            id: true,
+            planType: true,
+          },
+        });
+
+        if (discountCodeRecord) {
+          await tx.discountCode.update({
+            where: { id: discountCodeRecord.id },
+            data: {
+              usageCount: {
+                increment: 1,
+              },
+            },
+          });
+        }
+
+        return { user, giftList };
+      });
+
+      await createSessionAndSetCookie(res, result.user.id, userAgent, ipAddress);
+
+      res.status(201).json({
+        ...result.user,
+        giftListId: result.giftList.id,
+        planType: result.giftList.planType,
+      });
+    } catch (error: unknown) {
+      console.error('Error creating commission signup:', error);
+
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+        return res.status(409).json({ error: 'Email or slug already exists' });
+      }
+
+      res.status(500).json({ error: 'Failed to create account' });
     }
   },
 

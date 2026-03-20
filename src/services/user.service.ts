@@ -9,6 +9,13 @@ export interface LoginResponse extends User {
 }
 
 export const userService = {
+  signupCommission: async (
+    userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { password: string; discountCode?: string },
+  ): Promise<User> => {
+    const response = await apiClient.post(user_endpoints.signupCommission, userData);
+    return response.data;
+  },
+
   getCurrentUser: async (suppressErrorLog = false): Promise<User> => {
     // Get the current user based on the stored token
     // The backend will identify the user from the token

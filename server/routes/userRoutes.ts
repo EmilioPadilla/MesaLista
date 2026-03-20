@@ -5,6 +5,8 @@ import { authenticateSession, requireAdmin } from '../middleware/auth.js';
 const router = express.Router();
 
 // Public routes (no authentication required)
+router.post('/signup/commission', userController.signupCommission);
+
 router.post('/', userController.createUser); // Registration is public
 
 router.post('/login', userController.loginUser); // Login is public

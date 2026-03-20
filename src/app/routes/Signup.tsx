@@ -4,9 +4,7 @@ import { Checkbox, message, Form, Input, Radio, Spin } from 'antd';
 import { Button } from 'components/core/Button';
 import { Mail, Lock, ArrowLeft, Phone, Edit3, ArrowRight, Check, CreditCard, TrendingUp, Zap, ShieldCheck, Tag } from 'lucide-react';
 import { userService } from 'services/user.service';
-import { UserRole } from 'types/models/user';
-import { useIsAuthenticated, useCreateUser, useLogin, useCheckSlugAvailability } from 'hooks/useUser';
-import { useCreateGiftList } from 'hooks/useGiftList';
+import { useIsAuthenticated, useCheckSlugAvailability, useSignupCommission } from 'hooks/useUser';
 import { useSendVerificationCode, useVerifyCode } from 'hooks/useEmailVerification';
 import { useCreatePlanCheckoutSession } from 'hooks/usePayment';
 import { motion, AnimatePresence } from 'motion/react';
@@ -35,10 +33,9 @@ function Signup() {
   const [resendTimer, setResendTimer] = useState(0);
   const [password, setPassword] = useState('');
   const [discountCode, setDiscountCode] = useState('');
+  const [successSlug, setSuccessSlug] = useState('');
 
-  const { mutateAsync: createUser, isSuccess: isSuccessCreatedUser } = useCreateUser();
-  const { mutateAsync: createGiftList } = useCreateGiftList();
-  const { mutateAsync: login } = useLogin();
+  const { mutateAsync: signupCommission } = useSignupCommission();
   const { mutateAsync: createPlanCheckout } = useCreatePlanCheckoutSession();
   const { mutateAsync: sendVerificationCode, isPending: isResendingCode } = useSendVerificationCode();
   const { mutateAsync: verifyCode } = useVerifyCode();
@@ -101,14 +98,6 @@ function Signup() {
     }
   }, [resendTimer]);
 
-  // Redirect user to couple page if user was successfully created here
-  // Do it after eight seconds of being in success step
-  useEffect(() => {
-    if (isSuccessCreatedUser && currentStep === 'success') {
-      setTimeout(() => navigate(`/${slug}`), 8000);
-    }
-  }, [isSuccessCreatedUser, currentStep]);
-
   // Use the useIsAuthenticated hook to check authentication status
   const { data: isAuthenticated = false, isLoading: isAuthLoading } = useIsAuthenticated();
 
@@ -145,8 +134,9 @@ function Signup() {
     try {
       // If fixed plan, redirect to payment FIRST
       if (selectedPlan === 'fixed') {
-        // Store user data in sessionStorage to create account after payment
-        const userData = {
+        const baseUrl = window.location.origin;
+        const checkoutResponse = await createPlanCheckout({
+          planType: 'FIXED',
           email: values.email,
           password: values.password,
           firstName: values.firstName,
@@ -155,17 +145,6 @@ function Signup() {
           spouseLastName: values.spouseLastName || '',
           phoneNumber: values.phone,
           slug: slug,
-          role: 'COUPLE',
-          planType: 'FIXED',
-          ...(discountCode && discountCodeValid && { discountCode }),
-        };
-
-        sessionStorage.setItem('pendingUserData', JSON.stringify(userData));
-
-        const baseUrl = window.location.origin;
-        const checkoutResponse = await createPlanCheckout({
-          planType: 'FIXED',
-          email: values.email,
           successUrl: `${baseUrl}/registro-exitoso?session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${baseUrl}/registro?step=payment&cancelled=true`,
           ...(discountCode && discountCodeValid && { discountCode }),
@@ -178,8 +157,7 @@ function Signup() {
           message.error('Error al crear la sesión de pago');
         }
       } else {
-        // Commission plan - no payment needed, create account directly
-        const userData = {
+        const createdUser = await signupCommission({
           email: values.email,
           password: values.password,
           firstName: values.firstName,
@@ -188,32 +166,14 @@ function Signup() {
           spouseLastName: values.spouseLastName || '',
           phoneNumber: values.phone,
           slug: slug,
-          role: 'COUPLE' as UserRole,
-          updatedAt: new Date(),
-        };
-
-        const createdUser = await createUser(userData);
-
-        // Automatically log in the user
-        await login({ email: values.email, password: values.password });
-
-        // Create GiftList with planType
-        if (createdUser) {
-          const coupleName = values.spouseFirstName
-            ? `${values.firstName} y ${values.spouseFirstName}`
-            : `${values.firstName} ${values.lastName}`;
-
-          await createGiftList({
-            userId: createdUser.id,
-            title: `Mesa de Regalos de ${coupleName}`,
-            coupleName: coupleName,
-            eventDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
-            planType: 'COMMISSION',
-            ...(discountCode && discountCodeValid && discountCodeInfo && { discountCodeId: discountCodeInfo.id }),
-          });
-        }
+          role: 'COUPLE',
+          ...(discountCode && discountCodeValid && { discountCode }),
+        });
 
         message.success('¡Cuenta creada exitosamente!');
+
+        setSuccessSlug(createdUser.slug || slug);
+        setTimeout(() => navigate(`/${createdUser.slug || slug}`), 8000);
 
         // Go to success
         setCurrentStep('success');
@@ -1012,7 +972,7 @@ function Signup() {
                 <h1 className="text-3xl sm:text-4xl mb-4 text-foreground">¡Cuenta creada exitosamente!</h1>
                 <p className="text-xl text-muted-foreground mb-8">Tu mesa de regalos está lista. Te redirigiremos en unos segundos.</p>
                 <div className="bg-blue-50 rounded-2xl p-4 text-center">
-                  <p className="text-sm text-blue-700">Tu enlace: mesalista.com/{slug}</p>
+                  <p className="text-sm text-blue-700">Tu enlace: mesalista.com/{successSlug || slug}</p>
                 </div>
               </div>
             )}

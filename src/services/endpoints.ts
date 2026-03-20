@@ -30,6 +30,8 @@ export const user_endpoints = {
    */
   base: `/user`,
 
+  signupCommission: `/user/signup/commission`,
+
   /**
    * Get current user
    * @method GET
@@ -397,6 +399,8 @@ export const payment_endpoints = {
    */
   createPlanCheckoutSession: `/payments/create-plan-checkout-session`,
 
+  completePlanSignupSession: `/payments/complete-plan-signup-session`,
+
   /**
    * Create Stripe checkout session for gift list payment
    * @method POST
@@ -739,6 +743,25 @@ const usersListsAnalytics_endpoints = {
 };
 
 /**
+ * Payment Analytics Endpoints
+ */
+const paymentAnalytics_endpoints = {
+  /**
+   * Get payment analytics summary
+   * @method GET
+   * @access Admin only
+   */
+  summary: `/admin/payment-analytics/summary`,
+
+  /**
+   * Get detailed payment analytics for all gift lists
+   * @method GET
+   * @access Admin only
+   */
+  lists: `/admin/payment-analytics/lists`,
+};
+
+/**
  * RSVP Endpoints
  */
 const rsvp_endpoints = {
@@ -913,6 +936,7 @@ export const endpoints = {
   predesignedLists: predesignedList_endpoints,
   discountCodes: discountCode_endpoints,
   usersListsAnalytics: usersListsAnalytics_endpoints,
+  paymentAnalytics: paymentAnalytics_endpoints,
   rsvp: rsvp_endpoints,
   invitations: invitation_endpoints,
   signupEmails: signupEmail_endpoints,

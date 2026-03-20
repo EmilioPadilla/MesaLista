@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
 import { Card, DatePicker, Select, Tabs } from 'antd';
-import { TrendingUp, Users, Mail } from 'lucide-react';
+import { TrendingUp, Users, Mail, DollarSign } from 'lucide-react';
 import { useMetricsSummary, useTimeSeries, useFunnelBreakdown, useMetricAlerts } from 'hooks/useAnalytics';
 import { useUsersListsSummary, useUsersAnalytics, useWeddingListsAnalytics } from 'hooks/useUsersListsAnalytics';
-import { UserAnalyticsTab, UsersListsAnalyticsTab, MarketingTab } from 'src/features/admin/analytics';
+import { usePaymentAnalyticsSummary, useGiftListsPaymentAnalytics } from 'hooks/usePaymentAnalytics';
+import { UserAnalyticsTab, UsersListsAnalyticsTab, MarketingTab, PaymentsCommissionsAnalyticsTab } from 'src/features/admin/analytics';
 import dayjs, { Dayjs } from 'dayjs';
 import { useGiftLists } from 'src/hooks/useGiftList';
 
@@ -79,6 +80,10 @@ export function Analytics() {
   const { data: usersListsSummary, isLoading: isUsersListsSummaryLoading } = useUsersListsSummary();
   const { data: usersData, isLoading: isUsersDataLoading } = useUsersAnalytics();
   const { data: listsData, isLoading: isListsDataLoading } = useWeddingListsAnalytics();
+
+  // Payment analytics data
+  const { data: paymentSummary, isLoading: isPaymentSummaryLoading } = usePaymentAnalyticsSummary();
+  const { data: paymentListsData, isLoading: isPaymentListsLoading } = useGiftListsPaymentAnalytics();
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -179,6 +184,22 @@ export function Analytics() {
             }
             key="marketing">
             <MarketingTab />
+          </Tabs.TabPane>
+
+          <Tabs.TabPane
+            tab={
+              <span>
+                <DollarSign className="inline mr-2" size={16} />
+                Pagos y Comisiones
+              </span>
+            }
+            key="payments">
+            <PaymentsCommissionsAnalyticsTab
+              summary={paymentSummary}
+              isSummaryLoading={isPaymentSummaryLoading}
+              listsData={paymentListsData}
+              isListsLoading={isPaymentListsLoading}
+            />
           </Tabs.TabPane>
         </Tabs>
       </div>

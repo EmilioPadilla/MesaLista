@@ -142,6 +142,18 @@ export const useCreateUser = () => {
   });
 };
 
+export const useSignupCommission = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: userService.signupCommission,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.users] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.isAuthenticated] });
+    },
+  });
+};
+
 /**
  * Hook to delete a user (admin only)
  */
