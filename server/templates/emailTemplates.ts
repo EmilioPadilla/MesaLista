@@ -2183,4 +2183,142 @@ MesaLista - Tu mesa de regalos, hecha simple
 mesalista.com.mx | info@mesalista.com.mx
     `.trim();
   }
+
+  /**
+   * Generate HTML email template for bank info request
+   */
+  static generateBankInfoRequestHTML(firstName: string): string {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f7; }
+    .container { max-width: 600px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #d4704a 0%, #c25f3a 100%); padding: 40px 30px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
+    .header p { color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px; }
+    .content { padding: 40px 30px; }
+    .greeting { font-size: 18px; color: #333; margin-bottom: 20px; }
+    .message { font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px; }
+    .highlight-box { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b; padding: 20px; margin: 30px 0; border-radius: 8px; }
+    .highlight-box p { margin: 0; color: #92400e; font-size: 15px; }
+    .info-list { background: #f8f9fa; padding: 25px; border-radius: 12px; margin: 30px 0; }
+    .info-list h3 { color: #d4704a; margin-top: 0; font-size: 18px; }
+    .info-list ul { margin: 15px 0; padding-left: 0; list-style: none; }
+    .info-list li { margin: 12px 0; color: #555; padding-left: 28px; position: relative; }
+    .info-list li::before { content: "✓"; position: absolute; left: 0; color: #d4704a; font-weight: bold; }
+    .confidential-box { background: #eff6ff; border: 1px solid #93c5fd; padding: 20px; border-radius: 12px; margin: 30px 0; }
+    .confidential-box h4 { color: #1e40af; margin: 0 0 10px 0; font-size: 16px; }
+    .confidential-box p { color: #1e40af; margin: 0; font-size: 14px; }
+    .footer { background: #f8f9fa; padding: 30px; text-align: center; color: #888; font-size: 14px; }
+    .footer a { color: #d4704a; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📋 Información Bancaria</h1>
+      <p>¡Cada vez falta menos para tu gran día!</p>
+    </div>
+    
+    <div class="content">
+      <p class="greeting">Hola ${firstName},</p>
+      
+      <p class="message">
+        Esperamos que se encuentren muy bien.
+      </p>
+
+      <p class="message">
+        ¡Cada vez falta menos para su gran día! Estamos muy emocionados de acompañarlos en este momento tan especial.
+      </p>
+
+      <div class="highlight-box">
+        <p>
+          <strong>📝 Solicitud importante:</strong> Con el objetivo de dejar todo listo para los próximos movimientos relacionados con su evento, les pedimos su apoyo compartiéndonos la siguiente información en respuesta a este correo.
+        </p>
+      </div>
+
+      <div class="info-list">
+        <h3>Información requerida:</h3>
+        <ul>
+          <li><strong>Nombre del titular de la cuenta</strong></li>
+          <li><strong>Banco</strong></li>
+          <li><strong>CLABE interbancaria</strong></li>
+          <li><strong>Carátula de estado de cuenta</strong> (en donde aparezca el nombre de alguno de los dos)</li>
+        </ul>
+      </div>
+
+      <div class="confidential-box">
+        <h4>🔒 Confidencialidad</h4>
+        <p>
+          Esta información será utilizada únicamente para fines administrativos relacionados con su evento y será tratada de manera confidencial.
+        </p>
+      </div>
+
+      <p class="message">
+        Agradecemos mucho su apoyo para enviarnos estos datos a la brevedad, con el fin de evitar cualquier contratiempo en la planeación.
+      </p>
+
+      <p class="message">
+        Quedamos atentos a cualquier duda.
+      </p>
+
+      <p class="message">
+        Saludos cordiales,<br>
+        <strong>El equipo de MesaLista</strong>
+      </p>
+    </div>
+    
+    <div class="footer">
+      <p>MesaLista - Tu mesa de regalos, hecha simple</p>
+      <p><a href="https://mesalista.com.mx">mesalista.com.mx</a> | <a href="mailto:info@mesalista.com.mx">info@mesalista.com.mx</a></p>
+    </div>
+  </div>
+</body>
+</html>
+    `.trim();
+  }
+
+  /**
+   * Generate plain text email template for bank info request
+   */
+  static generateBankInfoRequestText(firstName: string): string {
+    return `
+📋 INFORMACIÓN BANCARIA
+
+¡Cada vez falta menos para tu gran día!
+
+Hola ${firstName},
+
+Esperamos que se encuentren muy bien.
+
+¡Cada vez falta menos para su gran día! Estamos muy emocionados de acompañarlos en este momento tan especial.
+
+📝 SOLICITUD IMPORTANTE:
+Con el objetivo de dejar todo listo para los próximos movimientos relacionados con su evento, les pedimos su apoyo compartiéndonos la siguiente información en respuesta a este correo:
+
+INFORMACIÓN REQUERIDA:
+✓ Nombre del titular de la cuenta
+✓ Banco
+✓ CLABE interbancaria
+✓ Carátula de estado de cuenta (en donde aparezca el nombre de alguno de los dos)
+
+🔒 CONFIDENCIALIDAD:
+Esta información será utilizada únicamente para fines administrativos relacionados con su evento y será tratada de manera confidencial.
+
+Agradecemos mucho su apoyo para enviarnos estos datos a la brevedad, con el fin de evitar cualquier contratiempo en la planeación.
+
+Quedamos atentos a cualquier duda.
+
+Saludos cordiales,
+El equipo de MesaLista
+
+---
+MesaLista - Tu mesa de regalos, hecha simple
+mesalista.com.mx | info@mesalista.com.mx
+    `.trim();
+  }
 }

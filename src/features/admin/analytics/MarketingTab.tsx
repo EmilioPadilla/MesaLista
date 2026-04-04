@@ -398,6 +398,22 @@ export function MarketingTab() {
                       <li>Soporte prioritario gratuito</li>
                     </>
                   )}
+                  {campaign.type === 'inactive_warning' && (
+                    <>
+                      <li>Advertencia de cierre de cuenta</li>
+                      <li>Beneficios de completar la mesa</li>
+                      <li>Plazo de 30 días para reactivar</li>
+                      <li>Soporte disponible para ayudar</li>
+                    </>
+                  )}
+                  {campaign.type === 'bank_info_request' && (
+                    <>
+                      <li>Nombre del titular de la cuenta</li>
+                      <li>Banco</li>
+                      <li>CLABE interbancaria</li>
+                      <li>Carátula de estado de cuenta</li>
+                    </>
+                  )}
                 </ul>
               </div>
 

@@ -347,11 +347,11 @@ export default {
         });
       }
 
-      const validEmailTypes = [1, 2, 3, 4, 'inactive_warning'];
+      const validEmailTypes = [1, 2, 3, 4, 'inactive_warning', 'bank_info_request'];
       if (!validEmailTypes.includes(emailType)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid email type. Must be 1, 2, 3, 4, or inactive_warning',
+          message: 'Invalid email type. Must be 1, 2, 3, 4, inactive_warning, or bank_info_request',
         });
       }
 
@@ -394,11 +394,11 @@ export default {
         });
       }
 
-      const validEmailTypes = [1, 2, 3, 4, 'inactive_warning'];
+      const validEmailTypes = [1, 2, 3, 4, 'inactive_warning', 'bank_info_request'];
       if (!validEmailTypes.includes(emailType)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid email type. Must be 1, 2, 3, 4, or inactive_warning',
+          message: 'Invalid email type. Must be 1, 2, 3, 4, inactive_warning, or bank_info_request',
         });
       }
 
@@ -452,12 +452,12 @@ export default {
 
       // Parse email type - can be number or string
       const parsedEmailType = isNaN(Number(emailType)) ? emailType : Number(emailType);
-      const validEmailTypes = [1, 2, 3, 4, 'inactive_warning'];
+      const validEmailTypes = [1, 2, 3, 4, 'inactive_warning', 'bank_info_request'];
 
       if (!validEmailTypes.includes(parsedEmailType as any)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid email type. Must be 1, 2, 3, 4, or inactive_warning',
+          message: 'Invalid email type. Must be 1, 2, 3, 4, inactive_warning, or bank_info_request',
         });
       }
 

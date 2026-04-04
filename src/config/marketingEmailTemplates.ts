@@ -3,7 +3,7 @@
  * Used across admin components for sending marketing emails to users
  */
 
-export type MarketingEmailType = 1 | 2 | 3 | 4 | 'inactive_warning';
+export type MarketingEmailType = 1 | 2 | 3 | 4 | 'inactive_warning' | 'bank_info_request';
 
 export interface MarketingEmailTemplate {
   type: MarketingEmailType;
@@ -54,6 +54,14 @@ export const MARKETING_EMAIL_TEMPLATES: MarketingEmailTemplate[] = [
     icon: '⚠️',
     color: 'from-amber-400 to-orange-500',
     timing: 'Enviar cuando el usuario esté inactivo por más de 1 mes',
+  },
+  {
+    type: 'bank_info_request',
+    title: 'Solicitud de Información Bancaria',
+    description: 'Solicita datos bancarios (titular, banco, CLABE, carátula) para preparar transferencias relacionadas con el evento.',
+    icon: '🏦',
+    color: 'from-emerald-400 to-teal-600',
+    timing: 'Enviar cuando se acerque la fecha del evento',
   },
 ];
 

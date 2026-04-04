@@ -806,10 +806,48 @@ class EmailService {
   }
 
   /**
+   * Send Bank Info Request email to a specific user
+   */
+  async sendBankInfoRequestEmail(userId: number): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          email: true,
+          firstName: true,
+        },
+      });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: user.email,
+        Subject: `📋 ${user.firstName}, MesaLista te necesita`,
+        HtmlBody: EmailTemplates.generateBankInfoRequestHTML(user.firstName),
+        TextBody: EmailTemplates.generateBankInfoRequestText(user.firstName),
+        MessageStream: 'outbound',
+      });
+
+      console.log(`Bank Info Request email sent to: ${user.email}`);
+    } catch (error) {
+      console.error('Error sending bank info request email:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Send marketing email to specific users
    */
   async sendMarketingEmailToSelectedUsers(
-    emailType: 1 | 2 | 3 | 4 | 'inactive_warning',
+    emailType: 1 | 2 | 3 | 4 | 'inactive_warning' | 'bank_info_request',
     userIds: number[],
   ): Promise<{ sent: number; failed: number }> {
     if (!postmarkClient) {
@@ -841,6 +879,9 @@ class EmailService {
             case 'inactive_warning':
               await this.sendInactiveUserWarning(userId);
               break;
+            case 'bank_info_request':
+              await this.sendBankInfoRequestEmail(userId);
+              break;
           }
           sent++;
         } catch (error) {
@@ -861,7 +902,11 @@ class EmailService {
    * Send marketing email to a lead (signup email) by email address
    * Uses firstName if available, otherwise generic greeting. Uses generic signup link.
    */
-  async sendMarketingEmailToLead(emailType: 1 | 2 | 3 | 4 | 'inactive_warning', email: string, firstName?: string | null): Promise<void> {
+  async sendMarketingEmailToLead(
+    emailType: 1 | 2 | 3 | 4 | 'inactive_warning' | 'bank_info_request',
+    email: string,
+    firstName?: string | null,
+  ): Promise<void> {
     if (!postmarkClient) {
       console.warn('Postmark API key not configured. Skipping email.');
       return;
@@ -900,6 +945,11 @@ class EmailService {
         htmlBody = EmailTemplates.generateInactiveUserWarningHTML(name, 'tu mesa de regalos', 0);
         textBody = EmailTemplates.generateInactiveUserWarningText(name, 'tu mesa de regalos', 0);
         break;
+      case 'bank_info_request':
+        subject = `📋 ${name}, MesaLista te necesita`;
+        htmlBody = EmailTemplates.generateBankInfoRequestHTML(name);
+        textBody = EmailTemplates.generateBankInfoRequestText(name);
+        break;
     }
 
     await postmarkClient.sendEmail({
@@ -918,7 +968,7 @@ class EmailService {
    * Send marketing email to multiple leads by their signup email IDs
    */
   async sendMarketingEmailToLeads(
-    emailType: 1 | 2 | 3 | 4 | 'inactive_warning',
+    emailType: 1 | 2 | 3 | 4 | 'inactive_warning' | 'bank_info_request',
     leadEmails: { email: string; firstName?: string | null }[],
   ): Promise<{ sent: number; failed: number }> {
     let sent = 0;
@@ -942,7 +992,7 @@ class EmailService {
    * Generate email preview HTML for a specific user and email type
    */
   async getMarketingEmailPreview(
-    emailType: 1 | 2 | 3 | 4 | 'inactive_warning',
+    emailType: 1 | 2 | 3 | 4 | 'inactive_warning' | 'bank_info_request',
     userId: number,
   ): Promise<{ html: string; subject: string }> {
     try {
@@ -988,6 +1038,10 @@ class EmailService {
         case 'inactive_warning':
           html = EmailTemplates.generateInactiveUserWarningHTML(user.firstName, coupleName, giftCount);
           subject = `⚠️ ${user.firstName}, tu cuenta de MesaLista será cerrada pronto`;
+          break;
+        case 'bank_info_request':
+          html = EmailTemplates.generateBankInfoRequestHTML(user.firstName);
+          subject = `📋 ${user.firstName}, MesaLista te necesita`;
           break;
         default:
           throw new Error('Invalid email type');
