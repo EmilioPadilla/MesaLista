@@ -8,6 +8,7 @@ export interface Gift {
   price: number;
   imageUrl?: string;
   imagePosition?: number;
+  imageScale?: number;
   isPurchased: boolean;
   isMostWanted: boolean;
   giftListId: number;

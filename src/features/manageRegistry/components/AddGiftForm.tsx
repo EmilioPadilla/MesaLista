@@ -218,9 +218,14 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
                 {imageState.url && (
                   <div className="space-y-2">
                     <label>Vista Previa</label>
-                    <div className="relative flex items-center justify-center w-full max-w-sm mx-auto">
+                    <div className="relative flex items-center justify-center w-full max-w-[200px] mx-auto">
                       <div className="w-full aspect-square bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-                        <Image src={imageState.url} alt="Vista previa" preview={false} className="w-full h-full object-cover" />
+                        <img
+                          src={imageState.url}
+                          alt="Vista previa"
+                          className="w-full h-full object-cover"
+                          style={{ maxHeight: '200px' }}
+                        />
                       </div>
                       <div className="absolute top-2 right-2">
                         <Button

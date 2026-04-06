@@ -33,6 +33,8 @@ export const SortableGiftItem = memo(SortableGiftItemComponent, (prevProps, next
     prevProps.gift.description === nextProps.gift.description &&
     prevProps.gift.price === nextProps.gift.price &&
     prevProps.gift.imageUrl === nextProps.gift.imageUrl &&
+    prevProps.gift.imagePosition === nextProps.gift.imagePosition &&
+    prevProps.gift.imageScale === nextProps.gift.imageScale &&
     prevProps.gift.isPurchased === nextProps.gift.isPurchased &&
     prevProps.gift.isMostWanted === nextProps.gift.isMostWanted &&
     prevProps.gift.order === nextProps.gift.order

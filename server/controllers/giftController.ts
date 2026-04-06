@@ -137,7 +137,8 @@ export const giftController = {
   // Update a gift
   updateGift: async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { title, description, price, imageUrl, imagePosition, category, categories, quantity, isMostWanted } = req.body as any;
+    const { title, description, price, imageUrl, imagePosition, imageScale, category, categories, quantity, isMostWanted } =
+      req.body as any;
 
     if (!id) {
       return res.status(400).json({ error: 'Gift ID is required' });
@@ -153,6 +154,7 @@ export const giftController = {
           ...(price && { price: Number(price) }),
           ...(imageUrl !== undefined && { imageUrl }),
           ...(imagePosition !== undefined && { imagePosition: Number(imagePosition) }),
+          ...(imageScale !== undefined && { imageScale: Number(imageScale) }),
           ...(quantity && { quantity: Number(quantity) }),
           ...(isMostWanted !== undefined && { isMostWanted: Boolean(isMostWanted) }),
         },

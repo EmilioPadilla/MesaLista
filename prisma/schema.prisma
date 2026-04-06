@@ -82,6 +82,7 @@ model Gift {
   price         Float
   imageUrl      String?
   imagePosition Float?    @default(50) @map("image_position") // Percentage (0-100) for vertical positioning
+  imageScale    Float?    @default(100) @map("image_scale") // Percentage (100-200) for zoom level
   isPurchased   Boolean   @default(false)
   isMostWanted    Boolean   @default(false)
   giftListId    Int       @map("gift_list_id")

@@ -181,13 +181,13 @@ const GiftCardComponent = ({
         <div className="relative">
           <div className="h-40 overflow-hidden rounded-t-lg">
             {gift.imageUrl ? (
-              <img
-                src={gift.imageUrl}
-                alt={gift.title}
-                loading="lazy"
-                className="w-full h-full object-cover rounded-t-lg"
+              <div
+                className="w-full h-full rounded-t-lg"
                 style={{
-                  objectPosition: `center ${(gift as any).imagePosition ?? 50}%`,
+                  backgroundImage: `url(${gift.imageUrl})`,
+                  backgroundPosition: `center ${gift.imagePosition ?? 50}%`,
+                  backgroundSize: `${gift.imageScale ?? 100}%`,
+                  backgroundRepeat: 'no-repeat',
                 }}
               />
             ) : (
@@ -321,6 +321,8 @@ export const GiftCard = memo(GiftCardComponent, (prevProps, nextProps) => {
     prevProps.gift.isPurchased === nextProps.gift.isPurchased &&
     prevProps.gift.isMostWanted === nextProps.gift.isMostWanted &&
     prevProps.gift.imageUrl === nextProps.gift.imageUrl &&
+    prevProps.gift.imagePosition === nextProps.gift.imagePosition &&
+    prevProps.gift.imageScale === nextProps.gift.imageScale &&
     prevProps.isGuest === nextProps.isGuest &&
     prevProps.variant === nextProps.variant &&
     prevProps.cartItems?.length === nextProps.cartItems?.length

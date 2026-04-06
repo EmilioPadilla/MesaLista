@@ -33,6 +33,7 @@ export const useCreateGift = () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.giftsByGiftList] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.categoriesByGiftList] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.gifts] });
+      queryClient.invalidateQueries({ queryKey: ['gift', 'byId'] });
     },
   });
 };
@@ -52,6 +53,7 @@ export const useUpdateGift = () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.giftsByGiftList] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.categoriesByGiftList] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.gifts] });
+      queryClient.invalidateQueries({ queryKey: ['gift', 'byId'] });
     },
   });
 };

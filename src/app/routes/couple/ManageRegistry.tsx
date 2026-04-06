@@ -67,8 +67,10 @@ export const ManageRegistry = () => {
       // Sort gifts by their order property when initially loading
       const sortedGifts = [...giftList.gifts].sort((a, b) => a.order - b.order);
       setGifts(sortedGifts);
+    } else {
+      setGifts([]);
     }
-  }, [giftList?.gifts]);
+  }, [giftList, giftLists]);
 
   const {
     isOpen: showEditGiftModal,
@@ -244,6 +246,13 @@ export const ManageRegistry = () => {
           gift={editingGift}
           isOpen={showEditGiftModal}
           onClose={() => setShowEditGiftModal(false)}
+          onGiftSaved={(savedGift) => {
+            setGifts((prevGifts) => {
+              if (!prevGifts) return prevGifts;
+              return prevGifts.map((gift) => (gift.id === savedGift.id ? { ...gift, ...savedGift } : gift));
+            });
+            setEditingGift(savedGift);
+          }}
           // TODO: this is causing that the onSuccess of uploadFile is not being called
           // afterClose={handleAfterCloseEditGiftModal}
           weddingListId={giftList?.id}

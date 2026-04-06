@@ -15,9 +15,10 @@ interface GiftModalProps {
   onClose: () => void;
   afterClose?: () => void;
   weddingListId?: number;
+  onGiftSaved?: (gift: GiftItem) => void;
 }
 
-export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: GiftModalProps) {
+export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, onGiftSaved }: GiftModalProps) {
   const [form] = Form.useForm();
   const [imageState, setImageState] = useState<{
     file: File | null;
@@ -25,6 +26,7 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
     name: string | undefined;
   }>({ file: null, url: undefined, name: undefined });
   const [imagePosition, setImagePosition] = useState<number>(50);
+  const [imageScale, setImageScale] = useState<number>(100);
   const { mutate: updateGift, isSuccess: updateSuccess, isError: updateError } = useUpdateGift();
   const { mutate: uploadFile } = useUploadFile();
   const { data: categories } = useGetCategoriesByGiftList(weddingListId);
@@ -41,7 +43,8 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
         imageUrl: gift.imageUrl || '',
       });
       setImageState({ file: null, url: gift.imageUrl || '', name: gift.imageUrl || '' });
-      setImagePosition((gift as any).imagePosition || 50);
+      setImagePosition((gift as any).imagePosition ?? 50);
+      setImageScale((gift as any).imageScale ?? 100);
     }
   }, [gift, isOpen]);
 
@@ -71,28 +74,7 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
   const handleFinish = (values: any) => {
     if (!gift) return;
 
-    if (imageState.file) {
-      uploadFile(imageState.file, {
-        onSuccess: (data) => {
-          const updatedGift: GiftItem = {
-            ...gift,
-            title: values.title,
-            description: values.description || '',
-            price: values.price,
-            categories:
-              values.categories?.map(
-                (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
-              ) || [],
-            isMostWanted: values.isMostWanted || false,
-            imageUrl: data,
-            imagePosition,
-          };
-
-          updateGift({ id: gift.id, data: updatedGift });
-        },
-      });
-    }
-    const updatedGift: GiftItem = {
+    const buildUpdatedGift = (finalImageUrl: string | undefined): GiftItem => ({
       ...gift,
       title: values.title,
       description: values.description || '',
@@ -102,12 +84,42 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
           (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
         ) || [],
       isMostWanted: values.isMostWanted || false,
-      imageUrl: values.imageUrl || gift.imageUrl,
+      imageUrl: finalImageUrl,
       imagePosition,
-    };
+      imageScale,
+    });
 
-    updateGift({ id: gift.id, data: updatedGift });
-    onClose();
+    if (imageState.file) {
+      // New image file selected - upload it first, then update gift
+      uploadFile(imageState.file, {
+        onSuccess: (data) => {
+          const updatedGift = buildUpdatedGift(data);
+
+          updateGift(
+            { id: gift.id, data: updatedGift },
+            {
+              onSuccess: () => {
+                onGiftSaved?.(updatedGift);
+                onClose();
+              },
+            },
+          );
+        },
+      });
+    } else {
+      // No new file - update with existing image URL and current position
+      const updatedGift = buildUpdatedGift(imageState.url || gift.imageUrl);
+
+      updateGift(
+        { id: gift.id, data: updatedGift },
+        {
+          onSuccess: () => {
+            onGiftSaved?.(updatedGift);
+            onClose();
+          },
+        },
+      );
+    }
   };
 
   const handleClose = () => {
@@ -195,13 +207,13 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
             <div className="space-y-4">
               <label>Vista Previa</label>
               <div className="relative flex items-center justify-center">
-                <div className="w-64 h-40 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                <div className="w-64 h-40 bg-muted rounded-lg flex items-center justify-center overflow-hidden shadow-sm border border-gray-100">
                   <div
-                    className="w-full h-full bg-cover bg-no-repeat rounded-lg"
+                    className="w-full h-full bg-no-repeat rounded-lg"
                     style={{
                       backgroundImage: `url(${imageState.url})`,
                       backgroundPosition: `center ${imagePosition}%`,
-                      backgroundSize: 'cover',
+                      backgroundSize: `${imageScale}%`,
                     }}
                   />
                 </div>
@@ -213,30 +225,57 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId }: 
                     onClick={() => {
                       setImageState({ name: '', file: null, url: '' });
                       setImagePosition(50);
+                      setImageScale(100);
                     }}></Button>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label>Posición de la imagen</label>
-                <div className="px-2">
+              <div className="space-y-4 rounded-xl border border-gray-100 bg-gray-50 p-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <label className="font-medium">Posición vertical</label>
+                    <span className="text-gray-500">{Math.round(imagePosition)}%</span>
+                  </div>
                   <Slider
                     min={0}
                     max={100}
                     value={imagePosition}
-                    onChange={(value) => setImagePosition(value)}
+                    onChange={(value) => setImagePosition(Number(value))}
                     tooltip={{
                       formatter: (value) => `${value}%`,
                     }}
-                    marks={{
-                      0: 'Arriba',
-                      50: 'Centro',
-                      100: 'Abajo',
+                  />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Arriba</span>
+                    <span>Centro</span>
+                    <span>Abajo</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <label className="font-medium">Zoom</label>
+                    <span className="text-gray-500">{(imageScale / 100).toFixed(2)}x</span>
+                  </div>
+                  <Slider
+                    min={70}
+                    max={200}
+                    value={imageScale}
+                    onChange={(value) => setImageScale(Number(value))}
+                    tooltip={{
+                      formatter: (value) => `${value}%`,
                     }}
                   />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Alejar</span>
+                    <span>Normal</span>
+                    <span>Acercar</span>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-500">Ajusta qué parte de la imagen será visible en la tarjeta del regalo</p>
               </div>
+              <p className="text-sm text-gray-500">
+                Ajusta la posición y el zoom de la imagen para que se vea mejor en la tarjeta del regalo
+              </p>
             </div>
           )}
         </div>
