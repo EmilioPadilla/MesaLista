@@ -23,8 +23,10 @@ export function GuestConfirmation() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const normalizedSearchCode = searchCode.trim().toUpperCase();
+
   // React Query hooks
-  const { data: invitee, refetch: searchInvitee, isLoading: searchLoading } = useInviteeByCode(searchCode, false);
+  const { data: invitee, refetch: searchInvitee, isLoading: searchLoading } = useInviteeByCode(normalizedSearchCode, false);
   const { data: messages } = useRsvpMessages(invitee?.giftListId || 0, !!invitee);
   const respondMutation = useRespondToRsvp();
 
@@ -39,14 +41,16 @@ export function GuestConfirmation() {
   const handleSearch = async () => {
     setError(null);
 
-    if (!searchCode.trim()) {
+    if (!normalizedSearchCode) {
       setError('Por favor, ingresa tu código secreto');
       return;
     }
 
+    setSearchCode(normalizedSearchCode);
+
     try {
-      await searchInvitee();
-      if (!invitee) {
+      const { data: foundInvitee } = await searchInvitee();
+      if (!foundInvitee) {
         setError('No se encontró ninguna invitación con este código');
       }
     } catch (error) {

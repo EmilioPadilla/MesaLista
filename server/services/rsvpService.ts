@@ -5,6 +5,37 @@ type RsvpStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED';
 const prisma = new PrismaClient();
 
 export const rsvpService = {
+  normalizeSecretCode(secretCode: string) {
+    return secretCode.trim().toUpperCase();
+  },
+
+  async findInviteeByNormalizedSecretCode(secretCode: string) {
+    const normalizedCode = this.normalizeSecretCode(secretCode);
+
+    const exactMatch = await prisma.invitee.findUnique({
+      where: { secretCode: normalizedCode },
+    });
+
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    const legacyMatchRows = await prisma.$queryRaw<Array<{ id: string }>>`
+      SELECT id
+      FROM invitees
+      WHERE UPPER(BTRIM(secret_code)) = ${normalizedCode}
+      LIMIT 1
+    `;
+
+    if (!legacyMatchRows.length) {
+      return null;
+    }
+
+    return prisma.invitee.findUnique({
+      where: { id: legacyMatchRows[0].id },
+    });
+  },
+
   // Get all invitees for a gift list
   async getInviteesByGiftListId(giftListId: number) {
     return prisma.invitee.findMany({
@@ -22,9 +53,7 @@ export const rsvpService = {
 
   // Get invitee by secret code
   async getInviteeBySecretCode(secretCode: string) {
-    return prisma.invitee.findUnique({
-      where: { secretCode },
-    });
+    return this.findInviteeByNormalizedSecretCode(secretCode);
   },
 
   // Generate a unique secret code
@@ -68,16 +97,14 @@ export const rsvpService = {
     const firstName = data.firstName || 'Invitado';
     const lastName = data.lastName || 'Sin Apellido';
     const tickets = data.tickets || 1;
-    let secretCode = data.secretCode?.toUpperCase();
+    let secretCode = data.secretCode ? this.normalizeSecretCode(data.secretCode) : undefined;
 
     // Generate secret code if not provided
     if (!secretCode) {
       secretCode = await this.generateSecretCode();
     } else {
       // Check if provided secret code already exists
-      const existing = await prisma.invitee.findUnique({
-        where: { secretCode },
-      });
+      const existing = await this.findInviteeByNormalizedSecretCode(secretCode);
 
       if (existing) {
         throw new Error('El código secreto ya existe. Por favor, usa otro código.');
@@ -154,11 +181,11 @@ export const rsvpService = {
       secretCode?: string;
     },
   ) {
+    const normalizedSecretCode = data.secretCode ? this.normalizeSecretCode(data.secretCode) : undefined;
+
     // If updating secret code, check if it already exists
-    if (data.secretCode) {
-      const existing = await prisma.invitee.findUnique({
-        where: { secretCode: data.secretCode },
-      });
+    if (normalizedSecretCode) {
+      const existing = await this.findInviteeByNormalizedSecretCode(normalizedSecretCode);
 
       if (existing && existing.id !== id) {
         throw new Error('El código secreto ya existe. Por favor, usa otro código.');
@@ -167,7 +194,10 @@ export const rsvpService = {
 
     return prisma.invitee.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        ...(normalizedSecretCode ? { secretCode: normalizedSecretCode } : {}),
+      },
     });
   },
 
@@ -232,9 +262,7 @@ export const rsvpService = {
 
   // Respond to RSVP
   async respondToRsvp(secretCode: string, status: RsvpStatus, confirmedTickets?: number, guestMessage?: string) {
-    const invitee = await prisma.invitee.findUnique({
-      where: { secretCode },
-    });
+    const invitee = await this.findInviteeByNormalizedSecretCode(secretCode);
 
     if (!invitee) {
       throw new Error('Invitación no encontrada');
@@ -251,7 +279,7 @@ export const rsvpService = {
     }
 
     return prisma.invitee.update({
-      where: { secretCode },
+      where: { id: invitee.id },
       data: {
         status,
         confirmedTickets: status === 'CONFIRMED' ? confirmedTickets : 0,

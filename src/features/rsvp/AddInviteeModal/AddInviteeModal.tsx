@@ -43,7 +43,10 @@ export function AddInviteeModal({ open, invitee, onClose, onSave }: AddInviteeMo
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      onSave(values);
+      onSave({
+        ...values,
+        secretCode: values.secretCode?.trim().toUpperCase(),
+      });
       form.resetFields();
     } catch (error) {
       message.error('Por favor, completa todos los campos requeridos');
@@ -88,7 +91,13 @@ export function AddInviteeModal({ open, invitee, onClose, onSave }: AddInviteeMo
             className="flex-1 mb-0!"
             rules={[{ required: true, message: 'El código secreto es requerido' }]}
             extra="Este código será necesario para confirmar la asistencia">
-            <Input placeholder="ABC12345" className="flex-1 shadow-sm" />
+            <Input
+              placeholder="ABC12345"
+              className="flex-1 shadow-sm"
+              onChange={(e) => {
+                form.setFieldValue('secretCode', e.target.value.toUpperCase());
+              }}
+            />
           </Form.Item>
           <Button className="border! border-primary! text-primary!" onClick={generateSecretCode}>
             Generar

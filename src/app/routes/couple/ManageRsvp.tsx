@@ -38,6 +38,8 @@ interface ImportInvitee {
   status?: 'PENDING' | 'CONFIRMED' | 'REJECTED';
 }
 
+const normalizeSecretCode = (code: string) => code.trim().toUpperCase();
+
 export function ManageRSVP() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -73,7 +75,11 @@ export function ManageRSVP() {
   const handleAddInvitee = async (invitee: Omit<Invitee, 'id' | 'status'>) => {
     if (!activeGiftListId) return;
     try {
-      await createInviteeMutation.mutateAsync({ ...invitee, giftListId: activeGiftListId });
+      await createInviteeMutation.mutateAsync({
+        ...invitee,
+        secretCode: normalizeSecretCode(invitee.secretCode),
+        giftListId: activeGiftListId,
+      });
       message.success('Invitado agregado');
     } catch (error) {
       console.error('Error creating invitee:', error);
@@ -84,7 +90,14 @@ export function ManageRSVP() {
   const handleUpdateInvitee = async (id: string, updatedInvitee: Omit<Invitee, 'id' | 'status'>) => {
     if (!activeGiftListId) return;
     try {
-      await updateInviteeMutation.mutateAsync({ id, giftListId: activeGiftListId, data: updatedInvitee });
+      await updateInviteeMutation.mutateAsync({
+        id,
+        giftListId: activeGiftListId,
+        data: {
+          ...updatedInvitee,
+          secretCode: normalizeSecretCode(updatedInvitee.secretCode),
+        },
+      });
       message.success('Invitado actualizado');
     } catch (error) {
       console.error('Error updating invitee:', error);
