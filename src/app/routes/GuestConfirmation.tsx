@@ -177,7 +177,7 @@ export function GuestConfirmation() {
                 <div className="mb-6">
                   <label htmlFor="guestMessage" className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
                     <Heart className="h-4 w-4" />
-                    Mensaje para los novios (opcional)
+                    Mensaje (opcional)
                   </label>
                   <Input.TextArea
                     id="guestMessage"
@@ -186,7 +186,7 @@ export function GuestConfirmation() {
                     maxLength={500}
                     showCount
                     rows={4}
-                    placeholder="Escribe un mensaje para los novios..."
+                    placeholder="Escribe un mensaje..."
                     className="rounded-xl bg-[#f5f5f7]! border-border/30"
                   />
                 </div>
