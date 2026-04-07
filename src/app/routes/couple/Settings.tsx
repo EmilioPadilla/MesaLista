@@ -567,6 +567,7 @@ export function Settings() {
           }}
           onSave={handleSaveSettings}
           hasChanges={hasSettingsChanges}
+          hasReceivedGifts={giftListData?.gifts?.some((gift) => gift.isPurchased) ?? false}
         />
 
         {/* Divider */}

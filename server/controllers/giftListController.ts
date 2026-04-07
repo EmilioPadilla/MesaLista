@@ -279,6 +279,31 @@ const giftListController = {
     }
 
     try {
+      // If trying to update feePreference, check if any gifts have been purchased
+      if (feePreference !== undefined) {
+        const existingGiftList = await prisma.giftList.findUnique({
+          where: { id: Number(giftListId) },
+          include: {
+            gifts: {
+              where: { isPurchased: true },
+              take: 1,
+            },
+          },
+        });
+
+        if (!existingGiftList) {
+          return res.status(404).json({ error: 'Gift list not found' });
+        }
+
+        // Block feePreference update if gifts have been purchased
+        if (existingGiftList.gifts.length > 0 && existingGiftList.feePreference !== feePreference) {
+          return res.status(403).json({
+            error:
+              'No puedes cambiar la configuración de comisiones porque ya has recibido regalos. Contacta a info@mesalista.com.mx para solicitar cambios.',
+          });
+        }
+      }
+
       const giftList = await prisma.giftList.update({
         where: { id: Number(giftListId) },
         data: {

@@ -32,6 +32,22 @@ export interface PaymentAnalyticsSummary {
   stripePaymentsCount: number;
 }
 
+export interface GiftPaymentDetail {
+  giftId: number;
+  giftTitle: string;
+  giftPrice: number;
+  paymentId: number;
+  paymentType: 'PAYPAL' | 'STRIPE';
+  paymentAmount: number;
+  paymentFee: number;
+  netAmount: number;
+  mesaListaCommission: number;
+  coupleReceives: number;
+  guestName: string;
+  guestEmail: string;
+  paidAt: string;
+}
+
 const paymentAnalyticsService = {
   /**
    * Get payment analytics summary
@@ -46,6 +62,11 @@ const paymentAnalyticsService = {
    */
   getGiftListsPaymentAnalytics: async (): Promise<GiftListPaymentAnalytics[]> => {
     const response = await apiClient.get<GiftListPaymentAnalytics[]>(`${endpoints.paymentAnalytics.lists}`);
+    return response.data;
+  },
+
+  getGiftListPaymentDetails: async (giftListId: number): Promise<GiftPaymentDetail[]> => {
+    const response = await apiClient.get<GiftPaymentDetail[]>(endpoints.paymentAnalytics.listPayments(giftListId));
     return response.data;
   },
 };

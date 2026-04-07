@@ -209,6 +209,18 @@ export const TopNav = ({ slug, sticky = true }: TopNavProps) => {
               )}
 
               {userData?.role === 'ADMIN' && isAuthenticated && (
+                <Tooltip title={viewType === 'mobile' ? 'Marketing' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === '/admin/marketing' ? 'primary' : 'text'}
+                    onClick={() => navigate('/admin/marketing')}
+                    className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <Mail className="h-4 w-4" />
+                    <span className="hidden md:block">Marketing</span>
+                  </Button>
+                </Tooltip>
+              )}
+
+              {userData?.role === 'ADMIN' && isAuthenticated && (
                 <Tooltip title={viewType === 'mobile' ? 'Control' : ''} placement="bottom">
                   <Button
                     type={currentPage === '/admin/control' ? 'primary' : 'text'}

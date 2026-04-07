@@ -759,6 +759,13 @@ const paymentAnalytics_endpoints = {
    * @access Admin only
    */
   lists: `/admin/payment-analytics/lists`,
+
+  /**
+   * Get detailed gift payments for a specific gift list
+   * @method GET
+   * @access Admin only
+   */
+  listPayments: (giftListId: number) => `/admin/payment-analytics/lists/${giftListId}/payments`,
 };
 
 /**

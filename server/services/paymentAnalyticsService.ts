@@ -34,6 +34,22 @@ export interface PaymentAnalyticsSummary {
   stripePaymentsCount: number;
 }
 
+export interface GiftPaymentDetail {
+  giftId: number;
+  giftTitle: string;
+  giftPrice: number;
+  paymentId: number;
+  paymentType: 'PAYPAL' | 'STRIPE';
+  paymentAmount: number;
+  paymentFee: number;
+  netAmount: number;
+  mesaListaCommission: number;
+  coupleReceives: number;
+  guestName: string;
+  guestEmail: string;
+  paidAt: string;
+}
+
 const paymentAnalyticsService = {
   /**
    * Get payment analytics for all gift lists
@@ -174,6 +190,103 @@ const paymentAnalyticsService = {
       paypalPaymentsCount,
       stripePaymentsCount,
     };
+  },
+
+  /**
+   * Get detailed gift payments for a specific gift list
+   */
+  getGiftListPaymentDetails: async (giftListId: number): Promise<GiftPaymentDetail[]> => {
+    const COMMISSION_RATE = 0.03;
+    const PAYPAL_RATE = 0.0399;
+    const PAYPAL_FIXED = 4.0;
+    const STRIPE_RATE = 0.036;
+    const STRIPE_FIXED = 3.0;
+
+    const giftList = await prisma.giftList.findUnique({
+      where: { id: giftListId },
+      select: {
+        planType: true,
+        feePreference: true,
+      },
+    });
+
+    if (!giftList) {
+      return [];
+    }
+
+    const carts = await prisma.cart.findMany({
+      where: {
+        giftListId,
+        status: 'PAID',
+      },
+      include: {
+        payment: true,
+        items: {
+          include: {
+            gift: {
+              select: {
+                id: true,
+                title: true,
+                price: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const giftPayments: GiftPaymentDetail[] = [];
+
+    for (const cart of carts) {
+      if (!cart.payment || cart.payment.status !== 'PAID') continue;
+
+      for (const item of cart.items) {
+        if (!item.gift) continue;
+
+        const giftPrice = item.gift.price * item.quantity;
+        const paymentType = cart.payment.paymentType as 'PAYPAL' | 'STRIPE';
+
+        // Calculate payment processing fee
+        let paymentFee = 0;
+        if (giftList.feePreference === 'couple') {
+          // Couple absorbs fees - calculate from gross
+          if (paymentType === 'PAYPAL') {
+            paymentFee = giftPrice * PAYPAL_RATE + PAYPAL_FIXED;
+          } else {
+            paymentFee = giftPrice * STRIPE_RATE + STRIPE_FIXED;
+          }
+        }
+        // If guest pays fees, the fee is already added to what they paid, so couple receives full amount
+
+        const netAmount = giftPrice - paymentFee;
+
+        // Calculate MesaLista commission (only for COMMISSION plan)
+        let mesaListaCommission = 0;
+        if (giftList.planType === 'COMMISSION') {
+          mesaListaCommission = netAmount * COMMISSION_RATE;
+        }
+
+        const coupleReceives = netAmount - mesaListaCommission;
+
+        giftPayments.push({
+          giftId: item.gift.id,
+          giftTitle: item.gift.title,
+          giftPrice: item.gift.price,
+          paymentId: cart.payment.id,
+          paymentType,
+          paymentAmount: giftPrice,
+          paymentFee: Math.round(paymentFee * 100) / 100,
+          netAmount: Math.round(netAmount * 100) / 100,
+          mesaListaCommission: Math.round(mesaListaCommission * 100) / 100,
+          coupleReceives: Math.round(coupleReceives * 100) / 100,
+          guestName: cart.inviteeName || 'Anónimo',
+          guestEmail: cart.inviteeEmail || '',
+          paidAt: cart.payment.createdAt.toISOString(),
+        });
+      }
+    }
+
+    return giftPayments;
   },
 };
 

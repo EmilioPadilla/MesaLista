@@ -14,4 +14,7 @@ router.get('/summary', paymentAnalyticsController.getPaymentAnalyticsSummary);
 // GET /api/admin/payment-analytics/lists - Get detailed payment analytics for all gift lists
 router.get('/lists', paymentAnalyticsController.getGiftListsPaymentAnalytics);
 
+// GET /api/admin/payment-analytics/lists/:giftListId/payments - Get detailed gift payments for a gift list
+router.get('/lists/:giftListId/payments', paymentAnalyticsController.getGiftListPaymentDetails);
+
 export default router;

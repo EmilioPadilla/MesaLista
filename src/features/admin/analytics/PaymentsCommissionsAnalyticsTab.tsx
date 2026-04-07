@@ -1,9 +1,11 @@
-import { Card, Statistic, Row, Col, Spin, Table, Tag, Tooltip } from 'antd';
-import { DollarSign, CreditCard, Wallet, TrendingUp, Percent, Gift } from 'lucide-react';
+import { useState } from 'react';
+import { Card, Statistic, Row, Col, Spin, Table, Tag, Tooltip, Dropdown, Button } from 'antd';
+import { DollarSign, CreditCard, Wallet, TrendingUp, Percent, Gift, EllipsisVertical } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
 import type { GiftListPaymentAnalytics, PaymentAnalyticsSummary } from 'services/paymentAnalytics.service';
 import { stripeMexicoBreakdown, paypalMexicoBreakdown } from 'utils/feeUtils';
+import { GiftPaymentsReportModal } from './GiftPaymentsReportModal';
 
 interface PaymentsCommissionsAnalyticsTabProps {
   summary: PaymentAnalyticsSummary | undefined;
@@ -22,6 +24,9 @@ export function PaymentsCommissionsAnalyticsTab({
   listsData,
   isListsLoading,
 }: PaymentsCommissionsAnalyticsTabProps) {
+  const [selectedGiftList, setSelectedGiftList] = useState<GiftListPaymentAnalytics | null>(null);
+  const [isPaymentsModalOpen, setIsPaymentsModalOpen] = useState(false);
+
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -100,7 +105,33 @@ export function PaymentsCommissionsAnalyticsTab({
 
   const totals = calculateTotals();
 
+  const openPaymentsReport = (record: GiftListPaymentAnalytics) => {
+    setSelectedGiftList(record);
+    setIsPaymentsModalOpen(true);
+  };
+
   const columns: ColumnsType<GiftListPaymentAnalytics> = [
+    {
+      title: '',
+      key: 'actions',
+      fixed: 'left',
+      width: 30,
+      align: 'center' as const,
+      render: (_, record) => (
+        <Dropdown
+          trigger={['click']}
+          menu={{
+            items: [{ key: 'view-payments', label: 'View payments' }],
+            onClick: ({ key }) => {
+              if (key === 'view-payments') {
+                openPaymentsReport(record);
+              }
+            },
+          }}>
+          <Button type="text" size="small" icon={<EllipsisVertical className="h-4 w-4" />} />
+        </Dropdown>
+      ),
+    },
     // Name/Title column
     {
       title: 'Lista de Regalos',
@@ -384,7 +415,7 @@ export function PaymentsCommissionsAnalyticsTab({
           dataSource={listsData}
           loading={isListsLoading}
           rowKey="id"
-          scroll={{ x: 1800 }}
+          scroll={{ x: 1900 }}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
@@ -392,6 +423,15 @@ export function PaymentsCommissionsAnalyticsTab({
           }}
         />
       </Card>
+
+      <GiftPaymentsReportModal
+        open={isPaymentsModalOpen}
+        selectedGiftList={selectedGiftList}
+        onClose={() => {
+          setIsPaymentsModalOpen(false);
+          setSelectedGiftList(null);
+        }}
+      />
     </div>
   );
 }

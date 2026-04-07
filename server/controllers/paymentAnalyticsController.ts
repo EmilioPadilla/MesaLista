@@ -29,4 +29,23 @@ export default {
       res.status(500).json({ error: 'Failed to fetch payment analytics summary' });
     }
   },
+
+  /**
+   * Get detailed gift payments for a specific gift list
+   * GET /api/admin/payment-analytics/lists/:giftListId/payments
+   */
+  getGiftListPaymentDetails: async (req: Request, res: Response) => {
+    try {
+      const giftListIdParam = req.params.giftListId;
+      const giftListId = parseInt(Array.isArray(giftListIdParam) ? giftListIdParam[0] : giftListIdParam, 10);
+      if (isNaN(giftListId)) {
+        return res.status(400).json({ error: 'Invalid gift list ID' });
+      }
+      const details = await paymentAnalyticsService.getGiftListPaymentDetails(giftListId);
+      res.json(details);
+    } catch (error) {
+      console.error('Error fetching gift list payment details:', error);
+      res.status(500).json({ error: 'Failed to fetch gift list payment details' });
+    }
+  },
 };

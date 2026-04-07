@@ -30,6 +30,7 @@ import { Contact } from 'routes/Contact';
 import { Settings } from './app/routes/couple/Settings';
 import { PricingPage } from './app/routes/PricingPage';
 import { Analytics } from './app/routes/admin/Analytics';
+import { Marketing } from './app/routes/admin/Marketing';
 import { AdminControl } from './app/routes/admin/AdminControl';
 import { PageViewTracker } from './components/analytics/PageViewTracker';
 import { PredesignedListsPage } from './app/routes/PredesignedLists.page';
@@ -125,6 +126,17 @@ function App() {
                     <TopNav />
                     <TopNavWrapper>
                       <Analytics />
+                    </TopNavWrapper>
+                  </>
+                }
+              />
+              <Route
+                path="/admin/marketing"
+                element={
+                  <>
+                    <TopNav />
+                    <TopNavWrapper>
+                      <Marketing />
                     </TopNavWrapper>
                   </>
                 }

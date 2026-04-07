@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { CreditCard, Calculator, TrendingUp, AlertCircle, Save } from 'lucide-react';
-import { Input } from 'antd';
+import { CreditCard, Calculator, TrendingUp, AlertCircle, Save, Lock } from 'lucide-react';
+import { Input, Tooltip } from 'antd';
 import { Button } from 'components/core/Button';
 import { stripeMexico, paypalMexico, stripeMexicoBreakdown, paypalMexicoBreakdown } from 'utils/feeUtils';
 
@@ -9,9 +9,16 @@ interface FeePreferenceSectionProps {
   onFeePreferenceChange: (preference: 'couple' | 'guest') => void;
   onSave: () => void;
   hasChanges: boolean;
+  hasReceivedGifts?: boolean;
 }
 
-export function FeePreferenceSection({ feePreference, onFeePreferenceChange, onSave, hasChanges }: FeePreferenceSectionProps) {
+export function FeePreferenceSection({
+  feePreference,
+  onFeePreferenceChange,
+  onSave,
+  hasChanges,
+  hasReceivedGifts = false,
+}: FeePreferenceSectionProps) {
   const [calculatorAmount, setCalculatorAmount] = useState('1000');
 
   // Fee calculator logic
@@ -183,15 +190,44 @@ export function FeePreferenceSection({ feePreference, onFeePreferenceChange, onS
         </div>
       </div>
 
+      {/* Locked Warning */}
+      {hasReceivedGifts && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <Lock className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm text-amber-800 font-medium">Configuración bloqueada</p>
+              <p className="text-sm text-amber-700 font-light mt-1">
+                Ya has recibido regalos, por lo que no puedes cambiar esta configuración. Si necesitas hacer cambios, por favor contacta a
+                soporte enviando un correo a{' '}
+                <a href="mailto:info@mesalista.com.mx" className="text-amber-800 underline font-medium">
+                  info@mesalista.com.mx
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Save Button */}
       <div className="flex justify-center pt-4">
-        <Button
-          onClick={onSave}
-          disabled={!hasChanges}
-          className="px-8 py-3 bg-[#d4704a] hover:bg-[#c25f3a] text-white rounded-full transition-all duration-200 flex items-center gap-2 border-0 disabled:opacity-50 disabled:cursor-not-allowed">
-          <Save className="h-5 w-5" />
-          Guardar configuración
-        </Button>
+        <Tooltip
+          title={
+            hasReceivedGifts
+              ? 'No puedes cambiar esta configuración porque ya has recibido regalos. Contacta a info@mesalista.com.mx para solicitar cambios.'
+              : ''
+          }
+          placement="top">
+          <span>
+            <Button
+              onClick={onSave}
+              disabled={!hasChanges || hasReceivedGifts}
+              className="px-8 py-3 bg-[#d4704a] hover:bg-[#c25f3a] text-white rounded-full transition-all duration-200 flex items-center gap-2 border-0 disabled:opacity-50 disabled:cursor-not-allowed">
+              {hasReceivedGifts ? <Lock className="h-5 w-5" /> : <Save className="h-5 w-5" />}
+              Guardar configuración
+            </Button>
+          </span>
+        </Tooltip>
       </div>
     </section>
   );
