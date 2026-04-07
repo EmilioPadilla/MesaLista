@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 
 type RsvpStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED';
-
-const prisma = new PrismaClient();
+type CustomFieldType = 'TEXT' | 'NUMBER' | 'BOOLEAN';
 
 export const rsvpService = {
   normalizeSecretCode(secretCode: string) {
@@ -261,7 +260,13 @@ export const rsvpService = {
   },
 
   // Respond to RSVP
-  async respondToRsvp(secretCode: string, status: RsvpStatus, confirmedTickets?: number, guestMessage?: string) {
+  async respondToRsvp(
+    secretCode: string,
+    status: RsvpStatus,
+    confirmedTickets?: number,
+    guestMessage?: string,
+    customFieldResponses?: Array<{ fieldId: number; value: string }>,
+  ) {
     const invitee = await this.findInviteeByNormalizedSecretCode(secretCode);
 
     if (!invitee) {
@@ -278,14 +283,67 @@ export const rsvpService = {
       }
     }
 
-    return prisma.invitee.update({
-      where: { id: invitee.id },
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.invitee.update({
+        where: { id: invitee.id },
+        data: {
+          status,
+          confirmedTickets: status === 'CONFIRMED' ? confirmedTickets : 0,
+          guestMessage: guestMessage || null,
+          respondedAt: new Date(),
+        },
+      });
+
+      if (customFieldResponses && customFieldResponses.length > 0) {
+        for (const cfr of customFieldResponses) {
+          await tx.rsvpCustomFieldResponse.upsert({
+            where: { inviteeId_fieldId: { inviteeId: invitee.id, fieldId: cfr.fieldId } },
+            create: { inviteeId: invitee.id, fieldId: cfr.fieldId, value: cfr.value },
+            update: { value: cfr.value },
+          });
+        }
+      }
+
+      return updated;
+    });
+  },
+
+  // ─── Custom Fields ────────────────────────────────────────────────────────
+
+  async getCustomFields(giftListId: number) {
+    return prisma.rsvpCustomField.findMany({
+      where: { giftListId },
+      orderBy: { order: 'asc' },
+    });
+  },
+
+  async createCustomField(giftListId: number, data: { label: string; type: CustomFieldType; required?: boolean; order?: number }) {
+    return prisma.rsvpCustomField.create({
       data: {
-        status,
-        confirmedTickets: status === 'CONFIRMED' ? confirmedTickets : 0,
-        guestMessage: guestMessage || null,
-        respondedAt: new Date(),
+        giftListId,
+        label: data.label,
+        type: data.type,
+        required: data.required ?? false,
+        order: data.order ?? 0,
       },
+    });
+  },
+
+  async updateCustomField(id: number, data: { label?: string; type?: CustomFieldType; required?: boolean; order?: number }) {
+    return prisma.rsvpCustomField.update({
+      where: { id },
+      data,
+    });
+  },
+
+  async deleteCustomField(id: number) {
+    return prisma.rsvpCustomField.delete({ where: { id } });
+  },
+
+  async getCustomFieldResponsesForInvitees(giftListId: number) {
+    return prisma.rsvpCustomFieldResponse.findMany({
+      where: { field: { giftListId } },
+      include: { field: true },
     });
   },
 

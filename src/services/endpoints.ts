@@ -868,6 +868,41 @@ const rsvp_endpoints = {
    * @access Protected (Couple only)
    */
   updateMessages: `/rsvp/messages`,
+
+  /**
+   * Get custom fields for a gift list
+   * @method GET
+   * @access Public
+   */
+  getCustomFields: (giftListId: number) => `/rsvp/custom-fields/${giftListId}`,
+
+  /**
+   * Create a custom field
+   * @method POST
+   * @access Protected (Couple only)
+   */
+  createCustomField: `/rsvp/custom-fields`,
+
+  /**
+   * Update a custom field
+   * @method PUT
+   * @access Protected (Couple only)
+   */
+  updateCustomField: (id: number) => `/rsvp/custom-fields/${id}`,
+
+  /**
+   * Delete a custom field
+   * @method DELETE
+   * @access Protected (Couple only)
+   */
+  deleteCustomField: (id: number) => `/rsvp/custom-fields/${id}`,
+
+  /**
+   * Get custom field responses for a gift list's invitees
+   * @method GET
+   * @access Protected (Couple only)
+   */
+  getCustomFieldResponses: `/rsvp/custom-field-responses`,
 };
 
 /**

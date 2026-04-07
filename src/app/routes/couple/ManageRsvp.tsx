@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Search, Upload, Plus, Download, Users, RefreshCw, Copy, Check } from 'lucide-react';
+import { Search, Upload, Plus, Download, Users, RefreshCw, Copy, Check, Settings } from 'lucide-react';
 import { Button, Input, Select, message, Tabs, Spin } from 'antd';
 import { AddInviteeModal } from 'src/features/rsvp/AddInviteeModal/AddInviteeModal';
 import { ImportInviteesModal } from 'src/features/rsvp/ImportInviteeModal/ImportInviteeModal';
 import { InviteesTable } from 'src/features/rsvp/InviteesTable';
 import { RsvpStatistics } from 'src/features/rsvp/RsvpStatistics';
 import { ImportErrorsAlert } from 'src/features/rsvp/ImportErrorsAlert';
+import { CustomFieldsManager } from 'src/features/rsvp/CustomFieldsManager';
 import {
   useInvitees,
   useCreateInvitee,
@@ -15,9 +16,12 @@ import {
   useBulkDeleteInvitees,
   useBulkUpdateInviteeStatus,
   useRsvpStats,
+  useRsvpCustomFields,
+  useRsvpCustomFieldResponses,
 } from 'src/hooks/useRsvp';
 import { useCurrentUser } from 'src/hooks/useUser';
 import { useGiftListsByUser } from 'src/hooks/useGiftList';
+import { Collapsible } from 'src/components/core/Collapsible';
 
 interface Invitee {
   id: string;
@@ -65,12 +69,19 @@ export function ManageRSVP() {
   // React Query hooks - only fetch when we have an active gift list
   const { data: invitees = [], isLoading: loading, refetch } = useInvitees(activeGiftListId!);
   const { data: stats } = useRsvpStats(activeGiftListId!);
+  const { data: customFields = [] } = useRsvpCustomFields(activeGiftListId!, !!activeGiftListId);
+  const { data: customFieldResponses = [] } = useRsvpCustomFieldResponses(activeGiftListId!);
   const createInviteeMutation = useCreateInvitee();
   const updateInviteeMutation = useUpdateInvitee();
   const deleteInviteeMutation = useDeleteInvitee();
   const bulkCreateMutation = useBulkCreateInvitees();
   const bulkDeleteMutation = useBulkDeleteInvitees();
   const bulkUpdateStatusMutation = useBulkUpdateInviteeStatus();
+  const [isCustomFieldsOpen, setIsCustomFieldsOpen] = useState(false);
+
+  useEffect(() => {
+    setIsCustomFieldsOpen(customFields && customFields?.length > 0);
+  }, [customFields]);
 
   const handleAddInvitee = async (invitee: Omit<Invitee, 'id' | 'status'>) => {
     if (!activeGiftListId) return;
@@ -242,7 +253,7 @@ export function ManageRSVP() {
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         {/* Actions Bar */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-border/30 mb-6">
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-border/30 mb-3">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex-1 flex flex-col sm:flex-row gap-4">
               {/* Search */}
@@ -303,6 +314,31 @@ export function ManageRSVP() {
         {/* Import Errors Alert */}
         <ImportErrorsAlert errors={importErrors} onDismiss={() => setImportErrors([])} />
 
+        {/* Custom Fields Section */}
+        <div className="flex justify-between">
+          <Button onClick={() => setIsCustomFieldsOpen(!isCustomFieldsOpen)} className="shadow-sm! rounded-xl flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Configurar Campos Personalizados
+          </Button>
+          <Button
+            onClick={handleCopyLink}
+            className="flex items-center gap-2 mb-2 border-primary! text-primary!"
+            icon={copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}>
+            {copied ? 'Copiado' : 'Copiar Link Para Invitados'}
+          </Button>
+        </div>
+        <Collapsible isOpen={isCustomFieldsOpen}>
+          <div className="mt-8 bg-white rounded-2xl p-6 shadow-sm border border-border/30">
+            <div className="mb-4">
+              <h3 className="text-foreground mb-1">Campos Personalizados</h3>
+              <p className="text-sm text-muted-foreground">
+                Define preguntas adicionales que tus invitados responderán al confirmar su asistencia.
+              </p>
+            </div>
+            {activeGiftListId && <CustomFieldsManager giftListId={activeGiftListId} fields={customFields} />}
+          </div>
+        </Collapsible>
+
         {/* Invitees Table */}
         <InviteesTable
           invitees={filteredInvitees}
@@ -316,6 +352,8 @@ export function ManageRSVP() {
           onDelete={handleDeleteInvitee}
           onBulkDelete={handleBulkDelete}
           onBulkUpdateStatus={handleBulkUpdateStatus}
+          customFields={customFields}
+          customFieldResponses={customFieldResponses}
         />
 
         {/* Info Section */}

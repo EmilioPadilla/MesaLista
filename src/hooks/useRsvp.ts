@@ -1,5 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import rsvpService, { Invitee, CreateInviteeRequest, RsvpStats, RsvpMessages } from '../services/rsvp.service';
+import rsvpService, {
+  Invitee,
+  CreateInviteeRequest,
+  RsvpStats,
+  RsvpMessages,
+  RsvpCustomField,
+  RsvpCustomFieldResponse,
+  RsvpCustomFieldType,
+} from '../services/rsvp.service';
 
 const queryKeys = {
   invitees: (giftListId: number) => ['invitees', giftListId] as const,
@@ -7,6 +15,8 @@ const queryKeys = {
   validateCode: (code: string) => ['validate-rsvp-code', code] as const,
   stats: (giftListId: number) => ['rsvp-stats', giftListId] as const,
   messages: (giftListId: number) => ['rsvp-messages', giftListId] as const,
+  customFields: (giftListId: number) => ['rsvp-custom-fields', giftListId] as const,
+  customFieldResponses: (giftListId: number) => ['rsvp-custom-field-responses', giftListId] as const,
 };
 
 // Query: Get all invitees for a gift list
@@ -132,10 +142,11 @@ export const useRespondToRsvp = () => {
       status: 'PENDING' | 'CONFIRMED' | 'REJECTED';
       confirmedTickets?: number;
       guestMessage?: string;
+      customFieldResponses?: Array<{ fieldId: number; value: string }>;
     }
   >({
-    mutationFn: ({ secretCode, status, confirmedTickets, guestMessage }) =>
-      rsvpService.respondToRsvp(secretCode, status, confirmedTickets, guestMessage),
+    mutationFn: ({ secretCode, status, confirmedTickets, guestMessage, customFieldResponses }) =>
+      rsvpService.respondToRsvp(secretCode, status, confirmedTickets, guestMessage, customFieldResponses),
     onSuccess: (data) => {
       // Invalidate the specific invitee query
       queryClient.invalidateQueries({
@@ -160,6 +171,66 @@ export const useRsvpMessages = (giftListId: number, enabled: boolean = true) => 
     queryKey: queryKeys.messages(giftListId),
     queryFn: () => rsvpService.getMessages(giftListId),
     enabled: enabled && !!giftListId,
+  });
+};
+
+// Query: Get custom fields for a gift list (public)
+export const useRsvpCustomFields = (giftListId: number, enabled: boolean = true) => {
+  return useQuery<RsvpCustomField[], Error>({
+    queryKey: queryKeys.customFields(giftListId),
+    queryFn: () => rsvpService.getCustomFields(giftListId),
+    enabled: enabled && !!giftListId,
+  });
+};
+
+// Mutation: Create a custom field
+export const useCreateRsvpCustomField = () => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    RsvpCustomField,
+    Error,
+    { giftListId: number; label: string; type: RsvpCustomFieldType; required?: boolean; order?: number }
+  >({
+    mutationFn: (data) => rsvpService.createCustomField(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.customFields(variables.giftListId) });
+    },
+  });
+};
+
+// Mutation: Update a custom field
+export const useUpdateRsvpCustomField = () => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    RsvpCustomField,
+    Error,
+    { id: number; giftListId: number; data: { label?: string; type?: RsvpCustomFieldType; required?: boolean; order?: number } }
+  >({
+    mutationFn: ({ id, data }) => rsvpService.updateCustomField(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.customFields(variables.giftListId) });
+    },
+  });
+};
+
+// Mutation: Delete a custom field
+export const useDeleteRsvpCustomField = () => {
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, { id: number; giftListId: number }>({
+    mutationFn: ({ id }) => rsvpService.deleteCustomField(id),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.customFields(variables.giftListId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.customFieldResponses(variables.giftListId) });
+    },
+  });
+};
+
+// Query: Get custom field responses for a gift list's invitees
+export const useRsvpCustomFieldResponses = (giftListId: number) => {
+  return useQuery<RsvpCustomFieldResponse[], Error>({
+    queryKey: queryKeys.customFieldResponses(giftListId),
+    queryFn: () => rsvpService.getCustomFieldResponses(giftListId),
+    enabled: !!giftListId,
   });
 };
 

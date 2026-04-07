@@ -410,7 +410,7 @@ export const rsvpController = {
       if (Array.isArray(secretCode)) {
         return res.status(400).json({ message: 'Invalid secret code' });
       }
-      const { status, confirmedTickets, guestMessage } = req.body;
+      const { status, confirmedTickets, guestMessage, customFieldResponses } = req.body;
 
       if (!secretCode || !status) {
         return res.status(400).json({
@@ -426,7 +426,7 @@ export const rsvpController = {
         });
       }
 
-      const invitee = await rsvpService.respondToRsvp(secretCode, status, confirmedTickets, guestMessage);
+      const invitee = await rsvpService.respondToRsvp(secretCode, status, confirmedTickets, guestMessage, customFieldResponses);
 
       res.json({
         success: true,
@@ -439,6 +439,108 @@ export const rsvpController = {
         success: false,
         message: error instanceof Error ? error.message : 'Error al registrar respuesta',
       });
+    }
+  },
+
+  // ─── Custom Fields ────────────────────────────────────────────────────────
+
+  // Get custom fields for a gift list (public for guests)
+  getCustomFields: async (req: Request, res: Response) => {
+    try {
+      const { giftListId } = req.params;
+
+      if (!giftListId) {
+        return res.status(400).json({ success: false, message: 'giftListId es requerido' });
+      }
+
+      const fields = await rsvpService.getCustomFields(Number(giftListId));
+      res.json({ success: true, data: fields });
+    } catch (error) {
+      console.error('Error getting custom fields:', error);
+      res.status(500).json({ success: false, message: error instanceof Error ? error.message : 'Error al obtener campos' });
+    }
+  },
+
+  // Create a custom field (protected)
+  createCustomField: async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ success: false, message: 'No autenticado' });
+
+      const { giftListId, label, type, required, order } = req.body;
+
+      if (!giftListId || !label || !type) {
+        return res.status(400).json({ success: false, message: 'giftListId, label y type son requeridos' });
+      }
+
+      if (!['TEXT', 'NUMBER', 'BOOLEAN'].includes(type)) {
+        return res.status(400).json({ success: false, message: 'Tipo inválido. Debe ser TEXT, NUMBER o BOOLEAN' });
+      }
+
+      const giftList = await prisma.giftList.findUnique({ where: { id: Number(giftListId) }, select: { userId: true } });
+      if (!giftList || giftList.userId !== userId) {
+        return res.status(403).json({ success: false, message: 'No autorizado' });
+      }
+
+      const field = await rsvpService.createCustomField(Number(giftListId), { label, type, required, order });
+      res.status(201).json({ success: true, data: field });
+    } catch (error) {
+      console.error('Error creating custom field:', error);
+      res.status(500).json({ success: false, message: error instanceof Error ? error.message : 'Error al crear campo' });
+    }
+  },
+
+  // Update a custom field (protected)
+  updateCustomField: async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ success: false, message: 'No autenticado' });
+
+      const { id } = req.params;
+      const { label, type, required, order } = req.body;
+
+      if (type && !['TEXT', 'NUMBER', 'BOOLEAN'].includes(type)) {
+        return res.status(400).json({ success: false, message: 'Tipo inválido' });
+      }
+
+      const field = await rsvpService.updateCustomField(Number(id), { label, type, required, order });
+      res.json({ success: true, data: field });
+    } catch (error) {
+      console.error('Error updating custom field:', error);
+      res.status(500).json({ success: false, message: error instanceof Error ? error.message : 'Error al actualizar campo' });
+    }
+  },
+
+  // Delete a custom field (protected)
+  deleteCustomField: async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ success: false, message: 'No autenticado' });
+
+      const { id } = req.params;
+
+      await rsvpService.deleteCustomField(Number(id));
+      res.json({ success: true, message: 'Campo eliminado exitosamente' });
+    } catch (error) {
+      console.error('Error deleting custom field:', error);
+      res.status(500).json({ success: false, message: error instanceof Error ? error.message : 'Error al eliminar campo' });
+    }
+  },
+
+  // Get all custom field responses for a gift list's invitees (protected)
+  getCustomFieldResponses: async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ success: false, message: 'No autenticado' });
+
+      const { giftListId } = req.query;
+      if (!giftListId) return res.status(400).json({ success: false, message: 'giftListId es requerido' });
+
+      const responses = await rsvpService.getCustomFieldResponsesForInvitees(Number(giftListId));
+      res.json({ success: true, data: responses });
+    } catch (error) {
+      console.error('Error getting custom field responses:', error);
+      res.status(500).json({ success: false, message: error instanceof Error ? error.message : 'Error al obtener respuestas' });
     }
   },
 

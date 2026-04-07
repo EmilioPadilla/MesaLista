@@ -70,6 +70,7 @@ model GiftList {
   carts         Cart[]    // Carts associated with this gift list
   invitees      Invitee[] // Invitees for this gift list
   rsvpMessages  RsvpMessages? // RSVP messages for this gift list
+  rsvpCustomFields RsvpCustomField[] // Custom fields for RSVP responses
 
   @@index([userId])
   @@map("gift_lists")
@@ -439,6 +440,7 @@ model Invitee {
   respondedAt       DateTime?     @map("responded_at") // When they responded
   carts             Cart[]        // Purchases made by this invitee
   giftList          GiftList      @relation(fields: [giftListId], references: [id], onDelete: Cascade)
+  customFieldResponses RsvpCustomFieldResponse[]
 
   @@index([giftListId])
   @@index([secretCode])
@@ -450,6 +452,44 @@ enum RsvpStatus {
   PENDING
   CONFIRMED
   REJECTED
+}
+
+enum RsvpCustomFieldType {
+  TEXT
+  NUMBER
+  BOOLEAN
+}
+
+model RsvpCustomField {
+  id          Int                     @id @default(autoincrement())
+  giftListId  Int                     @map("gift_list_id")
+  label       String
+  type        RsvpCustomFieldType
+  required    Boolean                 @default(false)
+  order       Int                     @default(0)
+  createdAt   DateTime                @default(now()) @map("created_at")
+  updatedAt   DateTime                @updatedAt @map("updated_at")
+  giftList    GiftList                @relation(fields: [giftListId], references: [id], onDelete: Cascade)
+  responses   RsvpCustomFieldResponse[]
+
+  @@index([giftListId])
+  @@map("rsvp_custom_fields")
+}
+
+model RsvpCustomFieldResponse {
+  id            Int             @id @default(autoincrement())
+  inviteeId     String          @map("invitee_id")
+  fieldId       Int             @map("field_id")
+  value         String          @db.Text // Stored as string; cast on read based on field type
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  invitee       Invitee         @relation(fields: [inviteeId], references: [id], onDelete: Cascade)
+  field         RsvpCustomField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@unique([inviteeId, fieldId])
+  @@index([inviteeId])
+  @@index([fieldId])
+  @@map("rsvp_custom_field_responses")
 }
 
 model RsvpMessages {

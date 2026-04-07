@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, Heart, AlertCircle } from 'lucide-react';
-import { message, Input, Button } from 'antd';
+import { message, Input, Button, Checkbox, InputNumber } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { useInviteeByCode, useRespondToRsvp, useRsvpMessages } from 'src/hooks/useRsvp';
+import { useInviteeByCode, useRespondToRsvp, useRsvpMessages, useRsvpCustomFields } from 'src/hooks/useRsvp';
 
 interface Invitee {
   id: string;
   coupleId: number;
+  giftListId: number;
   firstName: string;
   lastName: string;
   tickets: number;
@@ -22,12 +23,14 @@ export function GuestConfirmation() {
   const [guestMessage, setGuestMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customFieldValues, setCustomFieldValues] = useState<Record<number, string>>({});
 
   const normalizedSearchCode = searchCode.trim().toUpperCase();
 
   // React Query hooks
   const { data: invitee, refetch: searchInvitee, isLoading: searchLoading } = useInviteeByCode(normalizedSearchCode, false);
   const { data: messages } = useRsvpMessages(invitee?.giftListId || 0, !!invitee);
+  const { data: customFields = [] } = useRsvpCustomFields(invitee?.giftListId || 0, !!invitee);
   const respondMutation = useRespondToRsvp();
 
   // Update confirmed tickets when invitee is found
@@ -35,6 +38,7 @@ export function GuestConfirmation() {
     if (invitee) {
       setConfirmedTickets(invitee.confirmedTickets || invitee.tickets);
       setError(null);
+      setCustomFieldValues({});
     }
   }, [invitee]);
 
@@ -62,12 +66,28 @@ export function GuestConfirmation() {
   const handleConfirm = async (confirm: boolean) => {
     if (!invitee) return;
 
+    // Validate required fields
+    if (confirm) {
+      const missingRequired = customFields.filter(
+        (f) => f.required && (customFieldValues[f.id] === undefined || customFieldValues[f.id] === ''),
+      );
+      if (missingRequired.length > 0) {
+        message.error(`Por favor responde los campos requeridos: ${missingRequired.map((f) => f.label).join(', ')}`);
+        return;
+      }
+    }
+
+    const cfResponses = Object.entries(customFieldValues)
+      .filter(([, v]) => v !== '' && v !== undefined)
+      .map(([fieldId, value]) => ({ fieldId: Number(fieldId), value }));
+
     try {
       const response = await respondMutation.mutateAsync({
         secretCode: invitee.secretCode,
         status: confirm ? 'CONFIRMED' : 'REJECTED',
         confirmedTickets: confirm ? confirmedTickets : 0,
         guestMessage: guestMessage.trim() || undefined,
+        customFieldResponses: cfResponses.length > 0 ? cfResponses : undefined,
       });
 
       // Update the invitee with the response from the server
@@ -174,6 +194,51 @@ export function GuestConfirmation() {
                         +
                       </Button>
                     </div>
+                  </div>
+                )}
+
+                {/* Custom Fields */}
+                {customFields.length > 0 && (
+                  <div className="mb-6 space-y-4">
+                    {customFields.map((field) => (
+                      <div key={field.id}>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          {field.label}
+                          {field.required && <span className="text-[#ff3b30] ml-1">*</span>}
+                        </label>
+                        {field.type === 'BOOLEAN' && (
+                          <Checkbox
+                            checked={customFieldValues[field.id] === 'true'}
+                            onChange={(e) =>
+                              setCustomFieldValues((prev) => ({ ...prev, [field.id]: e.target.checked ? 'true' : 'false' }))
+                            }>
+                            Sí
+                          </Checkbox>
+                        )}
+                        {field.type === 'NUMBER' && (
+                          <InputNumber
+                            value={customFieldValues[field.id] !== undefined ? Number(customFieldValues[field.id]) : undefined}
+                            onChange={(val) =>
+                              setCustomFieldValues((prev) => ({
+                                ...prev,
+                                [field.id]: val !== null && val !== undefined ? String(val) : '',
+                              }))
+                            }
+                            className="w-full rounded-xl"
+                            placeholder="0"
+                          />
+                        )}
+                        {field.type === 'TEXT' && (
+                          <Input
+                            value={customFieldValues[field.id] || ''}
+                            onChange={(e) => setCustomFieldValues((prev) => ({ ...prev, [field.id]: e.target.value }))}
+                            className="rounded-xl bg-[#f5f5f7]! border-border/30"
+                            placeholder="Tu respuesta..."
+                            maxLength={500}
+                          />
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
 

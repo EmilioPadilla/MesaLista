@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Pencil, Trash2, CheckCircle2, XCircle, Clock, Users, MessageSquare } from 'lucide-react';
-import { Button, Table, Switch } from 'antd';
+import { Pencil, Trash2, CheckCircle2, XCircle, Clock, Users, MessageSquare, ListChecks } from 'lucide-react';
+import { Button, Table, Switch, Tag } from 'antd';
 import type { TableRowSelection } from 'antd/es/table/interface';
 import { Collapsible } from 'src/components/core/Collapsible';
 import { BulkDeleteModal } from '../BulkDeleteModal';
 import { DeleteInviteePopover } from '../DeleteInviteePopover';
 import { GuestMessageModal } from '../GuestMessageModal';
+import type { RsvpCustomField, RsvpCustomFieldResponse } from 'src/services/rsvp.service';
 
 interface Invitee {
   id: string;
@@ -27,14 +28,44 @@ interface InviteesTableProps {
   onDelete: (id: string) => void;
   onBulkDelete?: (ids: string[]) => void;
   onBulkUpdateStatus?: (ids: string[], status: 'PENDING' | 'CONFIRMED' | 'REJECTED') => void;
+  customFields?: RsvpCustomField[];
+  customFieldResponses?: RsvpCustomFieldResponse[];
 }
 
-export function InviteesTable({ invitees, loading, searchTerm, statusFilter, onEdit, onDelete, onBulkDelete, onBulkUpdateStatus }: InviteesTableProps) {
+export function InviteesTable({
+  invitees,
+  loading,
+  searchTerm,
+  statusFilter,
+  onEdit,
+  onDelete,
+  onBulkDelete,
+  onBulkUpdateStatus,
+  customFields = [],
+  customFieldResponses = [],
+}: InviteesTableProps) {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
+  const [showCustomFields, setShowCustomFields] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<{ name: string; message: string } | null>(null);
+
+  const responsesByInvitee = customFieldResponses.reduce<Record<string, Record<number, string>>>((acc, r) => {
+    if (!acc[r.inviteeId]) acc[r.inviteeId] = {};
+    acc[r.inviteeId][r.fieldId] = r.value;
+    return acc;
+  }, {});
+
+  const renderCustomValue = (type: RsvpCustomField['type'], value: string | undefined) => {
+    if (value === undefined || value === null || value === '') {
+      return <span className="text-muted-foreground text-xs italic">—</span>;
+    }
+    if (type === 'BOOLEAN') {
+      return value === 'true' ? <Tag color="green">Sí</Tag> : <Tag color="default">No</Tag>;
+    }
+    return <span className="text-sm">{value}</span>;
+  };
 
   const rowSelection: TableRowSelection<Invitee> = {
     selectedRowKeys,
@@ -66,12 +97,23 @@ export function InviteesTable({ invitees, loading, searchTerm, statusFilter, onE
 
   return (
     <div className="space-y-2">
-      {/* Messages Toggle */}
-      {messagesCount > 0 && (
-        <div className="flex items-center justify-end gap-2">
-          <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Mostrar mensajes ({messagesCount})</span>
-          <Switch checked={showMessages} onChange={setShowMessages} size="small" />
+      {/* Toggles row */}
+      {(messagesCount > 0 || customFields.length > 0) && (
+        <div className="flex items-center justify-end gap-4 flex-wrap">
+          {messagesCount > 0 && (
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Mensajes ({messagesCount})</span>
+              <Switch checked={showMessages} onChange={setShowMessages} size="small" />
+            </div>
+          )}
+          {customFields.length > 0 && (
+            <div className="flex items-center gap-2">
+              <ListChecks className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Campos personalizados</span>
+              <Switch checked={showCustomFields} onChange={setShowCustomFields} size="small" />
+            </div>
+          )}
         </div>
       )}
 
@@ -234,6 +276,22 @@ export function InviteesTable({ invitees, loading, searchTerm, statusFilter, onE
                     },
                   },
                 ]
+              : []),
+            ...(showCustomFields
+              ? customFields.map((field) => ({
+                  title: (
+                    <span className="text-xs">
+                      {field.label}
+                      {field.required && <span className="text-[#ff3b30] ml-0.5">*</span>}
+                    </span>
+                  ),
+                  key: `cf_${field.id}`,
+                  align: 'center' as const,
+                  render: (_: unknown, record: Invitee) => {
+                    const val = responsesByInvitee[record.id]?.[field.id];
+                    return renderCustomValue(field.type, val);
+                  },
+                }))
               : []),
             {
               title: 'Acciones',

@@ -25,7 +25,7 @@ export function RsvpStatistics({ stats }: RsvpStatisticsProps) {
   const rejectedTicketsPercentage = stats.totalTickets > 0 ? Math.round((stats.rejectedTickets / stats.totalTickets) * 100) : 0;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-12">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 1. Total Invitados */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-border/30">

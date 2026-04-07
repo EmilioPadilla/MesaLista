@@ -46,6 +46,29 @@ export interface RsvpStats {
   rejectedTickets: number;
 }
 
+export type RsvpCustomFieldType = 'TEXT' | 'NUMBER' | 'BOOLEAN';
+
+export interface RsvpCustomField {
+  id: number;
+  giftListId: number;
+  label: string;
+  type: RsvpCustomFieldType;
+  required: boolean;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RsvpCustomFieldResponse {
+  id: number;
+  inviteeId: string;
+  fieldId: number;
+  value: string;
+  field: RsvpCustomField;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const rsvpService = {
   // Get all invitees for a gift list
   async getInvitees(giftListId: number): Promise<Invitee[]> {
@@ -114,11 +137,13 @@ const rsvpService = {
     status: 'PENDING' | 'CONFIRMED' | 'REJECTED',
     confirmedTickets?: number,
     guestMessage?: string,
+    customFieldResponses?: Array<{ fieldId: number; value: string }>,
   ): Promise<Invitee> {
     const response = await apiClient.post(endpoints.rsvp.respondToRsvp(secretCode), {
       status,
       confirmedTickets,
       guestMessage,
+      customFieldResponses,
     });
     return response.data.data;
   },
@@ -140,6 +165,41 @@ const rsvpService = {
   // Update RSVP messages
   async updateMessages(data: { giftListId: number; confirmationMessage?: string; cancellationMessage?: string }): Promise<RsvpMessages> {
     const response = await apiClient.put(endpoints.rsvp.updateMessages, data);
+    return response.data.data;
+  },
+
+  // ─── Custom Fields ────────────────────────────────────────────────────────
+
+  async getCustomFields(giftListId: number): Promise<RsvpCustomField[]> {
+    const response = await apiClient.get(endpoints.rsvp.getCustomFields(giftListId));
+    return response.data.data;
+  },
+
+  async createCustomField(data: {
+    giftListId: number;
+    label: string;
+    type: RsvpCustomFieldType;
+    required?: boolean;
+    order?: number;
+  }): Promise<RsvpCustomField> {
+    const response = await apiClient.post(endpoints.rsvp.createCustomField, data);
+    return response.data.data;
+  },
+
+  async updateCustomField(
+    id: number,
+    data: { label?: string; type?: RsvpCustomFieldType; required?: boolean; order?: number },
+  ): Promise<RsvpCustomField> {
+    const response = await apiClient.put(endpoints.rsvp.updateCustomField(id), data);
+    return response.data.data;
+  },
+
+  async deleteCustomField(id: number): Promise<void> {
+    await apiClient.delete(endpoints.rsvp.deleteCustomField(id));
+  },
+
+  async getCustomFieldResponses(giftListId: number): Promise<RsvpCustomFieldResponse[]> {
+    const response = await apiClient.get(endpoints.rsvp.getCustomFieldResponses, { params: { giftListId } });
     return response.data.data;
   },
 };
