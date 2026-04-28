@@ -184,7 +184,7 @@ const GiftCardComponent = ({
               <div
                 className="w-full h-full rounded-t-lg"
                 style={{
-                  backgroundImage: `url(${gift.imageUrl})`,
+                  backgroundImage: `url("${gift.imageUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}")`,
                   backgroundPosition: `center ${gift.imagePosition ?? 50}%`,
                   backgroundSize: `${gift.imageScale ?? 100}%`,
                   backgroundRepeat: 'no-repeat',
