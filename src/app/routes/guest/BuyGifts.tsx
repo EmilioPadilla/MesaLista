@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Filter, Gift as GiftIcon, ArrowUpDown, MapPin } from 'lucide-react';
-import { useOutletContext } from 'react-router-dom';
+import { Filter, Gift as GiftIcon, ArrowUpDown, MapPin, Lock } from 'lucide-react';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { Button, Spin, Select, Col, Row, Input, Switch, Badge, Card } from 'antd';
 import type { Gift, GiftCategory } from 'types/models/gift';
 import { SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
@@ -22,6 +22,7 @@ dayjs.extend(utc);
 export function BuyGifts() {
   const contextData = useOutletContext<OutletContextType>();
   const { slug, guestId } = contextData;
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(window.location.search);
   const listIdFromQuery = queryParams.get('listId');
   const [sortBy, setSortBy] = useState<SortOption>('original');
@@ -181,6 +182,29 @@ export function BuyGifts() {
         <Spin size="large" />
       </div>
     );
+
+  if (giftList.isActive === false) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center px-4 py-16">
+        <div className="max-w-md w-full text-center space-y-6 bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+          <div className="mx-auto w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center">
+            <Lock className="h-8 w-8 text-[#d4704a]" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-semibold text-gray-900">Esta mesa de regalos ya está cerrada</h2>
+            <p className="text-gray-600">
+              {giftList.coupleName ? `${giftList.coupleName} ya no está recibiendo regalos a través de esta mesa.` : 'Esta mesa de regalos ya no está recibiendo regalos.'}
+              {' '}
+              Puedes explorar otras mesas activas en nuestro buscador.
+            </p>
+          </div>
+          <Button type="primary" size="large" onClick={() => navigate('/buscar')}>
+            Ver otras mesas de regalos
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const cartItemCount = cartData?.items?.length || 0;
 

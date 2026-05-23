@@ -3,7 +3,7 @@ import { Button } from 'components/core/Button';
 import { Input } from 'components/core/Input';
 import { Card, CardContent, CardHeader } from 'components/core/Card';
 import { Badge } from 'components/core/Badge';
-import { Calendar, Search, Users, MapPin, Gift, Mail } from 'lucide-react';
+import { Calendar, Search, Users, MapPin, Gift, Mail, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGiftLists } from 'src/hooks/useGiftList';
 import { GiftListBrief } from 'types/models/giftList';
@@ -154,119 +154,150 @@ export function SearchPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRegistries?.map((registry) => (
-              <Card
-                key={registry.id}
-                className="group cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm overflow-hidden"
-                onClick={() => navigate(`/${registry.userSlug}/regalos?listId=${registry.id}`)}>
-                <div className="relative">
-                  {registry.imageUrl ? (
-                    <img
-                      src={registry.imageUrl}
-                      alt={`Boda de ${registry.coupleName}`}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-linear-to-br from-gray-50 via-orange-50 to-amber-50 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                      <div className="text-center opacity-30">
-                        <svg
-                          className="w-32 h-32 mx-auto mb-2 text-[#d4704a]"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
-                          />
-                        </svg>
-                        <p className="text-[#d4704a] text-sm font-medium">Sin imagen</p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="absolute top-4 right-4">
-                    <Badge variant="secondary" className="bg-card/90 text-card-foreground shadow-md">
-                      {registry.userSlug}
-                    </Badge>
-                  </div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="bg-card/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-                      <h3 className="text-card-foreground mb-1">{registry.coupleName}</h3>
-                      <div className="flex items-center text-md! text-muted-foreground">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {formatDate(registry.eventDate.toString())}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2 text-md text-muted-foreground">
-                        <Users className="h-4 w-4" />
-                        <span>{registry.coupleName}</span>
-                      </div>
-                      {registry.eventLocation && (
-                        <div className="flex items-center space-x-2 text-md text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          <span>{registry.eventLocation}</span>
+            {filteredRegistries?.map((registry) => {
+              const isClosed = !registry.isActive;
+              return (
+                <Card
+                  key={registry.id}
+                  className={`group shadow-lg border-0 bg-card/80 backdrop-blur-sm overflow-hidden transition-all duration-300 ${
+                    isClosed ? 'opacity-60 grayscale cursor-not-allowed' : 'cursor-pointer hover:shadow-xl'
+                  }`}
+                  onClick={() => {
+                    if (isClosed) return;
+                    navigate(`/${registry.userSlug}/regalos?listId=${registry.id}`);
+                  }}>
+                  <div className="relative">
+                    {registry.imageUrl ? (
+                      <img
+                        src={registry.imageUrl}
+                        alt={`Boda de ${registry.coupleName}`}
+                        className={`w-full h-48 object-cover transition-transform duration-300 ${
+                          isClosed ? '' : 'group-hover:scale-105'
+                        }`}
+                      />
+                    ) : (
+                      <div
+                        className={`w-full h-48 bg-linear-to-br from-gray-50 via-orange-50 to-amber-50 flex items-center justify-center transition-transform duration-300 ${
+                          isClosed ? '' : 'group-hover:scale-105'
+                        }`}>
+                        <div className="text-center opacity-30">
+                          <svg
+                            className="w-32 h-32 mx-auto mb-2 text-[#d4704a]"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                            />
+                          </svg>
+                          <p className="text-[#d4704a] text-sm font-medium">Sin imagen</p>
                         </div>
-                      )}
-                      {registry.eventVenue && (
-                        <div className="flex items-center space-x-2 text-md text-muted-foreground">
-                          <span className="text-xs">📍 {registry.eventVenue}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {registry.description && (
-                      <p className="text-md text-muted-foreground line-clamp-2 whitespace-pre-line">{registry.description}</p>
+                      </div>
                     )}
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-md">
-                        <span className="text-muted-foreground">Progreso de regalos</span>
-                        <span className="text-primary">{getProgressPercentage(registry.purchasedGifts, registry.totalGifts)}%</span>
+                    {isClosed && (
+                      <div className="absolute top-4 left-4">
+                        <Badge variant="secondary" className="bg-gray-800/90 text-white shadow-md flex items-center gap-1">
+                          <Lock className="h-3 w-3" />
+                          Cerrada
+                        </Badge>
                       </div>
-                      <div className="w-full bg-secondary rounded-full h-2">
-                        <div
-                          className="bg-primary h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${getProgressPercentage(registry.purchasedGifts, registry.totalGifts)}%` }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{registry.purchasedGifts} comprados</span>
-                        <span>{registry.totalGifts} total</span>
-                      </div>
+                    )}
+                    <div className="absolute top-4 right-4">
+                      <Badge variant="secondary" className="bg-card/90 text-card-foreground shadow-md">
+                        {registry.userSlug}
+                      </Badge>
                     </div>
-
-                    <div className="flex space-x-2 pt-2">
-                      <Button
-                        className="flex-1 shadow-md hover:shadow-lg transition-all duration-200"
-                        onClick={() => navigate(`/${registry.userSlug}/regalos?listId=${registry.id}`)}>
-                        <Gift className="h-4 w-4 mr-2" />
-                        Ver Regalos
-                      </Button>
-                      {registry.invitationSlug && (
-                        <Button
-                          variant="outline"
-                          className="flex-1 shadow-md hover:shadow-lg transition-all duration-200"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/${registry.invitationSlug}/invitacion`);
-                          }}>
-                          <Mail className="h-4 w-4 mr-2" />
-                          Ver Invitación
-                        </Button>
-                      )}
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <div className="bg-card/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+                        <h3 className="text-card-foreground mb-1">{registry.coupleName}</h3>
+                        <div className="flex items-center text-md! text-muted-foreground">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {formatDate(registry.eventDate.toString())}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2 text-md text-muted-foreground">
+                          <Users className="h-4 w-4" />
+                          <span>{registry.coupleName}</span>
+                        </div>
+                        {registry.eventLocation && (
+                          <div className="flex items-center space-x-2 text-md text-muted-foreground">
+                            <MapPin className="h-4 w-4" />
+                            <span>{registry.eventLocation}</span>
+                          </div>
+                        )}
+                        {registry.eventVenue && (
+                          <div className="flex items-center space-x-2 text-md text-muted-foreground">
+                            <span className="text-xs">📍 {registry.eventVenue}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {registry.description && (
+                        <p className="text-md text-muted-foreground line-clamp-2 whitespace-pre-line">{registry.description}</p>
+                      )}
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-md">
+                          <span className="text-muted-foreground">Progreso de regalos</span>
+                          <span className="text-primary">{getProgressPercentage(registry.purchasedGifts, registry.totalGifts)}%</span>
+                        </div>
+                        <div className="w-full bg-secondary rounded-full h-2">
+                          <div
+                            className="bg-primary h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${getProgressPercentage(registry.purchasedGifts, registry.totalGifts)}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{registry.purchasedGifts} comprados</span>
+                          <span>{registry.totalGifts} total</span>
+                        </div>
+                      </div>
+
+                      {isClosed ? (
+                        <div className="flex items-center justify-center gap-2 pt-2 text-sm text-muted-foreground bg-gray-100 rounded-md py-3">
+                          <Lock className="h-4 w-4" />
+                          <span>Esta mesa de regalos ya está cerrada</span>
+                        </div>
+                      ) : (
+                        <div className="flex space-x-2 pt-2">
+                          <Button
+                            className="flex-1 shadow-md hover:shadow-lg transition-all duration-200"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/${registry.userSlug}/regalos?listId=${registry.id}`);
+                            }}>
+                            <Gift className="h-4 w-4 mr-2" />
+                            Ver Regalos
+                          </Button>
+                          {registry.invitationSlug && (
+                            <Button
+                              variant="outline"
+                              className="flex-1 shadow-md hover:shadow-lg transition-all duration-200"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/${registry.invitationSlug}/invitacion`);
+                              }}>
+                              <Mail className="h-4 w-4 mr-2" />
+                              Ver Invitación
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

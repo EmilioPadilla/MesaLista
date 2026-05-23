@@ -57,6 +57,7 @@ export interface GiftListBrief {
   totalGifts: number;
   purchasedGifts: number;
   userSlug: string;
+  isActive: boolean;
   invitationSlug?: string;
 }
 

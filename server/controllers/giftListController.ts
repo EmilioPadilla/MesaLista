@@ -8,9 +8,10 @@ const prisma = new PrismaClient();
 const giftListController = {
   getAllGiftLists: async (_req: Request, res: Response) => {
     try {
+      // Include inactive (closed) lists so the search page can show them in a disabled state.
+      // The frontend uses `isActive` to render them as closed and to block navigation.
       const giftLists = await prisma.giftList.findMany({
         where: {
-          isActive: true,
           isPublic: true,
         },
         include: {
@@ -38,9 +39,7 @@ const giftListController = {
             },
           },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: [{ isActive: 'desc' }, { createdAt: 'desc' }],
       });
 
       const formattedGiftLists = giftLists.map(
@@ -55,6 +54,7 @@ const giftListController = {
           totalGifts: list.gifts.length,
           purchasedGifts: list.gifts.filter((gift: any) => gift.isPurchased).length,
           userSlug: list.user.slug,
+          isActive: list.isActive,
           invitationSlug: list.invitation?.status === 'PUBLISHED' ? `${list.user.slug}/${list.id}` : undefined,
         }),
       );
@@ -179,11 +179,11 @@ const giftListController = {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      // Get the first gift list for this user (oldest created)
+      // Get the first gift list for this user (oldest created).
+      // Inactive lists are included so BuyGifts can render the closed-list warning.
       const giftList = await prisma.giftList.findFirst({
         where: {
           userId: user.id,
-          isActive: true,
         },
         include: {
           gifts: {
@@ -196,9 +196,7 @@ const giftListController = {
             },
           },
         },
-        orderBy: {
-          createdAt: 'asc',
-        },
+        orderBy: [{ isActive: 'desc' }, { createdAt: 'asc' }],
       });
 
       if (!giftList) {
