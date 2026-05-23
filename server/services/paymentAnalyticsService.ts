@@ -198,7 +198,7 @@ const paymentAnalyticsService = {
    */
   getGiftListPaymentDetails: async (giftListId: number): Promise<GiftPaymentDetail[]> => {
     const COMMISSION_RATE = 0.03;
-    const PAYPAL_RATE = 0.0399;
+    const PAYPAL_RATE = 0.0395;
     const PAYPAL_FIXED = 4.0;
     const STRIPE_RATE = 0.036;
     const STRIPE_FIXED = 3.0;

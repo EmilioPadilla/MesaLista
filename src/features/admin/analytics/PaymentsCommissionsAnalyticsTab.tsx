@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, Statistic, Row, Col, Spin, Table, Tag, Tooltip, Dropdown, Button } from 'antd';
 import { DollarSign, CreditCard, Wallet, TrendingUp, Percent, Gift, EllipsisVertical } from 'lucide-react';
 import dayjs from 'dayjs';
@@ -104,6 +104,21 @@ export function PaymentsCommissionsAnalyticsTab({
   };
 
   const totals = calculateTotals();
+
+  // Gross totals derived from listsData so they're consistent with the detail table.
+  // The summary endpoint queries the Payment table directly which can include payments
+  // that aren't attributable to any list (orphaned carts), causing a mismatch.
+  const grossFromLists = useMemo(() => {
+    if (!listsData) return { paypal: 0, stripe: 0, total: 0 };
+    return listsData.reduce(
+      (acc, l) => ({
+        paypal: acc.paypal + l.grossPaypal,
+        stripe: acc.stripe + l.grossStripe,
+        total: acc.total + l.grossTotal,
+      }),
+      { paypal: 0, stripe: 0, total: 0 },
+    );
+  }, [listsData]);
 
   const openPaymentsReport = (record: GiftListPaymentAnalytics) => {
     setSelectedGiftList(record);
@@ -319,14 +334,14 @@ export function PaymentsCommissionsAnalyticsTab({
                 <Card className="!bg-purple-50">
                   <Statistic
                     title="Bruto Total"
-                    value={summary.totalGrossPayments}
+                    value={grossFromLists.total}
                     prefix={<DollarSign className="text-purple-600" size={20} />}
                     valueStyle={{ color: '#722ed1' }}
                     formatter={(value) => formatCurrency(Number(value))}
                   />
                   <div className="mt-2 text-xs text-gray-600">
-                    <div>PayPal: {formatCurrency(summary.totalGrossPaypal)}</div>
-                    <div>Stripe: {formatCurrency(summary.totalGrossStripe)}</div>
+                    <div>PayPal: {formatCurrency(grossFromLists.paypal)}</div>
+                    <div>Stripe: {formatCurrency(grossFromLists.stripe)}</div>
                   </div>
                 </Card>
               </Col>
@@ -381,7 +396,7 @@ export function PaymentsCommissionsAnalyticsTab({
                 <Card className="!bg-cyan-50">
                   <Statistic
                     title="Promedio por Pago"
-                    value={summary.totalPaymentsCount > 0 ? summary.totalGrossPayments / summary.totalPaymentsCount : 0}
+                    value={summary.totalPaymentsCount > 0 ? grossFromLists.total / summary.totalPaymentsCount : 0}
                     prefix={<DollarSign className="text-cyan-600" size={20} />}
                     valueStyle={{ color: '#06b6d4' }}
                     formatter={(value) => formatCurrency(Number(value))}

@@ -20,12 +20,13 @@ import {
   Plane,
   Palette,
   Home,
+  Lock,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useGetUserBySlug, useIsAuthenticated } from 'hooks/useUser';
 import { OutletContextType } from './guest/PublicRegistry';
-import { useGiftListsByUser } from 'hooks/useGiftList';
+import { useGiftListsByUser, useGiftListBySlug } from 'hooks/useGiftList';
 import { usePredesignedLists } from 'hooks/usePredesignedList';
 import { Badge, Button, Card, Skeleton } from 'antd';
 import { Footer } from '../modules/navigation/Footer';
@@ -47,6 +48,7 @@ export const HomePage = () => {
   const contextData = useOutletContext<OutletContextType>();
   const { data: userData, isLoading: isLoadingUser } = useGetUserBySlug(contextData?.slug);
   const { data: giftLists } = useGiftListsByUser(userData?.id);
+  const { data: primaryGiftList, isLoading: isLoadingPrimaryList } = useGiftListBySlug(contextData?.slug || undefined);
   const { data: isAuthenticated = false } = useIsAuthenticated();
   const { data: predesignedLists, isLoading: isLoadingPredesignedLists } = usePredesignedLists();
   const navigate = useNavigate();
@@ -55,6 +57,17 @@ export const HomePage = () => {
 
   // Calculate aggregate stats for all gift lists
   const activeLists = giftLists?.filter((list) => list.isActive).length || 0;
+
+  // True only when on a specific couple's slug page, fully loaded, and the primary list is inactive.
+  // Uses the public slug endpoint so this works for unauthenticated guests too.
+  // Guards against the `/` homepage (no contextData.slug) and against still-loading states.
+  const allListsClosed =
+    !!contextData?.slug &&
+    !isLoadingUser &&
+    !isLoadingPrimaryList &&
+    !!userData &&
+    primaryGiftList !== undefined &&
+    primaryGiftList.isActive === false;
   const totalGifts = giftLists?.reduce((sum, list) => sum + (list.gifts?.length || 0), 0) || 0;
   const purchasedGifts = giftLists?.reduce((sum, list) => sum + (list.gifts?.filter((gift) => gift.isPurchased).length || 0), 0) || 0;
   const totalRaised =
@@ -183,6 +196,31 @@ export const HomePage = () => {
       </div>
     </>
   );
+
+  if (allListsClosed && !isAuthenticated) {
+    const coupleName = primaryGiftList?.coupleName;
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center px-4 py-16">
+        <div className="max-w-md w-full text-center space-y-6 bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+          <div className="mx-auto w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center">
+            <Lock className="h-8 w-8 text-[#d4704a]" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-semibold text-gray-900">Esta mesa de regalos ya está cerrada</h2>
+            <p className="text-gray-600">
+              {coupleName
+                ? `${coupleName} ya no está recibiendo regalos a través de esta mesa.`
+                : 'Esta mesa de regalos ya no está recibiendo regalos.'}
+              {' '}Puedes explorar otras mesas activas en nuestro buscador.
+            </p>
+          </div>
+          <Button size="large" type="primary" onClick={() => navigate('/buscar')}>
+            Ver otras mesas de regalos
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
