@@ -220,8 +220,10 @@ model Payment {
   paymentId     String         @map("payment_id") // External payment ID from Stripe/PayPal
   currency      String         @default("USD")
   paymentType   PaymentType    @map("payment_type")
-  transactionFee Float?        @map("transaction_fee")
-  amount        Float          // Total payment amount
+  transactionFee Float?        @map("transaction_fee") // Real fee reported by Stripe/PayPal (includes IVA where applicable)
+  netAmount     Float?         @map("net_amount") // Real net amount the couple received after processor fees
+  feeSource     String?        @map("fee_source") // 'reported' when fetched from processor, 'estimated' when calculated from formulas
+  amount        Float          // Total payment amount charged to the guest
   status        PaymentStatus  @default(PENDING)
   metadata      String?
   createdAt     DateTime       @default(now()) @map("created_at")

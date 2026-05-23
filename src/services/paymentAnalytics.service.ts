@@ -46,6 +46,7 @@ export interface GiftPaymentDetail {
   guestName: string;
   guestEmail: string;
   paidAt: string;
+  feeSource: 'reported' | 'estimated';
 }
 
 const paymentAnalyticsService = {

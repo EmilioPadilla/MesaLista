@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt';
 import emailService from '../services/emailService.js';
 import { discountCodeService } from '../services/discountCodeService.js';
 import { createSessionAndSetCookie } from '../middleware/auth.js';
+import { reconcileStripeFee, reconcilePayPalFee } from '../lib/paymentFees.js';
 
 const prisma = new PrismaClient();
 
@@ -421,17 +422,32 @@ export default {
               },
             });
 
+            // Fetch the real fee Stripe charged via the balance_transaction on the latest charge.
+            // This is the source of truth — it includes international card surcharges, IVA, etc.
+            const amountPaid = (session.amount_total || 0) / 100;
+            let stripeFee = reconcileStripeFee(null);
+            try {
+              const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string, {
+                expand: ['latest_charge.balance_transaction'],
+              });
+              stripeFee = reconcileStripeFee(paymentIntent);
+            } catch (feeError) {
+              console.error('Error fetching Stripe balance_transaction for fee reconciliation:', feeError);
+            }
+
             // Create payment record
             await prisma.payment.create({
               data: {
                 cartId,
                 paymentId: session.payment_intent as string,
-                amount: (session.amount_total || 0) / 100, // Convert from cents
+                amount: amountPaid,
                 currency: session.currency || 'mxn',
                 paymentType: 'STRIPE',
-                transactionFee: 0, // Stripe fees would be calculated separately
+                transactionFee: stripeFee.transactionFee,
+                netAmount: stripeFee.netAmount,
+                feeSource: stripeFee.feeSource,
                 status: 'PAID',
-                metadata: JSON.stringify(session.metadata), // Convert object to string
+                metadata: JSON.stringify(session.metadata),
               },
             });
 
@@ -856,6 +872,7 @@ export default {
         // Create payment record
         const captureDetails = captureResult.purchase_units?.[0]?.payments?.captures?.[0];
         const amount = parseFloat(captureDetails?.amount?.value || '0');
+        const paypalFee = reconcilePayPalFee(captureDetails);
 
         await prisma.payment.create({
           data: {
@@ -864,7 +881,9 @@ export default {
             amount: amount,
             currency: captureDetails?.amount?.currency_code || 'MXN',
             paymentType: 'PAYPAL',
-            transactionFee: 0, // PayPal fees would be calculated separately
+            transactionFee: paypalFee.transactionFee,
+            netAmount: paypalFee.netAmount,
+            feeSource: paypalFee.feeSource,
             status: 'PAID',
             metadata: JSON.stringify(captureResult),
           },

@@ -88,6 +88,11 @@ export default {
           },
         });
       } else {
+        // Don't append items to a cart that's already been paid — start a fresh cart instead.
+        if (cart.status !== 'PENDING') {
+          return res.status(409).json({ error: 'No se puede modificar un carrito que ya fue pagado' });
+        }
+
         // Check if cart already has a giftListId and it's different
         if (cart.giftListId && cart.giftListId !== giftListId) {
           return res.status(400).json({
@@ -193,6 +198,18 @@ export default {
         return res.status(400).json({ error: 'Quantity must be at least 1' });
       }
 
+      // Refuse to mutate a paid cart (see removeFromCart for context).
+      const existing = await prisma.cartItem.findUnique({
+        where: { id: Number(cartItemId) },
+        include: { cart: { select: { status: true } } },
+      });
+      if (!existing) {
+        return res.status(404).json({ error: 'Cart item not found' });
+      }
+      if (existing.cart.status !== 'PENDING') {
+        return res.status(409).json({ error: 'No se puede modificar un carrito que ya fue pagado' });
+      }
+
       // Update cart item quantity
       const updatedCartItem = await prisma.cartItem.update({
         where: { id: Number(cartItemId) },
@@ -233,10 +250,20 @@ export default {
       // Find the cart item to get its cartId
       const cartItem = await prisma.cartItem.findUnique({
         where: { id: Number(cartItemId) },
+        include: { cart: { select: { status: true } } },
       });
 
       if (!cartItem) {
         return res.status(404).json({ error: 'Cart item not found' });
+      }
+
+      // Refuse to mutate a cart that has already been paid. Without this guard a late
+      // `removeFromCart` (from another tab, a stale view, or the user returning to the
+      // cart after PayPal redirect) would empty the cart, trigger the empty-cart branch
+      // below, and nullify cart.giftListId — orphaning the payment from the analytics
+      // report even though the payment + gift purchase records are correct.
+      if (cartItem.cart.status !== 'PENDING') {
+        return res.status(409).json({ error: 'No se puede modificar un carrito que ya fue pagado' });
       }
 
       // Delete the cart item

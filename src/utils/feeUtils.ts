@@ -1,4 +1,4 @@
-// Helper function to calculate gross amount from net amount with fees
+// Guests pay: Helper function to calculate gross amount from net amount with fees
 function grossUp({ net, percent, fixed, tax }: { net: number; percent: number; fixed: number; tax: number }) {
   const gross = (net + fixed * (1 + tax)) / (1 - percent * (1 + tax));
 
@@ -11,7 +11,7 @@ export const stripeMexico = (net: number) => grossUp({ net, percent: 0.036, fixe
 // Mexico paypal fees
 export const paypalMexico = (net: number) => grossUp({ net, percent: 0.0395, fixed: 4, tax: 0.16 });
 
-// Mexico paypal breakdown
+// Couple absorbs: Mexico paypal breakdown
 export function paypalMexicoBreakdown(gross: number) {
   const percent = 0.0395;
   const fixed = 4;
@@ -31,7 +31,7 @@ export function paypalMexicoBreakdown(gross: number) {
   };
 }
 
-// Mexico stripe breakdown
+// Couple absorbs: Mexico stripe breakdown
 export function stripeMexicoBreakdown(gross: number) {
   const percent = 0.036;
   const fixed = 3;

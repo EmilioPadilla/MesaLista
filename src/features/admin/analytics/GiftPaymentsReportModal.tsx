@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Modal, Card, Statistic, Spin, Table, Empty, Tag } from 'antd';
+import { Modal, Card, Statistic, Spin, Table, Empty, Tag, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { useGiftListPaymentDetails } from 'hooks/usePaymentAnalytics';
@@ -13,7 +13,10 @@ interface GiftPaymentsReportModalProps {
 
 export function GiftPaymentsReportModal({ open, selectedGiftList, onClose }: GiftPaymentsReportModalProps) {
   const selectedGiftListId = selectedGiftList?.id;
-  const { data: paymentDetails, isLoading: isPaymentDetailsLoading } = useGiftListPaymentDetails(selectedGiftListId, open && !!selectedGiftListId);
+  const { data: paymentDetails, isLoading: isPaymentDetailsLoading } = useGiftListPaymentDetails(
+    selectedGiftListId,
+    open && !!selectedGiftListId,
+  );
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -79,7 +82,9 @@ export function GiftPaymentsReportModal({ open, selectedGiftList, onClose }: Gif
       dataIndex: 'paymentType',
       key: 'paymentType',
       width: 100,
-      render: (paymentType: GiftPaymentDetail['paymentType']) => <Tag color={paymentType === 'PAYPAL' ? 'blue' : 'purple'}>{paymentType}</Tag>,
+      render: (paymentType: GiftPaymentDetail['paymentType']) => (
+        <Tag color={paymentType === 'PAYPAL' ? 'blue' : 'purple'}>{paymentType}</Tag>
+      ),
     },
     {
       title: 'Monto Regalo',
@@ -93,7 +98,19 @@ export function GiftPaymentsReportModal({ open, selectedGiftList, onClose }: Gif
       dataIndex: 'paymentFee',
       key: 'paymentFee',
       align: 'right' as const,
-      render: (value: number) => <span className={value > 0 ? 'text-orange-600' : 'text-gray-400'}>{formatCurrency(value)}</span>,
+      render: (value: number, record) => (
+        <Tooltip
+          title={
+            record.feeSource === 'reported'
+              ? 'Comisión real reportada por Stripe/PayPal'
+              : 'Estimada con fórmula (pago previo a la reconciliación automática)'
+          }>
+          <span className={value > 0 ? 'text-orange-600' : 'text-gray-400'}>
+            {formatCurrency(value)}
+            {record.feeSource === 'estimated' && <span className="ml-1 text-xs font-medium text-gray-800">*</span>}
+          </span>
+        </Tooltip>
+      ),
     },
     {
       title: 'Neto',
@@ -126,14 +143,27 @@ export function GiftPaymentsReportModal({ open, selectedGiftList, onClose }: Gif
   ];
 
   return (
-    <Modal title={selectedGiftList ? `Reporte de pagos - ${selectedGiftList.title}` : 'Reporte de pagos'} open={open} onCancel={onClose} footer={null} width={1200}>
+    <Modal
+      title={selectedGiftList ? `Reporte de pagos - ${selectedGiftList.title}` : 'Reporte de pagos'}
+      open={open}
+      onCancel={onClose}
+      footer={null}
+      width={1200}>
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <Card size="small">
-            <Statistic title="Monto Regalos" value={paymentDetailsTotals.totalGiftAmount} formatter={(value) => formatCurrency(Number(value))} />
+            <Statistic
+              title="Monto Regalos"
+              value={paymentDetailsTotals.totalGiftAmount}
+              formatter={(value) => formatCurrency(Number(value))}
+            />
           </Card>
           <Card size="small">
-            <Statistic title="Comisiones Pago" value={paymentDetailsTotals.totalPaymentFees} formatter={(value) => formatCurrency(Number(value))} />
+            <Statistic
+              title="Comisiones Pago"
+              value={paymentDetailsTotals.totalPaymentFees}
+              formatter={(value) => formatCurrency(Number(value))}
+            />
           </Card>
           <Card size="small">
             <Statistic
