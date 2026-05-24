@@ -1,18 +1,31 @@
-import { useEffect, useState } from 'react';
-import { Form, Input, message, Checkbox, DatePicker, Alert, Tabs } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
+import { Form, message, Select } from 'antd';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
-import { Button } from 'components/core/Button';
-import { Collapsible } from 'components/core/Collapsible';
-import { Camera, Save, Trash2 } from 'lucide-react';
 import { useCurrentUser, useUpdateCurrentUserProfile, useUpdateCurrentUserPassword, useCheckSlugAvailability } from 'hooks/useUser';
 import { useUploadFile } from 'hooks/useFiles';
-import { PasswordStrengthIndicator } from 'components/auth/PasswordStrengthIndicator';
 import { useWatch } from 'antd/es/form/Form';
 import { DeleteCurrentUserModal } from 'components/shared/DeleteCurrentUserModal';
 import { useRsvpMessages, useUpdateRsvpMessages } from 'hooks/useRsvp';
 import { useGiftListsByUser, useUpdateGiftList } from 'src/hooks/useGiftList';
-import { RsvpMessagesSection, PrivacySection, FeePreferenceSection } from 'src/features/settings/components';
+import {
+  RsvpMessagesSection,
+  PrivacySection,
+  FeePreferenceSection,
+  ProfileSection,
+  PasswordSection,
+  CoverImageSection,
+  GiftListDetailsSection,
+  DangerZoneSection,
+  SettingsSidebar,
+  SectionHeader,
+  SaveBar,
+  GiftListSelector,
+  GROUPS,
+  SECTION_LOOKUP,
+  GIFT_LIST_SECTIONS,
+  type SectionId,
+} from 'src/features/settings/components';
 
 export function Settings() {
   const navigate = useNavigate();
@@ -34,12 +47,15 @@ export function Settings() {
   const [feePreference, setFeePreference] = useState<'couple' | 'guest'>('couple');
   const [hasSettingsChanges, setHasSettingsChanges] = useState(false);
   const [activeGiftListId, setActiveGiftListId] = useState<number | null>(null);
+  const [activeSection, setActiveSection] = useState<SectionId>(() => {
+    if (typeof window === 'undefined') return 'profile';
+    const hash = window.location.hash.replace('#', '') as SectionId;
+    return SECTION_LOOKUP[hash] ? hash : 'profile';
+  });
 
-  // Fetch current user data
   const { data: userData, isLoading: isLoadingUser } = useCurrentUser();
   const { data: giftLists, isLoading: isLoadingWeddingList } = useGiftListsByUser(userData?.id);
 
-  // Set active gift list to first one if not set
   useEffect(() => {
     if (giftLists && giftLists.length > 0 && !activeGiftListId) {
       setActiveGiftListId(giftLists[0].id);
@@ -49,17 +65,14 @@ export function Settings() {
   const giftListData = giftLists?.find((list) => list.id === activeGiftListId) || giftLists?.[0];
   const { data: rsvpMessages } = useRsvpMessages(giftListData?.id || 0, !!giftListData?.id);
 
-  // Mutations
   const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useUpdateCurrentUserProfile();
   const { mutateAsync: updatePassword, isPending: isUpdatingPassword } = useUpdateCurrentUserPassword();
   const { mutateAsync: updateGiftList } = useUpdateGiftList();
   const { mutateAsync: uploadFile } = useUploadFile();
   const { mutateAsync: updateRsvpMessages, isPending: isUpdatingRsvpMessages } = useUpdateRsvpMessages();
 
-  // Check slug availability (excluding current user)
   const { data: slugCheck, isLoading: isCheckingSlug } = useCheckSlugAvailability(debouncedSlug, userData?.id);
 
-  // Load user data into form when available
   useEffect(() => {
     if (userData) {
       profileForm.setFieldsValue({
@@ -71,18 +84,15 @@ export function Settings() {
         slug: userData.slug || '',
       });
 
-      // Check if user has spouse information to determine if it's a wedding account
       const hasSpouseInfo = !!(userData.spouseFirstName || userData.spouseLastName);
       setIsWeddingAccount(hasSpouseInfo);
 
-      // Set initial couple slug
       if (userData.slug) {
         setCoupleSlug(userData.slug);
       }
     }
   }, [userData, profileForm]);
 
-  // Load RSVP messages into form
   useEffect(() => {
     if (rsvpMessages) {
       rsvpMessagesForm.setFieldsValue({
@@ -92,16 +102,11 @@ export function Settings() {
     }
   }, [rsvpMessages, rsvpMessagesForm]);
 
-  // Debounce slug input
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSlug(slug);
-    }, 500);
-
+    const timer = setTimeout(() => setDebouncedSlug(slug), 500);
     return () => clearTimeout(timer);
   }, [slug]);
 
-  // Update slug error based on availability check
   useEffect(() => {
     if (slugCheck && slug && slug !== userData?.slug) {
       if (!slugCheck.available) {
@@ -110,35 +115,52 @@ export function Settings() {
         setSlugError('');
       }
     } else if (slug === userData?.slug) {
-      // Clear error if it's the user's current slug
       setSlugError('');
     }
   }, [slugCheck, slug, userData?.slug]);
 
-  // Load gift list cover image, description, location, venue, privacy, and fee preference
   useEffect(() => {
-    if (giftListData?.imageUrl) {
-      setCoverImage(giftListData.imageUrl);
-    }
-    if (giftListData?.description) {
-      profileForm.setFieldValue('weddingListDescription', giftListData.description);
-    }
-    if (giftListData?.eventLocation) {
-      profileForm.setFieldValue('weddingLocation', giftListData.eventLocation);
-    }
-    if (giftListData?.eventVenue) {
-      profileForm.setFieldValue('weddingVenue', giftListData.eventVenue);
-    }
-    if (giftListData?.eventDate) {
-      profileForm.setFieldValue('weddingDate', dayjs(giftListData.eventDate));
-    }
-    if (giftListData?.isPublic !== undefined) {
-      setIsPublic(giftListData.isPublic);
-    }
-    if (giftListData?.feePreference) {
-      setFeePreference(giftListData.feePreference as 'couple' | 'guest');
-    }
+    if (giftListData?.imageUrl) setCoverImage(giftListData.imageUrl);
+    if (giftListData?.description) profileForm.setFieldValue('weddingListDescription', giftListData.description);
+    if (giftListData?.eventLocation) profileForm.setFieldValue('weddingLocation', giftListData.eventLocation);
+    if (giftListData?.eventVenue) profileForm.setFieldValue('weddingVenue', giftListData.eventVenue);
+    if (giftListData?.eventDate) profileForm.setFieldValue('weddingDate', dayjs(giftListData.eventDate));
+    if (giftListData?.isPublic !== undefined) setIsPublic(giftListData.isPublic);
+    if (giftListData?.feePreference) setFeePreference(giftListData.feePreference as 'couple' | 'guest');
   }, [giftListData, profileForm]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const current = window.location.hash.replace('#', '');
+    if (current !== activeSection) {
+      window.history.replaceState(null, '', `#${activeSection}`);
+    }
+  }, [activeSection]);
+
+  const handleSectionChange = (id: SectionId) => {
+    setActiveSection(id);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleWeddingAccountChange = (checked: boolean) => {
+    setIsWeddingAccount(checked);
+    setHasProfileChanges(true);
+    if (!checked) {
+      profileForm.setFieldsValue({
+        spouseFirstName: '',
+        spouseLastName: '',
+        weddingLocation: '',
+        weddingVenue: '',
+      });
+    }
+  };
+
+  const handleSlugChange = (value: string) => {
+    setCoupleSlug(value);
+    setHasProfileChanges(true);
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -146,16 +168,10 @@ export function Settings() {
 
     try {
       setIsUploadingImage(true);
-
-      // Upload file to server
       const uploadedFile = await uploadFile(file);
       const imageUrl = uploadedFile;
 
-      // Update gift list with new image URL
-      await updateGiftList({
-        id: giftListData.id,
-        data: { imageUrl },
-      });
+      await updateGiftList({ id: giftListData.id, data: { imageUrl } });
 
       setCoverImage(imageUrl);
       message.success('Imagen de portada actualizada');
@@ -173,7 +189,6 @@ export function Settings() {
       const oldSlug = userData?.slug;
       const newSlug = values.slug;
 
-      // Update user profile
       await updateProfile({
         firstName: values.firstName,
         lastName: values.lastName,
@@ -183,47 +198,31 @@ export function Settings() {
         slug: values.slug,
       });
 
-      // Update gift list data if it exists
       if (giftListData) {
         const giftListUpdates: any = {};
 
-        // Update coupleName based on whether it's a wedding account
         if (isWeddingAccount && values.spouseFirstName) {
-          // Wedding account: "FirstName y SpouseFirstName"
           giftListUpdates.coupleName = `${values.firstName}${values.spouseFirstName ? ' y ' + values.spouseFirstName : ''}`.trim();
           giftListUpdates.title = `Lista de ${values.firstName}${values.spouseFirstName ? ' y ' + values.spouseFirstName : ''}`.trim();
         } else {
-          // Not a wedding account: just the user's first name
           giftListUpdates.coupleName = values.firstName;
           giftListUpdates.title = `Lista de ${values.firstName}`;
         }
 
-        if (values.weddingListDescription !== undefined) {
-          giftListUpdates.description = values.weddingListDescription;
-        }
-        if (values.weddingLocation !== undefined) {
-          giftListUpdates.eventLocation = values.weddingLocation;
-        }
-        if (values.weddingVenue !== undefined) {
-          giftListUpdates.eventVenue = values.weddingVenue;
-        }
+        if (values.weddingListDescription !== undefined) giftListUpdates.description = values.weddingListDescription;
+        if (values.weddingLocation !== undefined) giftListUpdates.eventLocation = values.weddingLocation;
+        if (values.weddingVenue !== undefined) giftListUpdates.eventVenue = values.weddingVenue;
         if (values.weddingDate !== undefined) {
           giftListUpdates.eventDate = values.weddingDate ? values.weddingDate.toISOString() : null;
         }
 
-        // Only update if there are changes
         if (Object.keys(giftListUpdates).length > 0) {
-          await updateGiftList({
-            id: giftListData.id,
-            data: giftListUpdates,
-          });
+          await updateGiftList({ id: giftListData.id, data: giftListUpdates });
         }
       }
 
-      // Reset change flag after successful save
       setHasProfileChanges(false);
 
-      // Redirect to new URL if slug was changed
       if (oldSlug && newSlug && oldSlug !== newSlug) {
         navigate(`/${newSlug}/configuracion`, { replace: true });
       }
@@ -235,10 +234,7 @@ export function Settings() {
   const handleSavePassword = async () => {
     try {
       const values = await passwordForm.validateFields();
-      await updatePassword({
-        currentPassword: values.currentPassword,
-        newPassword: values.newPassword,
-      });
+      await updatePassword({ currentPassword: values.currentPassword, newPassword: values.newPassword });
       passwordForm.resetFields();
       setHasPasswordChanges(false);
     } catch (error) {
@@ -249,10 +245,7 @@ export function Settings() {
   const handleSaveSettings = async () => {
     if (!giftListData) return;
     try {
-      await updateGiftList({
-        id: giftListData.id,
-        data: { isPublic, feePreference },
-      });
+      await updateGiftList({ id: giftListData.id, data: { isPublic, feePreference } });
       setHasSettingsChanges(false);
       message.success('Configuración actualizada');
     } catch (error) {
@@ -281,390 +274,184 @@ export function Settings() {
     }
   };
 
+  const showGiftListSelector = useMemo(
+    () => GIFT_LIST_SECTIONS.includes(activeSection) && !!giftLists && giftLists.length > 1,
+    [activeSection, giftLists],
+  );
+
   if (isLoadingUser || isLoadingWeddingList) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-muted-foreground">Cargando...</div>
+        <div className="text-foreground/65 tracking-wide">Cargando...</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <div className="bg-linear-to-b from-[#faf9f8] to-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
-          <div className="text-center space-y-4">
-            <h1 className="text-5xl sm:text-6xl tracking-tight text-foreground">Configuración</h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-light">Personaliza tu perfil y la página de regalos</p>
-          </div>
+      {/* Hero strip */}
+      <header className="border-b border-border/40 bg-linear-to-b from-[#faf9f8] to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10">
+          <p className="text-[11px] tracking-[0.22em] uppercase text-[#d4704a] font-bold mb-3">Tu cuenta · MesaLista</p>
+          <h1 className="text-4xl sm:text-5xl tracking-tight text-foreground">
+            Hola, <span className="italic font-light">{userData?.firstName || 'pareja'}</span>
+          </h1>
+          <p className="text-base text-foreground/70 mt-2 max-w-2xl">
+            Personaliza tu perfil, tu mesa de regalos y la experiencia de tus invitados.
+          </p>
         </div>
+      </header>
+
+      {/* Mobile section selector */}
+      <div className="lg:hidden border-b border-border/40 sticky top-0 z-20 bg-white/95 backdrop-blur">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
+          <span className="text-[10px] tracking-[0.22em] uppercase text-[#d4704a] font-bold shrink-0">Navegar a</span>
+          <Select
+            value={activeSection}
+            onChange={(v) => handleSectionChange(v as SectionId)}
+            className="settings-nav-select flex-1"
+            size="large"
+            options={GROUPS.map((g) => ({
+              label: <span className="text-[10px] tracking-[0.18em] uppercase text-foreground/55 font-bold">{g.label}</span>,
+              options: g.items.map((i) => ({
+                value: i.id,
+                label: (
+                  <span className="flex items-center gap-2 font-semibold text-[#a8542f]">
+                    <i.icon className="h-4 w-4" />
+                    {i.label}
+                  </span>
+                ),
+              })),
+            }))}
+          />
+        </div>
+        <style>{`
+          .settings-nav-select .ant-select-selector {
+            background-color: rgba(212, 112, 74, 0.10) !important;
+            border-color: rgba(212, 112, 74, 0.30) !important;
+            border-radius: 9999px !important;
+            transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+          }
+          .settings-nav-select:hover .ant-select-selector,
+          .settings-nav-select.ant-select-focused .ant-select-selector {
+            background-color: rgba(212, 112, 74, 0.16) !important;
+            border-color: rgba(212, 112, 74, 0.55) !important;
+            box-shadow: 0 0 0 3px rgba(212, 112, 74, 0.10) !important;
+          }
+          .settings-nav-select .ant-select-selection-item {
+            color: #a8542f !important;
+            font-weight: 600;
+          }
+          .settings-nav-select .ant-select-arrow {
+            color: #d4704a !important;
+          }
+        `}</style>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
-        {/* Cover Image Section */}
-        <section className="space-y-6">
-          <div>
-            <h2 className="text-3xl tracking-tight text-foreground mb-2">Imagen de portada</h2>
-            <p className="text-muted-foreground font-light">Esta imagen aparecerá en tu página de regalos</p>
-          </div>
+      {/* Main layout */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+        <div className="grid lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr] gap-10 lg:gap-16">
+          <SettingsSidebar activeSection={activeSection} onSectionChange={handleSectionChange} />
 
-          <div className="space-y-4">
-            <div className="relative aspect-[21/9] w-full overflow-hidden rounded-2xl bg-muted">
-              {coverImage ? (
-                <img src={coverImage} alt="Cover" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                  <p className="text-muted-foreground">Sin imagen de portada</p>
-                </div>
-              )}
-              <div className="absolute inset-0 bg-black/20" />
-              <label htmlFor="cover-upload" className="absolute bottom-6 right-6 cursor-pointer">
-                <div className="bg-white/90 backdrop-blur-xl hover:bg-white transition-all duration-200 rounded-full p-4 shadow-lg">
-                  <Camera className="h-6 w-6 text-[#d4704a]" />
-                </div>
-                <input
-                  id="cover-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  disabled={isUploadingImage}
-                />
-              </label>
-            </div>
-            <p className="text-sm text-muted-foreground font-light">
-              {isUploadingImage ? 'Subiendo imagen...' : 'Recomendado: 1920 x 820 píxeles'}
-            </p>
-          </div>
-        </section>
+          <main className="min-w-0">
+            <SectionHeader sectionId={activeSection} />
 
-        {/* Personal Information */}
-        <section className="space-y-6">
-          <div>
-            <h2 className="text-3xl tracking-tight text-foreground mb-2">Información personal</h2>
-            <p className="text-muted-foreground font-light">Actualiza tu información de contacto</p>
-          </div>
-
-          <Form form={profileForm} layout="vertical" onValuesChange={() => setHasProfileChanges(true)}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Form.Item
-                name="firstName"
-                className="mb-0!"
-                label={<span className="text-sm text-muted-foreground">Nombre</span>}
-                rules={[{ required: true, message: 'El nombre es requerido' }]}>
-                <Input className="h-12 px-4 bg-[#f5f5f7]!" />
-              </Form.Item>
-
-              <Form.Item
-                name="lastName"
-                className="mb-0!"
-                label={<span className="text-sm text-muted-foreground">Apellido</span>}
-                rules={[{ required: true, message: 'El apellido es requerido' }]}>
-                <Input className="h-12 px-4 bg-[#f5f5f7]!" />
-              </Form.Item>
-
-              <Form.Item
-                name="phoneNumber"
-                label={<span className="text-sm text-muted-foreground">Teléfono</span>}
-                className="md:col-span-2 mb-0!"
-                rules={[
-                  { required: true, message: 'El teléfono es requerido' },
-                  { pattern: /^[\d\s\-\+\(\)]{10,}$/, message: 'Teléfono inválido' },
-                ]}>
-                <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="55 1234 5678" />
-              </Form.Item>
-            </div>
-          </Form>
-        </section>
-
-        {/* Couple Information */}
-        <section className="space-y-6">
-          <div>
-            <h2 className="text-3xl tracking-tight text-foreground mb-2">Información de la pareja</h2>
-            <p className="text-muted-foreground font-light">Datos de tu pareja para la mesa de regalos</p>
-          </div>
-
-          <div className="space-y-4">
-            <Checkbox
-              checked={isWeddingAccount}
-              onChange={(e) => {
-                setIsWeddingAccount(e.target.checked);
-                // Clear spouse and wedding fields if unchecking
-                if (!e.target.checked) {
-                  profileForm.setFieldsValue({
-                    spouseFirstName: '',
-                    spouseLastName: '',
-                    weddingLocation: '',
-                    weddingVenue: '',
-                  });
-                }
-              }}
-              className="text-base">
-              <span className="text-foreground font-medium">Cuenta para boda</span>
-            </Checkbox>
-
-            <Collapsible isOpen={isWeddingAccount}>
-              <Form form={profileForm} layout="vertical" onValuesChange={() => setHasProfileChanges(true)}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Form.Item name="spouseFirstName" label={<span className="text-sm text-muted-foreground">Nombre de la pareja</span>}>
-                    <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: María" />
-                  </Form.Item>
-
-                  <Form.Item name="spouseLastName" label={<span className="text-sm text-muted-foreground">Apellido de la pareja</span>}>
-                    <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: García" />
-                  </Form.Item>
-                </div>
-              </Form>
-            </Collapsible>
-          </div>
-        </section>
-
-        {/* Couple Slug */}
-        <section className="space-y-6">
-          <div className="mb-2!">
-            <h2 className="text-3xl tracking-tight text-foreground mb-2">Información de la mesa de regalos</h2>
-            <p className="text-muted-foreground font-light">Esta será la dirección web de tu mesa de regalos</p>
-          </div>
-
-          <Form form={profileForm} layout="vertical" onValuesChange={() => setHasProfileChanges(true)}>
-            <Form.Item
-              name="slug"
-              className="mb-0!"
-              label={<span className="text-sm text-muted-foreground">ID de la pareja</span>}
-              rules={[{ required: true, message: 'El slug es requerido' }]}
-              validateStatus={slugError ? 'error' : slug && slugCheck?.available && slug !== userData?.slug ? 'success' : undefined}
-              help={null}>
-              <Input
-                addonBefore="mesalista.com.mx/"
-                value={slug}
-                className="[&_input]:bg-[#f5f5f7]! [&_input]:h-12 [&_.ant-input-group-addon]:bg-white! [&_.ant-input-group-addon]:border-border!"
-                onChange={(e) => {
-                  const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                  setCoupleSlug(value);
-                  profileForm.setFieldValue('slug', value);
-                  setHasProfileChanges(true);
-                }}
-              />
-            </Form.Item>
-            <div className="space-y-1 mt-1">
-              <p className="text-sm text-muted-foreground font-light">Solo letras minúsculas, números y guiones</p>
-              {isCheckingSlug && slug && slug !== userData?.slug && (
-                <p className="text-sm text-muted-foreground">Verificando disponibilidad...</p>
-              )}
-              {!isCheckingSlug && slugCheck && slugCheck.available && slug && slug !== userData?.slug && (
-                <p className="text-sm text-green-600">✓ Este enlace está disponible</p>
-              )}
-              {slugError && <p className="text-sm text-red-500">{slugError}</p>}
-            </div>
-            {slug && slug !== userData?.slug && (
-              <Alert
-                className="my-3!"
-                message="Al cambiar tu ID, la URL anterior dejará de funcionar. Recuerda compartir la nueva dirección con tus invitados."
-                type="warning"
-                showIcon
+            {showGiftListSelector && (
+              <GiftListSelector
+                giftLists={giftLists}
+                activeGiftListId={activeGiftListId}
+                activeTitle={giftListData?.title || giftListData?.coupleName || ''}
+                onChange={setActiveGiftListId}
               />
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <Form.Item name="weddingVenue" label={<span className="text-sm text-muted-foreground mb-0!">Lugar del evento</span>}>
-                <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: Hacienda San José" />
-              </Form.Item>
-
-              <Form.Item name="weddingLocation" label={<span className="text-sm text-muted-foreground mb-0!">Ciudad, Estado</span>}>
-                <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: Guadalajara, Jalisco" />
-              </Form.Item>
-
-              <Form.Item name="weddingDate" label={<span className="text-sm text-muted-foreground">Fecha del evento</span>}>
-                <DatePicker className="w-full h-12 bg-[#f5f5f7]! border-none!" format="MMM DD, YYYY" placeholder="Selecciona la fecha" />
-              </Form.Item>
-            </div>
-
-            <Form.Item
-              name="weddingListDescription"
-              label={<span className="text-sm text-muted-foreground mt-10">Tu mensaje para los invitados en la mesa de regalos</span>}
-              className="mt-6">
-              <Input.TextArea
-                rows={4}
-                placeholder="Describe tu mesa de regalos, comparte tu historia o deja un mensaje para tus invitados..."
-                className="bg-[#f5f5f7]! resize-none"
-                maxLength={500}
-                showCount
+            <div hidden={activeSection !== 'profile'}>
+              <ProfileSection
+                form={profileForm}
+                isWeddingAccount={isWeddingAccount}
+                onWeddingAccountChange={handleWeddingAccountChange}
+                onValuesChange={() => setHasProfileChanges(true)}
+                isUpdating={isUpdatingProfile}
+                hasChanges={hasProfileChanges}
+                onSave={handleSaveProfile}
               />
-            </Form.Item>
-          </Form>
-        </section>
+            </div>
 
-        {/* Save Profile Button */}
-        <div className="flex justify-center pt-4">
-          <Button
-            onClick={handleSaveProfile}
-            disabled={isUpdatingProfile || !hasProfileChanges}
-            className="px-8 py-3 bg-[#d4704a] hover:bg-[#c25f3a] text-white rounded-full transition-all duration-200 flex items-center gap-2 border-0 disabled:opacity-50 disabled:cursor-not-allowed">
-            <Save className="h-5 w-5" />
-            {isUpdatingProfile ? 'Guardando...' : 'Guardar cambios'}
-          </Button>
+            <div hidden={activeSection !== 'password'}>
+              <PasswordSection
+                form={passwordForm}
+                password={password}
+                onValuesChange={() => setHasPasswordChanges(true)}
+                isUpdating={isUpdatingPassword}
+                hasChanges={hasPasswordChanges}
+                onSave={handleSavePassword}
+              />
+            </div>
+
+            <div hidden={activeSection !== 'cover'}>
+              <CoverImageSection coverImage={coverImage} isUploadingImage={isUploadingImage} onImageUpload={handleImageUpload} />
+            </div>
+
+            <div hidden={activeSection !== 'details'}>
+              <GiftListDetailsSection
+                form={profileForm}
+                slug={slug}
+                slugError={slugError}
+                slugCheck={slugCheck}
+                isCheckingSlug={isCheckingSlug}
+                userSlug={userData?.slug}
+                onSlugChange={handleSlugChange}
+                onValuesChange={() => setHasProfileChanges(true)}
+                isUpdating={isUpdatingProfile}
+                hasChanges={hasProfileChanges}
+                onSave={handleSaveProfile}
+              />
+            </div>
+
+            <div hidden={activeSection !== 'privacy'}>
+              <PrivacySection
+                isPublic={isPublic}
+                userSlug={userData?.slug}
+                onPublicChange={(value) => {
+                  setIsPublic(value);
+                  setHasSettingsChanges(true);
+                }}
+              />
+              <SaveBar onSave={handleSaveSettings} disabled={!hasSettingsChanges} loading={false} label="Guardar privacidad" />
+            </div>
+
+            <div hidden={activeSection !== 'fees'}>
+              <FeePreferenceSection
+                feePreference={feePreference}
+                onFeePreferenceChange={(value) => {
+                  setFeePreference(value);
+                  setHasSettingsChanges(true);
+                }}
+                onSave={handleSaveSettings}
+                hasChanges={hasSettingsChanges}
+                hasReceivedGifts={giftListData?.gifts?.some((gift) => gift.isPurchased) ?? false}
+              />
+            </div>
+
+            <div hidden={activeSection !== 'rsvp'}>
+              <RsvpMessagesSection
+                form={rsvpMessagesForm}
+                isUpdating={isUpdatingRsvpMessages}
+                hasChanges={hasRsvpMessagesChanges}
+                onSave={handleSaveRsvpMessages}
+                onValuesChange={() => setHasRsvpMessagesChanges(true)}
+              />
+            </div>
+
+            <div hidden={activeSection !== 'danger'}>
+              <DangerZoneSection onDeleteClick={() => setIsDeleteModalOpen(true)} />
+            </div>
+          </main>
         </div>
-
-        {/* Divider */}
-        <div className="border-t border-border/30" />
-
-        {/* Gift List Selector (if multiple lists) */}
-        {giftLists && giftLists.length > 1 && (
-          <section className="space-y-4">
-            <div>
-              <h2 className="text-3xl tracking-tight text-foreground mb-2">Configuración de Mesa de Regalos</h2>
-              <p className="text-muted-foreground font-light">Selecciona la mesa de regalos que deseas configurar</p>
-            </div>
-            <Tabs
-              activeKey={activeGiftListId?.toString()}
-              onChange={(key) => setActiveGiftListId(parseInt(key))}
-              items={giftLists.map((list) => ({
-                key: list.id.toString(),
-                label: list.title || list.coupleName,
-              }))}
-              className="[&_.ant-tabs-nav]:mb-0"
-            />
-          </section>
-        )}
-
-        {/* Current Gift List Info */}
-        {giftListData && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <p className="text-sm text-blue-800">
-              <strong>Configurando:</strong> {giftListData.title || giftListData.coupleName}
-            </p>
-          </div>
-        )}
-
-        {/* Gift List Sections */}
-        <RsvpMessagesSection
-          form={rsvpMessagesForm}
-          isUpdating={isUpdatingRsvpMessages}
-          hasChanges={hasRsvpMessagesChanges}
-          onSave={handleSaveRsvpMessages}
-          onValuesChange={() => setHasRsvpMessagesChanges(true)}
-        />
-
-        {/* Divider */}
-        <div className="border-t border-border/30" />
-
-        <PrivacySection
-          isPublic={isPublic}
-          userSlug={userData?.slug}
-          onPublicChange={(value) => {
-            setIsPublic(value);
-            setHasSettingsChanges(true);
-          }}
-        />
-
-        <FeePreferenceSection
-          feePreference={feePreference}
-          onFeePreferenceChange={(value) => {
-            setFeePreference(value);
-            setHasSettingsChanges(true);
-          }}
-          onSave={handleSaveSettings}
-          hasChanges={hasSettingsChanges}
-          hasReceivedGifts={giftListData?.gifts?.some((gift) => gift.isPurchased) ?? false}
-        />
-
-        {/* Divider */}
-        <div className="border-t border-border/30" />
-
-        {/* Password Section */}
-        <section className="space-y-6">
-          <div>
-            <h2 className="text-3xl tracking-tight text-foreground mb-2">Cambiar contraseña</h2>
-            <p className="text-muted-foreground font-light">Actualiza tu contraseña para mantener tu cuenta segura</p>
-          </div>
-
-          <Form form={passwordForm} layout="vertical" onValuesChange={() => setHasPasswordChanges(true)}>
-            <div className="space-y-4">
-              <Form.Item
-                name="currentPassword"
-                label={<span className="text-sm text-muted-foreground">Contraseña actual</span>}
-                rules={[{ required: true, message: 'La contraseña actual es requerida' }]}>
-                <Input.Password className="h-12 px-4 bg-[#f5f5f7]!" />
-              </Form.Item>
-
-              <Form.Item
-                name="newPassword"
-                label={<span className="text-sm text-muted-foreground">Nueva contraseña</span>}
-                rules={[
-                  { required: true, message: 'La nueva contraseña es requerida' },
-                  { min: 8, message: 'La contraseña debe tener al menos 8 caracteres' },
-                ]}>
-                <Input.Password className="h-12 px-4 bg-[#f5f5f7]!" />
-              </Form.Item>
-
-              {password && <PasswordStrengthIndicator password={password} />}
-
-              <Form.Item
-                name="confirmPassword"
-                label={<span className="text-sm text-muted-foreground">Confirmar nueva contraseña</span>}
-                dependencies={['newPassword']}
-                rules={[
-                  { required: true, message: 'Confirma tu nueva contraseña' },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      if (!value || getFieldValue('newPassword') === value) {
-                        return Promise.resolve();
-                      }
-                      return Promise.reject(new Error('Las contraseñas no coinciden'));
-                    },
-                  }),
-                ]}>
-                <Input.Password className="h-12 px-4 bg-[#f5f5f7]!" />
-              </Form.Item>
-            </div>
-          </Form>
-
-          <div className="flex justify-center pt-4">
-            <Button
-              onClick={handleSavePassword}
-              disabled={isUpdatingPassword || !hasPasswordChanges}
-              className="px-8 py-3 bg-[#d4704a] hover:bg-[#c25f3a] text-white rounded-full transition-all duration-200 flex items-center gap-2 border-0 disabled:opacity-50 disabled:cursor-not-allowed">
-              <Save className="h-5 w-5" />
-              {isUpdatingPassword ? 'Actualizando...' : 'Actualizar contraseña'}
-            </Button>
-          </div>
-        </section>
-
-        {/* Divider */}
-        <div className="border-t border-red-200" />
-
-        {/* Danger Zone - Delete Account */}
-        <section className="space-y-6">
-          <div>
-            <h2 className="text-3xl tracking-tight mb-2">Zona de peligro</h2>
-          </div>
-
-          <div className="border-2 border-red-200 rounded-2xl p-8 bg-red-50/30">
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-medium text-red-900 mb-2">Eliminar cuenta</h3>
-                <p className="text-sm text-red-700">
-                  Esta acción eliminará permanentemente tu cuenta, tu mesa de regalos, todos los regalos y toda la información asociada.
-                  Esta acción no se puede deshacer.
-                </p>
-              </div>
-              <Button
-                onClick={() => setIsDeleteModalOpen(true)}
-                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full transition-all duration-200 flex items-center gap-2 border-0">
-                <Trash2 className="h-5 w-5" />
-                Eliminar mi cuenta
-              </Button>
-            </div>
-          </div>
-        </section>
       </div>
 
-      {/* Delete Account Confirmation Modal */}
       <DeleteCurrentUserModal open={isDeleteModalOpen} onCancel={() => setIsDeleteModalOpen(false)} />
 
-      {/* Footer spacing */}
       <div className="h-24" />
     </div>
   );

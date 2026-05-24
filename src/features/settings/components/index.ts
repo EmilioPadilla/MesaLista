@@ -1,3 +1,14 @@
 export { RsvpMessagesSection } from './RsvpMessagesSection';
 export { PrivacySection } from './PrivacySection';
 export { FeePreferenceSection } from './FeePreferenceSection';
+export { ProfileSection } from './ProfileSection';
+export { PasswordSection } from './PasswordSection';
+export { CoverImageSection } from './CoverImageSection';
+export { GiftListDetailsSection } from './GiftListDetailsSection';
+export { DangerZoneSection } from './DangerZoneSection';
+export { SettingsSidebar } from './SettingsSidebar';
+export { SectionHeader } from './SectionHeader';
+export { SaveBar } from './SaveBar';
+export { GiftListSelector } from './GiftListSelector';
+export { GROUPS, SECTION_LOOKUP, GIFT_LIST_SECTIONS } from './nav-config';
+export type { SectionId, SectionMeta, SectionGroup } from './nav-config';

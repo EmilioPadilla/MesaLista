@@ -10,8 +10,15 @@ export default defineConfig({
     alias: {
       src: resolvePath(''),
       components: resolvePath('components'),
+      core: resolvePath('components/core'),
+      constants: resolvePath('constants'),
       hooks: resolvePath('hooks'),
+      modules: resolvePath('modules'),
+      routes: resolvePath('app/routes'),
       services: resolvePath('services'),
+      styles: resolvePath('styles'),
+      types: resolvePath('types'),
+      utils: resolvePath('utils'),
     },
   },
   test: {

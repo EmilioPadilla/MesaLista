@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
+  ChevronDown,
   Gem,
   Gift,
   GiftIcon,
@@ -17,7 +18,7 @@ import {
   ListTodo,
   MailOpen,
 } from 'lucide-react';
-import { message, Tooltip, Button, Divider } from 'antd';
+import { message, Tooltip, Button, Divider, Dropdown } from 'antd';
 import { useGetUserBySlug, useIsAuthenticated, useLogout, useCurrentUser } from 'hooks/useUser';
 import { useDeviceType } from 'hooks/useDeviceType';
 
@@ -270,34 +271,50 @@ export const TopNav = ({ slug, sticky = true }: TopNavProps) => {
             {/* User Authentication */}
             {userData && isAuthenticated ? (
               <div className="flex items-center mx-1">
-                {userData?.role !== 'ADMIN' && (
-                  <div
-                    onClick={() => navigate(`/${userCoupleSlug}/configuracion`)}
-                    className={`flex items-center space-x-2 cursor-pointer px-3 py-1 ${currentPage === `/${userCoupleSlug}/configuracion` ? 'bg-primary' : 'bg-secondary/50'} rounded-full`}>
+                <Dropdown
+                  trigger={['click']}
+                  placement="bottomRight"
+                  menu={{
+                    items: [
+                      ...(userData?.role !== 'ADMIN'
+                        ? [
+                            {
+                              key: 'settings',
+                              label: 'Configuración',
+                              icon: <Settings className="h-4 w-4" />,
+                              onClick: () => navigate(`/${userCoupleSlug}/configuracion`),
+                            },
+                          ]
+                        : []),
+                      {
+                        key: 'logout',
+                        label: 'Salir',
+                        icon: <LogOut className="h-4 w-4" />,
+                        onClick: handleLogout,
+                        danger: true,
+                      },
+                    ],
+                  }}>
+                  {userData?.role !== 'ADMIN' ? (
                     <div
-                      className={`w-8 h-8 ${currentPage === `/${userCoupleSlug}/configuracion` ? 'bg-white' : 'bg-primary/20'} rounded-full flex items-center justify-center`}>
-                      <UserIcon
-                        className={`h-4 w-4 ${currentPage === `/${userCoupleSlug}/configuracion` ? 'text-primary' : 'text-primary'}`}
-                      />
+                      className={`flex items-center space-x-2 cursor-pointer px-3 py-1 ${currentPage === `/${userCoupleSlug}/configuracion` ? 'bg-primary' : 'bg-secondary/50'} rounded-full select-none`}>
+                      <div
+                        className={`w-8 h-8 ${currentPage === `/${userCoupleSlug}/configuracion` ? 'bg-white' : 'bg-primary/20'} rounded-full flex items-center justify-center`}>
+                        <UserIcon className="h-4 w-4 text-primary" />
+                      </div>
+                      {viewType !== 'mobile' && (
+                        <span className={`!text-md ${currentPage === `/${userCoupleSlug}/configuracion` ? 'text-white' : 'text-foreground'}`}>
+                          {userData?.firstName}
+                        </span>
+                      )}
+                      <ChevronDown className={`h-3 w-3 ${currentPage === `/${userCoupleSlug}/configuracion` ? 'text-white' : 'text-muted-foreground'}`} />
                     </div>
-                    {viewType !== 'mobile' && (
-                      <span
-                        className={`!text-md ${currentPage === `/${userCoupleSlug}/configuracion` ? 'text-white' : 'text-foreground'} `}>
-                        {userData?.firstName}
-                      </span>
-                    )}
-                  </div>
-                )}
-                <Tooltip title={viewType === 'mobile' ? 'Salir' : ''} placement="bottom">
-                  <Button
-                    type="text"
-                    size="middle"
-                    onClick={handleLogout}
-                    className="flex items-center ml-1 cursor-pointer rounded-lg! text-md!">
-                    <LogOut className="h-4 w-4" />
-                    <span className="hidden md:block">Salir</span>
-                  </Button>
-                </Tooltip>
+                  ) : (
+                    <Button type="text" size="middle" className="flex items-center cursor-pointer rounded-lg! text-md!">
+                      <UserIcon className="h-4 w-4" />
+                    </Button>
+                  )}
+                </Dropdown>
               </div>
             ) : (
               <div className="flex items-center space-x-1 cursor-pointer">
