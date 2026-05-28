@@ -1,4 +1,5 @@
 import { Form, Input, DatePicker, Alert, type FormInstance } from 'antd';
+import { Lock } from 'lucide-react';
 import { SaveBar } from './SaveBar';
 
 interface GiftListDetailsSectionProps {
@@ -73,20 +74,43 @@ export function GiftListDetailsSection({
         <div>
           <h3 className="text-xs tracking-[0.18em] uppercase text-foreground/65 font-bold mb-4">Evento</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Form.Item name="weddingVenue" className="mb-0!" label={<span className="text-sm text-foreground/70 font-medium">Lugar del evento</span>}>
+            <Form.Item
+              name="weddingVenue"
+              className="mb-0!"
+              label={<span className="text-sm text-foreground/70 font-medium">Lugar del evento</span>}>
               <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: Hacienda San José" />
             </Form.Item>
 
-            <Form.Item name="weddingLocation" className="mb-0!" label={<span className="text-sm text-foreground/70 font-medium">Ciudad, Estado</span>}>
+            <Form.Item
+              name="weddingLocation"
+              className="mb-0!"
+              label={<span className="text-sm text-foreground/70 font-medium">Ciudad, Estado</span>}>
               <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: Guadalajara, Jalisco" />
             </Form.Item>
 
-            <Form.Item
-              name="weddingDate"
-              className="mb-0! md:col-span-2"
-              label={<span className="text-sm text-foreground/70 font-medium">Fecha del evento</span>}>
-              <DatePicker className="w-full h-12 bg-[#f5f5f7]! border-none!" format="MMM DD, YYYY" placeholder="Selecciona la fecha" />
-            </Form.Item>
+            <div className="md:col-span-2 space-y-2">
+              <Form.Item
+                name="weddingDate"
+                className="mb-0!"
+                label={<span className="text-sm text-foreground/70 font-medium">Fecha del evento</span>}>
+                <DatePicker
+                  disabled
+                  className="w-full h-12 bg-[#f5f5f7]! border-none! [&.ant-picker-disabled]:opacity-70 [&.ant-picker-disabled]:cursor-not-allowed"
+                  format="MMM DD, YYYY"
+                  placeholder="Selecciona la fecha"
+                />
+              </Form.Item>
+              <div className="flex items-start gap-2">
+                <Lock className="h-3 w-3 text-info mt-0.25 shrink-0" />
+                <p className="text-xs text-info font-medium">
+                  Para cambiar esta fecha, por favor contacta al equipo de MesaLista a{' '}
+                  <a href="mailto:info@mesalista.com.mx" className="underline font-semibold">
+                    info@mesalista.com.mx
+                  </a>
+                  .
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
