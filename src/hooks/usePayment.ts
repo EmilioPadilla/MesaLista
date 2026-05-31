@@ -107,7 +107,6 @@ export const useCompletePlanSignupSession = () => {
     mutationFn: paymentService.completePlanSignupSession,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
-      queryClient.invalidateQueries({ queryKey: [queryKeys.isAuthenticated] });
     },
   });
 };

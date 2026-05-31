@@ -20,14 +20,19 @@ interface GiftModalProps {
 
 export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, onGiftSaved }: GiftModalProps) {
   const [form] = Form.useForm();
+  // `imageRemoved` is the explicit "user clicked X" signal. Without it, we cannot tell
+  // an empty `imageState.url` apart from a gift that simply has no image yet, and we
+  // were falling back to the original URL on save — which is why removing an image in
+  // edit mode silently did nothing.
   const [imageState, setImageState] = useState<{
     file: File | null;
     url: string | undefined;
     name: string | undefined;
-  }>({ file: null, url: undefined, name: undefined });
+    imageRemoved: boolean;
+  }>({ file: null, url: undefined, name: undefined, imageRemoved: false });
   const [imagePosition, setImagePosition] = useState<number>(50);
   const [imageScale, setImageScale] = useState<number>(100);
-  const { mutate: updateGift, isSuccess: updateSuccess, isError: updateError } = useUpdateGift();
+  const { mutate: updateGift, isError: updateError } = useUpdateGift();
   const { mutate: uploadFile } = useUploadFile();
   const { data: categories } = useGetCategoriesByGiftList(weddingListId);
   const categoryOptions = categories?.categories?.map((category: any) => ({ value: category.name, label: category.name }));
@@ -38,24 +43,20 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
         title: gift.title,
         description: gift.description || '',
         price: gift.price,
-        categories: gift.categories?.map((cat: any) => cat.name),
+        categories: gift.categories?.map((cat: any) => cat.name) ?? [],
         isMostWanted: gift.isMostWanted,
-        imageUrl: gift.imageUrl || '',
       });
-      setImageState({ file: null, url: gift.imageUrl || '', name: gift.imageUrl || '' });
+      setImageState({ file: null, url: gift.imageUrl || '', name: gift.imageUrl || '', imageRemoved: false });
       setImagePosition((gift as any).imagePosition ?? 50);
       setImageScale((gift as any).imageScale ?? 100);
     }
   }, [gift, isOpen]);
 
   useEffect(() => {
-    if (updateSuccess) {
-      message.success('Regalo actualizado correctamente!');
-    }
     if (updateError) {
       message.error('Error al actualizar el regalo');
     }
-  }, [updateSuccess, updateError]);
+  }, [updateError]);
 
   const handleImageChange = (info: UploadChangeParam) => {
     if (info.fileList && info.fileList[0]) {
@@ -65,10 +66,23 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
         name: file.name,
         file: file.originFileObj as File,
         url: localUrl,
+        imageRemoved: false,
       });
     } else {
-      setImageState({ name: '', file: null, url: '' });
+      setImageState({ name: '', file: null, url: '', imageRemoved: true });
     }
+  };
+
+  const handleRemoveImage = () => {
+    setImageState({ name: '', file: null, url: '', imageRemoved: true });
+    setImagePosition(50);
+    setImageScale(100);
+  };
+
+  const resolveFinalImageUrl = (uploadedUrl?: string): string | undefined => {
+    if (uploadedUrl) return uploadedUrl;
+    if (imageState.imageRemoved) return '';
+    return imageState.url || gift?.imageUrl;
   };
 
   const handleFinish = (values: any) => {
@@ -77,48 +91,40 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
     const buildUpdatedGift = (finalImageUrl: string | undefined): GiftItem => ({
       ...gift,
       title: values.title,
-      description: values.description || '',
+      description: values.description ?? '',
       price: values.price,
-      categories:
-        values.categories?.map(
-          (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
-        ) || [],
+      // Always emit `categories` — even as []. The backend uses presence-of-field as the
+      // signal to replace, so omitting it on clear-all silently kept the old tags.
+      categories: (values.categories ?? []).map(
+        (name: string) => ({ name, id: gift.categories?.find((cat) => cat.name === name)?.id || 0 }) as GiftCategory,
+      ),
       isMostWanted: values.isMostWanted || false,
       imageUrl: finalImageUrl,
       imagePosition,
       imageScale,
     });
 
-    if (imageState.file) {
-      // New image file selected - upload it first, then update gift
-      uploadFile(imageState.file, {
-        onSuccess: (data) => {
-          const updatedGift = buildUpdatedGift(data);
-
-          updateGift(
-            { id: gift.id, data: updatedGift },
-            {
-              onSuccess: () => {
-                onGiftSaved?.(updatedGift);
-                onClose();
-              },
-            },
-          );
-        },
-      });
-    } else {
-      // No new file - update with existing image URL and current position
-      const updatedGift = buildUpdatedGift(imageState.url || gift.imageUrl);
-
+    const dispatchUpdate = (finalImageUrl: string | undefined) => {
+      const updatedGift = buildUpdatedGift(finalImageUrl);
       updateGift(
         { id: gift.id, data: updatedGift },
         {
           onSuccess: () => {
+            message.success('Regalo actualizado correctamente!');
             onGiftSaved?.(updatedGift);
             onClose();
           },
         },
       );
+    };
+
+    if (imageState.file) {
+      // New image file selected - upload it first, then update gift.
+      uploadFile(imageState.file, {
+        onSuccess: (data) => dispatchUpdate(data),
+      });
+    } else {
+      dispatchUpdate(resolveFinalImageUrl());
     }
   };
 
@@ -222,11 +228,7 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
                     type="default"
                     icon={<X />}
                     className="flex items-center justify-center cursor-pointer h-6 w-6 p-0 bg-background/80 hover:bg-background shadow-md"
-                    onClick={() => {
-                      setImageState({ name: '', file: null, url: '' });
-                      setImagePosition(50);
-                      setImageScale(100);
-                    }}></Button>
+                    onClick={handleRemoveImage}></Button>
                 </div>
               </div>
 

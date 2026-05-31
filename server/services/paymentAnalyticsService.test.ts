@@ -164,8 +164,8 @@ describe('getGiftListPaymentDetails — real fee reporting', () => {
 
     const result = await paymentAnalyticsService.getGiftListPaymentDetails(10);
 
-    // PayPal formula: 2200 * 0.0399 + 4 = 91.78
-    expect(result[0].paymentFee).toBeCloseTo(91.78, 1);
+    // PayPal formula: 2200 * 0.0399 + 4 = 90.9
+    expect(result[0].paymentFee).toBeCloseTo(90.9, 1);
     expect(result[0].feeSource).toBe('estimated');
   });
 

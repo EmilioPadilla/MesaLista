@@ -144,6 +144,7 @@ export function Checkout() {
       {
         cartItemId: cart.id,
         details: {
+          sessionId: cart.sessionId,
           inviteeName: guestInfo.name,
           inviteeEmail: guestInfo.email,
           phoneNumber: guestInfo.phone,
@@ -215,6 +216,7 @@ export function Checkout() {
       {
         cartItemId: cart.id,
         details: {
+          sessionId: cart.sessionId,
           inviteeName: guestInfo.name,
           inviteeEmail: guestInfo.email,
           phoneNumber: guestInfo.phone,

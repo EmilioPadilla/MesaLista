@@ -1,913 +1,166 @@
-/**
- * This file contains the API endpoints for the MesaLista application.
- */
-
-/**
- * Authentication endpoints
- */
 export const auth_endpoints = {
-  /**
-   * Register a new user
-   * @method POST
-   * @access Public
-   */
   register: `/users`,
-
-  /**
-   * Login a user and get JWT token
-   * @method POST
-   * @access Public
-   */
   login: `/users/login`,
 };
 
-/**
- * User management endpoints
- */
 export const user_endpoints = {
-  /**
-   * Base users endpoint
-   */
   base: `/user`,
-
   signupCommission: `/user/signup/commission`,
-
-  /**
-   * Get current user
-   * @method GET
-   * @access Protected
-   * @requires JWT token
-   */
   getCurrentUser: `/user/me`,
-
-  /**
-   * Get user by ID
-   * @method GET
-   * @access Protected
-   * @requires JWT token
-   * @param id User ID
-   */
   byId: (id: number) => `/user/${id}`,
-
-  /**
-   * Get user by couple slug
-   * @method GET
-   * @access Public
-   * @param slug Couple slug
-   */
   bySlug: (slug: string) => `/user/slug/${slug}`,
-
-  /**
-   * Check if couple slug is available
-   * @method GET
-   * @access Public
-   * @param slug Couple slug to check
-   */
   checkSlug: (slug: string) => `/user/check-slug/${slug}`,
-
-  /**
-   * Login user
-   * @method POST
-   * @access Public
-   */
   login: `/user/login`,
-
-  /**
-   * Logout user
-   * @method POST
-   * @access Public
-   */
   logout: `/user/logout`,
-
-  /**
-   * Update current user profile
-   * @method PUT
-   * @access Protected
-   * @requires JWT token
-   */
   updateProfile: `/user/me/profile`,
-
-  /**
-   * Update current user password
-   * @method PUT
-   * @access Protected
-   * @requires JWT token
-   */
   updatePassword: `/user/me/password`,
-
-  /**
-   * Delete current user account
-   * @method DELETE
-   * @access Protected
-   * @requires JWT token
-   */
   deleteCurrentUser: `/user/me`,
-
-  /**
-   * Request password reset
-   * @method POST
-   * @access Public
-   */
   requestPasswordReset: `/user/password-reset/request`,
-
-  /**
-   * Verify password reset token
-   * @method GET
-   * @access Public
-   * @param token Reset token
-   */
   verifyResetToken: (token: string) => `/user/password-reset/verify/${token}`,
-
-  /**
-   * Reset password with token
-   * @method POST
-   * @access Public
-   */
   resetPassword: `/user/password-reset/reset`,
-
-  /**
-   * Update user plan type (admin only)
-   * @method PUT
-   * @access Protected (Admin only)
-   * @requires JWT token
-   * @param userId User ID
-   */
   updatePlanType: (userId: number) => `/user/${userId}/plan-type`,
 };
 
-/**
- * Gift management endpoints
- */
 export const gift_endpoints = {
-  /**
-   * Base gifts endpoint
-   */
   base: `/gift`,
-
-  /**
-   * Get all gifts for a wedding list
-   * @method GET
-   * @access Protected
-   * @requires JWT token
-   * @param weddingListId Wedding list ID
-   */
   getByWeddingList: (weddingListId: number) => `/gift/wedding-list/${weddingListId}`,
-
-  /**
-   * Get gift by ID
-   * @method GET
-   * @access Protected
-   * @requires JWT token
-   * @param id Gift ID
-   */
   byId: (id: number) => `/gift/${id}`,
 };
 
-/**
- * Wedding list endpoints
- */
 export const weddingList_endpoints = {
-  /**
-   * Base payments endpoint
-   */
   base: `/wedding-list`,
-
-  /**
-   * Get wedding list by couple ID
-   * @method GET
-   * @access Protected
-   * @requires JWT token
-   * @param coupleId Couple ID
-   */
   getByCouple: (coupleId: number) => `/wedding-list/${coupleId}`,
-
-  /**
-   * Get wedding list by couple slug
-   * @method GET
-   * @access Public
-   * @param slug Couple slug
-   */
   getBySlug: (slug: string) => `/wedding-list/slug/${slug}`,
-
-  /**
-   * Update a wedding list
-   * @method PUT
-   * @access Protected
-   * @requires JWT token
-   * @param id Wedding list ID
-   */
   update: (id: number) => `/wedding-list/${id}`,
-
-  /**
-   * Get gifts in a wedding list
-   * @method GET
-   * @access Protected
-   * @requires JWT token
-   * @param weddingListId Wedding list ID
-   */
   getGiftsByWeddingList: (weddingListId: number) => `/wedding-list/${weddingListId}/gifts`,
-
-  /**
-   * Get categories in a wedding list
-   * @method GET
-   * @access Protected
-   * @requires JWT token
-   * @param weddingListId Wedding list ID
-   */
   getCategoriesByWeddingList: (weddingListId: number) => `/wedding-list/${weddingListId}/wedding-list-by-category`,
-
-  /**
-   * Reorder gifts in a wedding list
-   * @method PUT
-   * @access Protected
-   * @requires JWT token
-   * @param weddingListId Wedding list ID
-   */
   reorderGifts: (weddingListId: number) => `/wedding-list/${weddingListId}/reorder`,
 };
 
-/**
- * Gift purchase endpoints
- */
 export const purchase_endpoints = {
-  /**
-   * Purchase a gift
-   * @method POST
-   * @access Protected
-   * @requires JWT token
-   * @param giftId Gift ID
-   */
   purchaseGift: (giftId: number) => `/gifts/purchase/${giftId}`,
-
-  /**
-   * Update purchase status
-   * @method PATCH
-   * @access Protected
-   * @requires JWT token
-   * @param purchaseId Purchase ID
-   */
   updateStatus: (purchaseId: number) => `/gifts/purchases/${purchaseId}`,
-
-  /**
-   * Get all purchased gifts for a couple
-   * @method GET
-   * @access Protected
-   * @requires JWT token
-   * @param coupleId Couple ID
-   */
   getPurchasedGifts: (coupleId: number) => `/gifts/purchased/${coupleId}`,
-
-  /**
-   * Get all purchases made by a user
-   * @method GET
-   * @access Protected
-   * @requires JWT token
-   * @param userId User ID
-   */
   getUserPurchases: (userId: number) => `/gifts/user-purchases/${userId}`,
 };
 
-/**
- * Cart endpoints
- */
 export const cart_endpoints = {
-  /**
-   * Base cart endpoint
-   */
   base: `/cart`,
-
-  /**
-   * Add item to cart
-   * @method POST
-   * @access Protected
-   * @requires JWT token
-   */
   addItem: `/cart/add`,
-
-  /**
-   * Remove item from cart
-   * @method DELETE
-   * @method GET
-   * @method PUT
-   * @access Protected
-   * @requires JWT token
-   * @param giftId Gift ID
-   */
   byId: (giftId: number) => `/cart/item/${giftId}`,
-
-  /**
-   Update details from Cart
-   @method PUT
-   @access Protected
-   @requires JWT token
-   @param giftId Gift ID
-   */
   updateDetails: (giftId: number) => `/cart/${giftId}/details`,
-
-  /**
-   * Checkout cart
-   * @method POST
-   * @access Protected
-   * @requires JWT token
-   */
-  checkout: (giftId: number) => `/cart/${giftId}/checkout`,
 };
 
-/**
- * Documentation endpoints
- */
 export const docs_endpoints = {
-  /**
-   * Swagger API documentation
-   * @method GET
-   * @access Public
-   */
   swagger: `/docs`,
 };
 
-/**
- * Payment endpoints
- */
 export const payment_endpoints = {
-  /**
-   * Base payments endpoint
-   */
   base: `/payments`,
-
-  /**
-   * Initiate a payment process
-   * @method POST
-   * @access Public
-   */
   initiate: `/payments/initiate`,
-
-  /**
-   * Create Stripe checkout session
-   * @method POST
-   * @access Public
-   */
   createCheckoutSession: `/payments/create-checkout-session`,
-
-  /**
-   * Verify and complete a payment
-   * @method POST
-   * @access Public
-   */
   verify: `/payments/verify`,
-
-  /**
-   * Get payment summary
-   * @method GET
-   * @access Public
-   * @param id Money bag ID
-   */
   getSummary: (id: number) => `/payments/${id}/summary`,
-
-  /**
-   * Get all payments
-   * @method GET
-   * @access Protected
-   * @requires JWT token
-   */
   getAll: `/payments`,
-
-  /**
-   * Create PayPal order
-   * @method POST
-   * @access Public
-   */
   createPayPalOrder: `/payments/create-paypal-order`,
-
-  /**
-   * Capture PayPal payment
-   * @method POST
-   * @access Public
-   */
   capturePayPalPayment: `/payments/capture-paypal-payment`,
-
-  /**
-   * Cancel payment (Stripe or PayPal)
-   * @method POST
-   * @access Public
-   */
   cancelPayment: `/payments/cancel-payment`,
-
-  /**
-   * Create Stripe checkout session for plan payment
-   * @method POST
-   * @access Public
-   */
   createPlanCheckoutSession: `/payments/create-plan-checkout-session`,
-
   completePlanSignupSession: `/payments/complete-plan-signup-session`,
-
-  /**
-   * Create Stripe checkout session for gift list payment
-   * @method POST
-   * @access Protected
-   * @requires JWT token
-   */
   createGiftListCheckoutSession: `/payments/create-gift-list-checkout-session`,
-
-  /**
-   * Get purchased gifts by wedding list ID
-   * @method GET
-   * @access Protected
-   * @requires JWT token
-   * @param weddingListId Wedding list ID
-   */
   getPurchasedGiftsByWeddingList: (weddingListId: number) => `/payments/wedding-list/${weddingListId}/purchased-gifts`,
 };
 
-/**
- * Email endpoints
- */
 export const email_endpoints = {
-  /**
-   * Resend payment confirmation emails to both admin and invitee
-   * @method POST
-   * @access Public
-   */
   resendPaymentConfirmation: `/email/resend-payment-confirmation`,
-
-  /**
-   * Resend payment notification email to admin only
-   * @method POST
-   * @access Public
-   */
   resendPaymentToAdmin: `/email/resend-payment-to-admin`,
-
-  /**
-   * Resend payment confirmation email to invitee only
-   * @method POST
-   * @access Public
-   */
   resendPaymentToInvitee: `/email/resend-payment-to-invitee`,
-
-  /**
-   * Send contact form email
-   * @method POST
-   * @access Public
-   */
   sendContactForm: `/email/contact`,
-
-  /**
-   * Get list of commission-based users
-   * @method GET
-   * @access Admin only
-   */
   getCommissionUsers: `/email/marketing/commission-users`,
-
-  /**
-   * Send marketing email to selected users
-   * @method POST
-   * @access Admin only
-   */
   sendToSelectedUsers: `/email/marketing/send-to-selected`,
-
-  /**
-   * Get marketing email preview
-   * @method GET
-   * @access Admin only
-   */
   getEmailPreview: (emailType: number | string, userId: number) => `/email/marketing/preview?emailType=${emailType}&userId=${userId}`,
-
-  /**
-   * Send marketing email to selected leads
-   * @method POST
-   * @access Admin only
-   */
   sendToLeads: `/email/marketing/send-to-leads`,
-
-  /**
-   * Send marketing email to a specific user
-   * @method POST
-   * @access Admin only
-   */
   sendMarketingEmailToUser: `/email/marketing/send-to-user`,
 };
 
-/**
- * Email verification endpoints
- */
 export const emailVerification_endpoints = {
-  /**
-   * Send verification code to email
-   * @method POST
-   * @access Public
-   */
   sendCode: `/email-verification/send`,
-
-  /**
-   * Verify email with code
-   * @method POST
-   * @access Public
-   */
   verifyCode: `/email-verification/verify`,
-
-  /**
-   * Check if email was recently verified
-   * @method GET
-   * @access Public
-   * @param email Email address to check
-   */
   checkStatus: (email: string) => `/email-verification/check/${encodeURIComponent(email)}`,
 };
 
-/**
- * Analytics endpoints
- */
 export const analytics_endpoints = {
-  /**
-   * Upsert analytics session
-   * @method POST
-   * @access Public
-   */
   upsertSession: `/analytics/events/session`,
-
-  /**
-   * Log an analytics event
-   * @method POST
-   * @access Public
-   */
   logEvent: `/analytics/events`,
-
-  /**
-   * Get metrics summary
-   * @method GET
-   * @access Admin only
-   */
   summary: `/analytics/admin/metrics/summary`,
-
-  /**
-   * Get time series data
-   * @method GET
-   * @access Admin only
-   */
   timeSeries: `/analytics/admin/metrics/time_series`,
-
-  /**
-   * Get funnel breakdown by dimension
-   * @method GET
-   * @access Admin only
-   */
   funnelBreakdown: `/analytics/admin/metrics/funnel_breakdown`,
-
-  /**
-   * Get metric alerts
-   * @method GET
-   * @access Admin only
-   */
   alerts: `/analytics/admin/metrics/alerts`,
-
-  /**
-   * Trigger daily aggregation
-   * @method POST
-   * @access Admin only
-   */
   aggregate: `/analytics/admin/metrics/aggregate`,
-
-  /**
-   * Cleanup old data
-   * @method POST
-   * @access Admin only
-   */
   cleanup: `/analytics/admin/metrics/cleanup`,
 };
 
-/**
- * Gift List Endpoints
- */
 const giftList_endpoints = {
-  /**
-   * Base gift lists endpoint
-   */
   base: `/gift-list`,
-
-  /**
-   * Get all gift lists
-   * @method GET
-   * @access Public
-   */
   getAll: `/gift-list`,
-
-  /**
-   * Get gift lists by user ID
-   * @method GET
-   * @access Protected
-   * @param userId User ID
-   */
   getByUser: (userId: number) => `/gift-list/user/${userId}`,
-
-  /**
-   * Get gift list by ID
-   * @method GET
-   * @access Public
-   * @param giftListId Gift list ID
-   */
   getById: (giftListId: number) => `/gift-list/${giftListId}`,
-
-  /**
-   * Get first gift list by user slug (for backward compatibility)
-   * @method GET
-   * @access Public
-   * @param slug User slug
-   */
-  getBySlug: (slug: string) => `/gift-list/by-slug/${slug}`,
-
-  /**
-   * Update a gift list
-   * @method PUT
-   * @access Protected
-   * @param id Gift list ID
-   */
+  getFirstByUserSlug: (userSlug: string) => `/gift-list/by-slug/${userSlug}`,
   update: (id: number) => `/gift-list/${id}`,
-
-  /**
-   * Delete a gift list
-   * @method DELETE
-   * @access Protected
-   * @param id Gift list ID
-   */
   delete: (id: number) => `/gift-list/${id}`,
-
-  /**
-   * Get gifts in a gift list
-   * @method GET
-   * @access Public
-   * @param giftListId Gift list ID
-   */
   getGiftsByGiftList: (giftListId: number) => `/gift-list/${giftListId}/gifts`,
-
-  /**
-   * Get categories in a gift list
-   * @method GET
-   * @access Public
-   * @param giftListId Gift list ID
-   */
   getCategoriesByGiftList: (giftListId: number) => `/gift-list/${giftListId}/categories`,
-
-  /**
-   * Reorder gifts in a gift list
-   * @method PUT
-   * @access Protected
-   * @param giftListId Gift list ID
-   */
   reorderGifts: (giftListId: number) => `/gift-list/${giftListId}/reorder`,
 };
 
-/**
- * Predesigned Lists Endpoints
- */
 const predesignedList_endpoints = {
   getAll: `/predesigned-lists`,
   getById: (id: number) => `/predesigned-lists/${id}`,
   addGiftToWeddingList: (giftId: number, weddingListId: number) => `/predesigned-lists/${giftId}/add-to-wedding-list`,
 };
 
-/**
- * Discount Code Endpoints
- */
 const discountCode_endpoints = {
-  /**
-   * Validate a discount code
-   * @method GET
-   * @access Public
-   * @param code Discount code to validate
-   */
   validate: (code: string) => `/discount-codes/validate/${code}`,
-
-  /**
-   * Get all discount codes
-   * @method GET
-   * @access Admin only
-   */
   getAllAdmin: `/discount-codes/admin/all`,
-
-  /**
-   * Get discount code statistics
-   * @method GET
-   * @access Admin only
-   * @param id Discount code ID
-   */
   getStatsAdmin: (id: number) => `/discount-codes/admin/${id}/stats`,
-
-  /**
-   * Create a new discount code
-   * @method POST
-   * @access Admin only
-   */
   createAdmin: `/discount-codes/admin`,
-
-  /**
-   * Update a discount code
-   * @method PUT
-   * @access Admin only
-   * @param id Discount code ID
-   */
   updateAdmin: (id: number) => `/discount-codes/admin/${id}`,
-
-  /**
-   * Delete a discount code
-   * @method DELETE
-   * @access Admin only
-   * @param id Discount code ID
-   */
   deleteAdmin: (id: number) => `/discount-codes/admin/${id}`,
 };
 
-/**
- * Users and Lists Analytics Endpoints
- */
 const usersListsAnalytics_endpoints = {
-  /**
-   * Get summary statistics for users and wedding lists
-   * @method GET
-   * @access Admin only
-   */
   summary: `/admin/users-lists-analytics/summary`,
-
-  /**
-   * Get detailed analytics for all users with their wedding lists
-   * @method GET
-   * @access Admin only
-   */
   users: `/admin/users-lists-analytics/users`,
-
-  /**
-   * Get detailed analytics for all wedding lists
-   * @method GET
-   * @access Admin only
-   */
   lists: `/admin/users-lists-analytics/lists`,
 };
 
-/**
- * Payment Analytics Endpoints
- */
 const paymentAnalytics_endpoints = {
-  /**
-   * Get payment analytics summary
-   * @method GET
-   * @access Admin only
-   */
   summary: `/admin/payment-analytics/summary`,
-
-  /**
-   * Get detailed payment analytics for all gift lists
-   * @method GET
-   * @access Admin only
-   */
   lists: `/admin/payment-analytics/lists`,
-
-  /**
-   * Get detailed gift payments for a specific gift list
-   * @method GET
-   * @access Admin only
-   */
   listPayments: (giftListId: number) => `/admin/payment-analytics/lists/${giftListId}/payments`,
 };
 
-/**
- * RSVP Endpoints
- */
 const rsvp_endpoints = {
-  /**
-   * Get all invitees for authenticated couple
-   * @method GET
-   * @access Protected (Couple only)
-   */
   getInvitees: `/rsvp/invitees`,
-
-  /**
-   * Get invitee by secret code
-   * @method GET
-   * @access Public
-   * @param secretCode Secret code
-   */
   getInviteeByCode: (secretCode: string) => `/rsvp/invitee/${secretCode}`,
-
-  /**
-   * Validate RSVP code
-   * @method GET
-   * @access Public
-   * @param secretCode Secret code to validate
-   */
   validateRsvpCode: (secretCode: string) => `/rsvp/validate/${secretCode}`,
-
-  /**
-   * Create a new invitee
-   * @method POST
-   * @access Protected (Couple only)
-   */
   createInvitee: `/rsvp/invitees`,
-
-  /**
-   * Bulk create invitees
-   * @method POST
-   * @access Protected (Couple only)
-   */
   bulkCreateInvitees: `/rsvp/invitees/bulk`,
-
-  /**
-   * Update an invitee
-   * @method PUT
-   * @access Protected (Couple only)
-   * @param id Invitee ID
-   */
   updateInvitee: (id: string) => `/rsvp/invitees/${id}`,
-
-  /**
-   * Delete an invitee
-   * @method DELETE
-   * @access Protected (Couple only)
-   * @param id Invitee ID
-   */
   deleteInvitee: (id: string) => `/rsvp/invitees/${id}`,
-
-  /**
-   * Bulk delete invitees
-   * @method POST
-   * @access Protected (Couple only)
-   */
   bulkDeleteInvitees: `/rsvp/invitees/bulk-delete`,
-
-  /**
-   * Bulk update invitee status
-   * @method POST
-   * @access Protected (Couple only)
-   */
   bulkUpdateInviteeStatus: `/rsvp/invitees/bulk-update-status`,
-
-  /**
-   * Respond to RSVP
-   * @method POST
-   * @access Public
-   * @param secretCode Secret code
-   */
   respondToRsvp: (secretCode: string) => `/rsvp/respond/${secretCode}`,
-
-  /**
-   * Get RSVP statistics
-   * @method GET
-   * @access Protected (Couple only)
-   */
   getStats: `/rsvp/stats`,
-
-  /**
-   * Get RSVP messages for a gift list
-   * @method GET
-   * @access Public
-   * @param giftListId Gift List ID
-   */
   getMessages: (giftListId: number) => `/rsvp/messages/${giftListId}`,
-
-  /**
-   * Update RSVP messages
-   * @method PUT
-   * @access Protected (Couple only)
-   */
   updateMessages: `/rsvp/messages`,
-
-  /**
-   * Get custom fields for a gift list
-   * @method GET
-   * @access Public
-   */
   getCustomFields: (giftListId: number) => `/rsvp/custom-fields/${giftListId}`,
-
-  /**
-   * Create a custom field
-   * @method POST
-   * @access Protected (Couple only)
-   */
   createCustomField: `/rsvp/custom-fields`,
-
-  /**
-   * Update a custom field
-   * @method PUT
-   * @access Protected (Couple only)
-   */
   updateCustomField: (id: number) => `/rsvp/custom-fields/${id}`,
-
-  /**
-   * Delete a custom field
-   * @method DELETE
-   * @access Protected (Couple only)
-   */
   deleteCustomField: (id: number) => `/rsvp/custom-fields/${id}`,
-
-  /**
-   * Get custom field responses for a gift list's invitees
-   * @method GET
-   * @access Protected (Couple only)
-   */
   getCustomFieldResponses: `/rsvp/custom-field-responses`,
 };
 
-/**
- * Invitation endpoints
- */
 export const invitation_endpoints = {
   base: `/invitations`,
   byGiftListId: (giftListId: number) => `/invitations/gift-list/${giftListId}`,
@@ -920,49 +173,14 @@ export const invitation_endpoints = {
   delete: (id: number) => `/invitations/${id}`,
 };
 
-/**
- * Signup email endpoints (marketing lead collection)
- */
 export const signupEmail_endpoints = {
-  /**
-   * Save email from signup attempt
-   * @method POST
-   * @access Public
-   */
   save: `/signup-emails`,
-
-  /**
-   * Get all signup emails
-   * @method GET
-   * @access Admin only
-   */
   getAll: `/signup-emails`,
-
-  /**
-   * Add email manually
-   * @method POST
-   * @access Admin only
-   */
   addManual: `/signup-emails/manual`,
-
-  /**
-   * Delete a signup email
-   * @method DELETE
-   * @access Admin only
-   */
   delete: (id: number) => `/signup-emails/${id}`,
-
-  /**
-   * Mark email as converted
-   * @method POST
-   * @access Admin only
-   */
   markConverted: `/signup-emails/mark-converted`,
 };
 
-/**
- * Combined endpoints for easy access
- */
 export const endpoints = {
   auth: auth_endpoints,
   users: user_endpoints,

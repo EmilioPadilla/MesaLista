@@ -1,10 +1,12 @@
-import { Table, Tag, Typography, Empty, Spin } from 'antd';
+import { Table, Tag, Typography, Empty, Spin, Button } from 'antd';
+import { DownloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { usePurchasedGiftsByWeddingList } from 'src/hooks/usePayment';
 import type { PurchasedGift } from 'src/services/payment.service';
 import { useDeviceType } from 'src/hooks/useDeviceType';
+import { buildPurchasedGiftsCsv, buildKeepsakeFilename } from 'src/features/manageRegistry/utils/purchasedGiftsExport';
 
-const { Text } = Typography;
+const { Text, Paragraph } = Typography;
 
 interface PurchasedGiftsTabProps {
   weddingListId?: number;
@@ -54,9 +56,22 @@ export const PurchasedGiftsTab: React.FC<PurchasedGiftsTabProps> = ({ weddingLis
       title: 'Mensaje',
       dataIndex: 'message',
       key: 'message',
-      width: 250,
-      ellipsis: true,
-      render: (text: string) => text || <Text type="secondary">Sin mensaje</Text>,
+      width: 280,
+      render: (text: string) => {
+        if (!text) return <Text type="secondary">Sin mensaje</Text>;
+        return (
+          <Paragraph
+            className="mb-0!"
+            ellipsis={{
+              rows: 2,
+              expandable: 'collapsible',
+              symbol: (expanded) =>
+                expanded ? <span className="text-gray-400!">Ver menos</span> : <span className="text-gray-400!">Ver más</span>,
+            }}>
+            {text}
+          </Paragraph>
+        );
+      },
     },
     {
       title: 'Cantidad',
@@ -165,6 +180,19 @@ export const PurchasedGiftsTab: React.FC<PurchasedGiftsTabProps> = ({ weddingLis
   const totalGifts = purchasedGifts.length;
   const currency = purchasedGifts[0]?.currency || 'MXN';
 
+  const handleDownloadCsv = () => {
+    const csv = buildPurchasedGiftsCsv(purchasedGifts);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = buildKeepsakeFilename();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-4">
       {/* Summary Cards */}
@@ -197,6 +225,12 @@ export const PurchasedGiftsTab: React.FC<PurchasedGiftsTabProps> = ({ weddingLis
             }).format(totalAmount / totalGifts)}
           </Text>
         </div>
+      </div>
+
+      <div className="flex justify-end">
+        <Button type="primary" icon={<DownloadOutlined />} onClick={handleDownloadCsv} aria-label="Descargar recuerdos como CSV">
+          Descargar recuerdos
+        </Button>
       </div>
 
       {/* Table */}

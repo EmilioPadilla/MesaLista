@@ -33,7 +33,7 @@ const Dashboard: React.FC = () => {
       <Layout>
         <Content>
           {/* Child routes will be rendered here */}
-          <Outlet context={{ publicData: contextData, userData }} />
+          <Outlet context={{ publicData: contextData, userData: userData ?? undefined }} />
         </Content>
       </Layout>
     </Layout>

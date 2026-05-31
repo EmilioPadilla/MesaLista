@@ -233,6 +233,9 @@ export const userController = {
           },
           select: {
             id: true,
+            title: true,
+            coupleName: true,
+            eventDate: true,
             planType: true,
           },
         });
@@ -252,6 +255,20 @@ export const userController = {
       });
 
       await createSessionAndSetCookie(res, result.user.id, userAgent, ipAddress);
+
+      try {
+        await emailService.sendGiftListCreationEmail({
+          userId: result.user.id,
+          giftListId: result.giftList.id,
+          giftListTitle: result.giftList.title,
+          coupleName: result.giftList.coupleName,
+          eventDate: result.giftList.eventDate,
+          planType: 'COMMISSION',
+          amount: 0,
+        });
+      } catch (emailError) {
+        console.error('Error sending gift list creation email for commission signup:', emailError);
+      }
 
       res.status(201).json({
         ...result.user,

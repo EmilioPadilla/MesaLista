@@ -20,7 +20,7 @@ export const giftListService = {
   },
 
   getGiftListBySlug: async (slug: string): Promise<GiftListWithGifts> => {
-    const response = await apiClient.get(api_endpoints.giftLists.getBySlug(slug), { skipAuth: true } as CustomAxiosRequestConfig);
+    const response = await apiClient.get(api_endpoints.giftLists.getFirstByUserSlug(slug), { skipAuth: true } as CustomAxiosRequestConfig);
     return response.data;
   },
 

@@ -65,17 +65,6 @@ export const cartService = {
     const response = await apiClient.put(cart_endpoints.updateDetails(cartItemId), details);
     return response.data;
   },
-
-  /**
-   * Checkout cart
-   *
-   * @param cartItemId ID of the cart item
-   * @returns Updated cart
-   */
-  checkoutCart: async (cartItemId: number): Promise<Cart> => {
-    const response = await apiClient.post(cart_endpoints.checkout(cartItemId));
-    return response.data;
-  },
 };
 
 export default cartService;

@@ -73,6 +73,12 @@ const giftListController = {
       return res.status(400).json({ error: 'User ID is required' });
     }
 
+    // A logged-in user can only enumerate their own lists. Admins are not granted
+    // a broader view here — this endpoint is reached from the couple dashboard.
+    if (!req.user || req.user.userId !== Number(userId)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
     try {
       const giftLists = await prisma.giftList.findMany({
         where: { userId: Number(userId) },
@@ -223,16 +229,22 @@ const giftListController = {
   },
 
   createGiftList: async (req: Request, res: Response) => {
-    const { userId, title, description, coupleName, eventDate, imageUrl, planType, discountCodeId } = req.body as CreateGiftListRequest;
+    const { title, description, coupleName, eventDate, imageUrl, planType, discountCodeId } = req.body as CreateGiftListRequest;
 
-    if (!userId || !title || !coupleName || !eventDate) {
-      return res.status(400).json({ error: 'User ID, title, couple name, and event date are required' });
+    // userId comes from the authenticated session, never the request body. Otherwise
+    // any logged-in user could create a list owned by anyone.
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    if (!title || !coupleName || !eventDate) {
+      return res.status(400).json({ error: 'Title, couple name, and event date are required' });
     }
 
     try {
       const giftList = await prisma.giftList.create({
         data: {
-          userId: Number(userId),
+          userId: req.user.userId,
           title,
           description,
           coupleName,
@@ -266,68 +278,77 @@ const giftListController = {
       eventVenue,
       imageUrl,
       invitationCount,
-      planType,
       isActive,
       isPublic,
       feePreference,
     } = req.body as UpdateGiftListRequest;
+    // `planType` is intentionally NOT destructured — it must be immutable post-creation.
+    // Letting it change would retroactively distort the FIXED/COMMISSION split in analytics
+    // and could let a couple downgrade from FIXED to COMMISSION after paying for FIXED.
 
     if (!giftListId) {
       return res.status(400).json({ error: 'Gift list ID is required' });
     }
 
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const id = Number(giftListId);
+    const userId = req.user.userId;
+
     try {
-      // If trying to update feePreference, check if any gifts have been purchased
-      if (feePreference !== undefined) {
-        const existingGiftList = await prisma.giftList.findUnique({
-          where: { id: Number(giftListId) },
-          include: {
-            gifts: {
-              where: { isPurchased: true },
-              take: 1,
-            },
-          },
-        });
+      // Fee-preference change is locked once any gift has been purchased. Express the
+      // check atomically by adding `gifts: { none: { isPurchased: true } }` to the
+      // update's where clause — this prevents the read-then-write race where two
+      // concurrent updates (or a webhook flipping isPurchased between the read and
+      // the write) could slip a change through after the first purchase.
+      const wantsFeePreferenceChange = feePreference !== undefined;
 
-        if (!existingGiftList) {
-          return res.status(404).json({ error: 'Gift list not found' });
-        }
+      const data: any = {
+        ...(title && { title }),
+        ...(description !== undefined && { description }),
+        ...(coupleName && { coupleName }),
+        ...(eventDate && { eventDate: new Date(eventDate) }),
+        ...(eventLocation !== undefined && { eventLocation }),
+        ...(eventVenue !== undefined && { eventVenue }),
+        ...(imageUrl !== undefined && { imageUrl }),
+        ...(invitationCount !== undefined && { invitationCount }),
+        ...(isActive !== undefined && { isActive }),
+        ...(isPublic !== undefined && { isPublic }),
+        ...(wantsFeePreferenceChange && { feePreference }),
+      };
 
-        // Block feePreference update if gifts have been purchased
-        if (existingGiftList.gifts.length > 0 && existingGiftList.feePreference !== feePreference) {
-          return res.status(403).json({
-            error:
-              'No puedes cambiar la configuración de comisiones porque ya has recibido regalos. Contacta a info@mesalista.com.mx para solicitar cambios.',
-          });
-        }
+      const where: any = { id, userId };
+      if (wantsFeePreferenceChange) {
+        // Restrict update: this list, owned by the caller, AND no purchased gifts yet.
+        where.gifts = { none: { isPurchased: true } };
       }
 
-      const giftList = await prisma.giftList.update({
-        where: { id: Number(giftListId) },
-        data: {
-          ...(title && { title }),
-          ...(description !== undefined && { description }),
-          ...(coupleName && { coupleName }),
-          ...(eventDate && { eventDate: new Date(eventDate) }),
-          ...(eventLocation !== undefined && { eventLocation }),
-          ...(eventVenue !== undefined && { eventVenue }),
-          ...(imageUrl !== undefined && { imageUrl }),
-          ...(invitationCount !== undefined && { invitationCount }),
-          ...(planType !== undefined && { planType }),
-          ...(isActive !== undefined && { isActive }),
-          ...(isPublic !== undefined && { isPublic }),
-          ...(feePreference !== undefined && { feePreference }),
-        },
-      });
+      const result = await prisma.giftList.updateMany({ where, data });
 
-      res.json(giftList);
-    } catch (error: any) {
-      console.error('Error updating gift list:', error);
-
-      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+      if (result.count === 0) {
+        // Either: list doesn't exist, caller doesn't own it, or fee-pref change was blocked
+        // by an existing purchase. Disambiguate so the FE can surface the right message.
+        if (wantsFeePreferenceChange) {
+          const existing = await prisma.giftList.findFirst({
+            where: { id, userId },
+            select: { id: true },
+          });
+          if (existing) {
+            return res.status(403).json({
+              error:
+                'No puedes cambiar la configuración de comisiones porque ya has recibido regalos. Contacta a info@mesalista.com.mx para solicitar cambios.',
+            });
+          }
+        }
         return res.status(404).json({ error: 'Gift list not found' });
       }
 
+      const giftList = await prisma.giftList.findUnique({ where: { id } });
+      res.json(giftList);
+    } catch (error: any) {
+      console.error('Error updating gift list:', error);
       res.status(500).json({ error: 'Failed to update gift list' });
     }
   },
@@ -339,19 +360,23 @@ const giftListController = {
       return res.status(400).json({ error: 'Gift list ID is required' });
     }
 
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
     try {
-      await prisma.giftList.delete({
-        where: { id: Number(giftListId) },
+      // Owner-scoped delete: non-owners get count === 0 → 404 in a single round-trip.
+      const result = await prisma.giftList.deleteMany({
+        where: { id: Number(giftListId), userId: req.user.userId },
       });
+
+      if (result.count === 0) {
+        return res.status(404).json({ error: 'Gift list not found' });
+      }
 
       res.json({ message: 'Gift list deleted successfully' });
     } catch (error: any) {
       console.error('Error deleting gift list:', error);
-
-      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
-        return res.status(404).json({ error: 'Gift list not found' });
-      }
-
       res.status(500).json({ error: 'Failed to delete gift list' });
     }
   },
@@ -460,7 +485,21 @@ const giftListController = {
       return res.status(400).json({ error: 'Gift orders array is required' });
     }
 
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
     try {
+      // Confirm caller owns the gift list before touching any gifts. One extra round-trip
+      // here, but it short-circuits before opening a transaction for a non-owner.
+      const owned = await prisma.giftList.findFirst({
+        where: { id: Number(giftListId), userId: req.user.userId },
+        select: { id: true },
+      });
+      if (!owned) {
+        return res.status(404).json({ error: 'Gift list not found' });
+      }
+
       // @ts-ignore
       await prisma.$transaction(async (tx) => {
         for (const { giftId, order } of giftOrders) {

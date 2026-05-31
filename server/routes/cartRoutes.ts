@@ -13,6 +13,4 @@ router.delete('/item/:id', cartController.removeFromCart);
 
 router.put('/:id/details', cartController.updateCartDetails);
 
-router.post('/:id/checkout', cartController.checkoutCart);
-
 export default router;

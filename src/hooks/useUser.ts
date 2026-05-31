@@ -5,53 +5,46 @@ import { queryKeys } from './queryKeys';
 import { User } from 'types/models/user';
 
 /**
- * Hook to check if the user is authenticated
+ * Hook to fetch the current authenticated user.
+ *
+ * Returns `null` (cached) when the user is not authenticated so navigation
+ * across pages does not refetch /user/me on every mount.
  *
  * @param options React Query options
  */
-export const useIsAuthenticated = (options?: Partial<UseQueryOptions<boolean, Error>>) => {
-  return useQuery({
-    queryKey: [queryKeys.isAuthenticated],
+export const useCurrentUser = (options?: Partial<UseQueryOptions<User | null, Error>>) => {
+  return useQuery<User | null, Error>({
+    queryKey: [queryKeys.currentUser],
     queryFn: async () => {
       try {
-        // Try to get current user - if successful, user is authenticated
-        // Pass true to suppress error logging for auth checks
-        const user = await userService.getCurrentUser(true);
-        // message.success(`Bienvenid@ de vuelta, ${user.firstName}${user.spouseFirstName ? ' y ' + user.spouseFirstName : ''}!`);
-        return true;
-      } catch (error) {
-        // If getCurrentUser fails, user is not authenticated
-        // This is expected behavior, so we don't log it as an error
-        return false;
+        return await userService.getCurrentUser(true);
+      } catch (error: any) {
+        const status = error?.response?.status;
+        if (status === 401 || status === 403) {
+          return null;
+        }
+        throw error;
       }
     },
-    retry: false, // Don't retry on auth failures
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: false,
+    staleTime: 5 * 60 * 1000,
     ...options,
   });
 };
 
 /**
- * Hook to fetch the current authenticated user
- *
- * @param options React Query options
+ * Hook to check if the user is authenticated.
+ * Derives from useCurrentUser so both share a single /user/me request.
  */
-export const useCurrentUser = (options?: Partial<UseQueryOptions<User, Error>>) => {
-  return useQuery({
-    queryKey: [queryKeys.currentUser],
-    queryFn: async () => {
-      try {
-        // Pass true to suppress error logging for auth checks
-        return await userService.getCurrentUser(true);
-      } catch (error) {
-        // Suppress error logging for unauthenticated users
-        // This is expected when user is not logged in
-        throw error;
-      }
-    },
-    retry: false, // Don't retry on auth failures
-    ...options,
-  });
+export const useIsAuthenticated = () => {
+  const { data, isLoading, isFetching, isError, error } = useCurrentUser();
+  return {
+    data: !!data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+  };
 };
 
 /**
@@ -101,9 +94,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) => userService.login(email, password),
     onSuccess: () => {
-      // After login, we should refresh the current user data
       queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
-      queryClient.invalidateQueries({ queryKey: [queryKeys.isAuthenticated] });
     },
     onError: (error) => {
       console.error('Login error:', error);
@@ -119,12 +110,7 @@ export const useLogout = () => {
   return {
     logout: async () => {
       await userService.logout();
-      // Clear all user-related data from cache
-      queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
-      queryClient.invalidateQueries({ queryKey: [queryKeys.isAuthenticated] });
-      // Remove the cached data immediately
       queryClient.removeQueries({ queryKey: [queryKeys.currentUser] });
-      queryClient.removeQueries({ queryKey: [queryKeys.isAuthenticated] });
     },
   };
 };
@@ -149,7 +135,6 @@ export const useSignupCommission = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.users] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
-      queryClient.invalidateQueries({ queryKey: [queryKeys.isAuthenticated] });
     },
   });
 };

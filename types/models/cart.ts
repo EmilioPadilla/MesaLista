@@ -72,19 +72,11 @@ export interface RemoveFromCartRequest {
  * Update cart details request payload
  */
 export interface UpdateCartDetailsRequest {
+  sessionId: string;
   inviteeName?: string;
   inviteeEmail?: string;
   country?: string;
   phoneNumber?: string;
   message?: string;
   rsvpCode?: string;
-}
-
-/**
- * Checkout cart response
- */
-export interface CheckoutCartResponse {
-  success: boolean;
-  purchaseIds?: number[];
-  message: string;
 }

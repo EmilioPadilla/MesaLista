@@ -92,17 +92,3 @@ export const useUpdateCartDetails = () => {
     },
   });
 };
-
-/**
- * Hook to checkout cart
- */
-export const useCheckoutCart = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: cartService.checkoutCart,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKeys.cart] });
-      queryClient.invalidateQueries({ queryKey: [queryKeys.cartItems] });
-    },
-  });
-};

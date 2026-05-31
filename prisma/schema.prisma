@@ -226,11 +226,25 @@ model Payment {
   amount        Float          // Total payment amount charged to the guest
   status        PaymentStatus  @default(PENDING)
   metadata      String?
+  // Email delivery observability — webhooks must not fail when Postmark glitches,
+  // but a silent swallow means the couple never learns about a purchase. We persist
+  // the outcome so a CLI script (server/scripts/retryFailedEmails.ts) can retry.
+  emailDeliveryStatus  EmailDeliveryStatus @default(PENDING) @map("email_delivery_status")
+  emailDeliveryError   String?  @db.Text @map("email_delivery_error")
+  emailDeliveryAttempts Int     @default(0) @map("email_delivery_attempts")
+  emailDeliveryLastAttemptAt DateTime? @map("email_delivery_last_attempt_at")
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
   cart          Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
 
+  @@index([emailDeliveryStatus])
   @@map("payments")
+}
+
+enum EmailDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
 }
 
 model Session {

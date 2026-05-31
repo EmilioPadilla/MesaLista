@@ -307,10 +307,37 @@ export default {
   updateCartDetails: async (req: Request, res: Response) => {
     try {
       const { id: cartId } = req.params;
-      const { inviteeName, inviteeEmail, country, phoneNumber, message, rsvpCode }: UpdateCartDetailsRequest = req.body;
+      const { sessionId, inviteeName, inviteeEmail, country, phoneNumber, message, rsvpCode }: UpdateCartDetailsRequest = req.body;
 
       if (!cartId) {
         return res.status(400).json({ error: 'Cart ID is required' });
+      }
+
+      // The sessionId from the request body must match the cart's stored sessionId.
+      // Without this check, anyone with a cart ID could overwrite invitee info and
+      // re-link the cart to an arbitrary RSVP code — distorting the rsvpInvitee join
+      // the couple sees in the purchased-gifts view.
+      if (!sessionId || typeof sessionId !== 'string') {
+        return res.status(400).json({ error: 'Session ID is required' });
+      }
+
+      const existingCart = await prisma.cart.findUnique({
+        where: { id: Number(cartId) },
+        select: { sessionId: true, status: true },
+      });
+
+      if (!existingCart) {
+        return res.status(404).json({ error: 'Cart not found' });
+      }
+
+      if (existingCart.sessionId !== sessionId) {
+        return res.status(403).json({ error: 'Session does not own this cart' });
+      }
+
+      // Don't allow rewriting invitee details on a paid cart — that would corrupt
+      // the historical record the couple already saw in the purchased-gifts report.
+      if (existingCart.status !== 'PENDING') {
+        return res.status(409).json({ error: 'No se puede modificar un carrito que ya fue pagado' });
       }
 
       // Validate RSVP code if provided (only save if valid due to foreign key constraint)
@@ -351,114 +378,6 @@ export default {
     } catch (error) {
       console.error('Error updating cart details:', error);
       res.status(500).json({ error: 'Failed to update cart details' });
-    }
-  },
-
-  // Checkout cart - convert cart items to purchases
-  checkoutCart: async (req: Request, res: Response) => {
-    try {
-      const { id: cartId } = req.params;
-
-      if (!cartId) {
-        return res.status(400).json({ error: 'Cart ID is required' });
-      }
-
-      // Get the cart with all items
-      const cart = await prisma.cart.findUnique({
-        where: { id: Number(cartId) },
-        include: {
-          items: {
-            include: {
-              gift: true,
-            },
-          },
-        },
-      });
-
-      if (!cart) {
-        return res.status(404).json({ error: 'Cart not found' });
-      }
-
-      if (!cart.items || cart.items.length === 0) {
-        return res.status(400).json({ error: 'Cart is empty' });
-      }
-
-      // Validate required fields
-      if (!cart.inviteeName || !cart.inviteeEmail) {
-        return res.status(400).json({
-          error: 'Invitee name and email are required for checkout',
-        });
-      }
-
-      // Start a transaction to ensure all operations succeed or fail together
-      const result = await prisma.$transaction(async (tx: any) => {
-        const purchaseIds: number[] = [];
-
-        // Create a guest user or find by email
-        let guestUser = await tx.user.findFirst({
-          where: { email: cart.inviteeEmail || '' },
-        });
-
-        if (!guestUser) {
-          // Split the invitee name into firstName and lastName
-          const fullName = cart.inviteeName || 'Guest';
-          const nameParts = fullName.trim().split(' ');
-          const firstName = nameParts[0] || 'Guest';
-          const lastName = nameParts.slice(1).join(' ');
-
-          guestUser = await tx.user.create({
-            data: {
-              firstName,
-              lastName,
-              email: cart.inviteeEmail || '',
-              password: '', // No password for guest users
-              role: 'GUEST',
-              spouseFirstName: null,
-              spouseLastName: null,
-              imageUrl: null,
-              phoneNumber: null,
-              updatedAt: new Date(),
-            },
-          });
-        }
-
-        // Process each cart item
-        for (const item of cart.items) {
-          // Check if the gift is still available
-          const gift = await tx.gift.findUnique({
-            where: { id: item.giftId },
-          });
-
-          if (!gift || gift.isPurchased) {
-            throw new Error(`Gift ${item.giftId} is no longer available`);
-          }
-
-          // Mark the gift as purchased
-          await tx.gift.update({
-            where: { id: item.giftId },
-            data: { isPurchased: true },
-          });
-        }
-
-        // Clear the cart after successful checkout
-        await tx.cartItem.deleteMany({
-          where: { cartId: Number(cartId) },
-        });
-
-        return purchaseIds;
-      });
-
-      res.status(200).json({
-        success: true,
-        purchaseIds: result,
-        message: 'Checkout completed successfully',
-      });
-    } catch (error) {
-      console.error('Error during checkout:', error);
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to process checkout',
-      });
     }
   },
 };

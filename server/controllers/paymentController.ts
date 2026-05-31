@@ -40,6 +40,44 @@ let tokenExpiry: number = 0;
 
 const getDefaultEventDate = () => new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);
 
+// Run an email-sending function and stamp the outcome on the Payment row. Webhook
+// handlers call this so a Postmark glitch is observable via Payment.emailDeliveryStatus
+// (= 'FAILED') and retryable via server/scripts/retryFailedEmails.ts, instead of being
+// swallowed by `console.error` and leaving the couple unaware of a purchase.
+export const recordEmailDelivery = async (cartId: number, send: () => Promise<void>): Promise<void> => {
+  const now = new Date();
+  try {
+    await send();
+    await prisma.payment.updateMany({
+      where: { cartId },
+      data: {
+        emailDeliveryStatus: 'SENT',
+        emailDeliveryError: null,
+        emailDeliveryAttempts: { increment: 1 },
+        emailDeliveryLastAttemptAt: now,
+      },
+    });
+  } catch (emailError) {
+    console.error(`Error sending payment emails for cart ${cartId}:`, emailError);
+    const errorMessage = emailError instanceof Error ? emailError.message : String(emailError);
+    try {
+      await prisma.payment.updateMany({
+        where: { cartId },
+        data: {
+          emailDeliveryStatus: 'FAILED',
+          emailDeliveryError: errorMessage.slice(0, 1000),
+          emailDeliveryAttempts: { increment: 1 },
+          emailDeliveryLastAttemptAt: now,
+        },
+      });
+    } catch (persistError) {
+      // If we can't even record the failure, log it loudly — but still don't throw,
+      // since this runs inside a payment webhook handler.
+      console.error('Failed to record email delivery failure on Payment:', persistError);
+    }
+  }
+};
+
 const buildCoupleName = (firstName: string, lastName: string, spouseFirstName?: string | null) => {
   return spouseFirstName ? `${firstName} y ${spouseFirstName}` : `${firstName} ${lastName}`;
 };
@@ -471,13 +509,10 @@ export default {
               });
             }
 
-            // Send payment confirmation emails
-            try {
-              await emailService.sendPaymentEmails(cartId);
-            } catch (emailError) {
-              console.error('Error sending payment emails:', emailError);
-              // Don't fail the webhook if email sending fails
-            }
+            // Send payment confirmation emails. Postmark glitches must not 500 the
+            // webhook (Stripe would retry the whole event), so we swallow + persist
+            // the outcome on Payment.emailDeliveryStatus for the retry CLI to pick up.
+            await recordEmailDelivery(cartId, () => emailService.sendPaymentEmails(cartId));
           } else {
             console.error('Missing metadata in checkout session');
             return res.status(400).json({ error: 'Missing metadata' });
@@ -601,8 +636,11 @@ export default {
     }
   },
 
-  // List all payments
-  getAllPayments: async (_req: Request, res: Response) => {
+  // List all payments — platform-wide view, restricted to admins.
+  getAllPayments: async (req: Request, res: Response) => {
+    if (!req.user || req.user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
     try {
       const payments = await prisma.payment.findMany({
         orderBy: { createdAt: 'desc' },
@@ -909,13 +947,9 @@ export default {
           });
         }
 
-        // Send payment confirmation emails
-        try {
-          await emailService.sendPaymentEmails(cartId);
-        } catch (emailError) {
-          console.error('Error sending payment emails:', emailError);
-          // Don't fail the payment capture if email sending fails
-        }
+        // Send payment confirmation emails. Same pattern as the Stripe webhook —
+        // persist outcome rather than throwing so PayPal doesn't retry the capture.
+        await recordEmailDelivery(cartId, () => emailService.sendPaymentEmails(cartId));
 
         res.json({
           success: true,
@@ -1214,6 +1248,20 @@ export default {
           success: false,
           message: 'Gift list ID is required',
         });
+      }
+
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      // Confirm caller owns the gift list. Without this anyone authenticated could read
+      // any couple's purchase list, including guest names / emails / messages.
+      const owned = await prisma.giftList.findFirst({
+        where: { id: Number(weddingListId), userId: req.user.userId },
+        select: { id: true },
+      });
+      if (!owned) {
+        return res.status(404).json({ success: false, message: 'Gift list not found' });
       }
 
       // Get all payments for gifts in this wedding list

@@ -26,7 +26,6 @@ export const queryKeys = {
   categoriesByWeddingList: 'categoriesByWeddingList',
   categoriesByGiftList: 'categoriesByGiftList',
   uploadFile: 'uploadFile',
-  isAuthenticated: 'isAuthenticated',
   analytics: 'analytics',
   discountCodes: 'discountCodes',
 };

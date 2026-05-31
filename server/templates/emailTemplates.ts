@@ -1208,6 +1208,12 @@ El equipo de MesaLista
   }): string {
     const formatCurrency = (amount: number) => this.formatCurrency(amount, 'MXN');
     const formatDate = (date: Date) => this.formatDate(date);
+    const isCommission = data.planType === 'COMMISSION';
+    const planLabel = isCommission ? 'Plan por Comisión - 3% por regalo' : 'Plan Fijo - Sin Comisiones';
+    const heroHeadline = isCommission ? '¡Bienvenido a MesaLista!' : 'Pago Procesado Exitosamente';
+    const heroSubcopy = isCommission
+      ? 'Tu cuenta ha sido creada y tu nueva lista de regalos ya está activa.'
+      : `Tu pago de <strong style="color: #d4704a;">${formatCurrency(data.amount)}</strong> ha sido confirmado`;
 
     return `
 <!DOCTYPE html>
@@ -1222,7 +1228,7 @@ El equipo de MesaLista
     <tr>
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          
+
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #d4704a 0%, #c05f3d 100%); padding: 40px 30px; text-align: center;">
@@ -1236,9 +1242,9 @@ El equipo de MesaLista
               <div style="width: 80px; height: 80px; background-color: #d4704a; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
                 <span style="color: #ffffff; font-size: 40px;">✓</span>
               </div>
-              <h2 style="color: #1d1d1f; margin: 0 0 10px; font-size: 24px; font-weight: 500;">Pago Procesado Exitosamente</h2>
+              <h2 style="color: #1d1d1f; margin: 0 0 10px; font-size: 24px; font-weight: 500;">${heroHeadline}</h2>
               <p style="color: #86868b; margin: 0; font-size: 16px; line-height: 1.5;">
-                Tu pago de <strong style="color: #d4704a;">${formatCurrency(data.amount)}</strong> ha sido confirmado
+                ${heroSubcopy}
               </p>
             </td>
           </tr>
@@ -1264,7 +1270,7 @@ El equipo de MesaLista
                   </tr>
                   <tr>
                     <td style="color: #86868b; font-size: 14px; padding: 8px 0;">Plan:</td>
-                    <td style="color: #1d1d1f; font-size: 14px; font-weight: 500; text-align: right; padding: 8px 0;">Plan Fijo - Sin Comisiones</td>
+                    <td style="color: #1d1d1f; font-size: 14px; font-weight: 500; text-align: right; padding: 8px 0;">${planLabel}</td>
                   </tr>
                 </table>
               </div>
@@ -1280,8 +1286,8 @@ El equipo de MesaLista
                 <div style="display: flex; align-items: start; margin-bottom: 12px;">
                   <span style="color: #d4704a; font-size: 20px; margin-right: 12px;">1️⃣</span>
                   <div>
-                    <strong style="color: #1d1d1f; font-size: 15px; display: block; margin-bottom: 4px;">Agrega tus regalos</strong>
-                    <p style="color: #86868b; margin: 0; font-size: 14px; line-height: 1.5;">Crea tu lista con fotos, descripciones y precios</p>
+                    <strong style="color: #1d1d1f; font-size: 15px; display: block; margin-bottom: 4px;">Visita nuestras redes</strong>
+                    <p style="color: #86868b; margin: 0; font-size: 14px; line-height: 1.5;">Ve a @mesalista.mx para enterarte de todas las funcionalidades de tu nueva mesa de regalos.</p>
                   </div>
                 </div>
               </div>
@@ -1290,8 +1296,8 @@ El equipo de MesaLista
                 <div style="display: flex; align-items: start; margin-bottom: 12px;">
                   <span style="color: #d4704a; font-size: 20px; margin-right: 12px;">2️⃣</span>
                   <div>
-                    <strong style="color: #1d1d1f; font-size: 15px; display: block; margin-bottom: 4px;">Crea tu invitación digital</strong>
-                    <p style="color: #86868b; margin: 0; font-size: 14px; line-height: 1.5;">Diseña una hermosa invitación para tu evento</p>
+                    <strong style="color: #1d1d1f; font-size: 15px; display: block; margin-bottom: 4px;">Agrega tus regalos</strong>
+                    <p style="color: #86868b; margin: 0; font-size: 14px; line-height: 1.5;">Crea tu lista con fotos, descripciones y precios</p>
                   </div>
                 </div>
               </div>
@@ -1367,27 +1373,34 @@ El equipo de MesaLista
   }): string {
     const formatCurrency = (amount: number) => this.formatCurrency(amount, 'MXN');
     const formatDate = (date: Date) => this.formatDate(date);
+    const isCommission = data.planType === 'COMMISSION';
+    const planLabel = isCommission ? 'Plan por Comisión - 3% por regalo' : 'Plan Fijo - Sin Comisiones';
+    const heroBlock = isCommission
+      ? `✓ ¡BIENVENIDO A MESALISTA!
+
+Tu cuenta ha sido creada y tu nueva lista de regalos ya está activa.`
+      : `✓ PAGO PROCESADO EXITOSAMENTE
+
+Tu pago de ${formatCurrency(data.amount)} ha sido confirmado y tu nueva lista de regalos ya está activa.`;
 
     return `
 ¡TU NUEVA LISTA DE REGALOS ESTÁ LISTA! 🎉
 
-✓ PAGO PROCESADO EXITOSAMENTE
-
-Tu pago de ${formatCurrency(data.amount)} ha sido confirmado y tu nueva lista de regalos ya está activa.
+${heroBlock}
 
 DETALLES DE TU LISTA:
 - Nombre de la Lista: ${data.giftListTitle}
 - Pareja: ${data.coupleName}
 - Fecha del Evento: ${formatDate(data.eventDate)}
-- Plan: Plan Fijo - Sin Comisiones
+- Plan: ${planLabel}
 
 PRÓXIMOS PASOS:
 
-1️⃣ AGREGA TUS REGALOS
-Crea tu lista con fotos, descripciones y precios. Puedes agregar desde electrodomésticos hasta experiencias de viaje.
+1️⃣ VISITA NUESTRAS REDES
+Ve a @mesalista.mx para enterarte de todas las funcionalidades de tu nueva mesa de regalos.
 
-2️⃣ CREA TU INVITACIÓN DIGITAL
-Diseña una hermosa invitación para tu evento y compártela con tus invitados.
+2️⃣ AGREGA TUS REGALOS
+Crea tu lista con fotos, descripciones y precios. Puedes agregar desde electrodomésticos hasta experiencias de viaje.
 
 3️⃣ COMPARTE CON TUS INVITADOS
 Envía el enlace a familiares y amigos para que puedan ver y comprar tus regalos.

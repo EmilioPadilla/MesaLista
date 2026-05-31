@@ -12,6 +12,7 @@ const cartItemFindMany = vi.fn();
 const giftFindUnique = vi.fn();
 const cartCreate = vi.fn();
 const cartUpdate = vi.fn();
+const inviteeFindUnique = vi.fn();
 
 vi.mock('@prisma/client', () => ({
   PrismaClient: class {
@@ -29,6 +30,7 @@ vi.mock('@prisma/client', () => ({
       findMany: cartItemFindMany,
     };
     gift = { findUnique: giftFindUnique };
+    invitee = { findUnique: inviteeFindUnique };
   },
 }));
 
@@ -191,5 +193,144 @@ describe('cartController — guard against mutating PAID carts', () => {
 
       expect(res.status).not.toHaveBeenCalledWith(409);
     });
+  });
+});
+
+describe('cartController.updateCartDetails — sessionId binding (#5)', () => {
+  const CART_ID = 42;
+  const REAL_SESSION = 'real-session-uuid';
+  const ATTACKER_SESSION = 'attacker-uuid';
+
+  it('rejects requests without a sessionId in the body (returns 400)', async () => {
+    const req: any = {
+      params: { id: String(CART_ID) },
+      body: { inviteeName: 'Mallory' },
+    };
+    const res = makeRes();
+    await cartController.updateCartDetails(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(cartUpdate).not.toHaveBeenCalled();
+  });
+
+  it('rejects when sessionId does NOT match the stored cart.sessionId (returns 403)', async () => {
+    // The pre-fix code accepted any cart ID and overwrote invitee data — also
+    // re-linking the cart to any valid RSVP code. After the fix, the sessionId
+    // in the body must match the cart row's sessionId.
+    cartFindUnique.mockResolvedValue({ sessionId: REAL_SESSION, status: 'PENDING' });
+
+    const req: any = {
+      params: { id: String(CART_ID) },
+      body: {
+        sessionId: ATTACKER_SESSION,
+        inviteeName: 'Mallory',
+        inviteeEmail: 'm@example.com',
+      },
+    };
+    const res = makeRes();
+    await cartController.updateCartDetails(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(cartUpdate).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when the cart does not exist', async () => {
+    cartFindUnique.mockResolvedValue(null);
+    const req: any = {
+      params: { id: String(CART_ID) },
+      body: { sessionId: REAL_SESSION, inviteeName: 'Alice' },
+    };
+    const res = makeRes();
+    await cartController.updateCartDetails(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(cartUpdate).not.toHaveBeenCalled();
+  });
+
+  it('refuses to overwrite invitee details on a PAID cart (returns 409)', async () => {
+    // Once paid the row is part of the couple's purchased-gifts report — rewriting
+    // it would corrupt history, even for the legitimate session owner.
+    cartFindUnique.mockResolvedValue({ sessionId: REAL_SESSION, status: 'PAID' });
+
+    const req: any = {
+      params: { id: String(CART_ID) },
+      body: { sessionId: REAL_SESSION, inviteeName: 'Alice' },
+    };
+    const res = makeRes();
+    await cartController.updateCartDetails(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(cartUpdate).not.toHaveBeenCalled();
+  });
+
+  it('GOLDEN PATH: matching sessionId on a PENDING cart updates and returns 200', async () => {
+    cartFindUnique.mockResolvedValue({ sessionId: REAL_SESSION, status: 'PENDING' });
+    cartUpdate.mockResolvedValue({ id: CART_ID, items: [] });
+
+    const req: any = {
+      params: { id: String(CART_ID) },
+      body: {
+        sessionId: REAL_SESSION,
+        inviteeName: 'Alice',
+        inviteeEmail: 'alice@example.com',
+      },
+    };
+    const res = makeRes();
+    await cartController.updateCartDetails(req, res);
+
+    expect(cartUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: CART_ID },
+        data: expect.objectContaining({ inviteeName: 'Alice', inviteeEmail: 'alice@example.com' }),
+      }),
+    );
+    expect(res.status).not.toHaveBeenCalledWith(403);
+    expect(res.status).not.toHaveBeenCalledWith(409);
+  });
+
+  it('silently drops an unknown rsvpCode (foreign-key safety) but still updates other fields', async () => {
+    cartFindUnique.mockResolvedValue({ sessionId: REAL_SESSION, status: 'PENDING' });
+    inviteeFindUnique.mockResolvedValue(null); // no matching invitee
+    cartUpdate.mockResolvedValue({ id: CART_ID, items: [] });
+
+    const req: any = {
+      params: { id: String(CART_ID) },
+      body: {
+        sessionId: REAL_SESSION,
+        inviteeName: 'Alice',
+        rsvpCode: 'BOGUS-CODE',
+      },
+    };
+    const res = makeRes();
+    await cartController.updateCartDetails(req, res);
+
+    const callData = cartUpdate.mock.calls[0][0].data;
+    expect(callData.rsvpCode).toBeNull();
+    expect(callData.inviteeName).toBe('Alice');
+  });
+
+  it('accepts a valid rsvpCode and writes it to the cart', async () => {
+    cartFindUnique.mockResolvedValue({ sessionId: REAL_SESSION, status: 'PENDING' });
+    inviteeFindUnique.mockResolvedValue({ secretCode: 'VALID-CODE' });
+    cartUpdate.mockResolvedValue({ id: CART_ID, items: [] });
+
+    const req: any = {
+      params: { id: String(CART_ID) },
+      body: { sessionId: REAL_SESSION, rsvpCode: 'VALID-CODE' },
+    };
+    const res = makeRes();
+    await cartController.updateCartDetails(req, res);
+
+    const callData = cartUpdate.mock.calls[0][0].data;
+    expect(callData.rsvpCode).toBe('VALID-CODE');
+  });
+});
+
+describe('cartController — checkoutCart is gone (#1 / #7)', () => {
+  it('the checkoutCart handler must no longer be exported', () => {
+    // The unauthenticated POST /api/cart/:id/checkout endpoint marked gifts as purchased
+    // without a payment record. The route, handler, FE hook, and service were deleted.
+    // If anyone re-introduces it, this test fails as a reminder of WHY it was removed.
+    expect((cartController as any).checkoutCart).toBeUndefined();
   });
 });

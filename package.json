@@ -27,7 +27,8 @@
     "test:server:watch": "vitest --config vitest.config.server.ts",
     "test:email": "tsx server/scripts/testEmail.ts",
     "test:email:templates": "tsx server/scripts/testEmail.ts templates",
-    "test:email-analytics": "tsx server/scripts/testEmailAnalytics.ts"
+    "test:email-analytics": "tsx server/scripts/testEmailAnalytics.ts",
+    "retry:failed-emails": "tsx server/scripts/retryFailedEmails.ts"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
