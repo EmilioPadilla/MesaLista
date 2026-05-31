@@ -1,5 +1,4 @@
 import { Form, Input, DatePicker, Alert, type FormInstance } from 'antd';
-import { Lock } from 'lucide-react';
 import { SaveBar } from './SaveBar';
 
 interface GiftListDetailsSectionProps {
@@ -88,29 +87,12 @@ export function GiftListDetailsSection({
               <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: Guadalajara, Jalisco" />
             </Form.Item>
 
-            <div className="md:col-span-2 space-y-2">
-              <Form.Item
-                name="weddingDate"
-                className="mb-0!"
-                label={<span className="text-sm text-foreground/70 font-medium">Fecha del evento</span>}>
-                <DatePicker
-                  disabled
-                  className="w-full h-12 bg-[#f5f5f7]! border-none! [&.ant-picker-disabled]:opacity-70 [&.ant-picker-disabled]:cursor-not-allowed"
-                  format="MMM DD, YYYY"
-                  placeholder="Selecciona la fecha"
-                />
-              </Form.Item>
-              <div className="flex items-start gap-2">
-                <Lock className="h-3 w-3 text-info mt-0.25 shrink-0" />
-                <p className="text-xs text-info font-medium">
-                  Para cambiar esta fecha, por favor contacta al equipo de MesaLista a{' '}
-                  <a href="mailto:info@mesalista.com.mx" className="underline font-semibold">
-                    info@mesalista.com.mx
-                  </a>
-                  .
-                </p>
-              </div>
-            </div>
+            <Form.Item
+              name="weddingDate"
+              className="md:col-span-2 mb-0!"
+              label={<span className="text-sm text-foreground/70 font-medium">Fecha del evento</span>}>
+              <DatePicker className="w-full h-12 bg-[#f5f5f7]!" format="MMM DD, YYYY" placeholder="Selecciona la fecha" />
+            </Form.Item>
           </div>
         </div>
 
