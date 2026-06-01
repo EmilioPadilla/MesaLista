@@ -8,6 +8,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import { UploadChangeParam } from 'antd/es/upload';
 import { useUploadFile } from 'hooks/useFiles';
 import { useGetCategoriesByGiftList } from 'src/hooks/useGiftList';
+import { convertHeicToJpegIfNeeded, isHeic } from 'src/features/manageRegistry/utils/heicToJpeg';
 
 interface GiftModalProps {
   gift: GiftItem | null;
@@ -59,18 +60,38 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
   }, [updateError]);
 
   const handleImageChange = (info: UploadChangeParam) => {
-    if (info.fileList && info.fileList[0]) {
-      const file = info.fileList[0];
-      const localUrl = URL.createObjectURL(file.originFileObj as Blob);
+    if (!info.fileList || !info.fileList[0]) {
+      setImageState({ name: '', file: null, url: '', imageRemoved: true });
+      return;
+    }
+
+    const originalFile = info.fileList[0].originFileObj as File;
+
+    // Non-HEIC files (JPEG/PNG/etc) must update state synchronously. An
+    // unconditional `await` here defers the setState by a microtask, racing
+    // with a quick Save click and submitting with `imageState.file` still null.
+    if (!isHeic(originalFile)) {
       setImageState({
-        name: file.name,
-        file: file.originFileObj as File,
-        url: localUrl,
+        name: originalFile.name,
+        file: originalFile,
+        url: URL.createObjectURL(originalFile),
         imageRemoved: false,
       });
-    } else {
-      setImageState({ name: '', file: null, url: '', imageRemoved: true });
+      return;
     }
+
+    convertHeicToJpegIfNeeded(originalFile)
+      .then((usableFile) => {
+        setImageState({
+          name: usableFile.name,
+          file: usableFile,
+          url: URL.createObjectURL(usableFile),
+          imageRemoved: false,
+        });
+      })
+      .catch(() => {
+        message.error('No pudimos procesar esa imagen. Intenta con otro formato (JPG o PNG).');
+      });
   };
 
   const handleRemoveImage = () => {
@@ -217,7 +238,9 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
                   <div
                     className="w-full h-full bg-no-repeat rounded-lg"
                     style={{
-                      backgroundImage: `url(${imageState.url})`,
+                      // Quote + escape so URLs with spaces (e.g. R2 uploads named "WhatsApp
+                      // Image …") don't break CSS parsing. Same pattern as GiftCard.tsx.
+                      backgroundImage: `url("${imageState.url.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}")`,
                       backgroundPosition: `center ${imagePosition}%`,
                       backgroundSize: `${imageScale}%`,
                     }}

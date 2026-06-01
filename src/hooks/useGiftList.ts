@@ -132,6 +132,10 @@ export const useGetCategoriesByGiftList = (giftListId?: number) => {
     queryKey: [queryKeys.categoriesByGiftList, giftListId],
     queryFn: () => giftListService.getCategoriesByGiftList(giftListId!),
     enabled: !!giftListId,
+    // Categories change only when a gift is created/updated/deleted, and those
+    // mutations already invalidate this key explicitly. Without `staleTime`,
+    // every GiftModal open refetched the list redundantly.
+    staleTime: Infinity,
   });
 };
 

@@ -8,6 +8,7 @@ import { useForm } from 'antd/es/form/Form';
 import { UploadChangeParam } from 'antd/es/upload';
 import { useCreateGift } from 'src/hooks/useGift';
 import { useUploadFile } from 'src/hooks/useFiles';
+import { convertHeicToJpegIfNeeded, isHeic } from 'src/features/manageRegistry/utils/heicToJpeg';
 
 interface AddGiftFormProps {
   giftListId?: number;
@@ -93,17 +94,36 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
   };
 
   const handleImageChange = (info: UploadChangeParam) => {
-    if (info.fileList && info.fileList[0]) {
-      const file = info.fileList[0];
-      const localUrl = URL.createObjectURL(file.originFileObj as Blob);
-      setImageState({
-        name: file.name,
-        file: file.originFileObj as File,
-        url: localUrl,
-      });
-    } else {
+    if (!info.fileList || !info.fileList[0]) {
       setImageState({ name: '', file: null, url: '' });
+      return;
     }
+
+    const originalFile = info.fileList[0].originFileObj as File;
+
+    // Non-HEIC files (JPEG/PNG/etc) must update state synchronously. An
+    // unconditional `await` here defers the setState by a microtask, racing
+    // with a quick Save click and submitting with `imageState.file` still null.
+    if (!isHeic(originalFile)) {
+      setImageState({
+        name: originalFile.name,
+        file: originalFile,
+        url: URL.createObjectURL(originalFile),
+      });
+      return;
+    }
+
+    convertHeicToJpegIfNeeded(originalFile)
+      .then((usableFile) => {
+        setImageState({
+          name: usableFile.name,
+          file: usableFile,
+          url: URL.createObjectURL(usableFile),
+        });
+      })
+      .catch(() => {
+        message.error('No pudimos procesar esa imagen. Intenta con otro formato (JPG o PNG).');
+      });
   };
 
   return (
