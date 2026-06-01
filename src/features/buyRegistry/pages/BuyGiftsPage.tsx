@@ -7,10 +7,12 @@ import { SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useAddGiftToCart, useGetCart, useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'src/hooks/useCart';
 import { useComponentMountControl } from 'src/hooks/useComponentMountControl';
 import { useGiftListBySlug, useGetCategoriesByGiftList, useGiftListById } from 'src/hooks/useGiftList';
-import { OutletContextType } from './PublicRegistry';
-import { GiftDetailsModal } from 'src/features/buyRegistry/components/GiftDetailsModal';
-import { CartDrawer } from 'src/features/buyRegistry/components/CartDrawer';
-import { SortOption, FilterOption, GiftItem } from 'routes/couple/ManageRegistry';
+import { OutletContextType } from 'src/app/routes/guest/PublicRegistry';
+import { GiftDetailsModal } from '../components/GiftDetailsModal';
+import { CartDrawer } from '../components/CartDrawer';
+// TODO: SortOption/FilterOption/GiftItem live in ManageRegistry; they'll move
+// to a shared location when manageRegistry adopts the canonical shape.
+import { SortOption, FilterOption, GiftItem } from 'src/app/routes/couple/ManageRegistry';
 import { GiftCard } from 'src/components/shared/GiftCard';
 import dayjs from 'dayjs';
 import { motion } from 'motion/react';
@@ -19,7 +21,7 @@ import { useDeviceType } from 'src/hooks/useDeviceType';
 
 dayjs.extend(utc);
 
-export function BuyGifts() {
+export function BuyGiftsPage() {
   const contextData = useOutletContext<OutletContextType>();
   const { slug, guestId } = contextData;
   const navigate = useNavigate();

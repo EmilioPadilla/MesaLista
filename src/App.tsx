@@ -14,7 +14,7 @@ import { OrderConfirmation } from 'src/app/routes/checkout/OrderConfirmation';
 import { Contact } from 'src/app/routes/Contact';
 
 import PublicRegistry from 'src/app/routes/guest/PublicRegistry';
-import { BuyGifts } from 'src/app/routes/guest/BuyGifts';
+import { BuyGiftsPage } from 'src/features/buyRegistry';
 import { ManageRegistry } from 'src/app/routes/couple/ManageRegistry';
 import { SearchPage } from 'src/app/routes/SearchPage';
 import { Settings } from 'src/app/routes/couple/Settings';
@@ -90,7 +90,7 @@ function App() {
             <Route path="/:slug" element={<PublicRegistry />}>
               <Route index element={<HomePage />} />
               <Route path="rsvp" element={<GuestConfirmationPage />} />
-              <Route path="regalos" element={<BuyGifts />} />
+              <Route path="regalos" element={<BuyGiftsPage />} />
               <Route path="checkout" element={<Checkout />} />
               <Route path="listas" element={<MyGiftListsPage />} />
               <Route path="crear-lista" element={<CreateNewList />} />

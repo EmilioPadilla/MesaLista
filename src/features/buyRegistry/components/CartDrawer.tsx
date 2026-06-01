@@ -2,9 +2,9 @@ import React from 'react';
 import { Drawer, Button, Image } from 'antd';
 import type { Cart, CartItem } from 'types/models/cart';
 import { GiftIcon, Minus, Package, Plus, Trash2, X } from 'lucide-react';
-import { Card, CardContent } from 'components/core/Card';
+import { Card, CardContent } from 'src/components/core/Card';
 import { useNavigate } from 'react-router-dom';
-import { useRemoveGiftFromCart, useUpdateCartItemQuantity } from 'hooks/useCart';
+import { useRemoveGiftFromCart, useUpdateCartItemQuantity } from 'src/hooks/useCart';
 
 interface CartDrawerProps {
   open: boolean;

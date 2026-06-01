@@ -1,6 +1,6 @@
 import { Button, Modal, Typography, Tag, Divider, Select } from 'antd';
 import { DeleteOutlined, MinusOutlined, PlusOutlined, ShoppingCartOutlined } from '@ant-design/icons';
-import { useGiftById } from 'hooks/useGift';
+import { useGiftById } from 'src/hooks/useGift';
 import { useState, useEffect } from 'react';
 import { CartItem } from 'types/models/cart';
 
