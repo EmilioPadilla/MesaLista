@@ -3,20 +3,9 @@ import { CheckCircle2, XCircle, Heart, AlertCircle } from 'lucide-react';
 import { message, Input, Button, Checkbox, InputNumber } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useInviteeByCode, useRespondToRsvp, useRsvpMessages, useRsvpCustomFields } from 'src/hooks/useRsvp';
+import { normalizeSecretCode } from '../utils/secretCode';
 
-interface Invitee {
-  id: string;
-  coupleId: number;
-  giftListId: number;
-  firstName: string;
-  lastName: string;
-  tickets: number;
-  secretCode: string;
-  status: 'PENDING' | 'CONFIRMED' | 'REJECTED';
-  confirmedTickets?: number;
-}
-
-export function GuestConfirmation() {
+export function GuestConfirmationPage() {
   const navigate = useNavigate();
   const [searchCode, setSearchCode] = useState('');
   const [confirmedTickets, setConfirmedTickets] = useState(1);
@@ -25,7 +14,7 @@ export function GuestConfirmation() {
   const [error, setError] = useState<string | null>(null);
   const [customFieldValues, setCustomFieldValues] = useState<Record<number, string>>({});
 
-  const normalizedSearchCode = searchCode.trim().toUpperCase();
+  const normalizedSearchCode = normalizeSecretCode(searchCode);
 
   // React Query hooks
   const { data: invitee, refetch: searchInvitee, isLoading: searchLoading } = useInviteeByCode(normalizedSearchCode, false);

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { InviteesTable } from 'src/features/rsvp/InviteesTable';
+import { InviteesTable } from './InviteesTable';
 import type { RsvpCustomField, RsvpCustomFieldResponse } from 'src/services/rsvp.service';
 
 const makeInvitee = (overrides = {}) => ({

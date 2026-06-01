@@ -1,1 +1,0 @@
-export { BulkDeleteModal } from './BulkDeleteModal';

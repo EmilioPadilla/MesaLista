@@ -1,34 +1,20 @@
 import { useState } from 'react';
 import { Upload, FileText, Download, AlertCircle } from 'lucide-react';
 import { Modal, Button, Alert } from 'antd';
-
-interface Invitee {
-  firstName?: string;
-  lastName?: string;
-  tickets?: number;
-  secretCode?: string;
-  guestMessage?: string;
-  status?: 'PENDING' | 'CONFIRMED' | 'REJECTED';
-  hasWarnings?: boolean;
-}
-
-export interface ImportError {
-  error: string;
-  invitee?: Invitee;
-}
+import type { ImportInviteeRow } from '../types';
 
 interface ImportInviteesModalProps {
   open: boolean;
   onClose: () => void;
-  onImport: (invitees: Invitee[]) => void;
+  onImport: (invitees: ImportInviteeRow[]) => void;
 }
 
 export function ImportInviteesModal({ open, onClose, onImport }: ImportInviteesModalProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<Invitee[]>([]);
+  const [preview, setPreview] = useState<ImportInviteeRow[]>([]);
 
-  const parseCSV = (text: string): Invitee[] => {
+  const parseCSV = (text: string): ImportInviteeRow[] => {
     const rows: string[][] = [];
     let currentRow: string[] = [];
     let currentField = '';
@@ -77,7 +63,7 @@ export function ImportInviteesModal({ open, onClose, onImport }: ImportInviteesM
       }
     }
 
-    const invitees: Invitee[] = [];
+    const invitees: ImportInviteeRow[] = [];
 
     // Skip header row (first row)
     for (let i = 1; i < rows.length; i++) {

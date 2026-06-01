@@ -37,8 +37,7 @@ import { PredesignedListsPage } from './app/routes/PredesignedLists.page';
 import { Footer } from './app/modules/navigation/Footer';
 import { AdminPreDesignedLists } from './app/routes/admin/ManagePredesignedLists.page';
 import { ManageDiscountCodes } from './app/routes/admin/ManageDiscountCodes';
-import { GuestConfirmation } from './app/routes/GuestConfirmation';
-import { ManageRSVP } from './app/routes/couple/ManageRsvp';
+import { GuestConfirmationPage, ManageRsvpPage } from 'src/features/rsvp';
 import { Invitations } from './app/routes/couple/Invitations';
 import MyGiftLists from './app/routes/couple/MyGiftLists';
 import { CreateNewList } from './app/routes/couple/CreateNewList';
@@ -182,7 +181,7 @@ function App() {
             {/* Public registry view for guests */}
             <Route path="/:slug" element={<PublicRegistry />}>
               <Route index element={<HomePage />} />
-              <Route path="rsvp" element={<GuestConfirmation />} />
+              <Route path="rsvp" element={<GuestConfirmationPage />} />
               <Route path="regalos" element={<BuyGifts />} />
               <Route path="checkout" element={<Checkout />} />
               <Route path="listas" element={<MyGiftLists />} />
@@ -192,7 +191,7 @@ function App() {
                 <Route element={<Dashboard />}>
                   <Route path="gestionar" element={<ManageRegistry />} />
                   <Route path="invitacion" element={<Invitations />} />
-                  <Route path="gestionar-rsvp" element={<ManageRSVP />} />
+                  <Route path="gestionar-rsvp" element={<ManageRsvpPage />} />
                   <Route path="configuracion" element={<Settings />} />
                 </Route>
               </Route>

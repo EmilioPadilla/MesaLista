@@ -1,1 +1,0 @@
-export { CustomFieldsManager } from './CustomFieldsManager';

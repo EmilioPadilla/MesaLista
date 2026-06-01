@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import { Alert, Button } from 'antd';
-import { ImportError } from '../ImportInviteeModal/ImportInviteeModal';
+import type { ImportError } from '../types';
 
 interface ImportErrorsAlertProps {
   errors: ImportError[];

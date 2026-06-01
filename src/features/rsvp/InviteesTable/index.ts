@@ -1,1 +1,0 @@
-export { InviteesTable } from './InviteesTable';

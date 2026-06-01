@@ -3,31 +3,21 @@ import { Pencil, Trash2, CheckCircle2, XCircle, Clock, Users, MessageSquare, Lis
 import { Button, Table, Switch, Tag } from 'antd';
 import type { TableRowSelection } from 'antd/es/table/interface';
 import { Collapsible } from 'src/components/core/Collapsible';
-import { BulkDeleteModal } from '../BulkDeleteModal';
-import { DeleteInviteePopover } from '../DeleteInviteePopover';
-import { GuestMessageModal } from '../GuestMessageModal';
+import { BulkDeleteModal } from './BulkDeleteModal';
+import { DeleteInviteePopover } from './DeleteInviteePopover';
+import { GuestMessageModal } from './GuestMessageModal';
 import type { RsvpCustomField, RsvpCustomFieldResponse } from 'src/services/rsvp.service';
-
-interface Invitee {
-  id: string;
-  firstName: string;
-  lastName: string;
-  tickets: number;
-  secretCode: string;
-  status: 'PENDING' | 'CONFIRMED' | 'REJECTED';
-  confirmedTickets?: number;
-  guestMessage?: string;
-}
+import type { RsvpInvitee, RsvpStatus } from '../types';
 
 interface InviteesTableProps {
-  invitees: Invitee[];
+  invitees: RsvpInvitee[];
   loading?: boolean;
   searchTerm?: string;
   statusFilter?: string;
-  onEdit: (invitee: Invitee) => void;
+  onEdit: (invitee: RsvpInvitee) => void;
   onDelete: (id: string) => void;
   onBulkDelete?: (ids: string[]) => void;
-  onBulkUpdateStatus?: (ids: string[], status: 'PENDING' | 'CONFIRMED' | 'REJECTED') => void;
+  onBulkUpdateStatus?: (ids: string[], status: RsvpStatus) => void;
   customFields?: RsvpCustomField[];
   customFieldResponses?: RsvpCustomFieldResponse[];
 }
@@ -67,7 +57,7 @@ export function InviteesTable({
     return <span className="text-sm">{value}</span>;
   };
 
-  const rowSelection: TableRowSelection<Invitee> = {
+  const rowSelection: TableRowSelection<RsvpInvitee> = {
     selectedRowKeys,
     onChange: (selectedKeys) => {
       setSelectedRowKeys(selectedKeys);
@@ -226,7 +216,7 @@ export function InviteesTable({
               dataIndex: 'tickets',
               key: 'tickets',
               align: 'center' as const,
-              render: (_, record: Invitee) =>
+              render: (_, record: RsvpInvitee) =>
                 record.status === 'CONFIRMED' && record.confirmedTickets !== undefined
                   ? `${record.confirmedTickets}/${record.tickets}`
                   : record.tickets,
@@ -287,7 +277,7 @@ export function InviteesTable({
                   ),
                   key: `cf_${field.id}`,
                   align: 'center' as const,
-                  render: (_: unknown, record: Invitee) => {
+                  render: (_: unknown, record: RsvpInvitee) => {
                     const val = responsesByInvitee[record.id]?.[field.id];
                     return renderCustomValue(field.type, val);
                   },
@@ -297,7 +287,7 @@ export function InviteesTable({
               title: 'Acciones',
               key: 'actions',
               align: 'center' as const,
-              render: (_, record: Invitee) => (
+              render: (_, record: RsvpInvitee) => (
                 <div className="flex items-center justify-center gap-2">
                   <Button
                     type="text"

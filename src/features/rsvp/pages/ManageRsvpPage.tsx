@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Search, Upload, Plus, Download, Users, RefreshCw, Copy, Check, Settings } from 'lucide-react';
 import { Button, Input, Select, message, Tabs, Spin } from 'antd';
-import { AddInviteeModal } from 'src/features/rsvp/AddInviteeModal/AddInviteeModal';
-import { ImportInviteesModal } from 'src/features/rsvp/ImportInviteeModal/ImportInviteeModal';
-import { InviteesTable } from 'src/features/rsvp/InviteesTable';
-import { RsvpStatistics } from 'src/features/rsvp/RsvpStatistics';
-import { ImportErrorsAlert } from 'src/features/rsvp/ImportErrorsAlert';
-import { CustomFieldsManager } from 'src/features/rsvp/CustomFieldsManager';
+import { AddInviteeModal } from '../components/AddInviteeModal';
+import { ImportInviteesModal } from '../components/ImportInviteeModal';
+import { InviteesTable } from '../components/InviteesTable';
+import { RsvpStatistics } from '../components/RsvpStatistics';
+import { ImportErrorsAlert } from '../components/ImportErrorsAlert';
+import { CustomFieldsManager } from '../components/CustomFieldsManager';
+import { normalizeSecretCode } from '../utils/secretCode';
 import {
   useInvitees,
   useCreateInvitee,
@@ -22,34 +23,14 @@ import {
 import { useCurrentUser } from 'src/hooks/useUser';
 import { useGiftListsByUser } from 'src/hooks/useGiftList';
 import { Collapsible } from 'src/components/core/Collapsible';
+import type { RsvpInvitee, RsvpInviteeInput, RsvpStatus, ImportInviteeRow } from '../types';
 
-interface Invitee {
-  id: string;
-  firstName: string;
-  lastName: string;
-  tickets: number;
-  secretCode: string;
-  status: 'PENDING' | 'CONFIRMED' | 'REJECTED';
-  confirmedTickets?: number;
-}
-
-interface ImportInvitee {
-  firstName?: string;
-  lastName?: string;
-  tickets?: number;
-  secretCode?: string;
-  guestMessage?: string;
-  status?: 'PENDING' | 'CONFIRMED' | 'REJECTED';
-}
-
-const normalizeSecretCode = (code: string) => code.trim().toUpperCase();
-
-export function ManageRSVP() {
+export function ManageRsvpPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [editingInvitee, setEditingInvitee] = useState<Invitee | null>(null);
+  const [editingInvitee, setEditingInvitee] = useState<RsvpInvitee | null>(null);
   const [copied, setCopied] = useState(false);
   const [importErrors, setImportErrors] = useState<Array<{ row: number; error: string }>>([]);
   const [activeGiftListId, setActiveGiftListId] = useState<number | null>(null);
@@ -83,7 +64,7 @@ export function ManageRSVP() {
     setIsCustomFieldsOpen(customFields && customFields?.length > 0);
   }, [customFields]);
 
-  const handleAddInvitee = async (invitee: Omit<Invitee, 'id' | 'status'>) => {
+  const handleAddInvitee = async (invitee: RsvpInviteeInput) => {
     if (!activeGiftListId) return;
     try {
       await createInviteeMutation.mutateAsync({
@@ -98,7 +79,7 @@ export function ManageRSVP() {
     }
   };
 
-  const handleUpdateInvitee = async (id: string, updatedInvitee: Omit<Invitee, 'id' | 'status'>) => {
+  const handleUpdateInvitee = async (id: string, updatedInvitee: RsvpInviteeInput) => {
     if (!activeGiftListId) return;
     try {
       await updateInviteeMutation.mutateAsync({
@@ -138,7 +119,7 @@ export function ManageRSVP() {
     }
   };
 
-  const handleBulkUpdateStatus = async (ids: string[], status: 'PENDING' | 'CONFIRMED' | 'REJECTED') => {
+  const handleBulkUpdateStatus = async (ids: string[], status: RsvpStatus) => {
     if (!activeGiftListId) return;
     try {
       const result = await bulkUpdateStatusMutation.mutateAsync({ ids, giftListId: activeGiftListId, status });
@@ -150,7 +131,7 @@ export function ManageRSVP() {
     }
   };
 
-  const handleImportInvitees = async (importedInvitees: ImportInvitee[]) => {
+  const handleImportInvitees = async (importedInvitees: ImportInviteeRow[]) => {
     if (!activeGiftListId) return;
     try {
       const result = await bulkCreateMutation.mutateAsync({ giftListId: activeGiftListId, invitees: importedInvitees });

@@ -1,18 +1,12 @@
 import { useEffect } from 'react';
 import { Modal, Input, Button, Form, message } from 'antd';
-
-interface Invitee {
-  firstName: string;
-  lastName: string;
-  tickets: number;
-  secretCode: string;
-}
+import type { RsvpInvitee, RsvpInviteeInput } from '../types';
 
 interface AddInviteeModalProps {
   open: boolean;
-  invitee?: (Invitee & { id: string; status: string }) | null;
+  invitee?: RsvpInvitee | null;
   onClose: () => void;
-  onSave: (invitee: Invitee) => void;
+  onSave: (invitee: RsvpInviteeInput) => void;
 }
 
 export function AddInviteeModal({ open, invitee, onClose, onSave }: AddInviteeModalProps) {
