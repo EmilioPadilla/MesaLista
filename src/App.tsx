@@ -26,7 +26,7 @@ import { PredesignedListsPage } from 'src/app/routes/PredesignedLists.page';
 import { AdminPreDesignedLists } from 'src/app/routes/admin/ManagePredesignedLists.page';
 import { ManageDiscountCodes } from 'src/app/routes/admin/ManageDiscountCodes';
 import { Invitations } from 'src/app/routes/couple/Invitations';
-import MyGiftLists from 'src/app/routes/couple/MyGiftLists';
+import { MyGiftListsPage } from 'src/features/giftLists';
 import { CreateNewList } from 'src/app/routes/couple/CreateNewList';
 import { PublicLayout } from 'src/app/routes/layouts/PublicLayout';
 
@@ -92,7 +92,7 @@ function App() {
               <Route path="rsvp" element={<GuestConfirmationPage />} />
               <Route path="regalos" element={<BuyGifts />} />
               <Route path="checkout" element={<Checkout />} />
-              <Route path="listas" element={<MyGiftLists />} />
+              <Route path="listas" element={<MyGiftListsPage />} />
               <Route path="crear-lista" element={<CreateNewList />} />
               <Route path="pago-confirmado" element={<OrderConfirmation />} />
               <Route element={<ProtectedRoute />}>

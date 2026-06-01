@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, Modal, Input, message, Spin, Space } from 'antd';
-import { useCurrentUser } from 'hooks/useUser';
-import { useGiftListsByUser, useDeleteGiftList } from 'hooks/useGiftList';
+import { useCurrentUser } from 'src/hooks/useUser';
+import { useGiftListsByUser, useDeleteGiftList } from 'src/hooks/useGiftList';
 import { Plus, Gift, CheckCircle, ShoppingBag, DollarSign, Search } from 'lucide-react';
 import type { GiftListWithGifts } from 'types/models/giftList';
 import { MLButton } from 'src/components/core/MLButton';
-import { GiftListCard } from 'src/features/giftLists/GiftListCard';
+import { GiftListCard } from '../components/GiftListCard';
 
-function MyGiftLists() {
+export function MyGiftListsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
@@ -248,4 +248,3 @@ function MyGiftLists() {
   );
 }
 
-export default MyGiftLists;
