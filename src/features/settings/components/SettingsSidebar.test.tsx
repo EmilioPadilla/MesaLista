@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { SettingsSidebar } from 'src/features/settings/components/SettingsSidebar';
-import { GROUPS } from 'src/features/settings/components/nav-config';
+import { SettingsSidebar } from './SettingsSidebar';
+import { GROUPS } from './nav-config';
 
 describe('SettingsSidebar', () => {
   it('renders every group label and item label', () => {

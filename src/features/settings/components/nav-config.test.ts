@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GROUPS, SECTION_LOOKUP, GIFT_LIST_SECTIONS, type SectionId } from 'src/features/settings/components/nav-config';
+import { GROUPS, SECTION_LOOKUP, GIFT_LIST_SECTIONS, type SectionId } from './nav-config';
 
 describe('nav-config', () => {
   it('every group has at least one item', () => {

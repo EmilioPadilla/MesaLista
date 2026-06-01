@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { DangerZoneSection } from 'src/features/settings/components/DangerZoneSection';
+import { DangerZoneSection } from './DangerZoneSection';
 
 describe('DangerZoneSection', () => {
   it('renders the danger heading and warning copy', () => {

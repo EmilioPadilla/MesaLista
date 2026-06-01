@@ -17,7 +17,7 @@ import PublicRegistry from 'src/app/routes/guest/PublicRegistry';
 import { BuyGiftsPage } from 'src/features/buyRegistry';
 import { ManageRegistryPage } from 'src/features/manageRegistry';
 import { SearchPage } from 'src/app/routes/SearchPage';
-import { Settings } from 'src/app/routes/couple/Settings';
+import { SettingsPage } from 'src/features/settings';
 import { PricingPage } from 'src/app/routes/PricingPage';
 import { Analytics } from 'src/app/routes/admin/Analytics';
 import { Marketing } from 'src/app/routes/admin/Marketing';
@@ -99,7 +99,7 @@ function App() {
                   <Route path="gestionar" element={<ManageRegistryPage />} />
                   <Route path="invitacion" element={<InvitationsPage />} />
                   <Route path="gestionar-rsvp" element={<ManageRsvpPage />} />
-                  <Route path="configuracion" element={<Settings />} />
+                  <Route path="configuracion" element={<SettingsPage />} />
                 </Route>
               </Route>
             </Route>

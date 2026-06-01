@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { SaveBar } from 'src/features/settings/components/SaveBar';
+import { SaveBar } from './SaveBar';
 
 describe('SaveBar', () => {
   it('renders the provided label', () => {

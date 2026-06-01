@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Form } from 'antd';
-import { GiftListDetailsSection } from 'src/features/settings/components/GiftListDetailsSection';
+import { GiftListDetailsSection } from './GiftListDetailsSection';
 
 interface HarnessProps {
   slug?: string;

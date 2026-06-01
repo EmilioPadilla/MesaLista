@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { SectionHeader } from 'src/features/settings/components/SectionHeader';
-import { SECTION_LOOKUP } from 'src/features/settings/components/nav-config';
+import { SectionHeader } from './SectionHeader';
+import { SECTION_LOOKUP } from './nav-config';
 
 describe('SectionHeader', () => {
   it('renders title, description and group for the given section', () => {

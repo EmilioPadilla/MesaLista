@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { Form, message, Select } from 'antd';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
-import { useCurrentUser, useUpdateCurrentUserProfile, useUpdateCurrentUserPassword, useCheckSlugAvailability } from 'hooks/useUser';
-import { useUploadFile } from 'hooks/useFiles';
+import { useCurrentUser, useUpdateCurrentUserProfile, useUpdateCurrentUserPassword, useCheckSlugAvailability } from 'src/hooks/useUser';
+import { useUploadFile } from 'src/hooks/useFiles';
 import { useWatch } from 'antd/es/form/Form';
-import { DeleteCurrentUserModal } from 'components/shared/DeleteCurrentUserModal';
-import { useRsvpMessages, useUpdateRsvpMessages } from 'hooks/useRsvp';
+import { DeleteCurrentUserModal } from 'src/components/shared/DeleteCurrentUserModal';
+import { useRsvpMessages, useUpdateRsvpMessages } from 'src/hooks/useRsvp';
 import { useGiftListsByUser, useUpdateGiftList } from 'src/hooks/useGiftList';
 import {
   RsvpMessagesSection,
@@ -25,9 +25,9 @@ import {
   SECTION_LOOKUP,
   GIFT_LIST_SECTIONS,
   type SectionId,
-} from 'src/features/settings/components';
+} from '../components';
 
-export function Settings() {
+export function SettingsPage() {
   const navigate = useNavigate();
   const [profileForm] = Form.useForm();
   const [passwordForm] = Form.useForm();

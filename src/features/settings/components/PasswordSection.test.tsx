@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Form } from 'antd';
-import { PasswordSection } from 'src/features/settings/components/PasswordSection';
+import { PasswordSection } from './PasswordSection';
 
 interface HarnessProps {
   password?: string;

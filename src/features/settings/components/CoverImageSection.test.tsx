@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { CoverImageSection } from 'src/features/settings/components/CoverImageSection';
+import { CoverImageSection } from './CoverImageSection';
 
 describe('CoverImageSection', () => {
   it('shows the placeholder when there is no image', () => {
