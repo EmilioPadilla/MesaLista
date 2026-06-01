@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Plus, Eye, Shield } from 'lucide-react';
 import { message, Button, Card, Spin } from 'antd';
-import { DraggableList } from 'components/core/DraggableList';
+import { DraggableList } from 'src/components/core/DraggableList';
 import {
   PredesignedRegistryModal,
   PredesignedGiftModal,
   PredesignedRegistryCard,
   SortablePredesignedGiftItem,
-} from 'src/features/admin/PredesignedLists/components';
-import { useCurrentUser } from 'hooks/useUser';
+} from '../components';
+import { useCurrentUser } from 'src/hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 import {
   usePredesignedListsAdmin,
@@ -20,14 +20,14 @@ import {
   useUpdatePredesignedGift,
   useDeletePredesignedGift,
   useReorderPredesignedGifts,
-} from 'hooks/usePredesignedList';
-import { PredesignedList, PredesignedGift } from 'services/predesignedList.service';
+} from 'src/hooks/usePredesignedList';
+import { PredesignedList, PredesignedGift } from 'src/services/predesignedList.service';
 
 // Using types from service
 type Registry = PredesignedList;
 type GiftItem = PredesignedGift;
 
-export function AdminPreDesignedLists() {
+export function AdminPredesignedListsPage() {
   const navigate = useNavigate();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
 

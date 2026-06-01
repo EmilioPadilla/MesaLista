@@ -1,4 +1,5 @@
-export { UserAnalyticsTab } from './UserAnalyticsTab';
-export { UsersListsAnalyticsTab } from './UsersListsAnalyticsTab';
-export { MarketingTab } from './MarketingTab';
-export { PaymentsCommissionsAnalyticsTab } from './PaymentsCommissionsAnalyticsTab';
+// Public API for the admin/analytics sub-feature.
+// Tab and modal components are feature-internal; pages compose them.
+
+export { AnalyticsPage } from './pages/AnalyticsPage';
+export { MarketingPage } from './pages/MarketingPage';

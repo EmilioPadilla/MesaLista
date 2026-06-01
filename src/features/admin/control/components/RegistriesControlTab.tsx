@@ -3,8 +3,8 @@ import { Table, Tag, Button, Space, Input, message, Statistic, Row, Col, Card } 
 import { Search, RefreshCw, Calendar, Gift, DollarSign, TrendingUp, Percent, ExternalLink } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
-import type { WeddingListAnalytics, UsersListsSummary } from 'services/usersListsAnalytics.service';
-import { RegistryDetailModal } from './index';
+import type { WeddingListAnalytics, UsersListsSummary } from 'src/services/usersListsAnalytics.service';
+import { RegistryDetailModal } from './RegistryDetailModal';
 
 interface RegistriesControlTabProps {
   summary: UsersListsSummary | undefined;

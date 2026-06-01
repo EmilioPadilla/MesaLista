@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react';
 import { Card, DatePicker, Select, Tabs } from 'antd';
 import { TrendingUp, Users, DollarSign } from 'lucide-react';
-import { useMetricsSummary, useTimeSeries, useFunnelBreakdown, useMetricAlerts } from 'hooks/useAnalytics';
-import { useUsersListsSummary, useUsersAnalytics, useWeddingListsAnalytics } from 'hooks/useUsersListsAnalytics';
-import { usePaymentAnalyticsSummary, useGiftListsPaymentAnalytics } from 'hooks/usePaymentAnalytics';
-import { UserAnalyticsTab, UsersListsAnalyticsTab, PaymentsCommissionsAnalyticsTab } from 'src/features/admin/analytics';
+import { useMetricsSummary, useTimeSeries, useFunnelBreakdown, useMetricAlerts } from 'src/hooks/useAnalytics';
+import { useUsersListsSummary, useUsersAnalytics, useWeddingListsAnalytics } from 'src/hooks/useUsersListsAnalytics';
+import { usePaymentAnalyticsSummary, useGiftListsPaymentAnalytics } from 'src/hooks/usePaymentAnalytics';
+import { UserAnalyticsTab } from '../components/UserAnalyticsTab';
+import { UsersListsAnalyticsTab } from '../components/UsersListsAnalyticsTab';
+import { PaymentsCommissionsAnalyticsTab } from '../components/PaymentsCommissionsAnalyticsTab';
 import dayjs, { Dayjs } from 'dayjs';
 import { useGiftLists } from 'src/hooks/useGiftList';
 
@@ -23,7 +25,7 @@ type MetricType =
   | 'startCheckouts';
 type FunnelDimension = 'utm_source' | 'landing_page';
 
-export function Analytics() {
+export function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<DateRange>('last7days');
   const [customDates, setCustomDates] = useState<[Dayjs, Dayjs] | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<MetricType>('visitors');

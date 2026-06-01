@@ -4,9 +4,10 @@ import { Shield, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUsersAnalytics, useWeddingListsAnalytics, useUsersListsSummary } from 'src/hooks/useUsersListsAnalytics';
 import { useCurrentUser } from 'src/hooks/useUser';
-import { UsersControlTab, RegistriesControlTab } from 'src/features/admin/control';
+import { UsersControlTab } from '../components/UsersControlTab';
+import { RegistriesControlTab } from '../components/RegistriesControlTab';
 
-export const AdminControl = () => {
+export function AdminControlPage() {
   const navigate = useNavigate();
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
   const [activeTab, setActiveTab] = useState<string>('users');

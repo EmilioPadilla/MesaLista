@@ -19,12 +19,11 @@ import { ManageRegistryPage } from 'src/features/manageRegistry';
 import { SearchPage } from 'src/app/routes/SearchPage';
 import { SettingsPage } from 'src/features/settings';
 import { PricingPage } from 'src/app/routes/PricingPage';
-import { Analytics } from 'src/app/routes/admin/Analytics';
-import { Marketing } from 'src/app/routes/admin/Marketing';
-import { AdminControl } from 'src/app/routes/admin/AdminControl';
+import { AnalyticsPage, MarketingPage } from 'src/features/admin/analytics';
+import { AdminControlPage } from 'src/features/admin/control';
+import { ManageDiscountCodesPage } from 'src/features/admin/discountCodes';
+import { AdminPredesignedListsPage } from 'src/features/admin/predesignedLists';
 import { PredesignedListsPage } from 'src/features/predesignedLists';
-import { AdminPreDesignedLists } from 'src/app/routes/admin/ManagePredesignedLists.page';
-import { ManageDiscountCodes } from 'src/app/routes/admin/ManageDiscountCodes';
 import { InvitationsPage, PublicInvitationView } from 'src/features/invitations';
 import { MyGiftListsPage } from 'src/features/giftLists';
 import { CreateNewList } from 'src/app/routes/couple/CreateNewList';
@@ -77,11 +76,11 @@ function App() {
             {/* Admin routes — auth gate then layout */}
             <Route element={<AdminRoute />}>
               <Route element={<PublicLayout />}>
-                <Route path="/admin/analytics" element={<Analytics />} />
-                <Route path="/admin/marketing" element={<Marketing />} />
-                <Route path="/admin/control" element={<AdminControl />} />
-                <Route path="/admin/colecciones" element={<AdminPreDesignedLists />} />
-                <Route path="/admin/codigos-descuento" element={<ManageDiscountCodes />} />
+                <Route path="/admin/analytics" element={<AnalyticsPage />} />
+                <Route path="/admin/marketing" element={<MarketingPage />} />
+                <Route path="/admin/control" element={<AdminControlPage />} />
+                <Route path="/admin/colecciones" element={<AdminPredesignedListsPage />} />
+                <Route path="/admin/codigos-descuento" element={<ManageDiscountCodesPage />} />
               </Route>
             </Route>
 

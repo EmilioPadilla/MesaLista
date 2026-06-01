@@ -3,10 +3,12 @@ import { Table, Tag, Button, Space, Input, Modal, message, Statistic, Row, Col, 
 import { Search, RefreshCw, Mail, Phone, Calendar, Users, DollarSign, UserCheck, UserX, Trash2, Edit, Send } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
-import type { UserAnalytics, UsersListsSummary } from 'services/usersListsAnalytics.service';
+import type { UserAnalytics, UsersListsSummary } from 'src/services/usersListsAnalytics.service';
 import { useDeleteUser, useUpdateUserPlanType } from 'src/hooks/useUser';
 import { useSendMarketingEmailToUser } from 'src/hooks/useEmail';
-import { UserDetailModal, PlanTypeUpdateModal, SendMarketingEmailModal } from './index';
+import { UserDetailModal } from './UserDetailModal';
+import { PlanTypeUpdateModal } from './PlanTypeUpdateModal';
+import { SendMarketingEmailModal } from './SendMarketingEmailModal';
 import type { MarketingEmailType } from 'src/config/marketingEmailTemplates';
 
 interface UsersControlTabProps {

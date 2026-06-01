@@ -2,21 +2,21 @@ import { useState } from 'react';
 import { Card, Table, Button, message, Spin, Tag, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { Shield, Tag as TagIcon } from 'lucide-react';
-import { useCurrentUser } from 'hooks/useUser';
+import { useCurrentUser } from 'src/hooks/useUser';
 import {
   useDiscountCodes,
   useCreateDiscountCode,
   useUpdateDiscountCode,
   useDeleteDiscountCode,
   useDiscountCodeStats,
-} from 'hooks/useDiscountCode';
-import type { DiscountCode, CreateDiscountCodeRequest, UpdateDiscountCodeRequest } from 'services/discountCode.service';
-import { CreateDiscountCodeModal } from 'features/admin/discountCodes/components/CreateDiscountCodeModal';
-import { EditDiscountCodeModal } from 'features/admin/discountCodes/components/EditDiscountCodeModal';
-import { DiscountCodeStatsModal } from 'features/admin/discountCodes/components/DiscountCodeStatsModal';
+} from 'src/hooks/useDiscountCode';
+import type { DiscountCode, CreateDiscountCodeRequest, UpdateDiscountCodeRequest } from 'src/services/discountCode.service';
+import { CreateDiscountCodeModal } from '../components/CreateDiscountCodeModal';
+import { EditDiscountCodeModal } from '../components/EditDiscountCodeModal';
+import { DiscountCodeStatsModal } from '../components/DiscountCodeStatsModal';
 import dayjs from 'dayjs';
 
-export function ManageDiscountCodes() {
+export function ManageDiscountCodesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
