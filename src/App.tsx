@@ -1,48 +1,45 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
-
-// Pages
-import Login from 'routes/Login';
-import Signup from 'routes/Signup';
-import SignupSuccess from 'routes/SignupSuccess';
-import Dashboard from 'routes/Dashboard';
-import { ForgotPassword } from 'routes/ForgotPassword';
-import { ResetPassword } from 'routes/ResetPassword';
-
-// Components
-import PublicRegistry from 'src/app/routes/guest/PublicRegistry';
-
-// Components
-import ProtectedRoute from 'components/ProtectedRoute';
-import AdminRoute from 'components/AdminRoute';
-
-import antdThemeConfig from 'styles/config/antdThemeConfig';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { HomePage } from 'routes/HomePage';
-import { TopNav } from 'src/app/modules/navigation/topnav/TopNav';
-import { TopNavWrapper } from 'src/app/modules/navigation/topnav/TopNavWrapper';
+
+import Login from 'src/app/routes/Login';
+import Signup from 'src/app/routes/Signup';
+import SignupSuccess from 'src/app/routes/SignupSuccess';
+import Dashboard from 'src/app/routes/Dashboard';
+import { ForgotPassword } from 'src/app/routes/ForgotPassword';
+import { ResetPassword } from 'src/app/routes/ResetPassword';
+import { HomePage } from 'src/app/routes/HomePage';
+import { Checkout } from 'src/app/routes/checkout/Checkout';
+import { OrderConfirmation } from 'src/app/routes/checkout/OrderConfirmation';
+import { Contact } from 'src/app/routes/Contact';
+
+import PublicRegistry from 'src/app/routes/guest/PublicRegistry';
 import { BuyGifts } from 'src/app/routes/guest/BuyGifts';
-import { Checkout } from 'routes/checkout/Checkout';
-import { OrderConfirmation } from 'routes/checkout/OrderConfirmation';
 import { ManageRegistry } from 'src/app/routes/couple/ManageRegistry';
 import { SearchPage } from 'src/app/routes/SearchPage';
-import { Contact } from 'routes/Contact';
-import { Settings } from './app/routes/couple/Settings';
-import { PricingPage } from './app/routes/PricingPage';
-import { Analytics } from './app/routes/admin/Analytics';
-import { Marketing } from './app/routes/admin/Marketing';
-import { AdminControl } from './app/routes/admin/AdminControl';
-import { PageViewTracker } from './components/analytics/PageViewTracker';
-import { PredesignedListsPage } from './app/routes/PredesignedLists.page';
-import { Footer } from './app/modules/navigation/Footer';
-import { AdminPreDesignedLists } from './app/routes/admin/ManagePredesignedLists.page';
-import { ManageDiscountCodes } from './app/routes/admin/ManageDiscountCodes';
+import { Settings } from 'src/app/routes/couple/Settings';
+import { PricingPage } from 'src/app/routes/PricingPage';
+import { Analytics } from 'src/app/routes/admin/Analytics';
+import { Marketing } from 'src/app/routes/admin/Marketing';
+import { AdminControl } from 'src/app/routes/admin/AdminControl';
+import { PredesignedListsPage } from 'src/app/routes/PredesignedLists.page';
+import { AdminPreDesignedLists } from 'src/app/routes/admin/ManagePredesignedLists.page';
+import { ManageDiscountCodes } from 'src/app/routes/admin/ManageDiscountCodes';
+import { Invitations } from 'src/app/routes/couple/Invitations';
+import MyGiftLists from 'src/app/routes/couple/MyGiftLists';
+import { CreateNewList } from 'src/app/routes/couple/CreateNewList';
+import { PublicLayout } from 'src/app/routes/layouts/PublicLayout';
+
+import ProtectedRoute from 'src/components/ProtectedRoute';
+import AdminRoute from 'src/components/AdminRoute';
+import { PageViewTracker } from 'src/components/analytics/PageViewTracker';
+import { Footer } from 'src/app/modules/navigation/Footer';
+
 import { GuestConfirmationPage, ManageRsvpPage } from 'src/features/rsvp';
-import { Invitations } from './app/routes/couple/Invitations';
-import MyGiftLists from './app/routes/couple/MyGiftLists';
-import { CreateNewList } from './app/routes/couple/CreateNewList';
-import { PublicInvitationView } from './features/invitations/components/PublicInvitation/PublicInvitationView';
-import { NotificationProvider } from './contexts/NotificationContext';
+import { PublicInvitationView } from 'src/features/invitations/components/PublicInvitation/PublicInvitationView';
+
+import { NotificationProvider } from 'src/contexts/NotificationContext';
+import antdThemeConfig from 'src/styles/config/antdThemeConfig';
 
 function App() {
   const isLocalhost = window.location.hostname === 'localhost';
@@ -53,132 +50,43 @@ function App() {
         <BrowserRouter>
           <PageViewTracker />
           <Routes>
-            {/* Public routes */}
-            <Route
-              path="/"
-              element={
-                <>
-                  <TopNav />
-                  <TopNavWrapper>
-                    <HomePage />
-                  </TopNavWrapper>
-                </>
-              }
-            />
+            {/* Standalone routes (no TopNav) */}
             <Route path="/login" element={<Login />} />
             <Route path="/olvide-contrasena" element={<ForgotPassword />} />
             <Route path="/restablecer-contrasena" element={<ResetPassword />} />
-            <Route
-              path="/buscar"
-              element={
-                <>
-                  <TopNav />
-                  <TopNavWrapper>
-                    <SearchPage />
-                  </TopNavWrapper>
-                </>
-              }
-            />
-            <Route
-              path="/contacto"
-              element={
-                <>
-                  <TopNav />
-                  <TopNavWrapper>
-                    <Contact />
-                  </TopNavWrapper>
-                </>
-              }
-            />
             <Route path="/registro" element={<Signup />} />
             <Route path="/registro-exitoso" element={<SignupSuccess />} />
-            <Route
-              path="/precios"
-              element={
-                <>
-                  <TopNav />
-                  <TopNavWrapper>
-                    <PricingPage />
-                  </TopNavWrapper>
-                </>
-              }
-            />
-            <Route
-              path="/colecciones"
-              element={
-                <>
-                  <TopNav />
-                  <TopNavWrapper>
+            <Route path="/:slug/:giftListId/invitacion" element={<PublicInvitationView />} />
+
+            {/* Public routes wrapped in TopNav layout */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/buscar" element={<SearchPage />} />
+              <Route path="/contacto" element={<Contact />} />
+              <Route path="/precios" element={<PricingPage />} />
+              <Route
+                path="/colecciones"
+                element={
+                  <>
                     <PredesignedListsPage />
                     <Footer />
-                  </TopNavWrapper>
-                </>
-              }
-            />
-
-            {/* Admin routes */}
-            <Route element={<AdminRoute />}>
-              <Route
-                path="/admin/analytics"
-                element={
-                  <>
-                    <TopNav />
-                    <TopNavWrapper>
-                      <Analytics />
-                    </TopNavWrapper>
-                  </>
-                }
-              />
-              <Route
-                path="/admin/marketing"
-                element={
-                  <>
-                    <TopNav />
-                    <TopNavWrapper>
-                      <Marketing />
-                    </TopNavWrapper>
-                  </>
-                }
-              />
-              <Route
-                path="/admin/control"
-                element={
-                  <>
-                    <TopNav />
-                    <TopNavWrapper>
-                      <AdminControl />
-                    </TopNavWrapper>
-                  </>
-                }
-              />
-              <Route
-                path="/admin/colecciones"
-                element={
-                  <>
-                    <TopNav />
-                    <TopNavWrapper>
-                      <AdminPreDesignedLists />
-                    </TopNavWrapper>
-                  </>
-                }
-              />
-              <Route
-                path="/admin/codigos-descuento"
-                element={
-                  <>
-                    <TopNav />
-                    <TopNavWrapper>
-                      <ManageDiscountCodes />
-                    </TopNavWrapper>
                   </>
                 }
               />
             </Route>
 
-            {/* Public invitation view - standalone without header */}
-            <Route path="/:slug/:giftListId/invitacion" element={<PublicInvitationView />} />
+            {/* Admin routes — auth gate then layout */}
+            <Route element={<AdminRoute />}>
+              <Route element={<PublicLayout />}>
+                <Route path="/admin/analytics" element={<Analytics />} />
+                <Route path="/admin/marketing" element={<Marketing />} />
+                <Route path="/admin/control" element={<AdminControl />} />
+                <Route path="/admin/colecciones" element={<AdminPreDesignedLists />} />
+                <Route path="/admin/codigos-descuento" element={<ManageDiscountCodes />} />
+              </Route>
+            </Route>
 
-            {/* Public registry view for guests */}
+            {/* Public registry view for guests (its own layout via PublicRegistry) */}
             <Route path="/:slug" element={<PublicRegistry />}>
               <Route index element={<HomePage />} />
               <Route path="rsvp" element={<GuestConfirmationPage />} />
@@ -197,7 +105,6 @@ function App() {
               </Route>
             </Route>
 
-            {/* Redirect to login or dashboard based on auth status */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </BrowserRouter>
