@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { InvitationTemplateSelector } from 'src/features/invitations/components/InvitationTemplateSelector';
-import { InvitationEditor } from 'features/invitations/components/InvitationEditor/InvitationEditor';
+import { InvitationTemplateSelector } from '../components/InvitationTemplateSelector';
+import { InvitationEditor } from '../components/InvitationEditor/InvitationEditor';
 import { Invitation as InvitationType, InvitationTemplate } from 'types/models/invitation';
 import { useInvitationByGiftList } from 'src/hooks/useInvitation';
 import { Spin } from 'antd';
 
 type InvitationView = 'templates' | 'editor' | 'public';
 
-export function Invitations() {
+export function InvitationsPage() {
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(window.location.search);
   const listIdFromQuery = queryParams.get('listId');

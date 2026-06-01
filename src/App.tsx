@@ -25,7 +25,7 @@ import { AdminControl } from 'src/app/routes/admin/AdminControl';
 import { PredesignedListsPage } from 'src/features/predesignedLists';
 import { AdminPreDesignedLists } from 'src/app/routes/admin/ManagePredesignedLists.page';
 import { ManageDiscountCodes } from 'src/app/routes/admin/ManageDiscountCodes';
-import { Invitations } from 'src/app/routes/couple/Invitations';
+import { InvitationsPage, PublicInvitationView } from 'src/features/invitations';
 import { MyGiftListsPage } from 'src/features/giftLists';
 import { CreateNewList } from 'src/app/routes/couple/CreateNewList';
 import { PublicLayout } from 'src/app/routes/layouts/PublicLayout';
@@ -36,7 +36,6 @@ import { PageViewTracker } from 'src/components/analytics/PageViewTracker';
 import { Footer } from 'src/app/modules/navigation/Footer';
 
 import { GuestConfirmationPage, ManageRsvpPage } from 'src/features/rsvp';
-import { PublicInvitationView } from 'src/features/invitations/components/PublicInvitation/PublicInvitationView';
 
 import { NotificationProvider } from 'src/contexts/NotificationContext';
 import antdThemeConfig from 'src/styles/config/antdThemeConfig';
@@ -98,7 +97,7 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route element={<Dashboard />}>
                   <Route path="gestionar" element={<ManageRegistryPage />} />
-                  <Route path="invitacion" element={<Invitations />} />
+                  <Route path="invitacion" element={<InvitationsPage />} />
                   <Route path="gestionar-rsvp" element={<ManageRsvpPage />} />
                   <Route path="configuracion" element={<Settings />} />
                 </Route>

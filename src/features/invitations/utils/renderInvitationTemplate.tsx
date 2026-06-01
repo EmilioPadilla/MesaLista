@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { renderTemplateComponent } from '../features/invitations/components/invitationTemplates';
+import { renderTemplateComponent } from '../components/invitationTemplates';
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '';

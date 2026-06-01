@@ -6,7 +6,7 @@ import { PublishModal } from '../PublishModal/PublishModal';
 import { InvitationContentTab } from '../InvitationEditor/InvitationContentTab';
 import type { InvitationTemplate, Invitation } from 'types/models/invitation';
 import { useCreateInvitation, useUpdateInvitation, usePublishInvitation } from 'src/hooks/useInvitation';
-import { renderInvitationTemplate } from 'src/utils/renderInvitationTemplate';
+import { renderInvitationTemplate } from '../../utils/renderInvitationTemplate';
 import { useCurrentUser } from 'src/hooks/useUser';
 import { getTemplateById } from '../invitationTemplates';
 import { MLButton } from 'src/components/core/MLButton';
