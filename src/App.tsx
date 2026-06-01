@@ -22,7 +22,7 @@ import { PricingPage } from 'src/app/routes/PricingPage';
 import { Analytics } from 'src/app/routes/admin/Analytics';
 import { Marketing } from 'src/app/routes/admin/Marketing';
 import { AdminControl } from 'src/app/routes/admin/AdminControl';
-import { PredesignedListsPage } from 'src/app/routes/PredesignedLists.page';
+import { PredesignedListsPage } from 'src/features/predesignedLists';
 import { AdminPreDesignedLists } from 'src/app/routes/admin/ManagePredesignedLists.page';
 import { ManageDiscountCodes } from 'src/app/routes/admin/ManageDiscountCodes';
 import { Invitations } from 'src/app/routes/couple/Invitations';

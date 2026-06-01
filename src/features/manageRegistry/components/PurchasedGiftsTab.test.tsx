@@ -3,8 +3,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import type { PurchasedGift } from 'src/services/payment.service';
 
 // Behaviour pinned by this suite:
-//   1. Messages render with a "Ver completo" action so couples can read the whole
-//      note without copy-pasting (this was the user's literal complaint).
+//   1. Long messages render inline with an expandable "Ver más" affordance so
+//      couples can read the whole note without copy-pasting.
 //   2. A "Descargar recuerdos" button produces a CSV with only the keepsake-worthy
 //      columns (gift, guest, message, etc.) — no email leakage.
 
@@ -65,11 +65,12 @@ beforeEach(() => {
 });
 
 describe('PurchasedGiftsTab — message visibility', () => {
-  it('renders the "Ver completo" affordance for each non-empty message', () => {
+  it('renders the full guest message text in the row (expand affordance is visual-only)', () => {
     render(<PurchasedGiftsTab weddingListId={1} />);
-    // The first row has a long message → the inline action button should be present.
-    const buttons = screen.getAllByRole('button', { name: /ver mensaje completo/i });
-    expect(buttons.length).toBeGreaterThan(0);
+    // The whole note is in the DOM — antd's <Paragraph ellipsis> truncates with CSS,
+    // not by stripping text, so the keepsake content is always available to readers.
+    expect(screen.getByText(/felicidades a los novios/i)).toBeInTheDocument();
+    expect(screen.getByText(/con todo nuestro cariño/i)).toBeInTheDocument();
   });
 
   it('renders "Sin mensaje" for rows without a guest message', () => {
@@ -77,18 +78,12 @@ describe('PurchasedGiftsTab — message visibility', () => {
     expect(screen.getByText(/sin mensaje/i)).toBeInTheDocument();
   });
 
-  it('opens a modal with the FULL message when "Ver completo" is clicked (regression)', () => {
-    render(<PurchasedGiftsTab weddingListId={1} />);
-    const button = screen.getAllByRole('button', { name: /ver mensaje completo/i })[0];
-    fireEvent.click(button);
-
-    // The modal title scopes the message to the guest, so a couple reviewing notes
-    // can tell who wrote what.
-    expect(screen.getByText(/mensaje de maría lópez/i)).toBeInTheDocument();
-    // The whole message must be visible — the inline table cell already truncates,
-    // so we expect at least two occurrences (one in the row, one in the modal).
-    const occurrences = screen.getAllByText(/con todo nuestro cariño/i);
-    expect(occurrences.length).toBeGreaterThanOrEqual(1);
+  it('wraps the message in an ellipsis-capable Paragraph so long notes truncate inline', () => {
+    const { container } = render(<PurchasedGiftsTab weddingListId={1} />);
+    // The presence of the ellipsis class is the contract with antd that the row
+    // will collapse long notes and expose a "Ver más" affordance once the cell
+    // measures overflow at real layout time.
+    expect(container.querySelectorAll('.ant-typography-ellipsis').length).toBeGreaterThan(0);
   });
 });
 

@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { Button, message, Tabs, Modal, Spin } from 'antd';
 import { Heart, Plane, Home, Palette, Sparkles, MapPin } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useIsAuthenticated, useCurrentUser } from 'hooks/useUser';
-import { usePredesignedLists, useAddPredesignedGiftToWeddingList } from 'hooks/usePredesignedList';
-import { useGiftListsByUser } from 'hooks/useGiftList';
-import { useGiftsByWeddingList } from 'hooks/useWeddingList';
+import { useIsAuthenticated, useCurrentUser } from 'src/hooks/useUser';
+import { usePredesignedLists, useAddPredesignedGiftToWeddingList } from 'src/hooks/usePredesignedList';
+import { useGiftListsByUser } from 'src/hooks/useGiftList';
+import { useGiftsByWeddingList } from 'src/hooks/useWeddingList';
 import { PredesignedGift } from 'src/services/predesignedList.service';
-import { PredesignedListTabLabel } from 'src/features/predesignedLists/PredesignedListTabLabel';
-import { PredesignedListTabContent } from 'src/features/predesignedLists/PredesignedListTabContent';
+import { PredesignedListTabLabel } from '../components/PredesignedListTabLabel';
+import { PredesignedListTabContent } from '../components/PredesignedListTabContent';
 import { PageSEO } from 'src/components/seo';
 
 // Icon mapping from string to component
