@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { endpoints } from './endpoints';
+import { predesignedListEndpoints } from './predesignedList.endpoints';
 
 export interface PredesignedGift {
   id: number;
@@ -31,17 +31,17 @@ export interface PredesignedList {
 export const predesignedListService = {
   // Public endpoints
   async getAllLists(): Promise<PredesignedList[]> {
-    const response = await apiClient.get<PredesignedList[]>(endpoints.predesignedLists.getAll);
+    const response = await apiClient.get<PredesignedList[]>(predesignedListEndpoints.getAll);
     return response.data;
   },
 
   async getListById(id: number): Promise<PredesignedList> {
-    const response = await apiClient.get<PredesignedList>(endpoints.predesignedLists.getById(id));
+    const response = await apiClient.get<PredesignedList>(predesignedListEndpoints.getById(id));
     return response.data;
   },
 
   async addGiftToWeddingList(giftId: number, weddingListId: number): Promise<any> {
-    const response = await apiClient.post(endpoints.predesignedLists.addGiftToWeddingList(giftId, weddingListId), {
+    const response = await apiClient.post(predesignedListEndpoints.addGiftToWeddingList(giftId, weddingListId), {
       giftListId: weddingListId,
     });
     return response.data;
@@ -49,7 +49,7 @@ export const predesignedListService = {
 
   // Admin endpoints - Predesigned Lists
   async getAllListsAdmin(): Promise<PredesignedList[]> {
-    const response = await apiClient.get<PredesignedList[]>(`${endpoints.predesignedLists.getAll}/admin/all`);
+    const response = await apiClient.get<PredesignedList[]>(`${predesignedListEndpoints.getAll}/admin/all`);
     return response.data;
   },
 
@@ -60,7 +60,7 @@ export const predesignedListService = {
     icon: string;
     isActive?: boolean;
   }): Promise<PredesignedList> {
-    const response = await apiClient.post<PredesignedList>(`${endpoints.predesignedLists.getAll}/admin`, data);
+    const response = await apiClient.post<PredesignedList>(`${predesignedListEndpoints.getAll}/admin`, data);
     return response.data;
   },
 
@@ -74,16 +74,16 @@ export const predesignedListService = {
       isActive?: boolean;
     },
   ): Promise<PredesignedList> {
-    const response = await apiClient.put<PredesignedList>(`${endpoints.predesignedLists.getAll}/admin/${id}`, data);
+    const response = await apiClient.put<PredesignedList>(`${predesignedListEndpoints.getAll}/admin/${id}`, data);
     return response.data;
   },
 
   async deleteList(id: number): Promise<void> {
-    await apiClient.delete(`${endpoints.predesignedLists.getAll}/admin/${id}`);
+    await apiClient.delete(`${predesignedListEndpoints.getAll}/admin/${id}`);
   },
 
   async reorderLists(orders: Array<{ id: number; order: number }>): Promise<void> {
-    await apiClient.post(`${endpoints.predesignedLists.getAll}/admin/reorder`, { orders });
+    await apiClient.post(`${predesignedListEndpoints.getAll}/admin/reorder`, { orders });
   },
 
   // Admin endpoints - Predesigned Gifts
@@ -98,7 +98,7 @@ export const predesignedListService = {
       priority: string;
     },
   ): Promise<PredesignedGift> {
-    const response = await apiClient.post<PredesignedGift>(`${endpoints.predesignedLists.getAll}/admin/${listId}/gifts`, data);
+    const response = await apiClient.post<PredesignedGift>(`${predesignedListEndpoints.getAll}/admin/${listId}/gifts`, data);
     return response.data;
   },
 
@@ -113,15 +113,15 @@ export const predesignedListService = {
       priority?: string;
     },
   ): Promise<PredesignedGift> {
-    const response = await apiClient.put<PredesignedGift>(`${endpoints.predesignedLists.getAll}/admin/gifts/${giftId}`, data);
+    const response = await apiClient.put<PredesignedGift>(`${predesignedListEndpoints.getAll}/admin/gifts/${giftId}`, data);
     return response.data;
   },
 
   async deleteGift(giftId: number): Promise<void> {
-    await apiClient.delete(`${endpoints.predesignedLists.getAll}/admin/gifts/${giftId}`);
+    await apiClient.delete(`${predesignedListEndpoints.getAll}/admin/gifts/${giftId}`);
   },
 
   async reorderGifts(orders: Array<{ id: number; order: number }>): Promise<void> {
-    await apiClient.post(`${endpoints.predesignedLists.getAll}/admin/gifts/reorder`, { orders });
+    await apiClient.post(`${predesignedListEndpoints.getAll}/admin/gifts/reorder`, { orders });
   },
 };

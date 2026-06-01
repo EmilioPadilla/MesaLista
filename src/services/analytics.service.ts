@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { analytics_endpoints } from './endpoints';
+import { analyticsEndpoints } from './analytics.endpoints';
 
 export type AnalyticsEventType =
   | 'PAGE_VIEW'
@@ -107,7 +107,7 @@ export const analyticsService = {
    */
   upsertSession: async (params: UpsertSessionParams): Promise<void> => {
     try {
-      await apiClient.post(analytics_endpoints.upsertSession, params);
+      await apiClient.post(analyticsEndpoints.upsertSession, params);
     } catch (error) {
       console.error('Failed to upsert analytics session:', error);
     }
@@ -118,7 +118,7 @@ export const analyticsService = {
    */
   logEvent: async (params: LogEventParams): Promise<void> => {
     try {
-      await apiClient.post(analytics_endpoints.logEvent, params);
+      await apiClient.post(analyticsEndpoints.logEvent, params);
     } catch (error) {
       // Don't throw - analytics failures shouldn't break the app
       console.error('Failed to log analytics event:', error);
@@ -134,7 +134,7 @@ export const analyticsService = {
     if (to) params.to = to;
     if (weddingListId) params.weddingListId = weddingListId.toString();
 
-    const response = await apiClient.get(analytics_endpoints.summary, { params });
+    const response = await apiClient.get(analyticsEndpoints.summary, { params });
     return response.data;
   },
 
@@ -151,7 +151,7 @@ export const analyticsService = {
     if (from) params.from = from;
     if (to) params.to = to;
 
-    const response = await apiClient.get(analytics_endpoints.timeSeries, { params });
+    const response = await apiClient.get(analyticsEndpoints.timeSeries, { params });
     return response.data;
   },
 
@@ -159,7 +159,7 @@ export const analyticsService = {
    * Trigger daily aggregation manually
    */
   aggregateDaily: async (date?: string): Promise<{ success: boolean; message: string }> => {
-    const response = await apiClient.post(analytics_endpoints.aggregate, { date });
+    const response = await apiClient.post(analyticsEndpoints.aggregate, { date });
     return response.data;
   },
 
@@ -171,7 +171,7 @@ export const analyticsService = {
     aggregatesRetentionDays?: number,
     sessionsRetentionDays?: number,
   ): Promise<{ success: boolean; message: string }> => {
-    const response = await apiClient.post(analytics_endpoints.cleanup, {
+    const response = await apiClient.post(analyticsEndpoints.cleanup, {
       eventsRetentionDays,
       aggregatesRetentionDays,
       sessionsRetentionDays,
@@ -187,7 +187,7 @@ export const analyticsService = {
     if (from) params.from = from;
     if (to) params.to = to;
 
-    const response = await apiClient.get(analytics_endpoints.funnelBreakdown, { params });
+    const response = await apiClient.get(analyticsEndpoints.funnelBreakdown, { params });
     return response.data;
   },
 
@@ -195,7 +195,7 @@ export const analyticsService = {
    * Get metric alerts
    */
   getAlerts: async (): Promise<AlertsResponse> => {
-    const response = await apiClient.get(analytics_endpoints.alerts);
+    const response = await apiClient.get(analyticsEndpoints.alerts);
     return response.data;
   },
 };

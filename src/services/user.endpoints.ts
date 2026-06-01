@@ -1,0 +1,17 @@
+export const userEndpoints = {
+  base: `/user`,
+  signupCommission: `/user/signup/commission`,
+  getCurrentUser: `/user/me`,
+  byId: (id: number) => `/user/${id}`,
+  bySlug: (slug: string) => `/user/slug/${slug}`,
+  checkSlug: (slug: string) => `/user/check-slug/${slug}`,
+  login: `/user/login`,
+  logout: `/user/logout`,
+  updateProfile: `/user/me/profile`,
+  updatePassword: `/user/me/password`,
+  deleteCurrentUser: `/user/me`,
+  requestPasswordReset: `/user/password-reset/request`,
+  verifyResetToken: (token: string) => `/user/password-reset/verify/${token}`,
+  resetPassword: `/user/password-reset/reset`,
+  updatePlanType: (userId: number) => `/user/${userId}/plan-type`,
+};

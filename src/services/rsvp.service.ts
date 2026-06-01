@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { endpoints } from './endpoints';
+import { rsvpEndpoints } from './rsvp.endpoints';
 
 export interface Invitee {
   id: string;
@@ -72,7 +72,7 @@ export interface RsvpCustomFieldResponse {
 const rsvpService = {
   // Get all invitees for a gift list
   async getInvitees(giftListId: number): Promise<Invitee[]> {
-    const response = await apiClient.get(endpoints.rsvp.getInvitees, {
+    const response = await apiClient.get(rsvpEndpoints.getInvitees, {
       params: { giftListId },
     });
     return response.data.data;
@@ -80,19 +80,19 @@ const rsvpService = {
 
   // Get invitee by secret code (public)
   async getInviteeByCode(secretCode: string): Promise<Invitee> {
-    const response = await apiClient.get(endpoints.rsvp.getInviteeByCode(secretCode));
+    const response = await apiClient.get(rsvpEndpoints.getInviteeByCode(secretCode));
     return response.data.data;
   },
 
   // Validate RSVP code (public)
   async validateRsvpCode(secretCode: string): Promise<{ valid: boolean; message: string }> {
-    const response = await apiClient.get(endpoints.rsvp.validateRsvpCode(secretCode));
+    const response = await apiClient.get(rsvpEndpoints.validateRsvpCode(secretCode));
     return { valid: response.data.valid, message: response.data.message };
   },
 
   // Create a new invitee
   async createInvitee(data: CreateInviteeRequest): Promise<Invitee> {
-    const response = await apiClient.post(endpoints.rsvp.createInvitee, data);
+    const response = await apiClient.post(rsvpEndpoints.createInvitee, data);
     return response.data.data;
   },
 
@@ -104,30 +104,30 @@ const rsvpService = {
     created: Invitee[];
     errors: any[];
   }> {
-    const response = await apiClient.post(endpoints.rsvp.bulkCreateInvitees, { giftListId, invitees });
+    const response = await apiClient.post(rsvpEndpoints.bulkCreateInvitees, { giftListId, invitees });
     return response.data.data;
   },
 
   // Update an invitee
   async updateInvitee(id: string, data: Partial<CreateInviteeRequest>): Promise<Invitee> {
-    const response = await apiClient.put(endpoints.rsvp.updateInvitee(id), data);
+    const response = await apiClient.put(rsvpEndpoints.updateInvitee(id), data);
     return response.data.data;
   },
 
   // Delete an invitee
   async deleteInvitee(id: string): Promise<void> {
-    await apiClient.delete(endpoints.rsvp.deleteInvitee(id));
+    await apiClient.delete(rsvpEndpoints.deleteInvitee(id));
   },
 
   // Bulk delete invitees
   async bulkDeleteInvitees(ids: string[]): Promise<{ count: number }> {
-    const response = await apiClient.post(endpoints.rsvp.bulkDeleteInvitees, { ids });
+    const response = await apiClient.post(rsvpEndpoints.bulkDeleteInvitees, { ids });
     return response.data.data;
   },
 
   // Bulk update invitee status
   async bulkUpdateInviteeStatus(ids: string[], status: 'PENDING' | 'CONFIRMED' | 'REJECTED'): Promise<{ count: number }> {
-    const response = await apiClient.post(endpoints.rsvp.bulkUpdateInviteeStatus, { ids, status });
+    const response = await apiClient.post(rsvpEndpoints.bulkUpdateInviteeStatus, { ids, status });
     return response.data.data;
   },
 
@@ -139,7 +139,7 @@ const rsvpService = {
     guestMessage?: string,
     customFieldResponses?: Array<{ fieldId: number; value: string }>,
   ): Promise<Invitee> {
-    const response = await apiClient.post(endpoints.rsvp.respondToRsvp(secretCode), {
+    const response = await apiClient.post(rsvpEndpoints.respondToRsvp(secretCode), {
       status,
       confirmedTickets,
       guestMessage,
@@ -150,7 +150,7 @@ const rsvpService = {
 
   // Get RSVP statistics
   async getStats(giftListId: number): Promise<RsvpStats> {
-    const response = await apiClient.get(endpoints.rsvp.getStats, {
+    const response = await apiClient.get(rsvpEndpoints.getStats, {
       params: { giftListId },
     });
     return response.data.data;
@@ -158,20 +158,20 @@ const rsvpService = {
 
   // Get RSVP messages for a gift list (public)
   async getMessages(giftListId: number): Promise<RsvpMessages> {
-    const response = await apiClient.get(endpoints.rsvp.getMessages(giftListId));
+    const response = await apiClient.get(rsvpEndpoints.getMessages(giftListId));
     return response.data.data;
   },
 
   // Update RSVP messages
   async updateMessages(data: { giftListId: number; confirmationMessage?: string; cancellationMessage?: string }): Promise<RsvpMessages> {
-    const response = await apiClient.put(endpoints.rsvp.updateMessages, data);
+    const response = await apiClient.put(rsvpEndpoints.updateMessages, data);
     return response.data.data;
   },
 
   // ─── Custom Fields ────────────────────────────────────────────────────────
 
   async getCustomFields(giftListId: number): Promise<RsvpCustomField[]> {
-    const response = await apiClient.get(endpoints.rsvp.getCustomFields(giftListId));
+    const response = await apiClient.get(rsvpEndpoints.getCustomFields(giftListId));
     return response.data.data;
   },
 
@@ -182,7 +182,7 @@ const rsvpService = {
     required?: boolean;
     order?: number;
   }): Promise<RsvpCustomField> {
-    const response = await apiClient.post(endpoints.rsvp.createCustomField, data);
+    const response = await apiClient.post(rsvpEndpoints.createCustomField, data);
     return response.data.data;
   },
 
@@ -190,16 +190,16 @@ const rsvpService = {
     id: number,
     data: { label?: string; type?: RsvpCustomFieldType; required?: boolean; order?: number },
   ): Promise<RsvpCustomField> {
-    const response = await apiClient.put(endpoints.rsvp.updateCustomField(id), data);
+    const response = await apiClient.put(rsvpEndpoints.updateCustomField(id), data);
     return response.data.data;
   },
 
   async deleteCustomField(id: number): Promise<void> {
-    await apiClient.delete(endpoints.rsvp.deleteCustomField(id));
+    await apiClient.delete(rsvpEndpoints.deleteCustomField(id));
   },
 
   async getCustomFieldResponses(giftListId: number): Promise<RsvpCustomFieldResponse[]> {
-    const response = await apiClient.get(endpoints.rsvp.getCustomFieldResponses, { params: { giftListId } });
+    const response = await apiClient.get(rsvpEndpoints.getCustomFieldResponses, { params: { giftListId } });
     return response.data.data;
   },
 };

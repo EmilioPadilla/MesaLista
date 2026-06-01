@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { endpoints } from './endpoints';
+import { paymentAnalyticsEndpoints } from './paymentAnalytics.endpoints';
 
 export interface GiftListPaymentAnalytics {
   id: number;
@@ -54,7 +54,7 @@ const paymentAnalyticsService = {
    * Get payment analytics summary
    */
   getSummary: async (): Promise<PaymentAnalyticsSummary> => {
-    const response = await apiClient.get<PaymentAnalyticsSummary>(`${endpoints.paymentAnalytics.summary}`);
+    const response = await apiClient.get<PaymentAnalyticsSummary>(`${paymentAnalyticsEndpoints.summary}`);
     return response.data;
   },
 
@@ -62,12 +62,12 @@ const paymentAnalyticsService = {
    * Get detailed payment analytics for all gift lists
    */
   getGiftListsPaymentAnalytics: async (): Promise<GiftListPaymentAnalytics[]> => {
-    const response = await apiClient.get<GiftListPaymentAnalytics[]>(`${endpoints.paymentAnalytics.lists}`);
+    const response = await apiClient.get<GiftListPaymentAnalytics[]>(`${paymentAnalyticsEndpoints.lists}`);
     return response.data;
   },
 
   getGiftListPaymentDetails: async (giftListId: number): Promise<GiftPaymentDetail[]> => {
-    const response = await apiClient.get<GiftPaymentDetail[]>(endpoints.paymentAnalytics.listPayments(giftListId));
+    const response = await apiClient.get<GiftPaymentDetail[]>(paymentAnalyticsEndpoints.listPayments(giftListId));
     return response.data;
   },
 };

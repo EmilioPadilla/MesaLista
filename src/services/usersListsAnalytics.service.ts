@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { endpoints } from './endpoints';
+import { usersListsAnalyticsEndpoints } from './usersListsAnalytics.endpoints';
 
 export interface UserAnalytics {
   id: number;
@@ -70,7 +70,7 @@ const usersListsAnalyticsService = {
    * Get summary statistics for users and wedding lists
    */
   getSummary: async (): Promise<UsersListsSummary> => {
-    const response = await apiClient.get<UsersListsSummary>(`${endpoints.usersListsAnalytics.summary}`);
+    const response = await apiClient.get<UsersListsSummary>(`${usersListsAnalyticsEndpoints.summary}`);
     return response.data;
   },
 
@@ -78,7 +78,7 @@ const usersListsAnalyticsService = {
    * Get detailed analytics for all users with their wedding lists
    */
   getUsersAnalytics: async (): Promise<UserAnalytics[]> => {
-    const response = await apiClient.get<UserAnalytics[]>(`${endpoints.usersListsAnalytics.users}`);
+    const response = await apiClient.get<UserAnalytics[]>(`${usersListsAnalyticsEndpoints.users}`);
     return response.data;
   },
 
@@ -86,7 +86,7 @@ const usersListsAnalyticsService = {
    * Get detailed analytics for all wedding lists
    */
   getWeddingListsAnalytics: async (): Promise<WeddingListAnalytics[]> => {
-    const response = await apiClient.get<WeddingListAnalytics[]>(`${endpoints.usersListsAnalytics.lists}`);
+    const response = await apiClient.get<WeddingListAnalytics[]>(`${usersListsAnalyticsEndpoints.lists}`);
     return response.data;
   },
 };

@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { api_endpoints } from './endpoints';
+import { paymentEndpoints } from './payment.endpoints';
 
 // Payment service types
 export interface PaymentInitiateRequest {
@@ -84,7 +84,7 @@ export const paymentService = {
    * @returns List of payments
    */
   getAllPayments: async (): Promise<Payment[]> => {
-    const response = await apiClient.get(api_endpoints.payments.getAll);
+    const response = await apiClient.get(paymentEndpoints.getAll);
     return response.data;
   },
 
@@ -95,7 +95,7 @@ export const paymentService = {
    * @returns Payment summary
    */
   getPaymentSummary: async (id: number): Promise<PaymentSummary> => {
-    const response = await apiClient.get(api_endpoints.payments.getSummary(id));
+    const response = await apiClient.get(paymentEndpoints.getSummary(id));
     return response.data;
   },
 
@@ -108,7 +108,7 @@ export const paymentService = {
   initiatePayment: async (
     data: PaymentInitiateRequest,
   ): Promise<{ success: boolean; paymentId: string; approvalUrl: string; message: string }> => {
-    const response = await apiClient.post(api_endpoints.payments.initiate, data);
+    const response = await apiClient.post(paymentEndpoints.initiate, data);
     return response.data;
   },
 
@@ -119,7 +119,7 @@ export const paymentService = {
    * @returns Checkout session response with URL
    */
   createCheckoutSession: async (data: CreateCheckoutSessionRequest): Promise<{ success: boolean; sessionId: string; url: string }> => {
-    const response = await apiClient.post(api_endpoints.payments.createCheckoutSession, data);
+    const response = await apiClient.post(paymentEndpoints.createCheckoutSession, data);
     return response.data;
   },
 
@@ -130,7 +130,7 @@ export const paymentService = {
    * @returns Payment verification response
    */
   verifyPayment: async (data: PaymentVerifyRequest): Promise<{ success: boolean; moneyBagId: number; cartId: number; message: string }> => {
-    const response = await apiClient.post(api_endpoints.payments.verify, data);
+    const response = await apiClient.post(paymentEndpoints.verify, data);
     return response.data;
   },
 
@@ -141,7 +141,7 @@ export const paymentService = {
    * @returns PayPal order response with approval URL
    */
   createPayPalOrder: async (data: CreatePayPalOrderRequest): Promise<{ success: boolean; orderId: string; approvalUrl: string }> => {
-    const response = await apiClient.post(api_endpoints.payments.createPayPalOrder, data);
+    const response = await apiClient.post(paymentEndpoints.createPayPalOrder, data);
     return response.data;
   },
 
@@ -154,7 +154,7 @@ export const paymentService = {
   capturePayPalPayment: async (
     data: CapturePayPalPaymentRequest,
   ): Promise<{ success: boolean; cartId: number; paymentId: string; message: string }> => {
-    const response = await apiClient.post(api_endpoints.payments.capturePayPalPayment, data);
+    const response = await apiClient.post(paymentEndpoints.capturePayPalPayment, data);
     return response.data;
   },
 
@@ -168,7 +168,7 @@ export const paymentService = {
     cartId: string;
     paymentMethod?: string;
   }): Promise<{ success: boolean; message: string; cartStatus: string }> => {
-    const response = await apiClient.post(api_endpoints.payments.cancelPayment, data);
+    const response = await apiClient.post(paymentEndpoints.cancelPayment, data);
     return response.data;
   },
 
@@ -192,14 +192,14 @@ export const paymentService = {
     cancelUrl: string;
     discountCode?: string;
   }): Promise<{ success: boolean; sessionId: string; url: string }> => {
-    const response = await apiClient.post(api_endpoints.payments.createPlanCheckoutSession, data);
+    const response = await apiClient.post(paymentEndpoints.createPlanCheckoutSession, data);
     return response.data;
   },
 
   completePlanSignupSession: async (data: {
     sessionId: string;
   }): Promise<{ success: boolean; slug: string; planType: 'FIXED'; giftListId: number }> => {
-    const response = await apiClient.post(api_endpoints.payments.completePlanSignupSession, data);
+    const response = await apiClient.post(paymentEndpoints.completePlanSignupSession, data);
     return response.data;
   },
 
@@ -217,7 +217,7 @@ export const paymentService = {
     cancelUrl: string;
     discountCode?: string;
   }): Promise<{ success: boolean; sessionId: string; url: string }> => {
-    const response = await apiClient.post(api_endpoints.payments.createGiftListCheckoutSession, data);
+    const response = await apiClient.post(paymentEndpoints.createGiftListCheckoutSession, data);
     return response.data;
   },
 
@@ -228,7 +228,7 @@ export const paymentService = {
    * @returns List of purchased gifts with payment details
    */
   getPurchasedGiftsByWeddingList: async (weddingListId: number): Promise<{ success: boolean; data: PurchasedGift[] }> => {
-    const response = await apiClient.get(api_endpoints.payments.getPurchasedGiftsByWeddingList(weddingListId));
+    const response = await apiClient.get(paymentEndpoints.getPurchasedGiftsByWeddingList(weddingListId));
     return response.data;
   },
 };

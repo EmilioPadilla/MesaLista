@@ -1,6 +1,6 @@
 import { MarketingEmailType } from 'src/config/marketingEmailTemplates';
 import apiClient from './client';
-import { endpoints } from './endpoints';
+import { emailEndpoints, emailVerificationEndpoints } from './email.endpoints';
 
 export interface ResendEmailRequest {
   cartId: string;
@@ -92,7 +92,7 @@ const emailService = {
    * Sends both guest confirmation and owner notification emails
    */
   resendPaymentConfirmation: async (data: ResendEmailRequest): Promise<ResendEmailResponse> => {
-    const response = await apiClient.post<ResendEmailResponse>(endpoints.email.resendPaymentConfirmation, data);
+    const response = await apiClient.post<ResendEmailResponse>(emailEndpoints.resendPaymentConfirmation, data);
     return response.data;
   },
 
@@ -101,7 +101,7 @@ const emailService = {
    * Sends only the owner notification email
    */
   resendPaymentToAdmin: async (data: ResendEmailRequest): Promise<ResendEmailResponse> => {
-    const response = await apiClient.post<ResendEmailResponse>(endpoints.email.resendPaymentToAdmin, data);
+    const response = await apiClient.post<ResendEmailResponse>(emailEndpoints.resendPaymentToAdmin, data);
     return response.data;
   },
 
@@ -110,7 +110,7 @@ const emailService = {
    * Sends only the guest confirmation email
    */
   resendPaymentToInvitee: async (data: ResendEmailRequest): Promise<ResendEmailResponse> => {
-    const response = await apiClient.post<ResendEmailResponse>(endpoints.email.resendPaymentToInvitee, data);
+    const response = await apiClient.post<ResendEmailResponse>(emailEndpoints.resendPaymentToInvitee, data);
     return response.data;
   },
 
@@ -119,7 +119,7 @@ const emailService = {
    * Sends contact form submission to admin and auto-reply to user
    */
   sendContactForm: async (data: ContactFormRequest): Promise<ContactFormResponse> => {
-    const response = await apiClient.post<ContactFormResponse>(endpoints.email.sendContactForm, data);
+    const response = await apiClient.post<ContactFormResponse>(emailEndpoints.sendContactForm, data);
     return response.data;
   },
 
@@ -128,7 +128,7 @@ const emailService = {
    * Sends a 6-digit verification code to the provided email address
    */
   sendVerificationCode: async (data: SendVerificationCodeRequest): Promise<SendVerificationCodeResponse> => {
-    const response = await apiClient.post<SendVerificationCodeResponse>(endpoints.emailVerification.sendCode, data);
+    const response = await apiClient.post<SendVerificationCodeResponse>(emailVerificationEndpoints.sendCode, data);
     return response.data;
   },
 
@@ -137,7 +137,7 @@ const emailService = {
    * Verifies the provided code matches the one sent to the email
    */
   verifyCode: async (data: VerifyCodeRequest): Promise<VerifyCodeResponse> => {
-    const response = await apiClient.post<VerifyCodeResponse>(endpoints.emailVerification.verifyCode, data);
+    const response = await apiClient.post<VerifyCodeResponse>(emailVerificationEndpoints.verifyCode, data);
     return response.data;
   },
 
@@ -146,7 +146,7 @@ const emailService = {
    * Returns whether the email has been verified within the last 30 minutes
    */
   checkVerificationStatus: async (email: string): Promise<CheckVerificationStatusResponse> => {
-    const response = await apiClient.get<CheckVerificationStatusResponse>(endpoints.emailVerification.checkStatus(email));
+    const response = await apiClient.get<CheckVerificationStatusResponse>(emailVerificationEndpoints.checkStatus(email));
     return response.data;
   },
 
@@ -156,7 +156,7 @@ const emailService = {
    */
   getCommissionUsers: async (planTypes: ('COMMISSION' | 'FIXED')[] = ['COMMISSION']): Promise<CommissionUsersResponse> => {
     const params = new URLSearchParams({ planTypes: planTypes.join(',') });
-    const response = await apiClient.get<CommissionUsersResponse>(`${endpoints.email.getCommissionUsers}?${params}`);
+    const response = await apiClient.get<CommissionUsersResponse>(`${emailEndpoints.getCommissionUsers}?${params}`);
     return response.data;
   },
 
@@ -165,7 +165,7 @@ const emailService = {
    * Admin only - sends email to specific user IDs
    */
   sendToSelectedUsers: async (emailType: MarketingEmailType, userIds: number[]): Promise<MarketingEmailResponse> => {
-    const response = await apiClient.post<MarketingEmailResponse>(endpoints.email.sendToSelectedUsers, {
+    const response = await apiClient.post<MarketingEmailResponse>(emailEndpoints.sendToSelectedUsers, {
       emailType,
       userIds,
     });
@@ -180,7 +180,7 @@ const emailService = {
     emailType: MarketingEmailType,
     leads: { email: string; firstName?: string | null }[],
   ): Promise<MarketingEmailResponse> => {
-    const response = await apiClient.post<MarketingEmailResponse>(endpoints.email.sendToLeads, {
+    const response = await apiClient.post<MarketingEmailResponse>(emailEndpoints.sendToLeads, {
       emailType,
       leads,
     });
@@ -192,7 +192,7 @@ const emailService = {
    * Admin only - returns HTML preview of email for specific user
    */
   getEmailPreview: async (emailType: MarketingEmailType, userId: number): Promise<EmailPreviewResponse> => {
-    const response = await apiClient.get<EmailPreviewResponse>(endpoints.email.getEmailPreview(emailType, userId));
+    const response = await apiClient.get<EmailPreviewResponse>(emailEndpoints.getEmailPreview(emailType, userId));
     return response.data;
   },
 
@@ -201,7 +201,7 @@ const emailService = {
    * Admin only - sends marketing email to individual user
    */
   sendMarketingEmailToUser: async (userId: number, emailType: MarketingEmailType): Promise<ResendEmailResponse> => {
-    const response = await apiClient.post<ResendEmailResponse>(endpoints.email.sendMarketingEmailToUser, {
+    const response = await apiClient.post<ResendEmailResponse>(emailEndpoints.sendMarketingEmailToUser, {
       userId,
       emailType,
     });

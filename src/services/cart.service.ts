@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { cart_endpoints } from './endpoints';
+import { cartEndpoints } from './cart.endpoints';
 import type { CartDetailsRequest } from 'types/api/cart';
 import type { Cart } from 'types/models/cart';
 
@@ -14,7 +14,7 @@ export const cartService = {
    */
   getCart: async (sessionId?: string): Promise<Cart> => {
     const params = sessionId ? { sessionId } : {};
-    const response = await apiClient.get(cart_endpoints.base, { params });
+    const response = await apiClient.get(cartEndpoints.base, { params });
     return response.data;
   },
 
@@ -27,7 +27,7 @@ export const cartService = {
    * @returns Updated cart
    */
   addToCart: async ({ giftId, quantity = 1, sessionId }: { giftId: number; quantity?: number; sessionId?: string }): Promise<Cart> => {
-    const response = await apiClient.post(cart_endpoints.addItem, { giftId, quantity, sessionId });
+    const response = await apiClient.post(cartEndpoints.addItem, { giftId, quantity, sessionId });
     return response.data;
   },
 
@@ -38,7 +38,7 @@ export const cartService = {
    * @returns Updated cart
    */
   removeFromCart: async (cartItemId: number): Promise<Cart> => {
-    const response = await apiClient.delete(cart_endpoints.byId(cartItemId));
+    const response = await apiClient.delete(cartEndpoints.byId(cartItemId));
     return response.data;
   },
 
@@ -50,7 +50,7 @@ export const cartService = {
    * @returns Updated cart
    */
   updateCartItemQuantity: async ({ cartItemId, quantity }: { cartItemId: number; quantity: number }): Promise<Cart> => {
-    const response = await apiClient.patch(cart_endpoints.byId(cartItemId), { quantity });
+    const response = await apiClient.patch(cartEndpoints.byId(cartItemId), { quantity });
     return response.data;
   },
 
@@ -62,7 +62,7 @@ export const cartService = {
    * @returns Updated cart
    */
   updateCartDetails: async (cartItemId: number, details: CartDetailsRequest): Promise<Cart> => {
-    const response = await apiClient.put(cart_endpoints.updateDetails(cartItemId), details);
+    const response = await apiClient.put(cartEndpoints.updateDetails(cartItemId), details);
     return response.data;
   },
 };

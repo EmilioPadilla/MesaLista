@@ -1,5 +1,5 @@
 import client from './client';
-import { endpoints } from './endpoints';
+import { discountCodeEndpoints } from './discountCode.endpoints';
 
 export interface DiscountCode {
   id: number;
@@ -54,37 +54,37 @@ export interface UpdateDiscountCodeRequest {
 const discountCodeService = {
   // Public: Validate a discount code
   async validateDiscountCode(code: string): Promise<ValidateDiscountCodeResponse> {
-    const response = await client.get(endpoints.discountCodes.validate(code));
+    const response = await client.get(discountCodeEndpoints.validate(code));
     return response.data;
   },
 
   // Admin: Get all discount codes
   async getAllDiscountCodes(): Promise<DiscountCode[]> {
-    const response = await client.get(endpoints.discountCodes.getAllAdmin);
+    const response = await client.get(discountCodeEndpoints.getAllAdmin);
     return response.data;
   },
 
   // Admin: Get discount code statistics
   async getDiscountCodeStats(id: number): Promise<DiscountCodeWithUsers> {
-    const response = await client.get(endpoints.discountCodes.getStatsAdmin(id));
+    const response = await client.get(discountCodeEndpoints.getStatsAdmin(id));
     return response.data;
   },
 
   // Admin: Create a new discount code
   async createDiscountCode(data: CreateDiscountCodeRequest): Promise<DiscountCode> {
-    const response = await client.post(endpoints.discountCodes.createAdmin, data);
+    const response = await client.post(discountCodeEndpoints.createAdmin, data);
     return response.data;
   },
 
   // Admin: Update a discount code
   async updateDiscountCode(id: number, data: UpdateDiscountCodeRequest): Promise<DiscountCode> {
-    const response = await client.put(endpoints.discountCodes.updateAdmin(id), data);
+    const response = await client.put(discountCodeEndpoints.updateAdmin(id), data);
     return response.data;
   },
 
   // Admin: Delete a discount code
   async deleteDiscountCode(id: number): Promise<void> {
-    await client.delete(endpoints.discountCodes.deleteAdmin(id));
+    await client.delete(discountCodeEndpoints.deleteAdmin(id));
   },
 };
 

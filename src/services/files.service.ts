@@ -1,4 +1,5 @@
 import apiClient from './client';
+import { fileEndpoints } from './files.endpoints';
 
 export const fileService = {
   /**
@@ -10,7 +11,7 @@ export const fileService = {
     const formData = new FormData();
     formData.append('image', file, file.name);
 
-    const res = await apiClient.post('/upload', formData, {
+    const res = await apiClient.post(fileEndpoints.upload, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

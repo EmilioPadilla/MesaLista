@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { endpoints } from './endpoints';
+import { signupEmailEndpoints } from './signupEmail.endpoints';
 
 export interface SignupEmail {
   id: number;
@@ -28,7 +28,7 @@ const signupEmailService = {
    * Save email from signup attempt (public)
    */
   saveFromSignup: async (data: { email: string; firstName?: string; lastName?: string; phone?: string }): Promise<SignupEmailResponse> => {
-    const response = await apiClient.post<SignupEmailResponse>(endpoints.signupEmails.save, data);
+    const response = await apiClient.post<SignupEmailResponse>(signupEmailEndpoints.save, data);
     return response.data;
   },
 
@@ -36,7 +36,7 @@ const signupEmailService = {
    * Get all signup emails (admin only)
    */
   getAll: async (): Promise<SignupEmailsResponse> => {
-    const response = await apiClient.get<SignupEmailsResponse>(endpoints.signupEmails.getAll);
+    const response = await apiClient.get<SignupEmailsResponse>(signupEmailEndpoints.getAll);
     return response.data;
   },
 
@@ -44,7 +44,7 @@ const signupEmailService = {
    * Add email manually (admin only)
    */
   addManual: async (data: { email: string; firstName?: string; lastName?: string }): Promise<SignupEmailResponse> => {
-    const response = await apiClient.post<SignupEmailResponse>(endpoints.signupEmails.addManual, data);
+    const response = await apiClient.post<SignupEmailResponse>(signupEmailEndpoints.addManual, data);
     return response.data;
   },
 
@@ -52,7 +52,7 @@ const signupEmailService = {
    * Delete a signup email (admin only)
    */
   deleteById: async (id: number): Promise<{ success: boolean; message: string }> => {
-    const response = await apiClient.delete<{ success: boolean; message: string }>(endpoints.signupEmails.delete(id));
+    const response = await apiClient.delete<{ success: boolean; message: string }>(signupEmailEndpoints.delete(id));
     return response.data;
   },
 };
