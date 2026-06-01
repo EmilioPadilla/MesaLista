@@ -1,8 +1,8 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from 'components/core/Card';
+import { Card, CardContent, CardHeader, CardTitle } from 'src/components/core/Card';
 import { BarChart3, TrendingUp } from 'lucide-react';
 import { generateStats } from '../utils/manageRegistryUtils';
-import { GiftItem } from 'src/app/routes/couple/ManageRegistry';
+import type { GiftItem } from '../types';
 
 interface StatsTabContentProps {
   gifts: GiftItem[];

@@ -1,10 +1,10 @@
 import { ArrowUpDown, Filter } from 'lucide-react';
 import { Row, Select, Input, Card } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { SortableGiftItem } from 'features/manageRegistry/components/SortableGiftItem';
+import { SortableGiftItem } from './SortableGiftItem';
 import { GiftCategory } from 'types/models/gift';
-import { GiftItem, SortOption, FilterOption } from 'src/app/routes/couple/ManageRegistry';
-import { DraggableList } from '../core/DraggableList';
+import { DraggableList } from 'src/components/core/DraggableList';
+import type { GiftItem, SortOption, FilterOption } from '../types';
 
 interface GiftsListProps {
   gifts: GiftItem[];

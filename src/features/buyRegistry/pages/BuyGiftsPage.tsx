@@ -10,9 +10,7 @@ import { useGiftListBySlug, useGetCategoriesByGiftList, useGiftListById } from '
 import { OutletContextType } from 'src/app/routes/guest/PublicRegistry';
 import { GiftDetailsModal } from '../components/GiftDetailsModal';
 import { CartDrawer } from '../components/CartDrawer';
-// TODO: SortOption/FilterOption/GiftItem live in ManageRegistry; they'll move
-// to a shared location when manageRegistry adopts the canonical shape.
-import { SortOption, FilterOption, GiftItem } from 'src/app/routes/couple/ManageRegistry';
+import type { SortOption, FilterOption, GiftItem } from 'src/features/manageRegistry';
 import { GiftCard } from 'src/components/shared/GiftCard';
 import dayjs from 'dayjs';
 import { motion } from 'motion/react';

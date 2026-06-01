@@ -1,6 +1,6 @@
 import { DragOutlined, ExclamationCircleFilled, StarFilled } from '@ant-design/icons';
 import { Edit, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
-import { GiftItem } from 'routes/couple/ManageRegistry';
+import type { GiftItem } from 'src/features/manageRegistry';
 import { useState, memo } from 'react';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';

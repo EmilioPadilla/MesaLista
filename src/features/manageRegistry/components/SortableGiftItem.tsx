@@ -1,9 +1,8 @@
 import React, { memo } from 'react';
 import { Col } from 'antd';
-import { SortableItem } from 'components/core/SortableItem';
+import { SortableItem } from 'src/components/core/SortableItem';
 import type { Gift } from 'types/models/gift';
-import { GiftCard } from 'components/shared/GiftCard';
-import { DragHandleProps } from 'components/shared/GiftCard';
+import { GiftCard, DragHandleProps } from 'src/components/shared/GiftCard';
 
 interface SortableGiftItemProps {
   gift: Gift;

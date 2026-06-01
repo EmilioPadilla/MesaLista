@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
-import { Collapsible } from 'components/core/Collapsible';
+import { Collapsible } from 'src/components/core/Collapsible';
 import { Plus, X, Eye, ExternalLink } from 'lucide-react';
 import { UploadOutlined, CaretDownFilled } from '@ant-design/icons';
 import { Checkbox, Form, Input, Upload, Select, message, Image, Button, Card } from 'antd';
@@ -8,7 +8,7 @@ import { useForm } from 'antd/es/form/Form';
 import { UploadChangeParam } from 'antd/es/upload';
 import { useCreateGift } from 'src/hooks/useGift';
 import { useUploadFile } from 'src/hooks/useFiles';
-import { convertHeicToJpegIfNeeded, isHeic } from 'src/features/manageRegistry/utils/heicToJpeg';
+import { convertHeicToJpegIfNeeded, isHeic } from '../utils/heicToJpeg';
 
 interface AddGiftFormProps {
   giftListId?: number;

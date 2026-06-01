@@ -4,7 +4,7 @@ import {
   buildKeepsakeFilename,
   escapeCsvCell,
   toKeepsakeRow,
-} from 'src/features/manageRegistry/utils/purchasedGiftsExport';
+} from './purchasedGiftsExport';
 import type { PurchasedGift } from 'src/services/payment.service';
 
 // The keepsake export is the only place these payments end up outside the app, so

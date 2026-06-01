@@ -1,6 +1,6 @@
 import { Card, Tag, Tooltip, Button } from 'antd';
 import { Plus, Check } from 'lucide-react';
-import { GiftItem } from 'src/app/routes/couple/ManageRegistry';
+import type { GiftItem } from 'src/features/manageRegistry';
 
 interface PredesignedGiftCardProps {
   gift: GiftItem;

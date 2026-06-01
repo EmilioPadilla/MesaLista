@@ -1,8 +1,8 @@
 import React from 'react';
 import { Card } from 'antd';
 import { Package, TrendingUp, Target, DollarSign } from 'lucide-react';
-import { GiftItem } from 'src/app/routes/couple/ManageRegistry';
-import { generateStats } from 'src/features/manageRegistry/utils/manageRegistryUtils';
+import type { GiftItem } from '../types';
+import { generateStats } from '../utils/manageRegistryUtils';
 
 interface StatsCardsProps {
   gifts: GiftItem[];

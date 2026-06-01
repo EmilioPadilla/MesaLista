@@ -4,7 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { usePurchasedGiftsByWeddingList } from 'src/hooks/usePayment';
 import type { PurchasedGift } from 'src/services/payment.service';
 import { useDeviceType } from 'src/hooks/useDeviceType';
-import { buildPurchasedGiftsCsv, buildKeepsakeFilename } from 'src/features/manageRegistry/utils/purchasedGiftsExport';
+import { buildPurchasedGiftsCsv, buildKeepsakeFilename } from '../utils/purchasedGiftsExport';
 
 const { Text, Paragraph } = Typography;
 

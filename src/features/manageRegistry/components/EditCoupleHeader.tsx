@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { EditOutlined } from '@ant-design/icons';
 import { Card, Button, Input, message } from 'antd';
 import { Form, Typography } from 'antd';
-import { Collapsible } from 'core/Collapsible';
+import { Collapsible } from 'src/components/core/Collapsible';
 import type { WeddingListWithGifts } from 'types/models/weddingList';
-import { FileUpload } from 'core/FileUpload';
-import { useUploadFile } from 'hooks/useFiles';
+import { FileUpload } from 'src/components/core/FileUpload';
+import { useUploadFile } from 'src/hooks/useFiles';
 import { useUpdateGiftList } from 'src/hooks/useGiftList';
 
 interface EditCoupleHeaderProps {

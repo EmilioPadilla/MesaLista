@@ -1,30 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Spin, Tabs } from 'antd';
-import { useComponentMountControl } from 'hooks/useComponentMountControl';
-import { useReorderGifts } from 'src/hooks/useGiftList';
-import { OutletContextPrivateType } from 'routes/Dashboard';
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
-import { Gift as GiftInterface } from 'types/models/gift';
-import { useDeleteGift } from 'src/hooks/useGift';
-import { StatsCards } from 'src/features/manageRegistry/components/StatsCards';
-import { AddGiftForm } from 'src/features/manageRegistry/components/AddGiftForm';
-import { StatsTabContent } from 'src/features/manageRegistry/components/StatsTabContent';
-import { PurchasedGiftsTab } from 'src/features/manageRegistry/components/PurchasedGiftsTab';
-import { GiftsList } from 'src/components/shared/GiftsList';
-import { GiftModal } from 'src/features/manageRegistry/components/GiftModal';
-import { useTrackEvent } from 'hooks/useAnalyticsTracking';
-import { useDebounce } from 'src/hooks/useDebounce';
 import { SettingOutlined } from '@ant-design/icons';
-import { useGetCategoriesByGiftList, useGiftListsByUser } from 'src/hooks/useGiftList';
+import { useComponentMountControl } from 'src/hooks/useComponentMountControl';
+import { useReorderGifts, useGetCategoriesByGiftList, useGiftListsByUser } from 'src/hooks/useGiftList';
+import { useDeleteGift } from 'src/hooks/useGift';
+import { useTrackEvent } from 'src/hooks/useAnalyticsTracking';
+import { useDebounce } from 'src/hooks/useDebounce';
+import { OutletContextPrivateType } from 'src/app/routes/Dashboard';
+import { StatsCards } from '../components/StatsCards';
+import { AddGiftForm } from '../components/AddGiftForm';
+import { StatsTabContent } from '../components/StatsTabContent';
+import { PurchasedGiftsTab } from '../components/PurchasedGiftsTab';
+import { GiftsList } from '../components/GiftsList';
+import { GiftModal } from '../components/GiftModal';
+import type { GiftItem, SortOption, FilterOption } from '../types';
 
-export interface GiftItem extends GiftInterface {
-  purchasedBy?: string;
-}
-
-export type SortOption = 'name' | 'price-asc' | 'price-desc' | 'category' | 'status' | 'original';
-export type FilterOption = 'all' | 'purchased' | 'pending' | 'mostWanted';
-
-export const ManageRegistry = () => {
+export function ManageRegistryPage() {
   const contextData = useOutletContext<OutletContextPrivateType>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -261,4 +253,4 @@ export const ManageRegistry = () => {
       )}
     </div>
   );
-};
+}

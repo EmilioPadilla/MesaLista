@@ -15,7 +15,7 @@ import { Contact } from 'src/app/routes/Contact';
 
 import PublicRegistry from 'src/app/routes/guest/PublicRegistry';
 import { BuyGiftsPage } from 'src/features/buyRegistry';
-import { ManageRegistry } from 'src/app/routes/couple/ManageRegistry';
+import { ManageRegistryPage } from 'src/features/manageRegistry';
 import { SearchPage } from 'src/app/routes/SearchPage';
 import { Settings } from 'src/app/routes/couple/Settings';
 import { PricingPage } from 'src/app/routes/PricingPage';
@@ -97,7 +97,7 @@ function App() {
               <Route path="pago-confirmado" element={<OrderConfirmation />} />
               <Route element={<ProtectedRoute />}>
                 <Route element={<Dashboard />}>
-                  <Route path="gestionar" element={<ManageRegistry />} />
+                  <Route path="gestionar" element={<ManageRegistryPage />} />
                   <Route path="invitacion" element={<Invitations />} />
                   <Route path="gestionar-rsvp" element={<ManageRsvpPage />} />
                   <Route path="configuracion" element={<Settings />} />

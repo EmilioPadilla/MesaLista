@@ -1,4 +1,4 @@
-import { GiftItem } from 'src/app/routes/couple/ManageRegistry';
+import type { GiftItem } from '../types';
 
 export const generateStats = (gifts: GiftItem[]) => {
   return {

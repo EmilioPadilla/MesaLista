@@ -1,6 +1,6 @@
 import { Card } from 'antd';
 import { PredesignedList, PredesignedGift } from 'src/services/predesignedList.service';
-import { GiftItem } from 'routes/couple/ManageRegistry';
+import type { GiftItem } from 'src/features/manageRegistry';
 import { PredesignedGiftCard } from './PredesignedGiftCard';
 
 interface PredesignedListTabContentProps {

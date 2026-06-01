@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import type { GiftItem } from 'src/app/routes/couple/ManageRegistry';
+import type { GiftItem } from '../types';
 
 // Regression coverage for the "I just delete and recreate the gift" feedback. The
 // modal had two silent edit failures that this suite locks in place:
@@ -16,7 +16,7 @@ const updateGiftMutate = vi.fn();
 const uploadFileMutate = vi.fn();
 const isUpdateError = false;
 
-vi.mock('hooks/useGift', () => ({
+vi.mock('src/hooks/useGift', () => ({
   useUpdateGift: () => ({
     mutate: updateGiftMutate,
     isSuccess: false,
@@ -24,7 +24,7 @@ vi.mock('hooks/useGift', () => ({
   }),
 }));
 
-vi.mock('hooks/useFiles', () => ({
+vi.mock('src/hooks/useFiles', () => ({
   useUploadFile: () => ({
     mutate: uploadFileMutate,
   }),
@@ -46,7 +46,7 @@ vi.mock('antd', async () => {
   };
 });
 
-const { GiftModal } = await import('src/features/manageRegistry/components/GiftModal');
+const { GiftModal } = await import('./GiftModal');
 
 const baseGift: GiftItem = {
   id: 42,

@@ -58,7 +58,7 @@ vi.mock('src/hooks/useDeviceType', () => ({
   useDeviceType: () => 'desktop',
 }));
 
-const { PurchasedGiftsTab } = await import('src/features/manageRegistry/components/PurchasedGiftsTab');
+const { PurchasedGiftsTab } = await import('./PurchasedGiftsTab');
 
 beforeEach(() => {
   mockState = { data: mockData, isLoading: false, error: null };
