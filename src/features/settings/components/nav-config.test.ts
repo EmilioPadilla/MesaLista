@@ -51,7 +51,7 @@ describe('nav-config', () => {
   });
 
   it('default profile section exists (used as fallback by Settings)', () => {
-    const fallback: SectionId = 'profile';
+    const fallback: SectionId = 'perfil';
     expect(SECTION_LOOKUP[fallback]).toBeDefined();
   });
 });

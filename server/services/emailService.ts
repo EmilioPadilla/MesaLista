@@ -22,6 +22,7 @@ export interface PaymentEmailData {
   guestEmail: string;
   guestPhone?: string;
   message?: string;
+  coupleThankYouMessage?: string;
   items: Array<{
     giftTitle: string;
     giftDescription?: string;
@@ -148,6 +149,7 @@ class EmailService {
         guestEmail: cart.inviteeEmail || '',
         guestPhone: cart.phoneNumber || undefined,
         message: cart.message || undefined,
+        coupleThankYouMessage: giftList.thankYouMessage || undefined,
         items: cart.items.map((item) => ({
           giftTitle: item.gift.title,
           giftDescription: item.gift.description || undefined,

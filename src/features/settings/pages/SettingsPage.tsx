@@ -10,6 +10,7 @@ import { useRsvpMessages, useUpdateRsvpMessages } from 'src/hooks/useRsvp';
 import { useGiftListsByUser, useUpdateGiftList } from 'src/hooks/useGiftList';
 import {
   RsvpMessagesSection,
+  ThankYouMessageSection,
   PrivacySection,
   FeePreferenceSection,
   ProfileSection,
@@ -32,6 +33,7 @@ export function SettingsPage() {
   const [profileForm] = Form.useForm();
   const [passwordForm] = Form.useForm();
   const [rsvpMessagesForm] = Form.useForm();
+  const [thankYouForm] = Form.useForm();
   const password = useWatch('newPassword', passwordForm);
   const [coverImage, setCoverImage] = useState<string>('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -42,15 +44,16 @@ export function SettingsPage() {
   const [hasProfileChanges, setHasProfileChanges] = useState(false);
   const [hasPasswordChanges, setHasPasswordChanges] = useState(false);
   const [hasRsvpMessagesChanges, setHasRsvpMessagesChanges] = useState(false);
+  const [hasThankYouChanges, setHasThankYouChanges] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isPublic, setIsPublic] = useState(true);
   const [feePreference, setFeePreference] = useState<'couple' | 'guest'>('couple');
   const [hasSettingsChanges, setHasSettingsChanges] = useState(false);
   const [activeGiftListId, setActiveGiftListId] = useState<number | null>(null);
   const [activeSection, setActiveSection] = useState<SectionId>(() => {
-    if (typeof window === 'undefined') return 'profile';
+    if (typeof window === 'undefined') return 'perfil';
     const hash = window.location.hash.replace('#', '') as SectionId;
-    return SECTION_LOOKUP[hash] ? hash : 'profile';
+    return SECTION_LOOKUP[hash] ? hash : 'perfil';
   });
 
   const { data: userData, isLoading: isLoadingUser } = useCurrentUser();
@@ -127,7 +130,9 @@ export function SettingsPage() {
     if (giftListData?.eventDate) profileForm.setFieldValue('weddingDate', dayjs(giftListData.eventDate));
     if (giftListData?.isPublic !== undefined) setIsPublic(giftListData.isPublic);
     if (giftListData?.feePreference) setFeePreference(giftListData.feePreference as 'couple' | 'guest');
-  }, [giftListData, profileForm]);
+    thankYouForm.setFieldValue('thankYouMessage', giftListData?.thankYouMessage || '');
+    setHasThankYouChanges(false);
+  }, [giftListData, profileForm, thankYouForm]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -274,6 +279,19 @@ export function SettingsPage() {
     }
   };
 
+  const handleSaveThankYouMessage = async () => {
+    if (!giftListData) return;
+    try {
+      const values = await thankYouForm.validateFields();
+      await updateGiftList({ id: giftListData.id, data: { thankYouMessage: values.thankYouMessage?.trim() || null } });
+      setHasThankYouChanges(false);
+      message.success('Mensaje de agradecimiento actualizado');
+    } catch (error) {
+      console.error('Error updating thank you message:', error);
+      message.error('Error al actualizar el mensaje');
+    }
+  };
+
   const showGiftListSelector = useMemo(
     () => GIFT_LIST_SECTIONS.includes(activeSection) && !!giftLists && giftLists.length > 1,
     [activeSection, giftLists],
@@ -365,7 +383,7 @@ export function SettingsPage() {
               />
             )}
 
-            <div hidden={activeSection !== 'profile'}>
+            <div hidden={activeSection !== 'perfil'}>
               <ProfileSection
                 form={profileForm}
                 isWeddingAccount={isWeddingAccount}
@@ -377,7 +395,7 @@ export function SettingsPage() {
               />
             </div>
 
-            <div hidden={activeSection !== 'password'}>
+            <div hidden={activeSection !== 'contrasena'}>
               <PasswordSection
                 form={passwordForm}
                 password={password}
@@ -388,11 +406,11 @@ export function SettingsPage() {
               />
             </div>
 
-            <div hidden={activeSection !== 'cover'}>
+            <div hidden={activeSection !== 'portada'}>
               <CoverImageSection coverImage={coverImage} isUploadingImage={isUploadingImage} onImageUpload={handleImageUpload} />
             </div>
 
-            <div hidden={activeSection !== 'details'}>
+            <div hidden={activeSection !== 'informacion'}>
               <GiftListDetailsSection
                 form={profileForm}
                 slug={slug}
@@ -408,7 +426,7 @@ export function SettingsPage() {
               />
             </div>
 
-            <div hidden={activeSection !== 'privacy'}>
+            <div hidden={activeSection !== 'privacidad'}>
               <PrivacySection
                 isPublic={isPublic}
                 userSlug={userData?.slug}
@@ -420,7 +438,7 @@ export function SettingsPage() {
               <SaveBar onSave={handleSaveSettings} disabled={!hasSettingsChanges} loading={false} label="Guardar privacidad" />
             </div>
 
-            <div hidden={activeSection !== 'fees'}>
+            <div hidden={activeSection !== 'comisiones'}>
               <FeePreferenceSection
                 feePreference={feePreference}
                 onFeePreferenceChange={(value) => {
@@ -443,7 +461,17 @@ export function SettingsPage() {
               />
             </div>
 
-            <div hidden={activeSection !== 'danger'}>
+            <div hidden={activeSection !== 'agradecimiento'}>
+              <ThankYouMessageSection
+                form={thankYouForm}
+                isUpdating={false}
+                hasChanges={hasThankYouChanges}
+                onSave={handleSaveThankYouMessage}
+                onValuesChange={() => setHasThankYouChanges(true)}
+              />
+            </div>
+
+            <div hidden={activeSection !== 'eliminar-cuenta'}>
               <DangerZoneSection onDeleteClick={() => setIsDeleteModalOpen(true)} />
             </div>
           </main>

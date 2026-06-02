@@ -6,11 +6,21 @@ import {
   Eye,
   CreditCard,
   MessageSquare,
+  Heart,
   Trash2,
   type LucideIcon,
 } from 'lucide-react';
 
-export type SectionId = 'profile' | 'password' | 'cover' | 'details' | 'privacy' | 'fees' | 'rsvp' | 'danger';
+export type SectionId =
+  | 'perfil'
+  | 'contrasena'
+  | 'portada'
+  | 'informacion'
+  | 'privacidad'
+  | 'comisiones'
+  | 'rsvp'
+  | 'agradecimiento'
+  | 'eliminar-cuenta';
 
 export type SectionMeta = {
   id: SectionId;
@@ -29,7 +39,7 @@ export const GROUPS: SectionGroup[] = [
     label: 'Cuenta',
     items: [
       {
-        id: 'profile',
+        id: 'perfil',
         label: 'Perfil',
         icon: UserIcon,
         group: 'Cuenta',
@@ -37,7 +47,7 @@ export const GROUPS: SectionGroup[] = [
         description: 'Tu información de contacto y los datos de tu pareja.',
       },
       {
-        id: 'password',
+        id: 'contrasena',
         label: 'Contraseña',
         icon: KeyRound,
         group: 'Cuenta',
@@ -50,7 +60,7 @@ export const GROUPS: SectionGroup[] = [
     label: 'Mesa de regalos',
     items: [
       {
-        id: 'cover',
+        id: 'portada',
         label: 'Imagen de portada',
         icon: ImageIcon,
         group: 'Mesa de regalos',
@@ -58,7 +68,7 @@ export const GROUPS: SectionGroup[] = [
         description: 'Esta imagen aparecerá como portada de tu página de regalos.',
       },
       {
-        id: 'details',
+        id: 'informacion',
         label: 'Información general',
         icon: FileText,
         group: 'Mesa de regalos',
@@ -66,7 +76,7 @@ export const GROUPS: SectionGroup[] = [
         description: 'La dirección web, lugar, fecha y el mensaje que verán tus invitados.',
       },
       {
-        id: 'privacy',
+        id: 'privacidad',
         label: 'Privacidad',
         icon: Eye,
         group: 'Mesa de regalos',
@@ -74,7 +84,7 @@ export const GROUPS: SectionGroup[] = [
         description: 'Controla si tu mesa de regalos aparece en la página de búsqueda pública.',
       },
       {
-        id: 'fees',
+        id: 'comisiones',
         label: 'Comisiones de pago',
         icon: CreditCard,
         group: 'Mesa de regalos',
@@ -94,13 +104,21 @@ export const GROUPS: SectionGroup[] = [
         title: 'Mensajes RSVP',
         description: 'Personaliza los mensajes que verán tus invitados al confirmar o cancelar su asistencia.',
       },
+      {
+        id: 'agradecimiento',
+        label: 'Mensaje de agradecimiento',
+        icon: Heart,
+        group: 'Invitados',
+        title: 'Mensaje de agradecimiento',
+        description: 'El mensaje que tus invitados verán en el correo de confirmación al regalarte algo. Si lo dejas vacío, no se incluirá.',
+      },
     ],
   },
   {
     label: 'Zona avanzada',
     items: [
       {
-        id: 'danger',
+        id: 'eliminar-cuenta',
         label: 'Eliminar cuenta',
         icon: Trash2,
         group: 'Zona avanzada',
@@ -120,4 +138,4 @@ export const SECTION_LOOKUP: Record<SectionId, SectionMeta> = GROUPS.reduce(
   {} as Record<SectionId, SectionMeta>,
 );
 
-export const GIFT_LIST_SECTIONS: SectionId[] = ['cover', 'details', 'privacy', 'fees', 'rsvp'];
+export const GIFT_LIST_SECTIONS: SectionId[] = ['portada', 'informacion', 'privacidad', 'comisiones', 'rsvp', 'agradecimiento'];

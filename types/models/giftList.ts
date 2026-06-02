@@ -18,6 +18,7 @@ export interface GiftList {
   isActive: boolean;
   isPublic: boolean;
   feePreference: string;
+  thankYouMessage?: string;
   createdAt: Date;
   updatedAt: Date;
   user: User;
@@ -86,4 +87,5 @@ export interface UpdateGiftListRequest {
   isActive?: boolean;
   isPublic?: boolean;
   feePreference?: 'couple' | 'guest';
+  thankYouMessage?: string | null;
 }

@@ -1,4 +1,5 @@
 export { RsvpMessagesSection } from './RsvpMessagesSection';
+export { ThankYouMessageSection } from './ThankYouMessageSection';
 export { PrivacySection } from './PrivacySection';
 export { FeePreferenceSection } from './FeePreferenceSection';
 export { ProfileSection } from './ProfileSection';

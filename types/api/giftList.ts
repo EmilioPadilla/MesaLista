@@ -25,4 +25,5 @@ export interface UpdateGiftListRequest {
   isActive?: boolean;
   isPublic?: boolean;
   feePreference?: 'couple' | 'guest';
+  thankYouMessage?: string | null;
 }

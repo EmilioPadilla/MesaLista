@@ -281,6 +281,7 @@ const giftListController = {
       isActive,
       isPublic,
       feePreference,
+      thankYouMessage,
     } = req.body as UpdateGiftListRequest;
     // `planType` is intentionally NOT destructured — it must be immutable post-creation.
     // Letting it change would retroactively distort the FIXED/COMMISSION split in analytics
@@ -317,6 +318,7 @@ const giftListController = {
         ...(isActive !== undefined && { isActive }),
         ...(isPublic !== undefined && { isPublic }),
         ...(wantsFeePreferenceChange && { feePreference }),
+        ...(thankYouMessage !== undefined && { thankYouMessage }),
       };
 
       const where: any = { id, userId };

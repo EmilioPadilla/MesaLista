@@ -5,8 +5,8 @@ import { SECTION_LOOKUP } from './nav-config';
 
 describe('SectionHeader', () => {
   it('renders title, description and group for the given section', () => {
-    render(<SectionHeader sectionId="profile" />);
-    const meta = SECTION_LOOKUP.profile;
+    render(<SectionHeader sectionId="perfil" />);
+    const meta = SECTION_LOOKUP.perfil;
 
     expect(screen.getByRole('heading', { level: 2, name: meta.title })).toBeInTheDocument();
     expect(screen.getByText(meta.description)).toBeInTheDocument();
@@ -15,17 +15,17 @@ describe('SectionHeader', () => {
   });
 
   it('changes content when given a different sectionId', () => {
-    const { rerender } = render(<SectionHeader sectionId="profile" />);
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(SECTION_LOOKUP.profile.title);
+    const { rerender } = render(<SectionHeader sectionId="perfil" />);
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(SECTION_LOOKUP.perfil.title);
 
-    rerender(<SectionHeader sectionId="danger" />);
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(SECTION_LOOKUP.danger.title);
-    expect(screen.getByText(SECTION_LOOKUP.danger.description)).toBeInTheDocument();
+    rerender(<SectionHeader sectionId="eliminar-cuenta" />);
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(SECTION_LOOKUP['eliminar-cuenta'].title);
+    expect(screen.getByText(SECTION_LOOKUP['eliminar-cuenta'].description)).toBeInTheDocument();
   });
 
   it('renders the eyebrow with both group and label', () => {
-    const { container } = render(<SectionHeader sectionId="fees" />);
-    const meta = SECTION_LOOKUP.fees;
+    const { container } = render(<SectionHeader sectionId="comisiones" />);
+    const meta = SECTION_LOOKUP.comisiones;
     // The eyebrow is the small uppercase <p> immediately above the <h2>
     const eyebrow = container.querySelector('p.uppercase');
     expect(eyebrow).not.toBeNull();

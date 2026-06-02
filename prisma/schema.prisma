@@ -60,6 +60,7 @@ model GiftList {
   isActive      Boolean   @default(true) @map("is_active") // Whether this list is currently active
   isPublic      Boolean   @default(true) @map("is_public") // Whether this list appears in search results
   feePreference String    @default("couple") @map("fee_preference") // "couple" or "guest" — who pays payment processing fees
+  thankYouMessage String? @map("thank_you_message") // Couple's thank-you note shown to guests in the payment confirmation email
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)

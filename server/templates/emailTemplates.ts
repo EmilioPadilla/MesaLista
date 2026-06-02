@@ -115,10 +115,16 @@ export class EmailTemplates {
                 : ''
             }
 
+            ${
+              data.coupleThankYouMessage
+                ? `
             <h3 style="color: #1f2937; margin-bottom: 16px;">Mensaje por parte de los novios</h3>
             <div style="border: 1px solid #d4704a; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-              <p style="margin: 0; color: #92400e; font-style: italic;">¡Gracias de corazón por tu regalo! 🫶🏼 Nos emociona muchísimo recibirlo y sentir tu cariño tan cerquita. Cada detalle como este hace que este momento sea aún más especial, ¡y prometemos levantar una copa a tu salud cuando lo estrenemos/estemos allá! 🥂💃</p>
+              <p style="margin: 0; color: #92400e; font-style: italic;">${data.coupleThankYouMessage}</p>
             </div>
+            `
+                : ''
+            }
 
             <h3 style="color: #1f2937; margin-bottom: 16px;">Regalos comprados (${itemsCount} ${itemsCount === 1 ? 'artículo' : 'artículos'})</h3>
             
@@ -188,6 +194,13 @@ ${
   data.message
     ? `TU MENSAJE PARA LA PAREJA:
 "${data.message}"
+
+`
+    : ''
+}${
+  data.coupleThankYouMessage
+    ? `MENSAJE POR PARTE DE LOS NOVIOS:
+"${data.coupleThankYouMessage}"
 
 `
     : ''
@@ -1239,8 +1252,8 @@ El equipo de MesaLista
           <!-- Success Message -->
           <tr>
             <td style="padding: 40px 30px; text-align: center;">
-              <div style="width: 80px; height: 80px; background-color: #d4704a; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
-                <span style="color: #ffffff; font-size: 40px;">✓</span>
+              <div style="width: 80px; height: 80px; background-color: #d4704a; border-radius: 50%; margin: 0 auto 20px; text-align: center; line-height: 80px;">
+                <span style="color: #ffffff; font-size: 40px; line-height: 80px; vertical-align: middle;">✓</span>
               </div>
               <h2 style="color: #1d1d1f; margin: 0 0 10px; font-size: 24px; font-weight: 500;">${heroHeadline}</h2>
               <p style="color: #86868b; margin: 0; font-size: 16px; line-height: 1.5;">
@@ -1319,14 +1332,14 @@ El equipo de MesaLista
             <td style="padding: 0 30px 40px;">
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="padding-bottom: 12px;">
+                  <td align="center" style="padding-bottom: 12px; text-align: center;">
                     <a href="${data.dashboardUrl}" style="display: block; background-color: #d4704a; color: #ffffff; text-decoration: none; padding: 16px 24px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 500;">
                       Ir a Mi Panel de Control
                     </a>
                   </td>
                 </tr>
                 <tr>
-                  <td>
+                  <td align="center" style="text-align: center;">
                     <a href="${data.listUrl}" style="display: block; background-color: #f5f5f7; color: #1d1d1f; text-decoration: none; padding: 16px 24px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 500;">
                       Ver Mi Lista Pública
                     </a>
