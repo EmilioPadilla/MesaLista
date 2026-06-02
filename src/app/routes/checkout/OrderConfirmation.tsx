@@ -163,7 +163,7 @@ export function OrderConfirmation() {
 
             <h1 className="text-5xl md:text-6xl font-semibold text-foreground mb-6 tracking-tight">¡Pedido completado!</h1>
             <p className="text-xl md:text-2xl text-muted-foreground font-light mb-8 max-w-2xl mx-auto leading-relaxed">
-              Tu regalo está en camino hacia {weddinglist?.coupleName}. Gracias por ser parte de su historia de amor.
+              Tu regalo está en camino hacia {weddinglist?.coupleName}.
             </p>
 
             <div className="inline-flex items-center space-x-3 bg-[#f5f5f7] rounded-full px-6 py-3">
@@ -188,7 +188,7 @@ export function OrderConfirmation() {
                   <div>
                     <h2 className="text-2xl font-semibold text-foreground tracking-tight">Detalles del pedido</h2>
                     <p className="text-muted-foreground font-light">
-                      {cartData.items.length} {cartData.items.length === 1 ? 'regalo' : 'regalos'} para la pareja
+                      {cartData.items.length} {cartData.items.length === 1 ? 'regalo' : 'regalos'}
                     </p>
                   </div>
                 </div>
@@ -283,7 +283,7 @@ export function OrderConfirmation() {
                   <div className="mb-8">
                     <div className="flex items-center space-x-2 mb-3">
                       <Heart className="h-4 w-4 text-[#d4704a]" />
-                      <span className="text-sm font-medium text-foreground">Mensaje para la pareja</span>
+                      <span className="text-sm font-medium text-foreground">Mensaje</span>
                     </div>
                     <div className="bg-[#f5f5f7] p-6 rounded-2xl text-base font-light text-foreground leading-relaxed">
                       "{cartData?.guestInfo?.message}"
@@ -333,7 +333,7 @@ export function OrderConfirmation() {
                       <Bell className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-muted-foreground">Confirmación para la pareja</h4>
+                      <h4 className="font-medium text-muted-foreground">Confirmación</h4>
                       <p className="text-sm text-muted-foreground font-light">¡Serán notificados de tu regalo!</p>
                       <p className="text-xs text-[#d4704a] font-medium mt-1">En progreso</p>{' '}
                     </div>
@@ -435,8 +435,7 @@ export function OrderConfirmation() {
             </div>
             <h3 className="text-2xl font-semibold text-foreground mb-4 tracking-tight">Gracias por ser parte de este momento especial</h3>
             <p className="text-lg text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
-              Tu regalo llegará directamente a {weddinglist?.coupleName}, y seguramente les traerá mucha alegría en su nuevo hogar. Eres
-              parte de su historia de amor.
+              Tu regalo llegará directamente a {weddinglist?.coupleName}, y seguramente les traerá mucha alegría.
             </p>
           </motion.div>
         </div>

@@ -408,7 +408,7 @@ export function Checkout() {
 
                 <div className="space-y-2">
                   <label htmlFor="message" className="text-sm font-medium text-foreground">
-                    Mensaje para la pareja (opcional)
+                    Mensaje (opcional)
                   </label>
                   <TextArea
                     id="message"
@@ -468,21 +468,14 @@ export function Checkout() {
                       </div>
 
                       {/* Processing Fee */}
-                      <div className="flex justify-between text-base">
-                        <span className="text-muted-foreground">
-                          Comisión de pago ({selectedPaymentMethod === 'stripe' ? 'Stripe' : 'PayPal'}):
-                        </span>
-                        <span className="font-medium text-foreground">
-                          {feePreference === 'guest' ? `$${currentFee.toFixed(2)}` : 'Incluida'}
-                        </span>
-                      </div>
-
-                      {/* Fee Info Message */}
-                      {feePreference === 'couple' && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                          <p className="text-xs text-blue-800">
-                            La pareja absorbe las comisiones de pago. Tu pago completo irá directamente a ellos.
-                          </p>
+                      {feePreference === 'guest' && (
+                        <div className="flex justify-between text-base">
+                          <span className="text-muted-foreground">
+                            Comisión de pago ({selectedPaymentMethod === 'stripe' ? 'Stripe' : 'PayPal'}):
+                          </span>
+                          <span className="font-medium text-foreground">
+                            {feePreference === 'guest' ? `$${currentFee.toFixed(2)}` : 'Incluida'}
+                          </span>
                         </div>
                       )}
 

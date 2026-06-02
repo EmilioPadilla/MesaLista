@@ -108,7 +108,7 @@ export class EmailTemplates {
               data.message
                 ? `
               <div style="border: 1px solid #d4704a; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-                <h3 style="margin: 0 0 8px 0; color: #92400e;">Tu mensaje para la pareja:</h3>
+                <h3 style="margin: 0 0 8px 0; color: #92400e;">Tu mensaje:</h3>
                 <p style="margin: 0; color: #92400e; font-style: italic;">"${data.message}"</p>
               </div>
             `
@@ -198,13 +198,13 @@ ${
 `
     : ''
 }${
-  data.coupleThankYouMessage
-    ? `MENSAJE POR PARTE DE LOS NOVIOS:
+      data.coupleThankYouMessage
+        ? `MENSAJE POR PARTE DE LOS NOVIOS:
 "${data.coupleThankYouMessage}"
 
 `
-    : ''
-}REGALOS COMPRADOS (${itemsCount} ${itemsCount === 1 ? 'artículo' : 'artículos'}):
+        : ''
+    }REGALOS COMPRADOS (${itemsCount} ${itemsCount === 1 ? 'artículo' : 'artículos'}):
 ${itemsList}
 
 TOTAL PAGADO: ${formatCurrency(totalAmount)}
