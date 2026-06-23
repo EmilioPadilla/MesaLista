@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { message } from 'antd';
+import { notify } from '../platform/notify';
 import emailService, {
   ResendEmailRequest,
   ResendEmailResponse,
@@ -106,10 +106,10 @@ export const useSendMarketingEmailToUser = () => {
   return useMutation<ResendEmailResponse, Error, { userId: number; emailType: MarketingEmailType }>({
     mutationFn: ({ userId, emailType }) => emailService.sendMarketingEmailToUser(userId, emailType),
     onSuccess: () => {
-      message.success('Email de marketing enviado exitosamente');
+      notify.success('Email de marketing enviado exitosamente');
     },
     onError: (error) => {
-      message.error(error.message || 'Error al enviar email de marketing');
+      notify.error(error.message || 'Error al enviar email de marketing');
     },
   });
 };

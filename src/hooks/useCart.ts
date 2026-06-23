@@ -2,8 +2,7 @@ import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@ta
 import { cartService } from '../services/cart.service';
 import { queryKeys } from './queryKeys';
 import type { CartDetailsRequest } from 'types/api/cart';
-import { message } from 'antd';
-import { useNotification } from '../contexts/NotificationContext';
+import { notify } from '../platform/notify';
 
 /**
  * Hook to fetch the current user's cart
@@ -25,23 +24,22 @@ export const useGetCart = (sessionId?: string, options?: Partial<UseQueryOptions
  */
 export const useAddGiftToCart = (sessionId?: string) => {
   const queryClient = useQueryClient();
-  const notification = useNotification();
 
   const mutation = useMutation({
     mutationFn: cartService.addToCart,
     onSuccess: () => {
-      message.success('¡Artículo agregado exitosamente!');
+      notify.success('¡Artículo agregado exitosamente!');
       queryClient.invalidateQueries({ queryKey: [queryKeys.cart, sessionId] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.cartItems] });
     },
     onError: (error: any) => {
       if (error.response?.data?.error?.includes('different gift lists')) {
-        notification.error(
+        notify.error(
           'Error al agregar al carrito',
           'No puedes agregar artículos de diferentes listas de regalos al mismo carrito. Por favor completa tu compra actual primero o elimina los artículos de otros carritos.',
         );
       } else {
-        message.error('Error al agregar el artículo al carrito');
+        notify.error('Error al agregar el artículo al carrito');
       }
     },
   });
@@ -57,7 +55,7 @@ export const useRemoveGiftFromCart = () => {
   return useMutation({
     mutationFn: cartService.removeFromCart,
     onSuccess: () => {
-      message.success('¡Artículo eliminado exitosamente!');
+      notify.success('¡Artículo eliminado exitosamente!');
       queryClient.invalidateQueries({ queryKey: [queryKeys.cart] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.cartItems] });
     },
