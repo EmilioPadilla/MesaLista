@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
-import { message } from 'antd';
+import { notify } from '../platform/notify';
 import { userService } from '../services/user.service';
 import { queryKeys } from './queryKeys';
 import { User } from 'types/models/user';
@@ -149,11 +149,11 @@ export const useDeleteUser = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.users] });
       queryClient.invalidateQueries({ queryKey: ['usersListsAnalytics'] });
-      message.success('Usuario eliminado exitosamente');
+      notify.success('Usuario eliminado exitosamente');
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.error || 'Error al eliminar el usuario';
-      message.error(errorMessage);
+      notify.error(errorMessage);
     },
   });
 };
@@ -195,11 +195,11 @@ export const useUpdateCurrentUserProfile = () => {
     }) => userService.updateCurrentUserProfile(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
-      message.success('Perfil actualizado exitosamente');
+      notify.success('Perfil actualizado exitosamente');
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.error || 'Error al actualizar el perfil';
-      message.error(errorMessage);
+      notify.error(errorMessage);
     },
   });
 };
@@ -211,11 +211,11 @@ export const useUpdateCurrentUserPassword = () => {
   return useMutation({
     mutationFn: (data: { currentPassword: string; newPassword: string }) => userService.updateCurrentUserPassword(data),
     onSuccess: () => {
-      message.success('Contraseña actualizada exitosamente');
+      notify.success('Contraseña actualizada exitosamente');
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.error || 'Error al actualizar la contraseña';
-      message.error(errorMessage);
+      notify.error(errorMessage);
     },
   });
 };
@@ -230,11 +230,11 @@ export const useDeleteCurrentUser = () => {
     onSuccess: () => {
       // Clear all cached data
       queryClient.clear();
-      message.success('Cuenta eliminada exitosamente');
+      notify.success('Cuenta eliminada exitosamente');
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.error || 'Error al eliminar la cuenta';
-      message.error(errorMessage);
+      notify.error(errorMessage);
     },
   });
 };
@@ -250,11 +250,11 @@ export const useUpdateUserPlanType = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.users] });
       queryClient.invalidateQueries({ queryKey: ['usersListsAnalytics'] });
-      message.success('Plan actualizado exitosamente');
+      notify.success('Plan actualizado exitosamente');
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.error || 'Error al actualizar el plan';
-      message.error(errorMessage);
+      notify.error(errorMessage);
     },
   });
 };

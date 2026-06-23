@@ -1,5 +1,5 @@
 import { useQuery, useMutation, type UseQueryOptions } from '@tanstack/react-query';
-import { message } from 'antd';
+import { notify } from '../platform/notify';
 import {
   analyticsService,
   type LogEventParams,
@@ -68,11 +68,11 @@ export const useAggregateDaily = () => {
   return useMutation({
     mutationFn: (date?: string) => analyticsService.aggregateDaily(date),
     onSuccess: (data) => {
-      message.success(data.message);
+      notify.success(data.message);
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.error || 'Error al agregar métricas';
-      message.error(errorMessage);
+      notify.error(errorMessage);
     },
   });
 };
@@ -92,11 +92,11 @@ export const useCleanupAnalytics = () => {
       sessionsRetentionDays?: number;
     }) => analyticsService.cleanup(eventsRetentionDays, aggregatesRetentionDays, sessionsRetentionDays),
     onSuccess: (data) => {
-      message.success(data.message);
+      notify.success(data.message);
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.error || 'Error al limpiar datos';
-      message.error(errorMessage);
+      notify.error(errorMessage);
     },
   });
 };

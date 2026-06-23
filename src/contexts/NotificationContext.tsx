@@ -1,6 +1,7 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { notification } from 'antd';
 import type { NotificationInstance } from 'antd/es/notification/interface';
+import { setNotify } from 'src/platform/notify';
 
 interface NotificationContextType {
   success: (message: string, description?: string) => void;
@@ -46,6 +47,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     },
     api,
   };
+
+  // Register the spine's platform-neutral notify adapter so portable hooks
+  // (useCart, useUser, …) route their toasts through antd on web.
+  useEffect(() => {
+    setNotify({
+      success: value.success,
+      error: value.error,
+      warning: value.warning,
+      info: value.info,
+    });
+  }, [api]);
 
   return (
     <NotificationContext.Provider value={value}>
