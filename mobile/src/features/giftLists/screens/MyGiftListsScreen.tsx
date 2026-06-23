@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 import { useCurrentUser } from 'hooks/useUser';
 import { useGiftListsByUser } from 'hooks/useGiftList';
@@ -10,6 +11,7 @@ import { GiftListCard } from '../components/GiftListCard';
 import { formatCurrency, getRaisedAmount } from '../utils';
 
 export function MyGiftListsScreen() {
+  const router = useRouter();
   const { logout } = useAuth();
   const { data: user } = useCurrentUser();
   const { data: lists, isLoading, isRefetching, refetch } = useGiftListsByUser(user?.id);
@@ -18,8 +20,8 @@ export function MyGiftListsScreen() {
   const totalGifts = lists?.reduce((sum, l) => sum + (l.gifts?.length ?? 0), 0) ?? 0;
   const totalRaised = lists?.reduce((sum, l) => sum + getRaisedAmount(l), 0) ?? 0;
 
-  const onOpenList = (_list: GiftListWithGifts) => {
-    // TODO(Phase 4): navigate to manageRegistry screen for this list.
+  const onOpenList = (list: GiftListWithGifts) => {
+    router.push(`/list/${list.id}`);
   };
 
   return (
