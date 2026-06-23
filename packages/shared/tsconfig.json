@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "types/*": ["../../types/*"],
+      "services/*": ["./src/services/*"],
+      "src/services/*": ["./src/services/*"],
+      "hooks/*": ["./src/hooks/*"],
+      "src/hooks/*": ["./src/hooks/*"],
+      "utils/*": ["./src/utils/*"],
+      "src/utils/*": ["./src/utils/*"],
+      "config/*": ["./src/config/*"],
+      "src/config/*": ["./src/config/*"],
+      "platform/*": ["./src/platform/*"],
+      "src/platform/*": ["./src/platform/*"]
+    }
+  },
+  "include": ["src", "../../types"],
+  "exclude": ["node_modules"]
+}

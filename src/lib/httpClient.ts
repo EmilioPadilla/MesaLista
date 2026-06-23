@@ -6,7 +6,7 @@
  * (main.tsx) before any request is made.
  */
 import axios, { AxiosRequestConfig } from 'axios';
-import { setApiClient, type ApiClient } from './client';
+import { setApiClient, type ApiClient } from 'services/client';
 
 export interface AxiosCustomRequestConfig extends AxiosRequestConfig {
   skipAuth?: boolean;

@@ -35,22 +35,31 @@
     "baseUrl": ".",
     "paths": {
       "src/*": ["src/*"],
-      "constants/*": ["src/config/constants/*"],
-      "hooks/*": ["src/hooks/*"],
-      "services/*": ["src/services/*"],
       "store/*": ["src/store/*"],
       "styles/*": ["src/styles/*"],
-      "utils/*": ["src/utils/*"],
-      "config/*": ["src/config/*"],
       "features/*": ["src/features/*"],
       "app/*": ["src/app/*"],
       "routes/*": ["src/app/routes/*"],
       "layouts/*": ["src/app/layouts/*"],
       "modules/*": ["src/app/modules/*"],
       "components/*": ["src/components/*"],
-      "core/*": ["src/components/core/*"]
+      "core/*": ["src/components/core/*"],
+
+      // Portable spine — moved to packages/shared. The longer `src/<spine>/*`
+      // prefixes take precedence over the `src/*` catch-all above.
+      "hooks/*": ["packages/shared/src/hooks/*"],
+      "src/hooks/*": ["packages/shared/src/hooks/*"],
+      "services/*": ["packages/shared/src/services/*"],
+      "src/services/*": ["packages/shared/src/services/*"],
+      "utils/*": ["packages/shared/src/utils/*"],
+      "src/utils/*": ["packages/shared/src/utils/*"],
+      "config/*": ["packages/shared/src/config/*"],
+      "src/config/*": ["packages/shared/src/config/*"],
+      "constants/*": ["packages/shared/src/config/constants/*"],
+      "platform/*": ["packages/shared/src/platform/*"],
+      "src/platform/*": ["packages/shared/src/platform/*"]
     }
   },
-  "include": ["src", "./vite*.ts", "src/hooks/.ts"],
+  "include": ["src", "packages/shared/src", "./vite*.ts"],
   "exclude": ["node_modules"]
 }

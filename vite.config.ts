@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export const resolvePath = (folder: string) => resolve(__dirname, `./src/${folder}`);
+export const sharedPath = (folder: string) => resolve(__dirname, `./packages/shared/src/${folder}`);
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -13,20 +14,29 @@ export default defineConfig({
     __PROJECT_VERSION__: JSON.stringify(process.env.PROJECT_VERSION || '0.0.0'),
   },
 
-  // Module resolution and path aliases
+  // Module resolution and path aliases.
+  // Spine `src/<x>` keys MUST precede the bare `src` key — Vite matches in
+  // insertion order and the spine now lives in packages/shared.
   resolve: {
     alias: {
-      src: resolvePath(''),
+      'src/services': sharedPath('services'),
+      'src/hooks': sharedPath('hooks'),
+      'src/utils': sharedPath('utils'),
+      'src/config': sharedPath('config'),
+      'src/platform': sharedPath('platform'),
+      services: sharedPath('services'),
+      hooks: sharedPath('hooks'),
+      utils: sharedPath('utils'),
+      config: sharedPath('config'),
+      platform: sharedPath('platform'),
+      constants: sharedPath('config/constants'),
+      types: resolve(__dirname, './types'),
       components: resolvePath('components'),
       core: resolvePath('components/core'),
-      constants: resolvePath('constants'),
-      hooks: resolvePath('hooks'),
-      modules: resolvePath('modules'),
+      modules: resolvePath('app/modules'),
       routes: resolvePath('app/routes'),
-      services: resolvePath('services'),
       styles: resolvePath('styles'),
-      types: resolvePath('types'),
-      utils: resolvePath('utils'),
+      src: resolvePath(''),
     },
   },
 
