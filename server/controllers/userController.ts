@@ -254,7 +254,7 @@ export const userController = {
         return { user, giftList };
       });
 
-      await createSessionAndSetCookie(res, result.user.id, userAgent, ipAddress);
+      const session = await createSessionAndSetCookie(res, result.user.id, userAgent, ipAddress);
 
       try {
         await emailService.sendGiftListCreationEmail({
@@ -274,6 +274,7 @@ export const userController = {
         ...result.user,
         giftListId: result.giftList.id,
         planType: result.giftList.planType,
+        token: session.token,
       });
     } catch (error: unknown) {
       console.error('Error creating commission signup:', error);
@@ -459,16 +460,18 @@ export const userController = {
         data: { lastLoginAt: new Date() },
       });
 
-      // Create session and set HttpOnly cookie
-      await createSessionAndSetCookie(res, user.id, userAgent, ipAddress);
+      // Create session and set HttpOnly cookie (web). The token is also
+      // returned in the body so non-cookie clients (mobile) can send it as
+      // an `Authorization: Bearer <token>` header.
+      const session = await createSessionAndSetCookie(res, user.id, userAgent, ipAddress);
 
-      // Return user data without password or token (token is now in HttpOnly cookie)
+      // Return user data without password.
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: passwordHash, ...userWithoutPassword } = user;
 
       const response: UserLoginResponse = {
         ...(userWithoutPassword as UserBase),
-        token: '', // No longer needed since we use HttpOnly cookies
+        token: session.token,
         message: 'Login successful',
       };
 
