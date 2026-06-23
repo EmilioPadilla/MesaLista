@@ -6,13 +6,11 @@ import { useCurrentUser } from 'hooks/useUser';
 import { useGiftListsByUser } from 'hooks/useGiftList';
 import type { GiftListWithGifts } from 'types/models/giftList';
 
-import { useAuth } from '@/auth/AuthContext';
 import { GiftListCard } from '../components/GiftListCard';
 import { formatCurrency, getRaisedAmount } from '../utils';
 
 export function MyGiftListsScreen() {
   const router = useRouter();
-  const { logout } = useAuth();
   const { data: user } = useCurrentUser();
   const { data: lists, isLoading, isRefetching, refetch } = useGiftListsByUser(user?.id);
 
@@ -31,8 +29,8 @@ export function MyGiftListsScreen() {
           <Text className="text-sm text-mutedForeground">Hola, {user?.firstName || ''}</Text>
           <Text className="text-2xl font-bold text-ink">Mis listas</Text>
         </View>
-        <Pressable onPress={logout} hitSlop={8}>
-          <Text className="text-sm font-medium text-danger">Salir</Text>
+        <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
+          <Text className="text-sm font-medium text-oak">Ajustes</Text>
         </Pressable>
       </View>
 
