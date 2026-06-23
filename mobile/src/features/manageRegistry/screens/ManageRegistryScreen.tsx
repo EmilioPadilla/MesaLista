@@ -12,6 +12,14 @@ import { formatCurrency } from '@/lib/format';
 import { GiftRow } from '../components/GiftRow';
 import { GiftFormModal, type GiftFormValues } from '../components/GiftFormModal';
 
+function SectionLink({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} className="rounded-full border border-gray-300 bg-white px-4 py-1.5 active:bg-gray-100">
+      <Text className="text-sm font-medium text-ink">{label} ›</Text>
+    </Pressable>
+  );
+}
+
 export function ManageRegistryScreen({ listId }: { listId: number }) {
   const router = useRouter();
   const toast = useToast();
@@ -93,9 +101,14 @@ export function ManageRegistryScreen({ listId }: { listId: number }) {
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#d4704a" />}
         >
           <Text className="text-2xl font-bold text-ink">{list?.title || list?.coupleName}</Text>
-          <Text className="mb-4 mt-1 text-sm text-mutedForeground">
+          <Text className="mt-1 text-sm text-mutedForeground">
             {gifts.length} regalos · {purchased} comprados · {formatCurrency(raised)} recaudado
           </Text>
+
+          <View className="mb-4 mt-3 flex-row gap-2">
+            <SectionLink label="Confirmaciones" onPress={() => router.push(`/list/${listId}/rsvp`)} />
+            <SectionLink label="Invitación" onPress={() => router.push(`/list/${listId}/invitation`)} />
+          </View>
 
           {gifts.length > 0 ? (
             gifts.map((gift) => <GiftRow key={gift.id} gift={gift} onEdit={openEdit} onDelete={onDelete} />)
