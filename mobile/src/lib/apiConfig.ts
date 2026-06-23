@@ -24,3 +24,6 @@ function devBaseUrl(): string {
 }
 
 export const API_URL = process.env.EXPO_PUBLIC_API_URL?.trim() || devBaseUrl();
+
+/** Public web base URL (no trailing slash) — used to build shareable links. */
+export const WEB_URL = (process.env.EXPO_PUBLIC_WEB_URL?.trim() || 'https://mesalista.com.mx').replace(/\/$/, '');
