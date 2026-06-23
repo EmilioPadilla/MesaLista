@@ -33,11 +33,30 @@ export const COOKIE_CONFIG = {
   },
 };
 
-// Middleware to authenticate session token from cookies
+/**
+ * Resolve the session token from either the HttpOnly cookie (web) or the
+ * `Authorization: Bearer <token>` header (mobile / API clients that can't use
+ * cookies). The cookie wins when both are present.
+ */
+export const getSessionToken = (req: Request): string | undefined => {
+  const cookieToken = req.cookies?.[COOKIE_CONFIG.name];
+  if (cookieToken) {
+    return cookieToken;
+  }
+
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.slice('Bearer '.length).trim() || undefined;
+  }
+
+  return undefined;
+};
+
+// Middleware to authenticate session token from cookie or Bearer header
 export const authenticateSession = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Get token from cookie
-    const token = req.cookies[COOKIE_CONFIG.name];
+    // Get token from cookie (web) or Authorization header (mobile/API)
+    const token = getSessionToken(req);
 
     if (!token) {
       return res.status(401).json({ error: 'Access denied. No session token provided.' });
@@ -72,7 +91,7 @@ export const authenticateSession = async (req: Request, res: Response, next: Nex
 // Optional middleware that doesn't require authentication but adds user info if session exists
 export const optionalAuthenticateSession = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.cookies[COOKIE_CONFIG.name];
+    const token = getSessionToken(req);
 
     if (token) {
       const session = await SessionService.validateSession(token);
@@ -140,7 +159,7 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
 // Utility function to logout (clear session and cookie)
 export const logoutSession = async (req: Request, res: Response): Promise<void> => {
   try {
-    const token = req.cookies[COOKIE_CONFIG.name];
+    const token = getSessionToken(req);
 
     if (token) {
       // Invalidate session in database
