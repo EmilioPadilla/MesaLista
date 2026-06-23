@@ -1,4 +1,4 @@
-import { usePageViewTracking } from '../../hooks/useAnalyticsTracking';
+import { usePageViewTracking } from 'hooks/useAnalyticsTracking';
 
 /**
  * Component that tracks page views automatically

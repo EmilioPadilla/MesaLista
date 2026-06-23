@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Register the web HTTP implementation (axios) as the spine's apiClient.
 // Side-effect import — must run before any service call.
-import './services/client.axios';
+import './lib/httpClient';
 
 // Import Ant Design styles
 import '@ant-design/v5-patch-for-react-19';
