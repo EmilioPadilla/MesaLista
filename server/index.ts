@@ -66,7 +66,14 @@ app.use(
     origin:
       process.env.NODE_ENV === 'production'
         ? ['https://www.mesalista.com.mx', 'https://mesalista.com.mx'] // Allow both for transition period
-        : ['http://localhost:5173', 'http://127.0.0.1:5173'], // Development origins
+        : [
+            'http://localhost:5173',
+            'http://127.0.0.1:5173',
+            // Expo web (react-native-web) dev origins
+            'http://localhost:8081',
+            'http://127.0.0.1:8081',
+            'http://localhost:19006',
+          ], // Development origins
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,
