@@ -12,6 +12,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
         <Stack.Screen name="(app)" />
+        <Stack.Screen name="(admin)" />
         <Stack.Screen name="explore" />
         <Stack.Screen name="registry" />
         <Stack.Screen name="payment-return" />
