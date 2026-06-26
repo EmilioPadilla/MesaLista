@@ -29,9 +29,16 @@ export function MyGiftListsScreen() {
           <Text className="text-sm text-mutedForeground">Hola, {user?.firstName || ''}</Text>
           <Text className="text-2xl font-bold text-ink">Mis listas</Text>
         </View>
-        <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
-          <Text className="text-sm font-medium text-oak">Ajustes</Text>
-        </Pressable>
+        <View className="flex-row items-center gap-4">
+          {user?.role === 'ADMIN' && (
+            <Pressable onPress={() => router.push('/(admin)')} hitSlop={8}>
+              <Text className="text-sm font-medium text-oak">Admin</Text>
+            </Pressable>
+          )}
+          <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
+            <Text className="text-sm font-medium text-oak">Ajustes</Text>
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
