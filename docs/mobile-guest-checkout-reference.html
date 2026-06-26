@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MesaLista · Guest Experience & Checkout Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f6efe4;
+    --paper-2: #efe5d6;
+    --ink: #211b14;
+    --ink-soft: #5d5346;
+    --oak: #d4704a;
+    --oak-dark: #b6562f;
+    --sage: #7d8466;
+    --line: #d8cab2;
+    --card: #fffaf2;
+    --success: #4f8a52;
+    --danger: #c0492f;
+    --shadow: 0 1px 0 #fff8 inset, 0 18px 40px -28px rgba(50,30,10,.55);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Hanken Grotesk', sans-serif;
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(120% 90% at 100% 0%, rgba(212,112,74,.10), transparent 55%),
+      radial-gradient(90% 80% at 0% 100%, rgba(125,132,102,.12), transparent 55%);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* paper grain */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+    opacity: .5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- header ---------- */
+  header { padding: 92px 0 56px; border-bottom: 1.5px solid var(--line); }
+  .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px; letter-spacing: .34em; text-transform: uppercase;
+    color: var(--oak-dark); font-weight: 500;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .kicker::before { content: ""; width: 38px; height: 1.5px; background: var(--oak); display: inline-block; }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 900; font-size: clamp(40px, 7vw, 76px);
+    line-height: .98; letter-spacing: -.02em;
+    margin: 22px 0 0;
+  }
+  h1 em { font-style: italic; font-weight: 500; color: var(--oak); }
+  .lede {
+    font-size: clamp(16px, 2.2vw, 19px); color: var(--ink-soft);
+    max-width: 62ch; margin-top: 22px;
+  }
+  .meta {
+    margin-top: 30px; display: flex; flex-wrap: wrap; gap: 10px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  }
+  .tag {
+    border: 1.5px solid var(--line); border-radius: 999px;
+    padding: 6px 14px; color: var(--ink-soft); background: var(--card);
+  }
+  .tag b { color: var(--ink); font-weight: 700; }
+
+  /* ---------- section scaffolding ---------- */
+  section { padding: 70px 0; border-bottom: 1.5px solid var(--line); }
+  .sec-head { display: flex; align-items: baseline; gap: 18px; margin-bottom: 38px; }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;
+    color: var(--oak); border: 1.5px solid var(--oak); border-radius: 8px;
+    padding: 4px 9px; flex: none;
+  }
+  h2 {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: clamp(26px, 4vw, 38px); line-height: 1.05; letter-spacing: -.015em;
+  }
+  .sec-sub { color: var(--ink-soft); margin-top: 10px; max-width: 64ch; }
+
+  /* ---------- what shipped ---------- */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  @media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--card); border: 1.5px solid var(--line); border-radius: 16px;
+    padding: 26px 24px; box-shadow: var(--shadow);
+  }
+  .card .phase {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--sage); font-weight: 700;
+  }
+  .card h3 {
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 23px;
+    margin: 6px 0 16px; letter-spacing: -.01em;
+  }
+  .flist { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .flist li { display: flex; gap: 11px; align-items: flex-start; font-size: 14.5px; }
+  .flist li::before {
+    content: "›"; color: var(--oak); font-weight: 700; font-size: 17px; line-height: 1.3;
+  }
+  .flist code {
+    font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+    background: var(--paper-2); padding: 1px 6px; border-radius: 5px; color: var(--ink);
+  }
+
+  /* ---------- payment flow ---------- */
+  .flow { position: relative; margin-top: 12px; }
+  .flow::before {
+    content: ""; position: absolute; left: 25px; top: 18px; bottom: 18px;
+    width: 2.5px; background: repeating-linear-gradient(var(--oak) 0 7px, transparent 7px 14px);
+  }
+  .step { position: relative; padding: 0 0 30px 72px; }
+  .step:last-child { padding-bottom: 0; }
+  .step .node {
+    position: absolute; left: 0; top: 0;
+    width: 52px; height: 52px; border-radius: 14px;
+    background: var(--card); border: 2px solid var(--oak);
+    display: grid; place-items: center; font-size: 22px;
+    box-shadow: 0 10px 22px -14px rgba(182,86,47,.7); z-index: 1;
+  }
+  .step h4 {
+    font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .step h4 .who {
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .12em;
+    text-transform: uppercase; padding: 3px 8px; border-radius: 6px; font-weight: 700;
+  }
+  .who.app { background: rgba(125,132,102,.18); color: var(--sage); }
+  .who.browser { background: rgba(212,112,74,.16); color: var(--oak-dark); }
+  .who.server { background: rgba(33,27,20,.1); color: var(--ink); }
+  .step p { color: var(--ink-soft); font-size: 14.5px; margin-top: 6px; max-width: 60ch; }
+  .step p code, .inline-code {
+    font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+    background: var(--paper-2); padding: 1px 6px; border-radius: 5px; color: var(--ink-soft);
+  }
+
+  .spotlight {
+    margin-top: 30px; background: linear-gradient(135deg, #2a211a, #3a2c1f);
+    color: #f3e8d8; border-radius: 16px; padding: 26px 26px; position: relative; overflow: hidden;
+  }
+  .spotlight::after {
+    content: "★"; position: absolute; right: -8px; top: -20px; font-size: 120px;
+    color: rgba(212,112,74,.18); font-family: 'Fraunces', serif;
+  }
+  .spotlight .lbl {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--oak); font-weight: 700;
+  }
+  .spotlight h4 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin: 8px 0 8px; }
+  .spotlight p { color: #d9cbbb; font-size: 14.5px; max-width: 64ch; }
+  .spotlight code { font-family: 'JetBrains Mono', monospace; color: #f0c9b3; font-size: 13px; }
+
+  /* ---------- reachability table ---------- */
+  .table-wrap { border: 1.5px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; background: var(--card); font-size: 14px; }
+  thead th {
+    text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft);
+    padding: 15px 18px; background: var(--paper-2); font-weight: 700;
+  }
+  tbody td { padding: 15px 18px; border-top: 1.5px solid var(--line); vertical-align: middle; }
+  tbody tr td:first-child { font-weight: 600; }
+  tbody td code {
+    font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+    background: var(--paper-2); padding: 2px 7px; border-radius: 5px;
+  }
+  .verdict { font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; }
+  .ok { color: var(--success); }
+  .no { color: var(--danger); }
+  .verdict .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .ok .dot { background: var(--success); }
+  .no .dot { background: var(--danger); }
+
+  /* ---------- config ---------- */
+  .codeblock {
+    background: #241d16; border-radius: 14px; padding: 22px 22px; position: relative;
+    font-family: 'JetBrains Mono', monospace; box-shadow: var(--shadow); overflow-x: auto;
+  }
+  .codeblock .bar { display: flex; gap: 7px; margin-bottom: 16px; }
+  .codeblock .bar span { width: 11px; height: 11px; border-radius: 50%; opacity: .85; }
+  .codeblock .bar span:nth-child(1){ background:#e06a4a;} .codeblock .bar span:nth-child(2){ background:#d6a957;} .codeblock .bar span:nth-child(3){ background:#7d8466;}
+  .codeblock pre { font-size: 14px; line-height: 1.7; color: #efe2d2; }
+  .codeblock .k { color: #d6a957; } .codeblock .v { color: #8fc28f; } .codeblock .c { color: #897b68; }
+
+  .rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 26px; }
+  @media (max-width: 720px){ .rules { grid-template-columns: 1fr; } }
+  .rule { background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+  .rule .ico { font-size: 24px; }
+  .rule h5 { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; margin: 10px 0 6px; }
+  .rule p { font-size: 13.5px; color: var(--ink-soft); }
+  .rule .good { color: var(--success); font-weight: 700; } .rule .bad { color: var(--danger); font-weight: 700; }
+
+  .note {
+    margin-top: 26px; display: flex; gap: 16px; align-items: flex-start;
+    background: rgba(125,132,102,.12); border: 1.5px solid rgba(125,132,102,.4);
+    border-radius: 14px; padding: 20px 22px;
+  }
+  .note .ico { font-size: 22px; flex: none; }
+  .note p { font-size: 14.5px; color: var(--ink); }
+  .note b { color: var(--ink); }
+
+  footer { padding: 50px 0 80px; color: var(--ink-soft); font-size: 13px; }
+  footer .heart { color: var(--oak); }
+  footer code { font-family:'JetBrains Mono', monospace; }
+
+  /* reveal animation */
+  .reveal { opacity: 0; transform: translateY(18px); animation: rise .8s cubic-bezier(.2,.7,.2,1) forwards; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  header .reveal:nth-child(1){animation-delay:.05s} header .reveal:nth-child(2){animation-delay:.13s}
+  header .reveal:nth-child(3){animation-delay:.22s} header .reveal:nth-child(4){animation-delay:.31s}
+  @media (prefers-reduced-motion: reduce){ .reveal{ animation: none; opacity:1; transform:none; } html{scroll-behavior:auto;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker reveal">MesaLista · App móvil · Fase 5–6</div>
+    <h1 class="reveal">Guest Experience<br />&amp; <em>Checkout</em> Reference</h1>
+    <p class="lede reveal">Qué se construyó para que un invitado descubra una mesa, compre regalos y pague — y cómo el pago regresa a la app. Más la única variable de entorno que tienes que configurar para producción.</p>
+    <div class="meta reveal">
+      <span class="tag"><b>Fase 5</b> · Guest experience</span>
+      <span class="tag"><b>Fase 6</b> · Discovery</span>
+      <span class="tag">Stripe + PayPal</span>
+      <span class="tag">Expo Go · SDK 54</span>
+    </div>
+  </header>
+
+  <!-- 1 · WHAT SHIPPED -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <div>
+        <h2>Qué se construyó</h2>
+        <p class="sec-sub">Pantallas nativas que reutilizan el “spine” compartido (hooks y servicios de <code class="inline-code">packages/shared</code>). Las rutas públicas viven fuera del grupo autenticado <code class="inline-code">(app)</code>.</p>
+      </div>
+    </div>
+
+    <div class="cols">
+      <div class="card">
+        <div class="phase">Fase 5 — Guest experience</div>
+        <h3>Descubrir → comprar → pagar</h3>
+        <ul class="flist">
+          <li>Sesión de invitado anónima persistida (<code>guestId</code>)</li>
+          <li><b>Mesa pública</b> — portada, estado “cerrada”, accesos a regalos/RSVP</li>
+          <li><b>Explorar regalos</b> — búsqueda, orden, filtros, agregar al carrito</li>
+          <li><b>Carrito</b> — cantidades, subtotal</li>
+          <li><b>Checkout</b> — datos, código RSVP, comisiones, Stripe + PayPal</li>
+          <li><b>Confirmación</b> — verifica <code>PAID</code> / captura PayPal</li>
+          <li><b>RSVP de invitado</b> — código secreto, boletos, campos, confirmar</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="phase">Fase 6 — Discovery</div>
+        <h3>Encontrar una mesa</h3>
+        <ul class="flist">
+          <li><b>Explorar</b> — lista y busca mesas por pareja o código</li>
+          <li>Entrada desde <code>login</code> y vía <i>deep link</i></li>
+          <li>Tarjeta de mesa con progreso de regalos</li>
+        </ul>
+        <div class="phase" style="margin-top:22px">Backend — el truco del pago</div>
+        <h3 style="font-size:19px">Puente de retorno</h3>
+        <ul class="flist">
+          <li>Nuevo endpoint <code>/payments/mobile-return</code></li>
+          <li>Redirige el retorno <code>https</code> de Stripe/PayPal al <i>deep link</i> <code>mobile://</code></li>
+          <li>Restringido por esquema (anti open-redirect)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · PAYMENT FLOW -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <div>
+        <h2>Cómo el pago vuelve a la app</h2>
+        <p class="sec-sub">Stripe y PayPal solo aceptan URLs <code>https</code>, así que no pueden devolver directo a <code>mobile://</code>. Aquí está el “risk spike” y su solución. Fíjate en <b>quién</b> hace cada llamada.</p>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="step">
+        <div class="node">🧾</div>
+        <h4>Crear la sesión de pago <span class="who app">App / JS</span></h4>
+        <p>La app llama al backend (vía <code>API_URL</code>) y recibe una URL de checkout alojada: <code>https://checkout.stripe.com/…</code> o el <code>approvalUrl</code> de PayPal.</p>
+      </div>
+      <div class="step">
+        <div class="node">🌐</div>
+        <h4>Abrir el navegador in-app <span class="who app">App / JS</span></h4>
+        <p>Se abre esa URL con <code>WebBrowser.openAuthSessionAsync</code>. A partir de aquí estamos dentro de una página web real de Stripe/PayPal — <b>ya no</b> es el cliente de la app.</p>
+      </div>
+      <div class="step">
+        <div class="node">💳</div>
+        <h4>El invitado paga y es redirigido <span class="who browser">Navegador</span></h4>
+        <p>Al terminar, Stripe/PayPal redirigen el navegador al <code>successUrl</code> que les dimos — y ese apunta a <b>tu backend</b>: <code>…/api/payments/mobile-return?…</code></p>
+      </div>
+      <div class="step">
+        <div class="node">↩️</div>
+        <h4>El backend rebota al deep link <span class="who server">Backend</span></h4>
+        <p>El endpoint hace <code>302</code> hacia <code>mobile://payment-return</code>, reenviando los parámetros del proveedor (PayPal: <code>token</code>, <code>PayerID</code>). Eso cierra el navegador y devuelve el control a la app.</p>
+      </div>
+      <div class="step">
+        <div class="node">✅</div>
+        <h4>Confirmar el pago <span class="who app">App / JS</span></h4>
+        <p>La pantalla de confirmación consulta el carrito hasta que el backend lo marca <code>PAID</code> (webhook de Stripe / captura de PayPal) y regenera el carrito del invitado.</p>
+      </div>
+    </div>
+
+    <div class="spotlight">
+      <div class="lbl">★ El risk spike, resuelto</div>
+      <h4>Un puente <code>https → mobile://</code> en el servidor</h4>
+      <p>El paso 3–4 es la clave: el <b>navegador</b> (no tu JS) golpea el backend. Por eso el <code>successUrl</code> debe ser una dirección que el navegador del dispositivo pueda alcanzar. Si ahí aparece <code>localhost</code>, en un teléfono físico apunta al propio teléfono → el rebote nunca ocurre y el usuario se queda atorado en la página de “gracias”.</p>
+    </div>
+  </section>
+
+  <!-- 3 · WHY LOCALHOST FAILS -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <div>
+        <h2>Por qué <span style="font-family:'JetBrains Mono',monospace;font-size:.7em;color:var(--oak-dark)">localhost</span> falla en un dispositivo</h2>
+        <p class="sec-sub">En un teléfono físico, <code>localhost</code> significa <i>el teléfono mismo</i>, no tu laptop. Esto solo importa en desarrollo: en producción usas tu dominio real. Todo lo demás de la app ya deriva la IP de tu LAN automáticamente.</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Escenario</th><th>Valor de API_URL</th><th>¿Funciona?</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>iOS Simulator (dev)</td>
+            <td><code>localhost:5001</code></td>
+            <td><span class="verdict ok"><span class="dot"></span>Sí · comparte la red del Mac</span></td>
+          </tr>
+          <tr>
+            <td>Teléfono físico (dev)</td>
+            <td><code>192.168.x.x:5001</code></td>
+            <td><span class="verdict ok"><span class="dot"></span>Sí · si está en el mismo Wi-Fi</span></td>
+          </tr>
+          <tr>
+            <td>Teléfono físico (dev)</td>
+            <td><code>localhost:5001</code></td>
+            <td><span class="verdict no"><span class="dot"></span>No · apunta al teléfono</span></td>
+          </tr>
+          <tr>
+            <td>Producción</td>
+            <td><code>https://…/api</code></td>
+            <td><span class="verdict ok"><span class="dot"></span>Sí · con la env var puesta</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <span class="ico">💡</span>
+      <p>No hay nada que cambiar en el código. <code class="inline-code">apiConfig.ts</code> ya deriva la IP de tu LAN para el caso “dev en dispositivo”, y el <code class="inline-code">successUrl</code> reutiliza ese mismo <code class="inline-code">API_URL</code>. Es solo una nota de <b>conciencia al probar pagos en un dispositivo real</b>.</p>
+    </div>
+  </section>
+
+  <!-- 4 · CONFIG -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <div>
+        <h2>Config · <span style="font-family:'JetBrains Mono',monospace;font-size:.62em">EXPO_PUBLIC_API_URL</span></h2>
+        <p class="sec-sub">Para producción, solo defines esta variable. <b>No va en el servidor</b> — el prefijo <code>EXPO_PUBLIC_</code> hace que Expo la inyecte en el bundle de la app al compilar.</p>
+      </div>
+    </div>
+
+    <div class="codeblock">
+      <div class="bar"><span></span><span></span><span></span></div>
+      <pre><span class="c"># Base URL de la API (incluye el sufijo /api, sin slash final)</span>
+<span class="k">EXPO_PUBLIC_API_URL</span>=<span class="v">https://api.mesalista.com.mx/api</span></pre>
+    </div>
+
+    <div class="rules">
+      <div class="rule">
+        <div class="ico">🌍</div>
+        <h5>Origen completo</h5>
+        <p><span class="good">https://tu-dominio</span> público y resoluble — el mismo que el navegador de Stripe/PayPal debe alcanzar. <span class="bad">Nunca localhost.</span></p>
+      </div>
+      <div class="rule">
+        <div class="ico">🧩</div>
+        <h5>Sufijo <code style="font-family:'JetBrains Mono',monospace">/api</code></h5>
+        <p>El server monta todo bajo <code style="font-family:'JetBrains Mono',monospace;font-size:12px">/api</code>. Así <code style="font-family:'JetBrains Mono',monospace;font-size:11.5px">…/api</code> + <code style="font-family:'JetBrains Mono',monospace;font-size:11.5px">/payments/…</code> queda correcto.</p>
+      </div>
+      <div class="rule">
+        <div class="ico">✂️</div>
+        <h5>Sin slash final</h5>
+        <p><span class="good">…/api</span> ✓ &nbsp; <span class="bad">…/api/</span> ✗ — un slash de más produce <code style="font-family:'JetBrains Mono',monospace;font-size:11.5px">//payments</code>.</p>
+      </div>
+    </div>
+
+    <div class="note">
+      <span class="ico">📦</span>
+      <p><b>¿Dónde se pone?</b> No en el <code class="inline-code">.env</code> del servidor, sino en la configuración de build de la app (EAS / <code class="inline-code">eas.json</code>, o un <code class="inline-code">.env</code> en <code class="inline-code">mobile/</code> al compilar). Defínela, recompila el binario, y el valor queda dentro del bundle.</p>
+    </div>
+
+    <div class="note" style="background:rgba(79,138,82,.1);border-color:rgba(79,138,82,.4)">
+      <span class="ico">✅</span>
+      <p><b>Resumen:</b> en producción todo funciona en cuanto pongas <code class="inline-code">EXPO_PUBLIC_API_URL</code> a tu <code class="inline-code">https://…/api</code> real. En dev: el simulador usa <code class="inline-code">localhost</code> solo, y en teléfono físico se deriva la IP de la LAN automáticamente.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>MesaLista · Referencia de la app móvil — guest experience &amp; checkout. Generado para consulta futura. <span class="heart">♥</span></p>
+    <p style="margin-top:6px;opacity:.8">Endpoint del puente: <code>server/controllers/paymentController.ts → handleMobileReturn</code> · Apertura de checkout: <code>mobile/src/features/guestRegistry/payment.ts</code></p>
+  </footer>
+
+</div>
+</body>
+</html>

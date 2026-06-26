@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Redirect } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 
 import { useAuth } from '@/auth/AuthContext';
 import { useToast } from '@/lib/ToastProvider';
 
 export default function LoginScreen() {
   const { login, isAuthenticated } = useAuth();
+  const router = useRouter();
   const toast = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -73,6 +74,10 @@ export default function LoginScreen() {
             ) : (
               <Text className="text-base font-semibold text-white">Iniciar sesión</Text>
             )}
+          </Pressable>
+
+          <Pressable className="mt-4 items-center py-2" onPress={() => router.push('/explore')}>
+            <Text className="text-base font-medium text-oak">Explorar mesas de regalos →</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>

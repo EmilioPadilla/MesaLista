@@ -1350,4 +1350,44 @@ export default {
       });
     }
   },
+
+  /**
+   * Bridge Stripe/PayPal hosted-checkout returns back into the mobile app.
+   *
+   * Stripe and PayPal only accept http(s) success/cancel URLs, so the native
+   * app can't hand them its `mobile://` (or Expo Go `exp://`) deep link
+   * directly. Instead the app points the provider at this endpoint and passes
+   * its own deep link as the `redirect` query param. We 302 back to that deep
+   * link, forwarding any provider-appended params (PayPal adds `token` and
+   * `PayerID`), which closes the in-app browser and resumes the app.
+   */
+  handleMobileReturn: (req: Request, res: Response) => {
+    const { redirect, ...rest } = req.query;
+
+    if (!redirect || typeof redirect !== 'string') {
+      return res.status(400).send('Missing redirect target');
+    }
+
+    let target: URL;
+    try {
+      target = new URL(redirect);
+    } catch {
+      return res.status(400).send('Invalid redirect target');
+    }
+
+    // Only allow app deep-link schemes to prevent this from acting as an open
+    // redirect to arbitrary http(s) destinations.
+    const allowedSchemes = ['mobile:', 'exp:', 'exps:'];
+    if (!allowedSchemes.includes(target.protocol)) {
+      return res.status(400).send('Disallowed redirect scheme');
+    }
+
+    // Forward any extra query params (status, PayPal token/PayerID, etc.).
+    for (const [key, value] of Object.entries(rest)) {
+      if (value == null) continue;
+      target.searchParams.set(key, Array.isArray(value) ? String(value[0]) : String(value));
+    }
+
+    return res.redirect(302, target.toString());
+  },
 };
