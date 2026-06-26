@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { registerApiClient } from '@/lib/httpClient';
 import { ToastProvider } from '@/lib/ToastProvider';
 import { AuthProvider } from '@/auth/AuthContext';
+import { GuestSessionProvider } from '@/guest/GuestSessionContext';
 
 // Register the fetch-based API client as the spine's apiClient before any
 // service call. Runs once at module load.
@@ -21,7 +22,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <GuestSessionProvider>{children}</GuestSessionProvider>
+          </AuthProvider>
         </ToastProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

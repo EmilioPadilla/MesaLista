@@ -14,6 +14,9 @@ router.post('/create-gift-list-checkout-session', authenticateSession, paymentCo
 
 router.post('/cancel-payment', paymentController.handlePaymentCancellation);
 
+// Bridges hosted-checkout returns back into the native app via deep link.
+router.get('/mobile-return', paymentController.handleMobileReturn);
+
 router.get('/:id/summary', paymentController.getPaymentSummary);
 
 router.get('/', authenticateSession, paymentController.getAllPayments);
