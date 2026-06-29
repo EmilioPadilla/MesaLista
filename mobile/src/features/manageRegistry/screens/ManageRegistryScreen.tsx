@@ -107,7 +107,6 @@ export function ManageRegistryScreen({ listId }: { listId: number }) {
 
           <View className="mb-4 mt-3 flex-row gap-2">
             <SectionLink label="Confirmaciones" onPress={() => router.push(`/list/${listId}/rsvp`)} />
-            <SectionLink label="Invitación" onPress={() => router.push(`/list/${listId}/invitation`)} />
             <SectionLink label="Ajustes" onPress={() => router.push(`/list/${listId}/settings`)} />
           </View>
 
