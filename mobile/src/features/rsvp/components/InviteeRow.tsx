@@ -13,14 +13,43 @@ interface InviteeRowProps {
   invitee: Invitee;
   onSetStatus: (invitee: Invitee, status: Status) => void;
   onDelete: (invitee: Invitee) => void;
+  onPress: (invitee: Invitee) => void;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: (invitee: Invitee) => void;
 }
 
-export function InviteeRow({ invitee, onSetStatus, onDelete }: InviteeRowProps) {
+export function InviteeRow({ invitee, onSetStatus, onDelete, onPress, selectable, selected, onToggleSelect }: InviteeRowProps) {
   const meta = STATUS_META[invitee.status];
   const name = [invitee.firstName, invitee.lastName].filter(Boolean).join(' ') || 'Invitado';
 
+  if (selectable) {
+    return (
+      <Pressable
+        onPress={() => onToggleSelect?.(invitee)}
+        className={`mb-3 flex-row items-center gap-3 rounded-ml border p-3 ${
+          selected ? 'border-oak bg-oak/5' : 'border-gray-200 bg-white'
+        }`}
+      >
+        <View
+          className={`h-5 w-5 items-center justify-center rounded-full border-2 ${
+            selected ? 'border-oak bg-oak' : 'border-gray-300'
+          }`}
+        >
+          {selected ? <View className="h-2 w-2 rounded-full bg-white" /> : null}
+        </View>
+        <Text className="flex-1 text-base font-semibold text-ink" numberOfLines={1}>
+          {name}
+        </Text>
+        <View className={`rounded-full px-2.5 py-0.5 ${meta.chip}`}>
+          <Text className={`text-xs font-medium ${meta.text}`}>{meta.label}</Text>
+        </View>
+      </Pressable>
+    );
+  }
+
   return (
-    <View className="mb-3 rounded-ml border border-gray-200 bg-white p-3">
+    <Pressable onPress={() => onPress(invitee)} className="mb-3 rounded-ml border border-gray-200 bg-white p-3 active:bg-gray-50">
       <View className="flex-row items-center justify-between">
         <Text className="flex-1 text-base font-semibold text-ink" numberOfLines={1}>
           {name}
@@ -34,7 +63,7 @@ export function InviteeRow({ invitee, onSetStatus, onDelete }: InviteeRowProps) 
         {invitee.tickets} {invitee.tickets === 1 ? 'boleto' : 'boletos'}
         {invitee.status === 'CONFIRMED' && invitee.confirmedTickets != null ? ` · ${invitee.confirmedTickets} confirmados` : ''}
       </Text>
-      {invitee.guestMessage ? <Text className="mt-1 text-sm italic text-gray-500">“{invitee.guestMessage}”</Text> : null}
+      {invitee.guestMessage ? <Text className="mt-1 text-sm italic text-gray-500" numberOfLines={1}>“{invitee.guestMessage}”</Text> : null}
 
       <View className="mt-3 flex-row gap-2">
         <Action label="Confirmar" active={invitee.status === 'CONFIRMED'} tone="success" onPress={() => onSetStatus(invitee, 'CONFIRMED')} />
@@ -44,7 +73,7 @@ export function InviteeRow({ invitee, onSetStatus, onDelete }: InviteeRowProps) 
           <Text className="text-sm font-medium text-danger">Eliminar</Text>
         </Pressable>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
