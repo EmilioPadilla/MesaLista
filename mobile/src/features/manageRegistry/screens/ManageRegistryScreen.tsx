@@ -9,7 +9,7 @@ import type { Gift } from 'types/models/gift';
 
 import { useToast } from '@/lib/ToastProvider';
 import { formatCurrency } from '@/lib/format';
-import { GiftRow } from '../components/GiftRow';
+import { GiftCard } from '../components/GiftCard';
 import { GiftFormModal, type GiftFormValues } from '../components/GiftFormModal';
 
 function SectionLink({ label, onPress }: { label: string; onPress: () => void }) {
@@ -111,7 +111,11 @@ export function ManageRegistryScreen({ listId }: { listId: number }) {
           </View>
 
           {gifts.length > 0 ? (
-            gifts.map((gift) => <GiftRow key={gift.id} gift={gift} onEdit={openEdit} onDelete={onDelete} />)
+            <View className="flex-row flex-wrap justify-between">
+              {gifts.map((gift) => (
+                <GiftCard key={gift.id} gift={gift} onEdit={openEdit} onDelete={onDelete} />
+              ))}
+            </View>
           ) : (
             <View className="items-center rounded-ml border border-dashed border-gray-300 bg-white px-6 py-12">
               <Text className="text-base font-semibold text-ink">Esta lista no tiene regalos</Text>
