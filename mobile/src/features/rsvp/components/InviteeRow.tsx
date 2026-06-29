@@ -65,9 +65,15 @@ export function InviteeRow({ invitee, onSetStatus, onDelete, onPress, selectable
       </Text>
       {invitee.guestMessage ? <Text className="mt-1 text-sm italic text-gray-500" numberOfLines={1}>“{invitee.guestMessage}”</Text> : null}
 
-      <View className="mt-3 flex-row gap-2">
-        <Action label="Confirmar" active={invitee.status === 'CONFIRMED'} tone="success" onPress={() => onSetStatus(invitee, 'CONFIRMED')} />
-        <Action label="Rechazar" active={invitee.status === 'REJECTED'} tone="danger" onPress={() => onSetStatus(invitee, 'REJECTED')} />
+      <View className="mt-3 flex-row items-center gap-2">
+        {invitee.status === 'PENDING' ? (
+          <>
+            <QuickAction label="Confirmar" tone="success" onPress={() => onSetStatus(invitee, 'CONFIRMED')} />
+            <QuickAction label="Rechazar" tone="danger" onPress={() => onSetStatus(invitee, 'REJECTED')} />
+          </>
+        ) : (
+          <Text className="text-xs text-gray-400">Toca para cambiar su respuesta</Text>
+        )}
         <View className="flex-1" />
         <Pressable onPress={() => onDelete(invitee)} hitSlop={8} className="px-2 py-1">
           <Text className="text-sm font-medium text-danger">Eliminar</Text>
@@ -77,11 +83,14 @@ export function InviteeRow({ invitee, onSetStatus, onDelete, onPress, selectable
   );
 }
 
-function Action({ label, active, tone, onPress }: { label: string; active: boolean; tone: 'success' | 'danger'; onPress: () => void }) {
-  const activeCls = tone === 'success' ? 'bg-success border-success' : 'bg-danger border-danger';
+function QuickAction({ label, tone, onPress }: { label: string; tone: 'success' | 'danger'; onPress: () => void }) {
+  const cls = tone === 'success' ? 'border-success/30 bg-success/10' : 'border-danger/30 bg-danger/10';
+  const textCls = tone === 'success' ? 'text-success' : 'text-danger';
+  const icon = tone === 'success' ? '✓' : '✕';
   return (
-    <Pressable onPress={onPress} className={`rounded-full border px-3 py-1 ${active ? activeCls : 'border-gray-300 bg-white'}`}>
-      <Text className={`text-xs font-medium ${active ? 'text-white' : 'text-gray-600'}`}>{label}</Text>
+    <Pressable onPress={onPress} className={`flex-row items-center gap-1 rounded-full border px-3.5 py-1.5 active:opacity-70 ${cls}`}>
+      <Text className={`text-xs font-bold ${textCls}`}>{icon}</Text>
+      <Text className={`text-xs font-semibold ${textCls}`}>{label}</Text>
     </Pressable>
   );
 }
