@@ -57,6 +57,11 @@ export function SettingsScreen() {
     );
   };
 
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/login');
+  };
+
   const confirmDelete = () => {
     Alert.alert('¿Eliminar tu cuenta?', 'Esta acción es permanente y eliminará todas tus listas. No se puede deshacer.', [
       { text: 'Cancelar', style: 'cancel' },
@@ -116,7 +121,7 @@ export function SettingsScreen() {
 
         <Section title="Cuenta">
           <Text className="mb-3 text-sm text-mutedForeground">{user?.email}</Text>
-          <Pressable className="mb-3 items-center rounded-ml border border-gray-200 py-3 active:bg-gray-100" onPress={logout}>
+          <Pressable className="mb-3 items-center rounded-ml border border-gray-200 py-3 active:bg-gray-100" onPress={handleLogout}>
             <Text className="text-base font-semibold text-ink">Cerrar sesión</Text>
           </Pressable>
           <Pressable className="items-center rounded-ml border border-danger/40 py-3 active:bg-danger/5" onPress={confirmDelete}>
