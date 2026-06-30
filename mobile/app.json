@@ -46,6 +46,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": false
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f9b0654b-bb4e-4349-86a6-ad1b03359fde"
+      }
+    },
+    "owner": "emipad"
   }
 }
