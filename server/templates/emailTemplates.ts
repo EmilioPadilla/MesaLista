@@ -118,7 +118,7 @@ export class EmailTemplates {
             ${
               data.coupleThankYouMessage
                 ? `
-            <h3 style="color: #1f2937; margin-bottom: 16px;">Mensaje por parte de los novios</h3>
+            <h3 style="color: #1f2937; margin-bottom: 16px;">Mensaje por parte de la pareja</h3>
             <div style="border: 1px solid #d4704a; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
               <p style="margin: 0; color: #92400e; font-style: italic;">${data.coupleThankYouMessage}</p>
             </div>
@@ -156,7 +156,7 @@ export class EmailTemplates {
           <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">Este es un email automático de confirmación</p>
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
-              <strong>MesaLista</strong> - Haciendo los regalos de boda más fáciles
+              <strong>MesaLista</strong> - Haciendo los regalos de eventos más fáciles
             </p>
           </div>
         </div>
@@ -199,7 +199,7 @@ ${
     : ''
 }${
       data.coupleThankYouMessage
-        ? `MENSAJE POR PARTE DE LOS NOVIOS:
+        ? `MENSAJE POR PARTE DE LA PAREJA:
 "${data.coupleThankYouMessage}"
 
 `
@@ -214,7 +214,7 @@ La pareja será notificada de tu regalo. ¡Gracias por ser parte de su día espe
 
 ---
 Este es un email automático de confirmación
-MesaLista - Haciendo los regalos de boda más fáciles
+MesaLista - Haciendo los regalos de eventos más fáciles
     `.trim();
   }
 
@@ -324,7 +324,7 @@ MesaLista - Haciendo los regalos de boda más fáciles
           <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">Este es un email automático de notificación</p>
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
-              <strong>MesaLista</strong> - Haciendo los regalos de boda más fáciles
+              <strong>MesaLista</strong> - Haciendo los regalos de eventos más fáciles
             </p>
           </div>
         </div>
@@ -376,7 +376,7 @@ No olvides agradecer a ${data.guestName} por su generoso regalo. Puedes contacta
 
 ---
 Este es un email automático de notificación
-MesaLista - Haciendo los regalos de boda más fáciles
+MesaLista - Haciendo los regalos de eventos más fáciles
     `.trim();
   }
 
@@ -1488,19 +1488,6 @@ El equipo de MesaLista
               </div>
             </div>
 
-            <!-- Feature 2 -->
-            <div style="margin-bottom: 24px; padding: 20px; background-color: #f9fafb; border-radius: 12px;">
-              <div style="display: flex; align-items: start;">
-                <div style="font-size: 32px; margin-right: 16px;">💌</div>
-                <div>
-                  <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 18px;">Invitaciones Digitales</h3>
-                  <p style="margin: 0; color: #6b7280; line-height: 1.6;">
-                    Crea invitaciones hermosas y compartibles con plantillas premium. Incluye el enlace directo a tu mesa de regalos.
-                  </p>
-                </div>
-              </div>
-            </div>
-
             <!-- Feature 3 -->
             <div style="margin-bottom: 24px; padding: 20px; background-color: #f9fafb; border-radius: 12px;">
               <div style="display: flex; align-items: start;">
@@ -1546,7 +1533,7 @@ El equipo de MesaLista
           <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">¿Necesitas ayuda? Escríbenos a info@mesalista.com.mx</p>
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
-              <strong>MesaLista</strong> - Haciendo los regalos de boda más fáciles
+              <strong>MesaLista</strong> - Haciendo los regalos de eventos más fáciles
             </p>
           </div>
         </div>
@@ -1570,9 +1557,6 @@ TODO LO QUE PUEDES HACER:
 
 🎁 LISTAS PREDISEÑADAS
 Elige entre 6+ colecciones curadas por expertos: Luna de Miel, Hogar Nuevo, Redecoración y más. Más de 200 productos premium listos para agregar.
-
-💌 INVITACIONES DIGITALES
-Crea invitaciones hermosas y compartibles con plantillas premium. Incluye el enlace directo a tu mesa de regalos.
 
 ✅ GESTIÓN DE RSVPs
 Administra confirmaciones de asistencia con códigos únicos. Tus invitados pueden confirmar y dejar mensajes especiales.
@@ -1775,7 +1759,7 @@ El equipo de MesaLista
             <!-- Testimonial 2 -->
             <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 24px; margin-bottom: 24px; border-radius: 8px;">
               <p style="margin: 0 0 16px 0; color: #1e40af; font-size: 16px; font-style: italic; line-height: 1.7;">
-                "Las invitaciones digitales son hermosas y el sistema de RSVP nos ahorró muchísimo tiempo. Pudimos gestionar 150 invitados sin ningún problema. ¡Súper recomendado!"
+                "El sistema de RSVP nos ahorró muchísimo tiempo. Pudimos gestionar 150 invitados sin ningún problema. ¡Súper recomendado!"
               </p>
               <div style="display: flex; align-items: center;">
                 <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; margin-right: 12px;">💕</div>
@@ -1864,7 +1848,7 @@ Hola ${firstName}, ¿sabías que cientos de parejas ya están usando MesaLista p
 "MesaLista transformó completamente nuestra experiencia de boda. En solo 10 minutos teníamos nuestra lista completa usando las colecciones prediseñadas. ¡Recibimos más de $85,000 en regalos!"
 
 💕 ANA Y LUIS - GUADALAJARA
-"Las invitaciones digitales son hermosas y el sistema de RSVP nos ahorró muchísimo tiempo. Pudimos gestionar 150 invitados sin ningún problema. ¡Súper recomendado!"
+"El sistema de RSVP nos ahorró muchísimo tiempo. Pudimos gestionar 150 invitados sin ningún problema. ¡Súper recomendado!"
 
 💚 CARMEN Y ROBERTO - MONTERREY
 "Lo mejor es que no pagamos nada por adelantado. Solo una pequeña comisión cuando recibimos regalos. ¡Cero riesgo y máxima flexibilidad!"
@@ -1958,28 +1942,6 @@ El equipo de MesaLista
               <p style="margin: 0; color: #6b7280; line-height: 1.6; font-size: 14px;">
                 <strong>Solución:</strong> MesaLista es tan fácil como usar Instagram. Interfaz intuitiva, sin curva de aprendizaje. Y si necesitas ayuda, nuestro equipo está a un email de distancia.
               </p>
-            </div>
-
-            <!-- Special Offer -->
-            <div style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); border-radius: 16px; padding: 32px; margin-bottom: 32px; text-align: center; color: white;">
-              <div style="font-size: 48px; margin-bottom: 16px;">🎁</div>
-              <h3 style="margin: 0 0 16px 0; font-size: 24px;">Oferta Especial para Ti</h3>
-              <p style="margin: 0 0 24px 0; font-size: 16px; opacity: 0.95; line-height: 1.6;">
-                Completa tu mesa de regalos en los próximos 7 días y recibe <strong>soporte prioritario gratuito</strong> durante todo tu evento. Además, te ayudamos a crear tu primera invitación digital sin costo.
-              </p>
-              <div style="background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); border-radius: 12px; padding: 16px; display: inline-block;">
-                <p style="margin: 0; font-size: 14px; opacity: 0.9;">Valor: $1,500 MXN</p>
-                <p style="margin: 4px 0 0 0; font-size: 28px; font-weight: bold;">¡GRATIS!</p>
-              </div>
-            </div>
-
-            <!-- CTA Button -->
-            <div style="text-align: center; margin: 40px 0;">
-              <a href="https://mesalista.com.mx/${coupleSlug}/gestionar" 
-                 style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); color: white; padding: 18px 48px; text-decoration: none; border-radius: 50px; font-weight: 700; font-size: 18px; box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
-                Activar Mi Oferta Ahora →
-              </a>
-              <p style="margin: 16px 0 0 0; color: #6b7280; font-size: 14px;">Oferta válida por 7 días</p>
             </div>
 
             <!-- Final Push -->
@@ -2138,10 +2100,6 @@ El equipo de MesaLista
         </ul>
       </div>
 
-      <p class="message">
-        Entendemos que la vida puede ser ocupada, pero no queremos que pierdas esta oportunidad. Estamos aquí para hacer que tu experiencia sea excepcional.
-      </p>
-
       <center>
         <a href="https://mesalista.com.mx/login" class="cta-button">Completar Mi Mesa de Regalos</a>
       </center>
@@ -2193,8 +2151,6 @@ Para mantener la calidad de nuestro servicio y asegurar que todas las cuentas ac
 • Gestión sencilla: Interfaz intuitiva que hace todo el proceso muy fácil
 • Sin costos ocultos: Transparencia total en nuestros planes y comisiones
 • Soporte dedicado: Nuestro equipo está aquí para ayudarte en cada paso
-
-Entendemos que la vida puede ser ocupada, pero no queremos que pierdas esta oportunidad. Estamos aquí para hacer que tu experiencia sea excepcional.
 
 COMPLETAR MI MESA DE REGALOS:
 https://mesalista.com.mx/login
@@ -2254,16 +2210,16 @@ mesalista.com.mx | info@mesalista.com.mx
       <p class="greeting">Hola ${firstName},</p>
       
       <p class="message">
-        Esperamos que se encuentren muy bien.
+        Esperamos que te encuentres muy bien.
       </p>
 
       <p class="message">
-        ¡Cada vez falta menos para su gran día! Estamos muy emocionados de acompañarlos en este momento tan especial.
+        ¡Cada vez falta menos para tu gran evento! Estamos muy emocionados de acompañarte en este momento tan especial.
       </p>
 
       <div class="highlight-box">
         <p>
-          <strong>📝 Solicitud importante:</strong> Con el objetivo de dejar todo listo para los próximos movimientos relacionados con su evento, les pedimos su apoyo compartiéndonos la siguiente información en respuesta a este correo.
+          <strong>📝 Solicitud importante:</strong> Con el objetivo de dejar todo listo para los próximos movimientos relacionados con tu evento, te pedimos tu apoyo compartiéndonos la siguiente información en respuesta a este correo.
         </p>
       </div>
 
@@ -2273,19 +2229,19 @@ mesalista.com.mx | info@mesalista.com.mx
           <li><strong>Nombre del titular de la cuenta</strong></li>
           <li><strong>Banco</strong></li>
           <li><strong>CLABE interbancaria</strong></li>
-          <li><strong>Carátula de estado de cuenta</strong> (en donde aparezca el nombre de alguno de los dos)</li>
+          <li><strong>Carátula de estado de cuenta</strong> (en donde aparezca tu nombre)</li>
         </ul>
       </div>
 
       <div class="confidential-box">
         <h4>🔒 Confidencialidad</h4>
         <p>
-          Esta información será utilizada únicamente para fines administrativos relacionados con su evento y será tratada de manera confidencial.
+          Esta información será utilizada únicamente para fines administrativos relacionados con tu evento y será tratada de manera confidencial.
         </p>
       </div>
 
       <p class="message">
-        Agradecemos mucho su apoyo para enviarnos estos datos a la brevedad, con el fin de evitar cualquier contratiempo en la planeación.
+        Agradecemos mucho tu apoyo para enviarnos estos datos a la brevedad, con el fin de evitar cualquier contratiempo en la planeación.
       </p>
 
       <p class="message">
@@ -2319,23 +2275,23 @@ mesalista.com.mx | info@mesalista.com.mx
 
 Hola ${firstName},
 
-Esperamos que se encuentren muy bien.
+Esperamos que te encuentres muy bien.
 
-¡Cada vez falta menos para su gran día! Estamos muy emocionados de acompañarlos en este momento tan especial.
+¡Cada vez falta menos para tu gran evento! Estamos muy emocionados de acompañarte en este momento tan especial.
 
 📝 SOLICITUD IMPORTANTE:
-Con el objetivo de dejar todo listo para los próximos movimientos relacionados con su evento, les pedimos su apoyo compartiéndonos la siguiente información en respuesta a este correo:
+Con el objetivo de dejar todo listo para los próximos movimientos relacionados con tu evento, te pedimos tu apoyo compartiéndonos la siguiente información en respuesta a este correo:
 
 INFORMACIÓN REQUERIDA:
 ✓ Nombre del titular de la cuenta
 ✓ Banco
 ✓ CLABE interbancaria
-✓ Carátula de estado de cuenta (en donde aparezca el nombre de alguno de los dos)
+✓ Carátula de estado de cuenta (en donde aparezca tu nombre)
 
 🔒 CONFIDENCIALIDAD:
-Esta información será utilizada únicamente para fines administrativos relacionados con su evento y será tratada de manera confidencial.
+Esta información será utilizada únicamente para fines administrativos relacionados con tu evento y será tratada de manera confidencial.
 
-Agradecemos mucho su apoyo para enviarnos estos datos a la brevedad, con el fin de evitar cualquier contratiempo en la planeación.
+Agradecemos mucho tu apoyo para enviarnos estos datos a la brevedad, con el fin de evitar cualquier contratiempo en la planeación.
 
 Quedamos atentos a cualquier duda.
 

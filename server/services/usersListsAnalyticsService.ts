@@ -46,6 +46,8 @@ export interface WeddingListAnalytics {
   invitationsRejected: number;
   invitationsPending: number;
   lastPurchaseDate: Date | null;
+  isActive: boolean;
+  isPublic: boolean;
 }
 
 export interface UsersListsSummary {
@@ -319,8 +321,30 @@ class UsersListsAnalyticsService {
         invitationsRejected,
         invitationsPending,
         lastPurchaseDate,
+        isActive: list.isActive,
+        isPublic: list.isPublic,
       };
     });
+  }
+
+  /**
+   * Update the isActive / isPublic flags for a wedding list
+   */
+  async updateWeddingListVisibility(
+    listId: number,
+    updates: { isActive?: boolean; isPublic?: boolean },
+  ): Promise<{ id: number; isActive: boolean; isPublic: boolean }> {
+    const data: { isActive?: boolean; isPublic?: boolean } = {};
+    if (typeof updates.isActive === 'boolean') data.isActive = updates.isActive;
+    if (typeof updates.isPublic === 'boolean') data.isPublic = updates.isPublic;
+
+    const updated = await prisma.giftList.update({
+      where: { id: listId },
+      data,
+      select: { id: true, isActive: true, isPublic: true },
+    });
+
+    return updated;
   }
 }
 

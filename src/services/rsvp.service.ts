@@ -78,15 +78,15 @@ const rsvpService = {
     return response.data.data;
   },
 
-  // Get invitee by secret code (public)
-  async getInviteeByCode(secretCode: string): Promise<Invitee> {
-    const response = await apiClient.get(rsvpEndpoints.getInviteeByCode(secretCode));
+  // Get invitee by secret code within a gift list (public)
+  async getInviteeByCode(secretCode: string, giftListId: number): Promise<Invitee> {
+    const response = await apiClient.get(rsvpEndpoints.getInviteeByCode(secretCode, giftListId));
     return response.data.data;
   },
 
-  // Validate RSVP code (public)
-  async validateRsvpCode(secretCode: string): Promise<{ valid: boolean; message: string }> {
-    const response = await apiClient.get(rsvpEndpoints.validateRsvpCode(secretCode));
+  // Validate RSVP code within a gift list (public)
+  async validateRsvpCode(secretCode: string, giftListId: number): Promise<{ valid: boolean; message: string }> {
+    const response = await apiClient.get(rsvpEndpoints.validateRsvpCode(secretCode, giftListId));
     return { valid: response.data.valid, message: response.data.message };
   },
 
@@ -134,12 +134,14 @@ const rsvpService = {
   // Respond to RSVP (public)
   async respondToRsvp(
     secretCode: string,
+    giftListId: number,
     status: 'PENDING' | 'CONFIRMED' | 'REJECTED',
     confirmedTickets?: number,
     guestMessage?: string,
     customFieldResponses?: Array<{ fieldId: number; value: string }>,
   ): Promise<Invitee> {
     const response = await apiClient.post(rsvpEndpoints.respondToRsvp(secretCode), {
+      giftListId,
       status,
       confirmedTickets,
       guestMessage,

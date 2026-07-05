@@ -47,6 +47,8 @@ export interface WeddingListAnalytics {
   invitationsRejected: number;
   invitationsPending: number;
   lastPurchaseDate: string | null;
+  isActive: boolean;
+  isPublic: boolean;
 }
 
 export interface UsersListsSummary {
@@ -87,6 +89,20 @@ const usersListsAnalyticsService = {
    */
   getWeddingListsAnalytics: async (): Promise<WeddingListAnalytics[]> => {
     const response = await apiClient.get<WeddingListAnalytics[]>(`${usersListsAnalyticsEndpoints.lists}`);
+    return response.data;
+  },
+
+  /**
+   * Update the isActive / isPublic flags for a wedding list (admin only)
+   */
+  updateWeddingListVisibility: async (
+    listId: number,
+    updates: { isActive?: boolean; isPublic?: boolean },
+  ): Promise<{ id: number; isActive: boolean; isPublic: boolean }> => {
+    const response = await apiClient.patch<{ id: number; isActive: boolean; isPublic: boolean }>(
+      usersListsAnalyticsEndpoints.listVisibility(listId),
+      updates,
+    );
     return response.data;
   },
 };

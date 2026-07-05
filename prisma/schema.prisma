@@ -184,7 +184,8 @@ model Cart {
   country       String?
   phoneNumber   String?        @map("phone_number")
   message       String?        // Message to the couple
-  rsvpCode      String?        @map("rsvp_code") // Optional RSVP secret code to link purchase with invitation
+  rsvpCode      String?        @map("rsvp_code") // RSVP secret code as entered by the guest (display/historical)
+  inviteeId     String?        @map("invitee_id") // Resolved invitation this purchase is linked to
   paymentId     String?        @map("payment_id") // External payment ID from PayPal or Stripe
   status        CartStatus     @default(PENDING)
   totalAmount   Float?         @map("total_amount")
@@ -192,10 +193,10 @@ model Cart {
   updatedAt     DateTime       @updatedAt @map("updated_at")
   items         CartItem[]
   payment       Payment?       // One-to-one relation
-  invitee       Invitee?       @relation(fields: [rsvpCode], references: [secretCode])
+  invitee       Invitee?       @relation(fields: [inviteeId], references: [id], onDelete: SetNull)
   giftList      GiftList?      @relation(fields: [giftListId], references: [id], onDelete: SetNull)
 
-  @@index([rsvpCode])
+  @@index([inviteeId])
   @@index([giftListId])
   @@map("carts")
 }
@@ -448,7 +449,7 @@ model Invitee {
   firstName         String        @map("first_name")
   lastName          String        @map("last_name")
   tickets           Int           @default(1) // Maximum number of people allowed
-  secretCode        String        @unique @map("secret_code") // Unique code for confirmation
+  secretCode        String        @map("secret_code") // Confirmation code, unique per gift list
   status            RsvpStatus    @default(PENDING)
   confirmedTickets  Int?          @map("confirmed_tickets") // Actual number confirming
   guestMessage      String?       @map("guest_message") @db.Text // Optional message from guest
@@ -459,8 +460,8 @@ model Invitee {
   giftList          GiftList      @relation(fields: [giftListId], references: [id], onDelete: Cascade)
   customFieldResponses RsvpCustomFieldResponse[]
 
+  @@unique([giftListId, secretCode])
   @@index([giftListId])
-  @@index([secretCode])
   @@index([status])
   @@map("invitees")
 }
@@ -513,7 +514,7 @@ model RsvpMessages {
   id                    Int      @id @default(autoincrement())
   giftListId            Int      @unique @map("gift_list_id")
   giftList              GiftList @relation(fields: [giftListId], references: [id], onDelete: Cascade)
-  confirmationMessage   String   @default("¡Gracias por confirmar tu asistencia! Nos encantará verte en nuestra boda.") @map("confirmation_message")
+  confirmationMessage   String   @default("¡Gracias por confirmar tu asistencia! Nos encantará verte en nuestro evento.") @map("confirmation_message")
   cancellationMessage   String   @default("Lamentamos que no puedas asistir. ¡Gracias por avisarnos!") @map("cancellation_message")
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")

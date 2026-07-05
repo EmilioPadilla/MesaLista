@@ -11,8 +11,8 @@ import rsvpService, {
 
 const queryKeys = {
   invitees: (giftListId: number) => ['invitees', giftListId] as const,
-  inviteeByCode: (code: string) => ['invitee', code] as const,
-  validateCode: (code: string) => ['validate-rsvp-code', code] as const,
+  inviteeByCode: (code: string, giftListId: number) => ['invitee', giftListId, code] as const,
+  validateCode: (code: string, giftListId: number) => ['validate-rsvp-code', giftListId, code] as const,
   stats: (giftListId: number) => ['rsvp-stats', giftListId] as const,
   messages: (giftListId: number) => ['rsvp-messages', giftListId] as const,
   customFields: (giftListId: number) => ['rsvp-custom-fields', giftListId] as const,
@@ -28,21 +28,21 @@ export const useInvitees = (giftListId: number) => {
   });
 };
 
-// Query: Get invitee by secret code (public)
-export const useInviteeByCode = (secretCode: string, enabled: boolean = true) => {
+// Query: Get invitee by secret code within a gift list (public)
+export const useInviteeByCode = (secretCode: string, giftListId: number, enabled: boolean = true) => {
   return useQuery<Invitee, Error>({
-    queryKey: queryKeys.inviteeByCode(secretCode),
-    queryFn: () => rsvpService.getInviteeByCode(secretCode),
-    enabled: enabled && !!secretCode,
+    queryKey: queryKeys.inviteeByCode(secretCode, giftListId),
+    queryFn: () => rsvpService.getInviteeByCode(secretCode, giftListId),
+    enabled: enabled && !!secretCode && !!giftListId,
   });
 };
 
-// Query: Validate RSVP code (public)
-export const useValidateRsvpCode = (secretCode: string, enabled: boolean = true) => {
+// Query: Validate RSVP code within a gift list (public)
+export const useValidateRsvpCode = (secretCode: string, giftListId: number, enabled: boolean = true) => {
   return useQuery<{ valid: boolean; message: string }, Error>({
-    queryKey: queryKeys.validateCode(secretCode),
-    queryFn: () => rsvpService.validateRsvpCode(secretCode),
-    enabled: enabled && !!secretCode.trim(),
+    queryKey: queryKeys.validateCode(secretCode, giftListId),
+    queryFn: () => rsvpService.validateRsvpCode(secretCode, giftListId),
+    enabled: enabled && !!secretCode.trim() && !!giftListId,
     retry: false, // Don't retry on validation failure
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
@@ -139,18 +139,19 @@ export const useRespondToRsvp = () => {
     Error,
     {
       secretCode: string;
+      giftListId: number;
       status: 'PENDING' | 'CONFIRMED' | 'REJECTED';
       confirmedTickets?: number;
       guestMessage?: string;
       customFieldResponses?: Array<{ fieldId: number; value: string }>;
     }
   >({
-    mutationFn: ({ secretCode, status, confirmedTickets, guestMessage, customFieldResponses }) =>
-      rsvpService.respondToRsvp(secretCode, status, confirmedTickets, guestMessage, customFieldResponses),
+    mutationFn: ({ secretCode, giftListId, status, confirmedTickets, guestMessage, customFieldResponses }) =>
+      rsvpService.respondToRsvp(secretCode, giftListId, status, confirmedTickets, guestMessage, customFieldResponses),
     onSuccess: (data) => {
       // Invalidate the specific invitee query
       queryClient.invalidateQueries({
-        queryKey: queryKeys.inviteeByCode(data.secretCode),
+        queryKey: queryKeys.inviteeByCode(data.secretCode, data.giftListId),
       });
     },
   });

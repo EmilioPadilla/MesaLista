@@ -1,7 +1,7 @@
 export const rsvpEndpoints = {
   getInvitees: `/rsvp/invitees`,
-  getInviteeByCode: (secretCode: string) => `/rsvp/invitee/${secretCode}`,
-  validateRsvpCode: (secretCode: string) => `/rsvp/validate/${secretCode}`,
+  getInviteeByCode: (secretCode: string, giftListId: number) => `/rsvp/invitee/${secretCode}?giftListId=${giftListId}`,
+  validateRsvpCode: (secretCode: string, giftListId: number) => `/rsvp/validate/${secretCode}?giftListId=${giftListId}`,
   createInvitee: `/rsvp/invitees`,
   bulkCreateInvitees: `/rsvp/invitees/bulk`,
   updateInvitee: (id: string) => `/rsvp/invitees/${id}`,

@@ -71,7 +71,7 @@ export function PricingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}>
             <Badge variant="secondary" className="px-6 py-3 bg-white shadow-md backdrop-blur-sm border border-[#d4704a]/20">
-              💎 Planes diseñados para tu boda perfecta
+              💎 Planes diseñados para tu evento perfecto
             </Badge>
           </motion.div>
 
@@ -176,11 +176,6 @@ export function PricingPage() {
                 icon: Shield,
                 title: 'Pagos Seguros',
                 description: 'Stripe y PayPal integrados con encriptación SSL y cumplimiento PCI',
-              },
-              {
-                icon: Mail,
-                title: 'Invitaciones Digitales',
-                description: 'Plantillas premium personalizables con URL única para compartir',
               },
               {
                 icon: MessageSquare,

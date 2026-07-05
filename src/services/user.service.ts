@@ -10,7 +10,7 @@ export interface LoginResponse extends User {
 
 export const userService = {
   signupCommission: async (
-    userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { password: string; discountCode?: string },
+    userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { password: string; discountCode?: string; eventDate?: string },
   ): Promise<User> => {
     const response = await apiClient.post(userEndpoints.signupCommission, userData);
     return response.data;

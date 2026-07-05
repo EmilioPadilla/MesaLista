@@ -82,7 +82,7 @@ export function SearchPage() {
             <div className="space-y-2">
               <h1 className="text-4xl text-foreground">Buscar Mesa de Regalos</h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Encuentra la mesa de regalos de tus seres queridos por nombre de pareja o fecha de boda
+                Encuentra la mesa de regalos de tus seres queridos por nombre de pareja o fecha de evento
               </p>
             </div>
           </div>
@@ -110,7 +110,7 @@ export function SearchPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-foreground">Fecha de boda (aprox.)</label>
+                <label className="text-foreground">Fecha de evento (aprox.)</label>
                 <div className="relative">
                   <Input
                     type="date"
@@ -170,10 +170,8 @@ export function SearchPage() {
                     {registry.imageUrl ? (
                       <img
                         src={registry.imageUrl}
-                        alt={`Boda de ${registry.coupleName}`}
-                        className={`w-full h-48 object-cover transition-transform duration-300 ${
-                          isClosed ? '' : 'group-hover:scale-105'
-                        }`}
+                        alt={`Evento de ${registry.coupleName}`}
+                        className={`w-full h-48 object-cover transition-transform duration-300 ${isClosed ? '' : 'group-hover:scale-105'}`}
                       />
                     ) : (
                       <div

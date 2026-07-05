@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, Heart, AlertCircle } from 'lucide-react';
 import { message, Input, Button, Checkbox, InputNumber } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useInviteeByCode, useRespondToRsvp, useRsvpMessages, useRsvpCustomFields } from 'src/hooks/useRsvp';
+import { useGiftListBySlug } from 'src/hooks/useGiftList';
+import type { OutletContextType } from 'src/app/routes/guest/PublicRegistry';
 import { normalizeSecretCode } from '../utils/secretCode';
 
 export function GuestConfirmationPage() {
@@ -16,8 +18,18 @@ export function GuestConfirmationPage() {
 
   const normalizedSearchCode = normalizeSecretCode(searchCode);
 
+  // Secret codes are only unique within a gift list, so scope the lookup to the
+  // gift list behind this registry's slug (/:slug/rsvp).
+  const { slug } = useOutletContext<OutletContextType>();
+  const { data: giftList } = useGiftListBySlug(slug);
+  const giftListId = giftList?.id ?? 0;
+
   // React Query hooks
-  const { data: invitee, refetch: searchInvitee, isLoading: searchLoading } = useInviteeByCode(normalizedSearchCode, false);
+  const { data: invitee, refetch: searchInvitee, isLoading: searchLoading } = useInviteeByCode(
+    normalizedSearchCode,
+    giftListId,
+    false,
+  );
   const { data: messages } = useRsvpMessages(invitee?.giftListId || 0, !!invitee);
   const { data: customFields = [] } = useRsvpCustomFields(invitee?.giftListId || 0, !!invitee);
   const respondMutation = useRespondToRsvp();
@@ -73,6 +85,7 @@ export function GuestConfirmationPage() {
     try {
       const response = await respondMutation.mutateAsync({
         secretCode: invitee.secretCode,
+        giftListId: invitee.giftListId,
         status: confirm ? 'CONFIRMED' : 'REJECTED',
         confirmedTickets: confirm ? confirmedTickets : 0,
         guestMessage: guestMessage.trim() || undefined,
@@ -112,7 +125,7 @@ export function GuestConfirmationPage() {
                 </p>
                 <div className="bg-[#34c759]/5 border border-[#34c759]/10 rounded-xl p-5 mb-6">
                   <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                    {messages?.confirmationMessage || '¡Gracias por confirmar tu asistencia! Nos encantará verte en nuestra boda.'}
+                    {messages?.confirmationMessage || '¡Gracias por confirmar tu asistencia! Nos encantará verte en nuestro evento.'}
                   </p>
                 </div>
               </>
@@ -285,7 +298,7 @@ export function GuestConfirmationPage() {
                 </div>
 
                 <p className="text-sm text-muted-foreground text-center mb-6">
-                  Si necesitas cambiar tu respuesta, por favor contacta a los novios.
+                  Si necesitas cambiar tu respuesta, por favor contacta a los organizadores del evento.
                 </p>
 
                 <Button
@@ -359,7 +372,7 @@ export function GuestConfirmationPage() {
             {/* Help Text */}
             <div className="bg-[#faf9f8] rounded-xl p-4">
               <p className="text-sm text-muted-foreground text-center">
-                ¿No encuentras tu código? Contacta a los novios para más información.
+                ¿No encuentras tu código? Contacta al organizador del evento para más información.
               </p>
             </div>
           </div>

@@ -17,4 +17,7 @@ router.get('/users', usersListsAnalyticsController.getUsersAnalytics);
 // GET /api/admin/users-lists-analytics/lists - Get detailed wedding lists analytics
 router.get('/lists', usersListsAnalyticsController.getWeddingListsAnalytics);
 
+// PATCH /api/admin/users-lists-analytics/lists/:id/visibility - Update isActive/isPublic flags
+router.patch('/lists/:id/visibility', usersListsAnalyticsController.updateWeddingListVisibility);
+
 export default router;

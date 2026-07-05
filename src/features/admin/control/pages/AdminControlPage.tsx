@@ -89,7 +89,13 @@ export function AdminControlPage() {
                   </span>
                 ),
                 children: (
-                  <RegistriesControlTab summary={summary} listsData={listsData} isListsLoading={isListsLoading} onRefresh={handleRefresh} />
+                  <RegistriesControlTab
+                    summary={summary}
+                    listsData={listsData}
+                    isListsLoading={isListsLoading}
+                    onRefresh={handleRefresh}
+                    isAdmin={user?.role === 'ADMIN'}
+                  />
                 ),
               },
             ]}

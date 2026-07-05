@@ -2,20 +2,21 @@ import { CreditCard, TrendingUp } from 'lucide-react';
 
 export const faqs = [
   {
-    question: '¿Hay costos ocultos o comisiones adicionales?',
+    question: '¿Cómo funciona la mesa de regalos digital?',
     answer:
-      'No hay costos ocultos. Nuestros precios son transparentes y solo pagas la tarifa del plan que elijas. No cobramos comisiones por las compras.',
+      'MesaLista funciona siendo una plataforma digital en donde tu eliges la “idea” de los regalos que quieras recibir, ya sean cosas físicas, experiencias, servicios, etc… Tu fijas un monto, foto y descripción de cada regalo. Al finalizar tu evento, tu recibes el 100% de lo recaudado en una transferencia en tu cuenta de banco.',
   },
   {
-    question: '¿Cuándo estará disponible el servicio para mi evento?',
-    answer: 'Ya disponible!',
+    question: '¿Cómo puedo retirar mis fondos?',
+    answer:
+      'En la semana de tu evento te enviaremos un correo para solicitar tu número de cuenta Clabe así como la carátula de tu estado de cuenta donde podamos ver el nombre tuyo o de tu pareja. Una vez que finalice tu evento, te haremos llegar el resumen de tu Mesa de Regalos para que nos confirmes y enviaremos los fondos en un lapso menor a 15 días hábiles.',
   },
   {
     question: '¿Qué tipo de pagos aceptas?',
-    answer: 'Actualmente, aceptamos pagos por medio de PayPal y Stripe.',
+    answer: 'Actualmente, aceptamos pagos por medio de PayPal y tarjeta de débito o crédito.',
   },
   {
-    question: '¿Qué pasa si mi boda se pospone?',
+    question: '¿Qué pasa si mi evento se pospone?',
     answer:
       'Entendemos que las fechas pueden cambiar. Ofrecemos flexibilidad total para ajustar las fechas de tu evento sin costo adicional.',
   },
@@ -25,9 +26,9 @@ export const faqs = [
       '¡Definitivamente! Nuestros planes funcionan perfectamente para baby showers, aniversarios, quinceañeras y cualquier celebración especial.',
   },
   {
-    question: '¿Ofrecen soporte en español?',
+    question: '¿Puedo abrir mi mesa de regalos desde otro país?',
     answer:
-      'Sí, todo nuestro soporte está disponible en español e inglés. Nuestro equipo está ubicado en México y entiende perfectamente las tradiciones locales.',
+      'Por el momento solamente tenemos servicio en México y trabajamos con pesos mexicanos, sin embargo, si puedes recibir dinero de tarjetas de otro país.',
   },
   {
     question: '¿Las plataformas cobran comisión por uso?',
@@ -37,6 +38,10 @@ export const faqs = [
   {
     question: '¿Cómo se maneja la información de mi tarjeta?',
     answer: 'Nuestro sistema no almacena información de formas de pago. Todo el manejo de pagos se realiza a través de Stripe y Paypal.',
+  },
+  {
+    question: '¿Puedo facturar mi mesa de regalos?',
+    answer: 'Si, en caso de necesitar factura, por favor envíanos un correo a info@mesalista.com o un WhatsApp al +52 446 306 9982.',
   },
 ];
 
@@ -55,7 +60,6 @@ export const plans = [
       'Mesa de regalos ilimitada',
       'Sin comisiones por ventas de MesaLista',
       'Pagos seguros con Stripe y PayPal',
-      'Invitaciones digitales personalizables',
       'Gestión de RSVPs con códigos únicos',
       'Listas prediseñadas por expertos (6+ colecciones)',
       'Estadísticas en tiempo real',
@@ -82,7 +86,6 @@ export const plans = [
       'Mesa de regalos ilimitada',
       'Sin costo inicial — perfecto para comenzar',
       'Pagos seguros con Stripe y PayPal',
-      'Invitaciones digitales personalizables',
       'Gestión de RSVPs con códigos únicos',
       'Listas prediseñadas por expertos (6+ colecciones)',
       'Estadísticas en tiempo real',

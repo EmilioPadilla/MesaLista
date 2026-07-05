@@ -303,7 +303,7 @@ export function CreateNewList() {
               'Sin comisiones por regalo',
               'Tus invitados no pagan extra',
               'Acceso completo a todas las funciones',
-              'RSVPs y invitaciones digitales',
+              'RSVPs',
               'Soporte prioritario',
             ].map((feature, index) => (
               <li key={index} className="flex items-start gap-3">
@@ -355,7 +355,7 @@ export function CreateNewList() {
               'Sin costos iniciales',
               'Paga solo por regalos recibidos',
               'Acceso completo a todas las funciones',
-              'RSVPs y invitaciones digitales',
+              'RSVPs',
               'Soporte estándar incluido',
             ].map((feature, index) => (
               <li key={index} className="flex items-start gap-3">
@@ -384,7 +384,6 @@ export function CreateNewList() {
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-500 font-light">
               <li>✓ Gestión completa de regalos</li>
               <li>✓ Sistema de RSVP avanzado</li>
-              <li>✓ Invitaciones digitales</li>
               <li>✓ Lista de tareas</li>
               <li>✓ Mensajería con invitados</li>
               <li>✓ Estadísticas en tiempo real</li>

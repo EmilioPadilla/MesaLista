@@ -191,6 +191,7 @@ export const paymentService = {
     successUrl: string;
     cancelUrl: string;
     discountCode?: string;
+    eventDate?: string;
   }): Promise<{ success: boolean; sessionId: string; url: string }> => {
     const response = await apiClient.post(paymentEndpoints.createPlanCheckoutSession, data);
     return response.data;

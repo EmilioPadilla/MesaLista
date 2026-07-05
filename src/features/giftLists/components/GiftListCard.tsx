@@ -109,11 +109,11 @@ export function GiftListCard({ list, index, onViewList, onDeleteList, onManageIn
               </div>
 
               {/* Invitation Section */}
-              <InvitationButton
+              {/* <InvitationButton
                 listId={list.id}
                 onManageInvitation={() => onManageInvitation(list.id)}
                 onViewInvitation={() => onViewInvitation(list.id)}
-              />
+              /> */}
 
               {list.description && <p className="text-sm text-muted-foreground line-clamp-2 mt-4">{list.description}</p>}
             </div>

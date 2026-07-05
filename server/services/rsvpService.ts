@@ -8,11 +8,13 @@ export const rsvpService = {
     return secretCode.trim().toUpperCase();
   },
 
-  async findInviteeByNormalizedSecretCode(secretCode: string) {
+  // Secret codes are only unique within a gift list, so every code lookup must be
+  // scoped to a giftListId to avoid matching an invitee from a different gift list.
+  async findInviteeByNormalizedSecretCode(giftListId: number, secretCode: string) {
     const normalizedCode = this.normalizeSecretCode(secretCode);
 
     const exactMatch = await prisma.invitee.findUnique({
-      where: { secretCode: normalizedCode },
+      where: { giftListId_secretCode: { giftListId, secretCode: normalizedCode } },
     });
 
     if (exactMatch) {
@@ -22,7 +24,8 @@ export const rsvpService = {
     const legacyMatchRows = await prisma.$queryRaw<Array<{ id: string }>>`
       SELECT id
       FROM invitees
-      WHERE UPPER(BTRIM(secret_code)) = ${normalizedCode}
+      WHERE gift_list_id = ${giftListId}
+        AND UPPER(BTRIM(secret_code)) = ${normalizedCode}
       LIMIT 1
     `;
 
@@ -50,13 +53,13 @@ export const rsvpService = {
     });
   },
 
-  // Get invitee by secret code
-  async getInviteeBySecretCode(secretCode: string) {
-    return this.findInviteeByNormalizedSecretCode(secretCode);
+  // Get invitee by secret code (scoped to a gift list)
+  async getInviteeBySecretCode(giftListId: number, secretCode: string) {
+    return this.findInviteeByNormalizedSecretCode(giftListId, secretCode);
   },
 
-  // Generate a unique secret code
-  async generateSecretCode(): Promise<string> {
+  // Generate a secret code that is unique within the given gift list
+  async generateSecretCode(giftListId: number): Promise<string> {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code: string;
     let attempts = 0;
@@ -69,7 +72,7 @@ export const rsvpService = {
       }
 
       const existing = await prisma.invitee.findUnique({
-        where: { secretCode: code },
+        where: { giftListId_secretCode: { giftListId, secretCode: code } },
       });
 
       if (!existing) {
@@ -100,10 +103,10 @@ export const rsvpService = {
 
     // Generate secret code if not provided
     if (!secretCode) {
-      secretCode = await this.generateSecretCode();
+      secretCode = await this.generateSecretCode(data.giftListId);
     } else {
-      // Check if provided secret code already exists
-      const existing = await this.findInviteeByNormalizedSecretCode(secretCode);
+      // Check if provided secret code already exists within this gift list
+      const existing = await this.findInviteeByNormalizedSecretCode(data.giftListId, secretCode);
 
       if (existing) {
         throw new Error('El código secreto ya existe. Por favor, usa otro código.');
@@ -182,9 +185,18 @@ export const rsvpService = {
   ) {
     const normalizedSecretCode = data.secretCode ? this.normalizeSecretCode(data.secretCode) : undefined;
 
-    // If updating secret code, check if it already exists
+    // If updating secret code, check if it already exists within the same gift list
     if (normalizedSecretCode) {
-      const existing = await this.findInviteeByNormalizedSecretCode(normalizedSecretCode);
+      const current = await prisma.invitee.findUnique({
+        where: { id },
+        select: { giftListId: true },
+      });
+
+      if (!current) {
+        throw new Error('Invitación no encontrada');
+      }
+
+      const existing = await this.findInviteeByNormalizedSecretCode(current.giftListId, normalizedSecretCode);
 
       if (existing && existing.id !== id) {
         throw new Error('El código secreto ya existe. Por favor, usa otro código.');
@@ -261,13 +273,14 @@ export const rsvpService = {
 
   // Respond to RSVP
   async respondToRsvp(
+    giftListId: number,
     secretCode: string,
     status: RsvpStatus,
     confirmedTickets?: number,
     guestMessage?: string,
     customFieldResponses?: Array<{ fieldId: number; value: string }>,
   ) {
-    const invitee = await this.findInviteeByNormalizedSecretCode(secretCode);
+    const invitee = await this.findInviteeByNormalizedSecretCode(giftListId, secretCode);
 
     if (!invitee) {
       throw new Error('Invitación no encontrada');

@@ -24,7 +24,7 @@ export function RsvpMessagesSection({ form, isUpdating, hasChanges, onSave, onVa
               rows={3}
               maxLength={200}
               showCount
-              placeholder="¡Gracias por confirmar tu asistencia! Nos encantará verte en nuestra boda."
+              placeholder="¡Gracias por confirmar tu asistencia! Nos encantará verte en nuestro evento."
               className="px-4 py-3 bg-[#f5f5f7]!"
             />
           </Form.Item>

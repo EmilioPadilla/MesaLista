@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Table, Tag, Button, Space, Input, message, Statistic, Row, Col, Card } from 'antd';
+import { Table, Tag, Button, Space, Input, message, Statistic, Row, Col, Card, Switch, Tooltip } from 'antd';
 import { Search, RefreshCw, Calendar, Gift, DollarSign, TrendingUp, Percent, ExternalLink } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
 import type { WeddingListAnalytics, UsersListsSummary } from 'src/services/usersListsAnalytics.service';
+import { useUpdateWeddingListVisibility } from 'src/hooks/useUsersListsAnalytics';
 import { RegistryDetailModal } from './RegistryDetailModal';
 
 interface RegistriesControlTabProps {
@@ -11,12 +12,34 @@ interface RegistriesControlTabProps {
   listsData: WeddingListAnalytics[] | undefined;
   isListsLoading: boolean;
   onRefresh: () => void;
+  /** Only admins can toggle list visibility. Defaults to false so the controls stay hidden unless explicitly allowed. */
+  isAdmin?: boolean;
 }
 
-export function RegistriesControlTab({ summary, listsData, isListsLoading, onRefresh }: RegistriesControlTabProps) {
+export function RegistriesControlTab({ summary, listsData, isListsLoading, onRefresh, isAdmin = false }: RegistriesControlTabProps) {
   const [searchText, setSearchText] = useState('');
   const [selectedList, setSelectedList] = useState<WeddingListAnalytics | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const updateVisibility = useUpdateWeddingListVisibility();
+  // Track which row+field is currently saving so we can show a per-switch loading state
+  const [pendingKey, setPendingKey] = useState<string | null>(null);
+
+  const handleToggleVisibility = async (list: WeddingListAnalytics, field: 'isActive' | 'isPublic', value: boolean) => {
+    setPendingKey(`${list.id}-${field}`);
+    try {
+      await updateVisibility.mutateAsync({ listId: list.id, updates: { [field]: value } });
+      message.success(
+        field === 'isActive'
+          ? `Lista ${value ? 'activada' : 'desactivada'}`
+          : `Lista ${value ? 'publicada' : 'ocultada de búsqueda'}`,
+      );
+    } catch {
+      message.error('No se pudo actualizar la lista');
+    } finally {
+      setPendingKey(null);
+    }
+  };
 
   const formatDate = (date: string) => {
     return dayjs(date).format('DD/MMM/YYYY');
@@ -180,6 +203,41 @@ export function RegistriesControlTab({ summary, listsData, isListsLoading, onRef
         return new Date(a.lastPurchaseDate).getTime() - new Date(b.lastPurchaseDate).getTime();
       },
     },
+    ...(isAdmin
+      ? ([
+          {
+            title: 'Visibilidad',
+            key: 'visibility',
+            width: 160,
+            render: (_, record) => (
+              <Space direction="vertical" size={4}>
+                <Tooltip title="Si está inactiva, la lista no es accesible">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      size="small"
+                      checked={record.isActive}
+                      loading={pendingKey === `${record.id}-isActive`}
+                      onChange={(checked) => handleToggleVisibility(record, 'isActive', checked)}
+                    />
+                    <span className="text-xs text-gray-600">Activa</span>
+                  </div>
+                </Tooltip>
+                <Tooltip title="Si es privada, no aparece en resultados de búsqueda">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      size="small"
+                      checked={record.isPublic}
+                      loading={pendingKey === `${record.id}-isPublic`}
+                      onChange={(checked) => handleToggleVisibility(record, 'isPublic', checked)}
+                    />
+                    <span className="text-xs text-gray-600">Pública</span>
+                  </div>
+                </Tooltip>
+              </Space>
+            ),
+          },
+        ] as ColumnsType<WeddingListAnalytics>)
+      : []),
     {
       title: 'Acciones',
       key: 'actions',

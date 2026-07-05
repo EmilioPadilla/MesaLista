@@ -646,7 +646,7 @@ class EmailService {
       await postmarkClient.sendEmail({
         From: FROM_EMAIL,
         To: user.email,
-        Subject: `${user.firstName}, te extrañamos 💜 - Oferta especial dentro`,
+        Subject: `${user.firstName}, te extrañamos 💜`,
         HtmlBody: EmailTemplates.generateMarketingEmail4HTML(user.firstName, user.slug),
         TextBody: EmailTemplates.generateMarketingEmail4Text(user.firstName, user.slug),
         MessageStream: 'outbound',
@@ -938,7 +938,7 @@ class EmailService {
         textBody = EmailTemplates.generateMarketingEmail3Text(name, genericSlug);
         break;
       case 4:
-        subject = `${name}, te extrañamos 💜 - Oferta especial dentro`;
+        subject = `${name}, te extrañamos 💜`;
         htmlBody = EmailTemplates.generateMarketingEmail4HTML(name, genericSlug);
         textBody = EmailTemplates.generateMarketingEmail4Text(name, genericSlug);
         break;
@@ -1035,7 +1035,7 @@ class EmailService {
           break;
         case 4:
           html = EmailTemplates.generateMarketingEmail4HTML(user.firstName, user.slug);
-          subject = `${user.firstName}, te extrañamos 💜 - Oferta especial dentro`;
+          subject = `${user.firstName}, te extrañamos 💜`;
           break;
         case 'inactive_warning':
           html = EmailTemplates.generateInactiveUserWarningHTML(user.firstName, coupleName, giftCount);

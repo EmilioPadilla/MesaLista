@@ -83,13 +83,13 @@ describe('rsvpService.respondToRsvp', () => {
     mockPrisma.invitee.findUnique.mockResolvedValue(null);
     mockPrisma.$queryRaw.mockResolvedValue([]); // no legacy match either
 
-    await expect(rsvpService.respondToRsvp('BADCODE', 'CONFIRMED')).rejects.toThrow('Invitación no encontrada');
+    await expect(rsvpService.respondToRsvp(1, 'BADCODE', 'CONFIRMED')).rejects.toThrow('Invitación no encontrada');
   });
 
   it('throws when confirmedTickets exceeds invitee.tickets', async () => {
     mockPrisma.invitee.findUnique.mockResolvedValue(makeInvitee({ tickets: 2 }));
 
-    await expect(rsvpService.respondToRsvp('ABC123', 'CONFIRMED', 5)).rejects.toThrow('No puedes confirmar más de 2 boletos');
+    await expect(rsvpService.respondToRsvp(1, 'ABC123', 'CONFIRMED', 5)).rejects.toThrow('No puedes confirmar más de 2 boletos');
   });
 
   it('does NOT throw for confirmedTickets=0 (falsy guard skips validation, proceeds to tx)', async () => {
@@ -104,7 +104,7 @@ describe('rsvpService.respondToRsvp', () => {
       });
     });
 
-    const result = await rsvpService.respondToRsvp('ABC123', 'CONFIRMED', 0);
+    const result = await rsvpService.respondToRsvp(1, 'ABC123', 'CONFIRMED', 0);
     expect(result).toBeDefined();
   });
 
@@ -121,7 +121,7 @@ describe('rsvpService.respondToRsvp', () => {
       return fn(tx);
     });
 
-    const result = await rsvpService.respondToRsvp('ABC123', 'CONFIRMED', 2, 'Nos vemos!');
+    const result = await rsvpService.respondToRsvp(1, 'ABC123', 'CONFIRMED', 2, 'Nos vemos!');
     expect(result.status).toBe('CONFIRMED');
     expect(result.confirmedTickets).toBe(2);
   });
@@ -140,7 +140,7 @@ describe('rsvpService.respondToRsvp', () => {
       return fn(tx);
     });
 
-    await rsvpService.respondToRsvp('ABC123', 'CONFIRMED', 1, undefined, [
+    await rsvpService.respondToRsvp(1, 'ABC123', 'CONFIRMED', 1, undefined, [
       { fieldId: 1, value: 'vegetariano' },
       { fieldId: 2, value: 'true' },
     ]);
@@ -168,7 +168,7 @@ describe('rsvpService.respondToRsvp', () => {
       return fn(tx);
     });
 
-    await rsvpService.respondToRsvp('ABC123', 'CONFIRMED', 1);
+    await rsvpService.respondToRsvp(1, 'ABC123', 'CONFIRMED', 1);
     expect(upsertMock).not.toHaveBeenCalled();
   });
 
@@ -190,7 +190,7 @@ describe('rsvpService.respondToRsvp', () => {
       return fn(tx);
     });
 
-    await rsvpService.respondToRsvp('ABC123', 'REJECTED');
+    await rsvpService.respondToRsvp(1, 'ABC123', 'REJECTED');
     expect(capturedData.confirmedTickets).toBe(0);
   });
 });

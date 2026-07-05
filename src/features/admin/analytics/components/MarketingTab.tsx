@@ -369,7 +369,6 @@ export function MarketingTab() {
                   {campaign.type === 1 && (
                     <>
                       <li>Listas prediseñadas (6+ colecciones)</li>
-                      <li>Invitaciones digitales</li>
                       <li>Gestión de RSVPs</li>
                       <li>Estadísticas en tiempo real</li>
                     </>

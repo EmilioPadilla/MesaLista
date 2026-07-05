@@ -91,7 +91,7 @@ describe('rsvpController.respondToRsvp', () => {
   });
 
   it('returns 400 when status is invalid', async () => {
-    const req = mockReq({ params: { secretCode: 'ABC' }, body: { status: 'MAYBE' } });
+    const req = mockReq({ params: { secretCode: 'ABC' }, body: { giftListId: 10, status: 'MAYBE' } });
     const res = mockRes();
     await rsvpController.respondToRsvp(req, res);
     expect(res._status).toBe(400);
@@ -104,7 +104,7 @@ describe('rsvpController.respondToRsvp', () => {
 
     const req = mockReq({
       params: { secretCode: 'ABC123' },
-      body: { status: 'CONFIRMED', confirmedTickets: 2, guestMessage: 'Hola' },
+      body: { giftListId: 10, status: 'CONFIRMED', confirmedTickets: 2, guestMessage: 'Hola' },
     });
     const res = mockRes();
     await rsvpController.respondToRsvp(req, res);
@@ -112,7 +112,7 @@ describe('rsvpController.respondToRsvp', () => {
     expect(res._json.success).toBe(true);
     expect(res._json.data).toEqual(invitee);
     expect(mockService.respondToRsvp).toHaveBeenCalledWith(
-      'ABC123', 'CONFIRMED', 2, 'Hola', undefined,
+      10, 'ABC123', 'CONFIRMED', 2, 'Hola', undefined,
     );
   });
 
@@ -122,13 +122,13 @@ describe('rsvpController.respondToRsvp', () => {
     const cfr = [{ fieldId: 1, value: 'veg' }];
     const req = mockReq({
       params: { secretCode: 'ABC123' },
-      body: { status: 'CONFIRMED', confirmedTickets: 1, customFieldResponses: cfr },
+      body: { giftListId: 10, status: 'CONFIRMED', confirmedTickets: 1, customFieldResponses: cfr },
     });
     const res = mockRes();
     await rsvpController.respondToRsvp(req, res);
 
     expect(mockService.respondToRsvp).toHaveBeenCalledWith(
-      'ABC123', 'CONFIRMED', 1, undefined, cfr,
+      10, 'ABC123', 'CONFIRMED', 1, undefined, cfr,
     );
   });
 
@@ -137,7 +137,7 @@ describe('rsvpController.respondToRsvp', () => {
 
     const req = mockReq({
       params: { secretCode: 'ABC123' },
-      body: { status: 'CONFIRMED', confirmedTickets: 1 },
+      body: { giftListId: 10, status: 'CONFIRMED', confirmedTickets: 1 },
     });
     const res = mockRes();
     await rsvpController.respondToRsvp(req, res);

@@ -54,7 +54,15 @@ export const rsvpController = {
         });
       }
 
-      const invitee = await rsvpService.getInviteeBySecretCode(secretCode);
+      const giftListId = Number(req.query.giftListId);
+      if (!giftListId || Number.isNaN(giftListId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'giftListId requerido',
+        });
+      }
+
+      const invitee = await rsvpService.getInviteeBySecretCode(giftListId, secretCode);
 
       if (!invitee) {
         return res.status(404).json({
@@ -89,7 +97,16 @@ export const rsvpController = {
         });
       }
 
-      const invitee = await rsvpService.getInviteeBySecretCode(secretCode as string);
+      const giftListId = Number(req.query.giftListId);
+      if (!giftListId || Number.isNaN(giftListId)) {
+        return res.status(400).json({
+          success: false,
+          valid: false,
+          message: 'giftListId requerido',
+        });
+      }
+
+      const invitee = await rsvpService.getInviteeBySecretCode(giftListId, secretCode as string);
 
       res.json({
         success: true,
@@ -410,12 +427,20 @@ export const rsvpController = {
       if (Array.isArray(secretCode)) {
         return res.status(400).json({ message: 'Invalid secret code' });
       }
-      const { status, confirmedTickets, guestMessage, customFieldResponses } = req.body;
+      const { status, confirmedTickets, guestMessage, customFieldResponses, giftListId: giftListIdRaw } = req.body;
 
       if (!secretCode || !status) {
         return res.status(400).json({
           success: false,
           message: 'Código secreto y estado son requeridos',
+        });
+      }
+
+      const giftListId = Number(giftListIdRaw);
+      if (!giftListId || Number.isNaN(giftListId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'giftListId requerido',
         });
       }
 
@@ -426,7 +451,7 @@ export const rsvpController = {
         });
       }
 
-      const invitee = await rsvpService.respondToRsvp(secretCode, status, confirmedTickets, guestMessage, customFieldResponses);
+      const invitee = await rsvpService.respondToRsvp(giftListId, secretCode, status, confirmedTickets, guestMessage, customFieldResponses);
 
       res.json({
         success: true,

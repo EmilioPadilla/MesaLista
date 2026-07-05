@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Heart,
   Gift,
@@ -21,6 +21,7 @@ import {
   Palette,
   Home,
   Lock,
+  ChevronDown,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
@@ -28,6 +29,7 @@ import { useGetUserBySlug, useIsAuthenticated } from 'hooks/useUser';
 import { OutletContextType } from './guest/PublicRegistry';
 import { useGiftListsByUser, useGiftListBySlug } from 'hooks/useGiftList';
 import { usePredesignedLists } from 'hooks/usePredesignedList';
+import { faqs } from 'src/config/constants';
 import { Badge, Button, Card, Skeleton } from 'antd';
 import { Footer } from '../modules/navigation/Footer';
 import { PageSEO } from 'src/components/seo';
@@ -52,6 +54,8 @@ export const HomePage = () => {
   const { data: isAuthenticated = false } = useIsAuthenticated();
   const { data: predesignedLists, isLoading: isLoadingPredesignedLists } = usePredesignedLists();
   const navigate = useNavigate();
+
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const hasMultipleLists = (giftLists?.length || 0) > 1;
 
@@ -210,8 +214,8 @@ export const HomePage = () => {
             <p className="text-gray-600">
               {coupleName
                 ? `${coupleName} ya no está recibiendo regalos a través de esta mesa.`
-                : 'Esta mesa de regalos ya no está recibiendo regalos.'}
-              {' '}Puedes explorar otras mesas activas en nuestro buscador.
+                : 'Esta mesa de regalos ya no está recibiendo regalos.'}{' '}
+              Puedes explorar otras mesas activas en nuestro buscador.
             </p>
           </div>
           <Button size="large" type="primary" onClick={() => navigate('/buscar')}>
@@ -440,19 +444,19 @@ export const HomePage = () => {
                 title: 'Pagos seguros',
                 description: 'Stripe y PayPal integrados para transacciones completamente seguras.',
                 icon: Shield,
-                image: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/Imagenes%20Webpage%20MesaLista%20-%201.PNG',
+                image: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/Pagos_seguros.png',
               },
               {
                 title: 'Estadísticas completas',
                 description: 'Analiza tu mesa en tiempo real con análisis detallados y reportes comprensivos.',
                 icon: Sparkles,
-                image: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/Imagenes%20Webpage%20MesaLista%20-%202.png',
+                image: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/Estadisticas.png',
               },
               {
                 title: 'Soporte dedicado',
                 description: 'Preguntas frecuentes detalladas y soporte personalizado cuando lo necesites.',
                 icon: CheckCircle,
-                image: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/Imagenes%20Webpage%20MesaLista%20-%203.png',
+                image: 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/uploads/soporte.png',
               },
             ].map((feature, index) => (
               <motion.div
@@ -564,7 +568,7 @@ export const HomePage = () => {
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h3 className="text-white text-2xl font-semibold mb-1">Panel RSVP</h3>
-                      <p className="text-white/80 text-sm">María y Carlos</p>
+                      <p className="text-white/80 text-sm">Ana y Fernando</p>
                     </div>
                     <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
                       <Calendar className="h-6 w-6 text-white" />
@@ -707,7 +711,7 @@ export const HomePage = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}>
           <blockquote className="text-3xl md:text-4xl font-light text-foreground mb-12 leading-relaxed tracking-tight">
-            "MesaLista transformó completamente nuestra experiencia de boda. Elegante, simple y perfecto."
+            "Gracias a MesaLista logramos irnos a nuestra luna de miel soñada."
           </blockquote>
 
           <div className="flex items-center justify-center space-x-4">
@@ -715,8 +719,8 @@ export const HomePage = () => {
               <Heart className="h-8 w-8 text-[#d4704a]" />
             </div>
             <div className="text-left">
-              <p className="text-lg font-medium text-foreground">María y Carlos</p>
-              <p className="text-muted-foreground">Ciudad de México, 2025</p>
+              <p className="text-lg font-medium text-foreground">Ana y Fernando</p>
+              <p className="text-muted-foreground">Guadalajara, Marzo 2026</p>
             </div>
           </div>
         </motion.div>
@@ -943,6 +947,72 @@ export const HomePage = () => {
               </div>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="bg-[#f5f5f7] py-32 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}>
+            <Badge className="mb-6! bg-primary/10! text-primary! border-primary/20! px-6! py-2! text-sm! rounded-lg">Dudas</Badge>
+            <h2 className="text-5xl md:text-6xl font-semibold text-foreground mb-6 tracking-tight">Preguntas frecuentes.</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
+              Todo lo que necesitas saber sobre MesaLista. ¿No encuentras tu respuesta?{' '}
+              <a href="mailto:info@mesalista.com" className="text-primary hover:underline">
+                Escríbenos
+              </a>
+              .
+            </p>
+          </motion.div>
+
+          <div className="space-y-4">
+            {faqs.map((faq, index) => {
+              const isOpen = openFaq === index;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: Math.min(index, 6) * 0.05 }}
+                  viewport={{ once: true }}>
+                  <div
+                    className={`bg-white rounded-2xl border overflow-hidden transition-all duration-300 ${
+                      isOpen ? 'border-primary/30 shadow-lg' : 'border-border/20 shadow-sm hover:shadow-md'
+                    }`}>
+                    <button
+                      onClick={() => setOpenFaq(isOpen ? null : index)}
+                      aria-expanded={isOpen}
+                      className="w-full flex items-center justify-between gap-4 p-6 text-left group">
+                      <h3
+                        className={`text-lg font-medium tracking-tight transition-colors ${
+                          isOpen ? 'text-primary' : 'text-foreground group-hover:text-primary'
+                        }`}>
+                        {faq.question}
+                      </h3>
+                      <div
+                        className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+                          isOpen ? 'bg-primary text-white rotate-180' : 'bg-[#f5f5f7] text-foreground group-hover:bg-primary/10'
+                        }`}>
+                        <ChevronDown className="h-5 w-5" />
+                      </div>
+                    </button>
+                    <motion.div
+                      initial={false}
+                      animate={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
+                      transition={{ duration: 0.35, ease: 'easeInOut' }}
+                      className="overflow-hidden">
+                      <p className="px-6 pb-6 text-muted-foreground leading-relaxed font-light">{faq.answer}</p>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </section>
 

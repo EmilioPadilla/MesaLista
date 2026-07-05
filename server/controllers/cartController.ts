@@ -323,7 +323,7 @@ export default {
 
       const existingCart = await prisma.cart.findUnique({
         where: { id: Number(cartId) },
-        select: { sessionId: true, status: true },
+        select: { sessionId: true, status: true, giftListId: true },
       });
 
       if (!existingCart) {
@@ -340,16 +340,21 @@ export default {
         return res.status(409).json({ error: 'No se puede modificar un carrito que ya fue pagado' });
       }
 
-      // Validate RSVP code if provided (only save if valid due to foreign key constraint)
+      // Validate RSVP code if provided. Secret codes are only unique within a gift
+      // list, so we resolve the invitee scoped to this cart's gift list and link the
+      // cart by invitee id (the foreign key). rsvpCode is kept as the raw entry.
       let validatedRsvpCode: string | null = null;
-      if (rsvpCode && rsvpCode.trim()) {
+      let validatedInviteeId: string | null = null;
+      if (rsvpCode && rsvpCode.trim() && existingCart.giftListId) {
+        const normalizedCode = rsvpCode.trim().toUpperCase();
         const invitee = await prisma.invitee.findUnique({
-          where: { secretCode: rsvpCode.trim() },
+          where: { giftListId_secretCode: { giftListId: existingCart.giftListId, secretCode: normalizedCode } },
         });
 
-        // Only set the code if it exists (foreign key constraint requires it)
+        // Only link the cart if the invitee exists in this gift list
         if (invitee) {
-          validatedRsvpCode = rsvpCode.trim();
+          validatedRsvpCode = normalizedCode;
+          validatedInviteeId = invitee.id;
         }
         // If invalid, we silently ignore it (frontend already warned the user)
       }
@@ -364,6 +369,7 @@ export default {
           message,
           country,
           rsvpCode: validatedRsvpCode,
+          inviteeId: validatedInviteeId,
         },
         include: {
           items: {

@@ -18,6 +18,19 @@ import { discountCodeService } from '../services/discountCodeService.js';
 
 const getDefaultEventDate = () => new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);
 
+// Use the couple's chosen event date when it parses to a valid date, otherwise
+// fall back to the default (six months out). Keeps a bad/absent value from
+// throwing when Prisma coerces it.
+const resolveEventDate = (raw?: string | null): Date => {
+  if (raw) {
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+  return getDefaultEventDate();
+};
+
 const buildCoupleName = (firstName: string, lastName: string, spouseFirstName?: string | null) => {
   return spouseFirstName ? `${firstName} y ${spouseFirstName}` : `${firstName} ${lastName}`;
 };
@@ -165,8 +178,8 @@ export const userController = {
   },
 
   signupCommission: async (req: Request, res: Response) => {
-    const { email, firstName, lastName, spouseFirstName, spouseLastName, password, phoneNumber, slug, discountCode } =
-      req.body as UserCreateRequest & { discountCode?: string };
+    const { email, firstName, lastName, spouseFirstName, spouseLastName, password, phoneNumber, slug, discountCode, eventDate } =
+      req.body as UserCreateRequest & { discountCode?: string; eventDate?: string };
 
     if (!email || !password || !firstName || !lastName || !phoneNumber || !slug) {
       return res.status(400).json({ error: 'Email, password, first name, last name, phone number, and slug are required' });
@@ -225,7 +238,7 @@ export const userController = {
             title: `Mesa de Regalos de ${coupleName}`,
             description: '',
             coupleName,
-            eventDate: getDefaultEventDate(),
+            eventDate: resolveEventDate(eventDate),
             planType: 'COMMISSION',
             isActive: true,
             invitationCount: 0,

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Checkbox, message, Form, Input, Radio, Spin } from 'antd';
+import { Checkbox, message, Form, Input, Radio, Spin, DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import { Button } from 'components/core/Button';
-import { Mail, Lock, ArrowLeft, Phone, Edit3, ArrowRight, Check, CreditCard, TrendingUp, Zap, ShieldCheck, Tag } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, Phone, Edit3, ArrowRight, Check, CreditCard, TrendingUp, Zap, ShieldCheck, Tag, Calendar } from 'lucide-react';
 import { userService } from 'services/user.service';
 import { useIsAuthenticated, useCheckSlugAvailability, useSignupCommission } from 'hooks/useUser';
 import { useSendVerificationCode, useVerifyCode } from 'hooks/useEmailVerification';
@@ -131,6 +132,10 @@ function Signup() {
   const handlePaymentOrCreateAccount = async (values: any) => {
     setIsLoading(true);
 
+    // The DatePicker stores a dayjs value on the form; serialize it to an ISO
+    // string for the API. Falls back to undefined so the backend keeps its default.
+    const eventDate = values.eventDate ? dayjs(values.eventDate).toISOString() : undefined;
+
     try {
       // If fixed plan, redirect to payment FIRST
       if (selectedPlan === 'fixed') {
@@ -147,6 +152,7 @@ function Signup() {
           slug: slug,
           successUrl: `${baseUrl}/registro-exitoso?session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${baseUrl}/registro?step=payment&cancelled=true`,
+          ...(eventDate && { eventDate }),
           ...(discountCode && discountCodeValid && { discountCode }),
         });
 
@@ -167,6 +173,7 @@ function Signup() {
           phoneNumber: values.phone,
           slug: slug,
           role: 'COUPLE',
+          ...(eventDate && { eventDate }),
           ...(discountCode && discountCodeValid && { discountCode }),
         });
 
@@ -551,6 +558,20 @@ function Signup() {
                     />
                   </Form.Item>
 
+                  <Form.Item
+                    name="eventDate"
+                    label={<label className="text-sm">Fecha del evento</label>}
+                    rules={[{ required: true, message: 'La fecha del evento es requerida' }]}>
+                    <DatePicker
+                      className="h-12 w-full rounded-xl border border-border!"
+                      format="DD MMM YYYY"
+                      placeholder="Selecciona la fecha"
+                      suffixIcon={<Calendar className="h-4 w-4 text-muted-foreground" />}
+                      inputReadOnly
+                      disabledDate={(current) => !!current && current < dayjs().startOf('day')}
+                    />
+                  </Form.Item>
+
                   <Form.Item name="discountCode" label={<label className="text-sm">Código de descuento (opcional)</label>}>
                     <div>
                       <div className="relative">
@@ -829,7 +850,8 @@ function Signup() {
                             )}
                             <ul className="text-sm text-muted-foreground mt-2 space-y-1">
                               <li>• 1 Mesa de regalos ilimitada</li>
-                              <li>• Sin comisiones por ventas</li>
+                              <li>• Sin comisiones por regalos</li>
+                              <li>• Gestión de RSVP</li>
                               <li>• Soporte al cliente</li>
                               <li>• Listas de regalos inspiradas por nosotros</li>
                             </ul>
@@ -864,7 +886,7 @@ function Signup() {
                             <ul className="text-sm text-muted-foreground mt-2 space-y-1">
                               <li>• 1 Mesa de regalos ilimitada</li>
                               <li>• Sin costo inicial</li>
-                              <li>• Perfecto para comenzar</li>
+                              <li>• Gestión de RSVP</li>
                               <li>• Soporte al cliente</li>
                               <li>• Listas de regalos inspiradas por nosotros</li>
                             </ul>

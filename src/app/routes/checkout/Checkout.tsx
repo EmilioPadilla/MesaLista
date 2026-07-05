@@ -47,10 +47,14 @@ export function Checkout() {
   const [debouncedRsvpCode, setDebouncedRsvpCode] = useState('');
 
   // Use the validation hook with debounced code
-  const { data: validationResult, isLoading: isValidating } = useValidateRsvpCode(debouncedRsvpCode, !!debouncedRsvpCode.trim());
+  const { data: validationResult, isLoading: isValidating } = useValidateRsvpCode(
+    debouncedRsvpCode,
+    giftList?.id ?? 0,
+    !!debouncedRsvpCode.trim() && !!giftList?.id,
+  );
 
   // Get full invitee data when code is valid
-  const { data: inviteeData } = useInviteeByCode(debouncedRsvpCode, validationResult?.valid === true);
+  const { data: inviteeData } = useInviteeByCode(debouncedRsvpCode, giftList?.id ?? 0, validationResult?.valid === true);
 
   // Scroll to top when component loads
   useEffect(() => {

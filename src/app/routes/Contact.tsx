@@ -319,7 +319,7 @@ export function Contact() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-4xl mb-6 text-foreground">¿Listo para crear tu lista perfecta?</h2>
           <p className="text-xl text-muted-foreground mb-8">
-            Únete a miles de parejas que ya han hecho realidad la boda de sus sueños con MesaLista.
+            Únete a decenas de parejas que ya han hecho realidad el evento de sus sueños con MesaLista.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button type="primary" onClick={() => navigate('/registro')} className="rounded-full px-8 py-4 text-lg">

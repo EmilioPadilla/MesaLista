@@ -1,11 +1,19 @@
-// Guests pay: Helper function to calculate gross amount from net amount with fees
+// Guests pay: given the net amount the couple wants to receive, calculate the
+// gross amount to charge the guest so that after Stripe takes its cut the couple
+// nets exactly `net`.
+//
+// Stripe charges its fee on the amount actually charged (the gross), not on the
+// net, so we must invert:
+//   net = gross - (percent * gross + fixed) * (1 + tax)
+// Solving for gross:
+//   gross = (net + fixed * (1 + tax)) / (1 - percent * (1 + tax))
 function grossUp({ net, percent, fixed, tax }: { net: number; percent: number; fixed: number; tax: number }) {
   const gross = (net + fixed * (1 + tax)) / (1 - percent * (1 + tax));
 
   return Math.round(gross * 100) / 100;
 }
 
-// Mexico stripe fees
+// Mexico stripe fees: 3.6% + $3 MXN fixed, plus 16% IVA charged on the fee
 export const stripeMexico = (net: number) => grossUp({ net, percent: 0.036, fixed: 3, tax: 0.16 });
 
 // Mexico paypal fees

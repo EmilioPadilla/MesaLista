@@ -40,6 +40,18 @@ let tokenExpiry: number = 0;
 
 const getDefaultEventDate = () => new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);
 
+// Use the couple's chosen event date when it parses to a valid date, otherwise
+// fall back to the default (six months out).
+const resolveEventDate = (raw?: string | null): Date => {
+  if (raw) {
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+  return getDefaultEventDate();
+};
+
 // Run an email-sending function and stamp the outcome on the Payment row. Webhook
 // handlers call this so a Postmark glitch is observable via Payment.emailDeliveryStatus
 // (= 'FAILED') and retryable via server/scripts/retryFailedEmails.ts, instead of being
@@ -211,7 +223,7 @@ const provisionFixedPlanSignupFromMetadata = async ({
       title: `Mesa de Regalos de ${coupleName}`,
       description: '',
       coupleName,
-      eventDate: getDefaultEventDate(),
+      eventDate: resolveEventDate(metadata.eventDate),
       planType: 'FIXED',
       isActive: true,
       invitationCount: 0,
@@ -988,6 +1000,7 @@ export default {
         successUrl,
         cancelUrl,
         discountCode,
+        eventDate,
       } = req.body;
 
       if (!planType || !email || !password || !firstName || !lastName || !phoneNumber || !slug) {
@@ -1071,6 +1084,7 @@ export default {
           spouseLastName: spouseLastName || '',
           phoneNumber,
           slug,
+          ...(eventDate && { eventDate }),
           ...(validatedDiscountCode && {
             discountCodeId: validatedDiscountCode.id.toString(),
             discountCode: validatedDiscountCode.code,
