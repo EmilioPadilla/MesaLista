@@ -4,8 +4,6 @@
   "version": "1.0.0",
   "dependencies": {
     "@expo/ui": "~0.2.0-beta.9",
-    "@mesalista/shared": "*",
-    "@mesalista/types": "*",
     "@tanstack/react-query": "^5.101.1",
     "babel-preset-expo": "~54.0.10",
     "clsx": "^2.1.1",
@@ -50,7 +48,12 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "postinstall": "node ./scripts/link-shared.js",
+    "link:shared": "node ./scripts/link-shared.js",
+    "prep:eas": "node ./scripts/prep-eas-build.js",
+    "build:ios": "npm run prep:eas && npx eas build --platform ios --profile production",
+    "build:ios:preview": "npm run prep:eas && npx eas build --platform ios --profile preview"
   },
   "private": true
 }

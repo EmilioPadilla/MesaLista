@@ -4,9 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "workspaces": [
-    "packages/*",
-    "types",
-    "mobile"
+    "packages/*"
   ],
   "engines": {
     "node": "22.x"

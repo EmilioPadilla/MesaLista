@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+# EAS build vendoring — populated by scripts/prep-eas-build.js right before `eas build`
+_vendor/
+
 # Expo
 .expo/
 dist/
