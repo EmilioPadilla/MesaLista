@@ -3,7 +3,6 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
-    "@expo/ui": "~0.2.0-beta.9",
     "@tanstack/react-query": "^5.101.1",
     "babel-preset-expo": "~54.0.10",
     "clsx": "^2.1.1",
@@ -52,8 +51,11 @@
     "postinstall": "node ./scripts/link-shared.js",
     "link:shared": "node ./scripts/link-shared.js",
     "prep:eas": "node ./scripts/prep-eas-build.js",
-    "build:ios": "npm run prep:eas && npx eas build --platform ios --profile production",
-    "build:ios:preview": "npm run prep:eas && npx eas build --platform ios --profile preview"
+    "lint:shared": "npm --prefix .. run lint:shared",
+    "verify:bundle": "expo export --platform ios --output-dir .expo/bundle-check",
+    "verify:eas": "npm run lint:shared && npm run verify:bundle",
+    "build:ios": "npm run verify:eas && npm run prep:eas && npx eas build --platform ios --profile production",
+    "build:ios:preview": "npm run verify:eas && npm run prep:eas && npx eas build --platform ios --profile preview"
   },
   "private": true
 }

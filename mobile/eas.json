@@ -15,10 +15,18 @@
       "distribution": "internal",
       "ios": {
         "simulator": false
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://www.mesalista.com.mx/api",
+        "EXPO_PUBLIC_WEB_URL": "https://mesalista.com.mx"
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://www.mesalista.com.mx/api",
+        "EXPO_PUBLIC_WEB_URL": "https://mesalista.com.mx"
+      }
     }
   },
   "submit": {
