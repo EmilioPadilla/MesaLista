@@ -1,5 +1,5 @@
 import { truncate } from 'lodash-es';
-import { acceptedImageTypes, maxFileSize } from 'config/files';
+import { acceptedImageTypes, maxFileSize } from '../config/files';
 
 /**
  * Recursively processes dropped items (files and directories) and extracts all files

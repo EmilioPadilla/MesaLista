@@ -5,7 +5,7 @@ import emailService, {
   VerifyCodeRequest,
   VerifyCodeResponse,
   CheckVerificationStatusResponse,
-} from 'services/email.service';
+} from '../services/email.service';
 
 /**
  * Hook to send verification code to email

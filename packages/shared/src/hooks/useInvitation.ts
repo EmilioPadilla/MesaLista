@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
-import { invitationService } from 'src/services/invitation.service';
+import { invitationService } from '../services/invitation.service';
 import type { CreateInvitationRequest, UpdateInvitationRequest, InvitationResponse } from 'types/api/invitation';
 
 export const queryKeys = {

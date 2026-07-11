@@ -76,6 +76,42 @@ export default [
 
   ...storybook.configs['flat/recommended'],
 
+  // @mesalista/shared spine: forbid bare intra-package alias imports.
+  // Aliases like `services/x` / `config/x` are rewritten to
+  // `@mesalista/shared/src/services/x` by the MOBILE app's Babel/Metro config,
+  // so they resolve on a dev Mac but NOT on the case-sensitive EAS build server
+  // (the "Unable to resolve module @mesalista/shared/src/..." bundle failure).
+  // Inside this package, always import siblings relatively (e.g. ../services/x).
+  // Cross-package `types/*` (-> @mesalista/types) is intentionally allowed.
+  {
+    files: ['packages/shared/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                'services/*',
+                'hooks/*',
+                'utils/*',
+                'config/*',
+                'platform/*',
+                'src/services/*',
+                'src/hooks/*',
+                'src/utils/*',
+                'src/config/*',
+                'src/platform/*',
+              ],
+              message:
+                'Inside @mesalista/shared, import sibling modules relatively (e.g. ../services/x). Bare aliases resolve only via the mobile app Babel/Metro config and break the EAS "Bundle JavaScript" phase.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // Prettier Config (Must be last)
   prettier,
 ];

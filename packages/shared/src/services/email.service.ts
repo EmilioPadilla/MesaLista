@@ -1,4 +1,4 @@
-import { MarketingEmailType } from 'src/config/marketingEmailTemplates';
+import { MarketingEmailType } from '../config/marketingEmailTemplates';
 import apiClient from './client';
 import { emailEndpoints, emailVerificationEndpoints } from './email.endpoints';
 

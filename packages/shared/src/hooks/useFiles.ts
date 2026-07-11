@@ -1,5 +1,5 @@
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
-import { fileService } from 'services/files.service';
+import { fileService } from '../services/files.service';
 
 /**
  * Hook to fetch the current user's cart

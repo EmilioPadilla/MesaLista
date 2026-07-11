@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import usersListsAnalyticsService, { UserAnalytics, WeddingListAnalytics, UsersListsSummary } from 'services/usersListsAnalytics.service';
+import usersListsAnalyticsService, { UserAnalytics, WeddingListAnalytics, UsersListsSummary } from '../services/usersListsAnalytics.service';
 
 /**
  * Hook to fetch users/lists analytics summary

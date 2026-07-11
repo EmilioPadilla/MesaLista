@@ -9,7 +9,7 @@ import emailService, {
   CommissionUsersResponse,
   EmailPreviewResponse,
 } from '../services/email.service';
-import { MarketingEmailType } from 'src/config/marketingEmailTemplates';
+import { MarketingEmailType } from '../config/marketingEmailTemplates';
 
 /**
  * Hook to resend payment confirmation emails to both admin and invitee
