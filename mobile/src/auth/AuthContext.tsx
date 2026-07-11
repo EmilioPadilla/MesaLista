@@ -44,8 +44,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await userService.logout();
     } finally {
       await tokenStore.clear();
-      queryClient.removeQueries({ queryKey: [queryKeys.currentUser] });
+      // Drop any in-flight requests first so a late /users/me response can't
+      // land after we seed the logged-out state and resurrect the session.
+      await queryClient.cancelQueries();
       queryClient.clear();
+      // Seed a definitive logged-out state. If we only removed the query, the
+      // active useCurrentUser observer would immediately refetch /users/me,
+      // flipping isLoading back to true and making the (app) guard render its
+      // spinner instead of redirecting to /login (swallowing the navigation).
+      // Writing null keeps isAuthenticated false and isLoading false, so the
+      // guard redirects cleanly.
+      queryClient.setQueryData([queryKeys.currentUser], null);
     }
   }, [queryClient]);
 
