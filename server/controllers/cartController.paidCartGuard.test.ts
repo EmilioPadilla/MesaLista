@@ -289,7 +289,7 @@ describe('cartController.updateCartDetails — sessionId binding (#5)', () => {
   });
 
   it('silently drops an unknown rsvpCode (foreign-key safety) but still updates other fields', async () => {
-    cartFindUnique.mockResolvedValue({ sessionId: REAL_SESSION, status: 'PENDING' });
+    cartFindUnique.mockResolvedValue({ sessionId: REAL_SESSION, status: 'PENDING', giftListId: 7 });
     inviteeFindUnique.mockResolvedValue(null); // no matching invitee
     cartUpdate.mockResolvedValue({ id: CART_ID, items: [] });
 
@@ -310,8 +310,8 @@ describe('cartController.updateCartDetails — sessionId binding (#5)', () => {
   });
 
   it('accepts a valid rsvpCode and writes it to the cart', async () => {
-    cartFindUnique.mockResolvedValue({ sessionId: REAL_SESSION, status: 'PENDING' });
-    inviteeFindUnique.mockResolvedValue({ secretCode: 'VALID-CODE' });
+    cartFindUnique.mockResolvedValue({ sessionId: REAL_SESSION, status: 'PENDING', giftListId: 7 });
+    inviteeFindUnique.mockResolvedValue({ id: 'inv-1', secretCode: 'VALID-CODE' });
     cartUpdate.mockResolvedValue({ id: CART_ID, items: [] });
 
     const req: any = {
@@ -321,8 +321,12 @@ describe('cartController.updateCartDetails — sessionId binding (#5)', () => {
     const res = makeRes();
     await cartController.updateCartDetails(req, res);
 
+    expect(inviteeFindUnique).toHaveBeenCalledWith({
+      where: { giftListId_secretCode: { giftListId: 7, secretCode: 'VALID-CODE' } },
+    });
     const callData = cartUpdate.mock.calls[0][0].data;
     expect(callData.rsvpCode).toBe('VALID-CODE');
+    expect(callData.inviteeId).toBe('inv-1');
   });
 });
 
