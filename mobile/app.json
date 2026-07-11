@@ -13,7 +13,8 @@
       "buildNumber": "1",
       "supportsTablet": true,
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "MesaLista needs access to your photo library so you can add photos to your gifts and registry."
+        "NSPhotoLibraryUsageDescription": "MesaLista needs access to your photo library so you can add photos to your gifts and registry.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {

@@ -1,0 +1,50 @@
+# EAS upload ignore list. When present, EAS uses THIS instead of .gitignore to
+# decide what to upload. It mirrors .gitignore EXCEPT it does NOT ignore
+# _vendor/ — that folder holds the vendored @mesalista/* spine that
+# scripts/prep-eas-build.js copies in, and it MUST be uploaded so Metro can
+# resolve @mesalista/* on the build server (otherwise the Bundle JavaScript
+# phase fails). See scripts/prep-eas-build.js and scripts/link-shared.js.
+
+# dependencies
+node_modules/
+
+# NOTE: _vendor/ is intentionally NOT ignored here (unlike .gitignore).
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+example
+
+# generated native folders
+/ios
+/android
