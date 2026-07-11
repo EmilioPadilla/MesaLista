@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt';
 import emailService from '../services/emailService.js';
 import { discountCodeService } from '../services/discountCodeService.js';
 import { createSessionAndSetCookie } from '../middleware/auth.js';
-import { reconcileStripeFee, reconcilePayPalFee } from '../lib/paymentFees.js';
+import { reconcileStripeFee, reconcilePayPalFee, stripeMexicoGross, paypalMexicoGross } from '../lib/paymentFees.js';
 
 const prisma = new PrismaClient();
 
@@ -317,18 +317,12 @@ export default {
 
       // Get fee preference from gift list (default to 'couple' if not set)
       const feePreference = cart.giftList?.feePreference || 'couple';
-      const STRIPE_FEE_PERCENT = 0.036;
-      const STRIPE_FEE_FIXED = 3;
 
-      // Create line items for Stripe
+      // Create line items for Stripe. Gifts are always listed at face price;
+      // when the guest pays fees, the gross-up is added as its own line item so
+      // the Stripe total matches the subtotal + comisión shown in the app.
       const lineItems = cart.items.map((item: any) => {
-        let price = item.price || item.gift.price;
-
-        // If guest pays fees, add Stripe fees to the price
-        if (feePreference === 'guest') {
-          const stripeFee = price * STRIPE_FEE_PERCENT + STRIPE_FEE_FIXED;
-          price = price + stripeFee;
-        }
+        const price = item.price || item.gift.price;
 
         const productData: any = {
           name: item.gift.title,
@@ -358,6 +352,24 @@ export default {
           quantity: item.quantity,
         };
       });
+
+      if (feePreference === 'guest') {
+        const cartTotal = cart.items.reduce(
+          (sum: number, item: any) => sum + (item.price || item.gift.price) * item.quantity,
+          0,
+        );
+        const guestFee = stripeMexicoGross(cartTotal) - cartTotal;
+        if (guestFee > 0) {
+          lineItems.push({
+            price_data: {
+              currency: 'mxn',
+              product_data: { name: 'Comisión por procesamiento' },
+              unit_amount: Math.round(guestFee * 100),
+            },
+            quantity: 1,
+          });
+        }
+      }
 
       // Create Stripe checkout session
       const session = await stripe.checkout.sessions.create({
@@ -722,8 +734,6 @@ export default {
 
       // Get fee preference from gift list (default to 'couple' if not set)
       const feePreference = cart.giftList?.feePreference || 'couple';
-      const PAYPAL_FEE_PERCENT = 0.0399;
-      const PAYPAL_FEE_FIXED = 4;
 
       // Calculate total amount
       let totalAmount = cart.items.reduce((sum: number, item: any) => {
@@ -731,10 +741,9 @@ export default {
         return sum + price * item.quantity;
       }, 0);
 
-      // If guest pays fees, add PayPal fees to the total
+      // If guest pays fees, gross up the total (same formula the app displays)
       if (feePreference === 'guest') {
-        const paypalFee = totalAmount * PAYPAL_FEE_PERCENT + PAYPAL_FEE_FIXED;
-        totalAmount = totalAmount + paypalFee;
+        totalAmount = paypalMexicoGross(totalAmount);
       }
 
       // Create PayPal order

@@ -1,5 +1,22 @@
 import type Stripe from 'stripe';
 
+/**
+ * Gross-up used when the guest pays processing fees: the charged amount is
+ * inflated so the couple nets the cart subtotal after the processor takes its
+ * percent + fixed fee + 16% IVA on that fee.
+ *
+ * Must stay in sync with packages/shared/src/utils/feeUtils.ts, which is what
+ * the web and mobile checkouts use to display the fee to the guest.
+ */
+function grossUp({ net, percent, fixed, tax }: { net: number; percent: number; fixed: number; tax: number }) {
+  const gross = (net + fixed * (1 + tax)) / (1 - percent * (1 + tax));
+  return Math.round(gross * 100) / 100;
+}
+
+export const stripeMexicoGross = (net: number) => grossUp({ net, percent: 0.036, fixed: 3, tax: 0.16 });
+
+export const paypalMexicoGross = (net: number) => grossUp({ net, percent: 0.0395, fixed: 4, tax: 0.16 });
+
 export interface ReconciledFee {
   transactionFee: number | null;
   netAmount: number | null;

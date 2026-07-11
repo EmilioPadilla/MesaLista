@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// `createCheckoutSession` builds the Stripe line items from the cart. When
-// feePreference = 'guest' it grosses up each item to absorb Stripe's 3.6% + $3 fee;
-// when feePreference = 'couple' it sends the raw price and the couple eats the fee
-// at payout time. This is exactly the surface that produced the $12.26 leak the
-// real-fee reconciliation work investigated — verify the line items still match
-// the contract.
+// `createCheckoutSession` builds the Stripe line items from the cart. Gifts are
+// always listed at face price; when feePreference = 'guest' the cart total is
+// grossed up with the same formula the web/mobile checkouts display
+// (stripeMexicoGross: 3.6% + $3 + 16% IVA, solved so the couple nets the
+// subtotal) and the difference is appended as a "Comisión por procesamiento"
+// line item. When feePreference = 'couple' the couple eats the fee at payout
+// time. Verify the line items match that contract.
 
 const cartFindUnique = vi.fn();
 const stripeCheckoutSessionsCreate = vi.fn();
@@ -84,7 +85,7 @@ describe('createCheckoutSession — guest-pays vs couple-absorbs line items', ()
     expect(args.line_items[0].price_data.unit_amount).toBe(200000);
   });
 
-  it('GUEST pays: line item unit_amount is grossed up by Stripe\'s 3.6% + $3', async () => {
+  it('GUEST pays: gift stays at face price and the gross-up fee is its own line item', async () => {
     cartFindUnique.mockResolvedValue(makeCart('guest', [{ price: 2000, quantity: 1, title: 'Toaster' }]));
 
     const req: any = { body: { cartId: 1, successUrl: 'https://x', cancelUrl: 'https://y' } };
@@ -92,14 +93,15 @@ describe('createCheckoutSession — guest-pays vs couple-absorbs line items', ()
     await paymentController.createCheckoutSession(req, res);
 
     const args = stripeCheckoutSessionsCreate.mock.calls[0][0];
-    // 2000 + (2000 * 0.036 + 3) = 2075, rounded → 207500 cents
-    // Note: this matches the formula the controller uses today. If you ever switch
-    // to a more accurate gross-up to close the real-fee leak documented in the
-    // paymentAnalyticsService tests, update this expectation explicitly.
-    expect(args.line_items[0].price_data.unit_amount).toBe(207500);
+    expect(args.line_items).toHaveLength(2);
+    expect(args.line_items[0].price_data.unit_amount).toBe(200000);
+    // stripeMexicoGross(2000) = (2000 + 3·1.16) / (1 − 0.036·1.16) = 2090.79 → fee 90.79
+    expect(args.line_items[1].price_data.product_data.name).toBe('Comisión por procesamiento');
+    expect(args.line_items[1].price_data.unit_amount).toBe(9079);
+    expect(args.line_items[1].quantity).toBe(1);
   });
 
-  it('GUEST pays: gross-up is applied per-item (not on the cart total)', async () => {
+  it('GUEST pays: gross-up is applied once on the cart total (single fee line item)', async () => {
     cartFindUnique.mockResolvedValue(
       makeCart('guest', [
         { price: 1000, quantity: 1, title: 'A' },
@@ -112,10 +114,11 @@ describe('createCheckoutSession — guest-pays vs couple-absorbs line items', ()
     await paymentController.createCheckoutSession(req, res);
 
     const args = stripeCheckoutSessionsCreate.mock.calls[0][0];
-    // A: 1000 + (1000 * 0.036 + 3) = 1039 → 103900
-    // B: 3000 + (3000 * 0.036 + 3) = 3111 → 311100
-    expect(args.line_items[0].price_data.unit_amount).toBe(103900);
-    expect(args.line_items[1].price_data.unit_amount).toBe(311100);
+    expect(args.line_items).toHaveLength(3);
+    expect(args.line_items[0].price_data.unit_amount).toBe(100000);
+    expect(args.line_items[1].price_data.unit_amount).toBe(300000);
+    // stripeMexicoGross(4000) = 4177.95 → one fee line item of 177.95
+    expect(args.line_items[2].price_data.unit_amount).toBe(17795);
   });
 
   it('defaults to "couple" feePreference when the gift list has none', async () => {
