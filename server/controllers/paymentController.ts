@@ -1399,8 +1399,9 @@ export default {
     }
 
     // Only allow app deep-link schemes to prevent this from acting as an open
-    // redirect to arbitrary http(s) destinations.
-    const allowedSchemes = ['mobile:', 'exp:', 'exps:'];
+    // redirect to arbitrary http(s) destinations. 'mesalista:' is the installed
+    // app (app.json scheme); 'exp:'/'exps:' cover Expo Go dev sessions.
+    const allowedSchemes = ['mesalista:', 'mobile:', 'exp:', 'exps:'];
     if (!allowedSchemes.includes(target.protocol)) {
       return res.status(400).send('Disallowed redirect scheme');
     }
