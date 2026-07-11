@@ -1,10 +1,21 @@
 import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, useRouter } from 'expo-router';
 
 import { useAuth } from '@/auth/AuthContext';
 import { useToast } from '@/lib/ToastProvider';
+
+const serif = Platform.select({ ios: 'Georgia', android: 'serif' });
 
 export default function LoginScreen() {
   const { login, isAuthenticated } = useAuth();
@@ -17,6 +28,11 @@ export default function LoginScreen() {
   if (isAuthenticated) {
     return <Redirect href="/(app)" />;
   }
+
+  const goBack = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/welcome');
+  };
 
   const onSubmit = async () => {
     if (!email || !password) {
@@ -36,9 +52,22 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
+      <View className="flex-row items-center px-5 pb-2 pt-3">
+        <Pressable onPress={goBack} hitSlop={8}>
+          <Text className="text-base text-oak">‹ Inicio</Text>
+        </Pressable>
+      </View>
+
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View className="flex-1 justify-center px-6">
-          <Text className="mb-2 text-3xl font-bold text-ink">MesaLista</Text>
+          <Image
+            source={require('../../assets/images/ios-icon.png')}
+            className="mb-6 h-14 w-14 rounded-2xl"
+            accessibilityIgnoresInvertColors
+          />
+          <Text className="mb-2 text-4xl text-ink" style={{ fontFamily: serif }}>
+            Hola de nuevo
+          </Text>
           <Text className="mb-8 text-base text-mutedForeground">Inicia sesión para gestionar tu mesa de regalos.</Text>
 
           <Text className="mb-1 text-sm font-medium text-foreground">Correo electrónico</Text>
@@ -65,7 +94,7 @@ export default function LoginScreen() {
           />
 
           <Pressable
-            className="items-center rounded-ml bg-oak py-4 active:bg-oakDark"
+            className="items-center rounded-full bg-oak py-4 active:bg-oakDark"
             disabled={submitting}
             onPress={onSubmit}
           >
@@ -74,10 +103,6 @@ export default function LoginScreen() {
             ) : (
               <Text className="text-base font-semibold text-white">Iniciar sesión</Text>
             )}
-          </Pressable>
-
-          <Pressable className="mt-4 items-center py-2" onPress={() => router.push('/explore')}>
-            <Text className="text-base font-medium text-oak">Explorar mesas de regalos →</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>

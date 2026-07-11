@@ -18,7 +18,7 @@ export default function AppLayout() {
   }
 
   if (!isAuthenticated) {
-    return <Redirect href="/login" />;
+    return <Redirect href="/welcome" />;
   }
 
   return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#fefdfb' } }} />;

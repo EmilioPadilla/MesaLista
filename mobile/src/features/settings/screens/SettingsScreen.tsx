@@ -7,7 +7,6 @@ import { useCurrentUser, useUpdateCurrentUserProfile, useUpdateCurrentUserPasswo
 
 import { useAuth } from '@/auth/AuthContext';
 import { useToast } from '@/lib/ToastProvider';
-import { tokenStore } from '@/lib/secureStore';
 
 export function SettingsScreen() {
   const router = useRouter();
@@ -59,7 +58,7 @@ export function SettingsScreen() {
 
   const handleLogout = async () => {
     await logout();
-    router.replace('/login');
+    router.replace('/welcome');
   };
 
   const confirmDelete = () => {
@@ -71,8 +70,11 @@ export function SettingsScreen() {
         onPress: () =>
           deleteAccount.mutate(undefined, {
             onSuccess: async () => {
-              await tokenStore.clear();
-              router.replace('/login');
+              // logout() clears the token AND the query cache; clearing only the
+              // token would leave the cached user, and the welcome screen would
+              // bounce straight back to /(app).
+              await logout();
+              router.replace('/welcome');
             },
           }),
       },
