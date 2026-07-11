@@ -48,9 +48,7 @@ export function GuestRsvpScreen({ slug, initialCode }: { slug?: string; initialC
     if (!invitee) return;
 
     if (confirm) {
-      const missing = customFields.filter(
-        (f) => f.required && (customFieldValues[f.id] === undefined || customFieldValues[f.id] === ''),
-      );
+      const missing = customFields.filter((f) => f.required && (customFieldValues[f.id] === undefined || customFieldValues[f.id] === ''));
       if (missing.length > 0) {
         toast.error(`Responde los campos requeridos: ${missing.map((f) => f.label).join(', ')}`);
         return;
@@ -115,15 +113,13 @@ export function GuestRsvpScreen({ slug, initialCode }: { slug?: string; initialC
                 <View className="flex-row items-center justify-center gap-6 rounded-ml border border-gray-200 bg-white py-3">
                   <Pressable
                     onPress={() => setConfirmedTickets((n) => Math.max(1, n - 1))}
-                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100"
-                  >
+                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100">
                     <Text className="text-xl font-bold text-oak">−</Text>
                   </Pressable>
                   <Text className="text-2xl font-bold text-ink">{confirmedTickets}</Text>
                   <Pressable
                     onPress={() => setConfirmedTickets((n) => Math.min(invitee.tickets, n + 1))}
-                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100"
-                  >
+                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100">
                     <Text className="text-xl font-bold text-oak">+</Text>
                   </Pressable>
                 </View>
@@ -174,17 +170,13 @@ export function GuestRsvpScreen({ slug, initialCode }: { slug?: string; initialC
             <Pressable
               disabled={respond.isPending}
               onPress={() => handleRespond(true)}
-              className="mt-5 items-center rounded-full bg-success py-3.5 active:opacity-90"
-            >
-              <Text className="text-base font-semibold text-white">
-                {respond.isPending ? 'Enviando…' : 'Confirmar asistencia'}
-              </Text>
+              className="mt-5 items-center rounded-full bg-success py-3.5 active:opacity-90">
+              <Text className="text-base font-semibold text-white">{respond.isPending ? 'Enviando…' : 'Confirmar asistencia'}</Text>
             </Pressable>
             <Pressable
               disabled={respond.isPending}
               onPress={() => handleRespond(false)}
-              className="mt-3 items-center rounded-full border border-gray-300 bg-white py-3.5"
-            >
+              className="mt-3 items-center rounded-full border border-gray-300 bg-white py-3.5">
               <Text className="text-base font-semibold text-foreground">No podré asistir</Text>
             </Pressable>
           </View>
@@ -197,7 +189,7 @@ export function GuestRsvpScreen({ slug, initialCode }: { slug?: string; initialC
                 : 'Indicaste que no podrás asistir.'}
             </Text>
             <Text className="mt-3 text-center text-xs text-gray-500">
-              Si necesitas cambiar tu respuesta, contacta a los novios.
+              Si necesitas cambiar tu respuesta, contacta a el organizador del evento.
             </Text>
             <Pressable onPress={() => setActiveCode('')} className="mt-4 rounded-full border border-oak px-5 py-2.5">
               <Text className="text-sm font-semibold text-oak">Buscar otra invitación</Text>
@@ -206,9 +198,7 @@ export function GuestRsvpScreen({ slug, initialCode }: { slug?: string; initialC
         ) : (
           <View className="mt-4">
             <Text className="text-2xl font-bold text-ink">Confirmación de asistencia</Text>
-            <Text className="mt-1 text-sm text-mutedForeground">
-              Ingresa el código secreto de tu invitación para confirmar.
-            </Text>
+            <Text className="mt-1 text-sm text-mutedForeground">Ingresa el código secreto de tu invitación para confirmar.</Text>
 
             <View className="mt-5">
               <Text className="mb-1.5 text-sm font-medium text-foreground">Código secreto</Text>
@@ -225,16 +215,13 @@ export function GuestRsvpScreen({ slug, initialCode }: { slug?: string; initialC
             </View>
 
             {activeCode && isError ? (
-              <Text className="mt-3 text-center text-sm text-danger">
-                No encontramos una invitación con ese código.
-              </Text>
+              <Text className="mt-3 text-center text-sm text-danger">No encontramos una invitación con ese código.</Text>
             ) : null}
 
             <Pressable
               disabled={isLoading}
               onPress={handleSearch}
-              className="mt-5 items-center rounded-full bg-oak py-3.5 active:bg-oakDark"
-            >
+              className="mt-5 items-center rounded-full bg-oak py-3.5 active:bg-oakDark">
               {isLoading ? (
                 <ActivityIndicator color="#ffffff" />
               ) : (
