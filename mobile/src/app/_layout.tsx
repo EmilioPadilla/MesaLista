@@ -11,6 +11,8 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#fefdfb' } }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
+        <Stack.Screen name="signup" />
+        <Stack.Screen name="signup-return" />
         <Stack.Screen name="(app)" />
         <Stack.Screen name="(admin)" />
         <Stack.Screen name="explore" />

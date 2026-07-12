@@ -21,7 +21,7 @@ dayjs.extend(utc);
 
 export function BuyGiftsPage() {
   const contextData = useOutletContext<OutletContextType>();
-  const { slug, guestId } = contextData;
+  const { slug, guestId, regenerateGuestId } = contextData;
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(window.location.search);
   const listIdFromQuery = queryParams.get('listId');
@@ -35,6 +35,16 @@ export function BuyGiftsPage() {
 
   const { mutate: addGiftToCart } = useAddGiftToCart(guestId || undefined);
   const { data: cartData } = useGetCart(guestId || undefined);
+
+  // Self-heal a stale guest session: if this guest id points at a cart that
+  // already left PENDING (paid, but OrderConfirmation was never reached so the
+  // id was never rotated), the server refuses every mutation on it. Rotate the
+  // id so a fresh cart is created.
+  useEffect(() => {
+    if (cartData?.status && cartData.status !== 'PENDING') {
+      regenerateGuestId();
+    }
+  }, [cartData?.status, regenerateGuestId]);
 
   // Fetch gift list by ID if listId is provided, otherwise fetch first list by user slug
   const { data: giftListById } = useGiftListById(listIdFromQuery ? Number(listIdFromQuery) : undefined);

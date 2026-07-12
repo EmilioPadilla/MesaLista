@@ -18,9 +18,18 @@ const { TextArea } = Input;
 
 export function Checkout() {
   const contextData = useOutletContext<OutletContextType>();
-  const { guestId, slug } = contextData;
+  const { guestId, slug, regenerateGuestId } = contextData;
 
   const { data: cart } = useGetCart(guestId || undefined);
+
+  // Self-heal a stale guest session: a cart that already left PENDING (paid or
+  // cancelled) rejects every mutation server-side, so checkout could never
+  // succeed with it. Rotate the guest id to start a fresh cart.
+  useEffect(() => {
+    if (cart?.status && cart.status !== 'PENDING') {
+      regenerateGuestId();
+    }
+  }, [cart?.status, regenerateGuestId]);
   const { mutate: updateCartDetails } = useUpdateCartDetails();
   const { mutate: createCheckoutSession, isPending: isCreatingSession } = useCreateCheckoutSession();
   const { mutate: createPayPalOrder, isPending: isCreatingPayPalOrder } = useCreatePayPalOrder();

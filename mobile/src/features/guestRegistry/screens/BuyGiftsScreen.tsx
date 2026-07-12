@@ -4,10 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 
 import { useGiftListBySlug } from 'hooks/useGiftList';
-import { useGetCart, useAddGiftToCart, useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'hooks/useCart';
+import { useAddGiftToCart, useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'hooks/useCart';
 import type { Gift } from 'types/models/gift';
 
-import { useGuestSession } from '@/guest/GuestSessionContext';
+import { useGuestCart } from '@/guest/useGuestCart';
 import { GuestGiftCard } from '../components/GuestGiftCard';
 import { cartItemCount } from '../utils';
 
@@ -15,10 +15,9 @@ type SortOption = 'original' | 'price-asc' | 'price-desc' | 'name';
 
 export function BuyGiftsScreen({ slug }: { slug: string }) {
   const router = useRouter();
-  const { guestId } = useGuestSession();
 
   const { data: list, isLoading, isRefetching, refetch } = useGiftListBySlug(slug);
-  const { data: cart } = useGetCart(guestId || undefined);
+  const { data: cart, guestId } = useGuestCart();
   const addToCart = useAddGiftToCart(guestId || undefined);
   const updateQuantity = useUpdateCartItemQuantity();
   const removeFromCart = useRemoveGiftFromCart();

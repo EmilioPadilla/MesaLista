@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 
+import { useGiftListBySlug } from 'hooks/useGiftList';
 import { useInviteeByCode, useRespondToRsvp, useRsvpMessages, useRsvpCustomFields } from 'hooks/useRsvp';
 
 import { useToast } from '@/lib/ToastProvider';
@@ -20,7 +21,12 @@ export function GuestRsvpScreen({ slug, initialCode }: { slug?: string; initialC
   const [customFieldValues, setCustomFieldValues] = useState<Record<number, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
-  const { data: invitee, isLoading, isError, refetch } = useInviteeByCode(activeCode, !!activeCode);
+  // Secret codes are only unique within a gift list, so the lookup is scoped
+  // to the list resolved from the route's slug.
+  const { data: list } = useGiftListBySlug(slug);
+  const giftListId = list?.id ?? 0;
+
+  const { data: invitee, isLoading, isError, refetch } = useInviteeByCode(activeCode, giftListId, !!activeCode);
   const { data: messages } = useRsvpMessages(invitee?.giftListId ?? 0, !!invitee);
   const { data: customFields = [] } = useRsvpCustomFields(invitee?.giftListId ?? 0, !!invitee);
   const respond = useRespondToRsvp();
@@ -62,6 +68,7 @@ export function GuestRsvpScreen({ slug, initialCode }: { slug?: string; initialC
     try {
       await respond.mutateAsync({
         secretCode: invitee.secretCode,
+        giftListId: invitee.giftListId,
         status: confirm ? 'CONFIRMED' : 'REJECTED',
         confirmedTickets: confirm ? confirmedTickets : 0,
         guestMessage: guestMessage.trim() || undefined,

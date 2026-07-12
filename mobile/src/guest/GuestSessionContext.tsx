@@ -1,12 +1,16 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { guestIdStore } from './guestSession';
 
 interface GuestSessionValue {
   /** Stable anonymous id scoping the guest's server-side cart. Null until loaded. */
   guestId: string | null;
-  /** Mint a fresh guest id (called after a successful purchase to start a clean cart). */
-  regenerateGuestId: () => void;
+  /**
+   * Mint a fresh guest id (called after a successful purchase to start a clean cart).
+   * Pass the id you observed as stale to make the call idempotent — if another
+   * caller already rotated it, the regeneration is skipped.
+   */
+  regenerateGuestId: (staleId?: string) => void;
 }
 
 const GuestSessionContext = createContext<GuestSessionValue | null>(null);
@@ -17,6 +21,8 @@ const GuestSessionContext = createContext<GuestSessionValue | null>(null);
  */
 export function GuestSessionProvider({ children }: { children: React.ReactNode }) {
   const [guestId, setGuestId] = useState<string | null>(null);
+  const guestIdRef = useRef<string | null>(null);
+  guestIdRef.current = guestId;
 
   useEffect(() => {
     let active = true;
@@ -28,7 +34,8 @@ export function GuestSessionProvider({ children }: { children: React.ReactNode }
     };
   }, []);
 
-  const regenerateGuestId = useCallback(() => {
+  const regenerateGuestId = useCallback((staleId?: string) => {
+    if (staleId && guestIdRef.current !== staleId) return;
     guestIdStore.regenerate().then((id) => setGuestId(id));
   }, []);
 

@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { userService } from 'services/user.service';
 import { useCurrentUser } from 'hooks/useUser';
+import { seedLoggedOutCache } from 'hooks/authCache';
 import { queryKeys } from 'hooks/queryKeys';
 import type { User } from 'types/models/user';
 import { tokenStore } from '@/lib/secureStore';
@@ -44,17 +45,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await userService.logout();
     } finally {
       await tokenStore.clear();
-      // Drop any in-flight requests first so a late /users/me response can't
-      // land after we seed the logged-out state and resurrect the session.
-      await queryClient.cancelQueries();
-      queryClient.clear();
-      // Seed a definitive logged-out state. If we only removed the query, the
-      // active useCurrentUser observer would immediately refetch /users/me,
-      // flipping isLoading back to true and making the (app) guard render its
-      // spinner instead of redirecting to /login (swallowing the navigation).
-      // Writing null keeps isAuthenticated false and isLoading false, so the
-      // guard redirects cleanly.
-      queryClient.setQueryData([queryKeys.currentUser], null);
+      // Seed a definitive logged-out state. This must NOT go through
+      // queryClient.clear(): our own useCurrentUser observer stays mounted,
+      // and clear() detaches it from the cache without notifying it, so it
+      // would keep reporting the old user and the welcome screen would bounce
+      // straight back to /(app). See seedLoggedOutCache.
+      await seedLoggedOutCache(queryClient);
     }
   }, [queryClient]);
 

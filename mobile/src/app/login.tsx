@@ -104,6 +104,12 @@ export default function LoginScreen() {
               <Text className="text-base font-semibold text-white">Iniciar sesión</Text>
             )}
           </Pressable>
+
+          <Pressable className="mt-5 items-center py-1" onPress={() => router.push('/signup')} hitSlop={8}>
+            <Text className="text-sm text-mutedForeground">
+              ¿No tienes cuenta? <Text className="font-semibold text-oak">Regístrate</Text>
+            </Text>
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

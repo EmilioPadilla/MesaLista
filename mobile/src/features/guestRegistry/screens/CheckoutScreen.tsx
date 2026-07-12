@@ -4,11 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 
 import { useGiftListBySlug } from 'hooks/useGiftList';
-import { useGetCart, useUpdateCartDetails } from 'hooks/useCart';
+import { useUpdateCartDetails } from 'hooks/useCart';
 import { useCreateCheckoutSession, useCreatePayPalOrder, useCancelPayment } from 'hooks/usePayment';
 import { useValidateRsvpCode, useInviteeByCode } from 'hooks/useRsvp';
+import { cartService } from 'services/cart.service';
 
-import { useGuestSession } from '@/guest/GuestSessionContext';
+import { useGuestCart } from '@/guest/useGuestCart';
 import { useToast } from '@/lib/ToastProvider';
 import { formatCurrency } from '@/lib/format';
 import { buildReturnUrls, openCheckout, type PaymentMethod } from '../payment';
@@ -17,9 +18,8 @@ import { cartItemsTotal, computeCheckoutTotals, type FeePreference } from '../ut
 export function CheckoutScreen({ slug }: { slug: string }) {
   const router = useRouter();
   const toast = useToast();
-  const { guestId } = useGuestSession();
 
-  const { data: cart, isLoading } = useGetCart(guestId || undefined);
+  const { data: cart, isLoading, guestId } = useGuestCart();
   const { data: list } = useGiftListBySlug(slug);
   const updateCartDetails = useUpdateCartDetails();
   const createCheckoutSession = useCreateCheckoutSession();
@@ -42,8 +42,8 @@ export function CheckoutScreen({ slug }: { slug: string }) {
     return () => clearTimeout(timer);
   }, [rsvpCode]);
 
-  const { data: validation, isLoading: validating } = useValidateRsvpCode(debouncedCode, !!debouncedCode);
-  const { data: invitee } = useInviteeByCode(debouncedCode, validation?.valid === true);
+  const { data: validation, isLoading: validating } = useValidateRsvpCode(debouncedCode, list?.id ?? 0, !!debouncedCode);
+  const { data: invitee } = useInviteeByCode(debouncedCode, list?.id ?? 0, validation?.valid === true);
 
   useEffect(() => {
     if (invitee && !name.trim()) setName(`${invitee.firstName} ${invitee.lastName}`.trim());
@@ -111,6 +111,16 @@ export function CheckoutScreen({ slug }: { slug: string }) {
       } else if (result.status === 'success') {
         const params = new URLSearchParams({ cartSession: cart.sessionId, method, ...result.params });
         router.replace(`/registry/${slug}/confirmation?${params.toString()}`);
+      } else {
+        // The browser closed without reaching our deep link. The payment may
+        // still have gone through (e.g. the return bridge failed after a
+        // successful charge), so check the cart before treating it as abandoned
+        // — otherwise the session stays pinned to a PAID cart it can't mutate.
+        const latest = await cartService.getCart(cart.sessionId).catch(() => null);
+        if (latest?.status === 'PAID') {
+          const params = new URLSearchParams({ cartSession: cart.sessionId, method });
+          router.replace(`/registry/${slug}/confirmation?${params.toString()}`);
+        }
       }
     } catch {
       toast.error('Ocurrió un error al procesar el pago');

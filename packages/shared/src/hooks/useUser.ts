@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { notify } from '../platform/notify';
 import { userService } from '../services/user.service';
+import { seedLoggedOutCache } from './authCache';
 import { queryKeys } from './queryKeys';
 import { User } from 'types/models/user';
 
@@ -227,9 +228,10 @@ export const useDeleteCurrentUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => userService.deleteCurrentUser(),
-    onSuccess: () => {
-      // Clear all cached data
-      queryClient.clear();
+    onSuccess: async () => {
+      // queryClient.clear() would detach still-mounted observers without
+      // notifying them (they'd keep the deleted user); seed logged-out state.
+      await seedLoggedOutCache(queryClient);
       notify.success('Cuenta eliminada exitosamente');
     },
     onError: (error: any) => {

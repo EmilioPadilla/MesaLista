@@ -2,18 +2,17 @@ import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 
-import { useGetCart, useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'hooks/useCart';
+import { useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'hooks/useCart';
 import type { CartItem } from 'types/models/cart';
 
-import { useGuestSession } from '@/guest/GuestSessionContext';
+import { useGuestCart } from '@/guest/useGuestCart';
 import { formatCurrency } from '@/lib/format';
 import { cartItemsTotal } from '../utils';
 
 export function CartScreen({ slug }: { slug: string }) {
   const router = useRouter();
-  const { guestId } = useGuestSession();
 
-  const { data: cart, isLoading } = useGetCart(guestId || undefined);
+  const { data: cart, isLoading } = useGuestCart();
   const updateQuantity = useUpdateCartItemQuantity();
   const removeFromCart = useRemoveGiftFromCart();
 

@@ -86,7 +86,13 @@ export default function WelcomeScreen() {
             <Text className="text-base font-semibold text-oak">Explorar mesas de regalos</Text>
           </Pressable>
 
-          <Text className="mt-5 text-center text-xs text-mutedForeground">Pagos 100% seguros · Stripe & PayPal</Text>
+          <Pressable className="mt-4 items-center py-1" onPress={() => router.push('/signup')} hitSlop={8}>
+            <Text className="text-sm text-mutedForeground">
+              ¿Aún no tienes cuenta? <Text className="font-semibold text-oak">Crear cuenta</Text>
+            </Text>
+          </Pressable>
+
+          <Text className="mt-4 text-center text-xs text-mutedForeground">Pagos 100% seguros · Stripe & PayPal</Text>
         </View>
       </FadeIn>
     </SafeAreaView>
