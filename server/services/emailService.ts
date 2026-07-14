@@ -31,6 +31,7 @@ export interface PaymentEmailData {
     imageUrl?: string;
   }>;
   coupleInfo: {
+    userId: number;
     coupleName: string;
     firstName: string;
     lastName: string;
@@ -158,6 +159,7 @@ class EmailService {
           imageUrl: item.gift.imageUrl || undefined,
         })),
         coupleInfo: {
+          userId: user.id,
           coupleName: giftList.coupleName,
           firstName: user.firstName,
           lastName: user.lastName,

@@ -16,3 +16,5 @@ export { setApiClient } from './services/client';
 export type { ApiClient, ApiResponse, CustomAxiosRequestConfig } from './services/client';
 export { setNotify } from './platform/notify';
 export type { NotifyApi } from './platform/notify';
+export { setPush, push } from './platform/push';
+export type { PushApi } from './platform/push';

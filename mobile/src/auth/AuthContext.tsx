@@ -1,6 +1,8 @@
 import React, { createContext, useCallback, useContext, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { userService } from 'services/user.service';
+import { pushService } from 'services/push.service';
+import { push } from 'platform/push';
 import { useCurrentUser } from 'hooks/useUser';
 import { seedLoggedOutCache } from 'hooks/authCache';
 import { queryKeys } from 'hooks/queryKeys';
@@ -42,6 +44,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
+      // Unregister this device's push token while the session is still valid
+      // (the endpoint is authenticated). Never block logout on a push failure.
+      try {
+        const token = await push.getExpoPushToken();
+        if (token) await pushService.unregister(token);
+      } catch (pushError) {
+        console.warn('Failed to unregister push token on logout:', pushError);
+      }
       await userService.logout();
     } finally {
       await tokenStore.clear();

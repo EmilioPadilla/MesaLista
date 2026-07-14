@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { registerApiClient } from '@/lib/httpClient';
+import { registerPushImpl } from '@/lib/pushImpl';
 import { ToastProvider } from '@/lib/ToastProvider';
 import { AuthProvider } from '@/auth/AuthContext';
 import { GuestSessionProvider } from '@/guest/GuestSessionContext';
@@ -10,6 +11,9 @@ import { GuestSessionProvider } from '@/guest/GuestSessionContext';
 // Register the fetch-based API client as the spine's apiClient before any
 // service call. Runs once at module load.
 registerApiClient();
+
+// Register the Expo push implementation as the spine's push adapter.
+registerPushImpl();
 
 const queryClient = new QueryClient({
   defaultOptions: {

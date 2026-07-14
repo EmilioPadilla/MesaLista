@@ -29,8 +29,25 @@ model User {
   passwordResets PasswordReset[]
   passwordHistory PasswordHistory[]
   loginAttempts LoginAttempt[]
-  
+  pushTokens    PushToken[]
+
   @@map("users")
+}
+
+// Expo push notification device tokens, one row per device per user.
+// Used to deliver iOS push notifications (e.g. "gift received") to couples.
+model PushToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  token     String   @unique // Expo push token (ExponentPushToken[...])
+  platform  String   @default("ios") // "ios" | "android"
+  deviceId  String?  @map("device_id") // Optional device identifier for dedup
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_tokens")
 }
 
 enum UserRole {

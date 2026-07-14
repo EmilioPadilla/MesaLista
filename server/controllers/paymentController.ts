@@ -4,6 +4,7 @@ import Stripe from 'stripe';
 import axios from 'axios';
 import bcrypt from 'bcrypt';
 import emailService from '../services/emailService.js';
+import pushService from '../services/pushService.js';
 import { discountCodeService } from '../services/discountCodeService.js';
 import { createSessionAndSetCookie } from '../middleware/auth.js';
 import { reconcileStripeFee, reconcilePayPalFee, stripeMexicoGross, paypalMexicoGross } from '../lib/paymentFees.js';
@@ -88,6 +89,14 @@ export const recordEmailDelivery = async (cartId: number, send: () => Promise<vo
       console.error('Failed to record email delivery failure on Payment:', persistError);
     }
   }
+};
+
+// Fire a gift-received push to the couple. Fully fire-and-forget: a push failure must
+// never affect the payment webhook (unlike email, push has no retry/observability yet).
+const sendGiftReceivedPush = (cartId: number): void => {
+  pushService.sendGiftReceivedPush(cartId).catch((error) => {
+    console.error(`Error sending gift-received push for cart ${cartId}:`, error);
+  });
 };
 
 const buildCoupleName = (firstName: string, lastName: string, spouseFirstName?: string | null) => {
@@ -537,6 +546,7 @@ export default {
             // webhook (Stripe would retry the whole event), so we swallow + persist
             // the outcome on Payment.emailDeliveryStatus for the retry CLI to pick up.
             await recordEmailDelivery(cartId, () => emailService.sendPaymentEmails(cartId));
+            sendGiftReceivedPush(cartId);
           } else {
             console.error('Missing metadata in checkout session');
             return res.status(400).json({ error: 'Missing metadata' });
@@ -971,6 +981,7 @@ export default {
         // Send payment confirmation emails. Same pattern as the Stripe webhook —
         // persist outcome rather than throwing so PayPal doesn't retry the capture.
         await recordEmailDelivery(cartId, () => emailService.sendPaymentEmails(cartId));
+        sendGiftReceivedPush(cartId);
 
         res.json({
           success: true,

@@ -27,6 +27,7 @@ import usersListsAnalyticsRoutes from './routes/usersListsAnalyticsRoutes.js';
 import paymentAnalyticsRoutes from './routes/paymentAnalyticsRoutes.js';
 import invitationRoutes from './routes/invitationRoutes.js';
 import signupEmailRoutes from './routes/signupEmailRoutes.js';
+import pushRoutes from './routes/pushRoutes.js';
 import bodyParser from 'body-parser';
 import paymentController from './controllers/paymentController.js';
 import SessionCleanupJob from './lib/sessionCleanup.js';
@@ -169,6 +170,7 @@ app.use('/api/admin/payment-analytics', paymentAnalyticsRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/signup-emails', signupEmailRoutes);
 app.use('/api/wedding-list', weddingListRoutes);
+app.use('/api/push', pushRoutes);
 
 // Special case for login API endpoint
 app.post('/api/login', userRoutes);
