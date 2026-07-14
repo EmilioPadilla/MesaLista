@@ -34,8 +34,10 @@ export function usePushRegistration(): void {
   // Deep-link when the user taps a notification.
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data as { type?: string };
-      if (data?.type === 'gift_received') {
+      const data = response.notification.request.content.data as { type?: string; giftListId?: number };
+      if (data?.type === 'rsvp_received' && data.giftListId) {
+        router.push(`/(app)/list/${data.giftListId}/rsvp`);
+      } else if (data?.type === 'gift_received' || data?.type === 'event_countdown') {
         router.push('/(app)');
       }
     });

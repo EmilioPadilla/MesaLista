@@ -32,6 +32,7 @@ import bodyParser from 'body-parser';
 import paymentController from './controllers/paymentController.js';
 import SessionCleanupJob from './lib/sessionCleanup.js';
 import AnalyticsAggregationJob from './lib/analyticsAggregation.js';
+import EventReminderJob from './lib/eventReminders.js';
 import fs from 'fs';
 
 // Load environment variables
@@ -219,6 +220,8 @@ prisma
     SessionCleanupJob.start();
     // Start analytics aggregation job
     AnalyticsAggregationJob.start();
+    // Start event countdown reminder job
+    EventReminderJob.start();
   })
   .catch((error: any) => {
     console.warn('⚠️ Database connection failed, but server will continue:', error.message);
@@ -243,6 +246,7 @@ process.on('SIGINT', async () => {
   console.log('Shutting down server...');
   SessionCleanupJob.stop();
   AnalyticsAggregationJob.stop();
+  EventReminderJob.stop();
   await prisma.$disconnect();
   process.exit(0);
 });

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { rsvpService } from '../services/rsvpService.js';
+import pushService from '../services/pushService.js';
 import prisma from '../lib/prisma.js';
 
 export const rsvpController = {
@@ -452,6 +453,17 @@ export const rsvpController = {
       }
 
       const invitee = await rsvpService.respondToRsvp(giftListId, secretCode, status, confirmedTickets, guestMessage, customFieldResponses);
+
+      // Notify the couple via push. Fire-and-forget: a push failure must not affect
+      // the guest's RSVP response.
+      pushService
+        .sendRsvpReceivedPush({
+          giftListId,
+          inviteeName: `${invitee.firstName} ${invitee.lastName}`,
+          status: invitee.status,
+          confirmedTickets: invitee.confirmedTickets,
+        })
+        .catch((error) => console.error(`Error sending RSVP push for gift list ${giftListId}:`, error));
 
       res.json({
         success: true,

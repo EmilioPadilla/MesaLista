@@ -1,23 +1,38 @@
 import { Pressable, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import type { GiftListWithGifts } from 'types/models/giftList';
 
-import { formatCurrency, formatEventDate, getRaisedAmount } from '../utils';
+import { formatCurrency, formatEventCountdown, getListProgress } from '../utils';
+import { ProgressBar } from './ProgressBar';
 
 interface GiftListCardProps {
   list: GiftListWithGifts;
   onPress?: (list: GiftListWithGifts) => void;
 }
 
+const cardShadow = {
+  shadowColor: '#101418',
+  shadowOpacity: 0.06,
+  shadowRadius: 12,
+  shadowOffset: { width: 0, height: 6 },
+  elevation: 2,
+} as const;
+
 export function GiftListCard({ list, onPress }: GiftListCardProps) {
-  const total = list.gifts?.length ?? 0;
-  const purchased = list.gifts?.filter((g) => g.isPurchased).length ?? 0;
-  const raised = getRaisedAmount(list);
+  const { raised, total, purchased, ratio } = getListProgress(list);
+  const percent = Math.round(ratio * 100);
+  const countdown = formatEventCountdown(list.eventDate);
 
   return (
     <Pressable
       onPress={() => onPress?.(list)}
-      className="mb-4 overflow-hidden rounded-ml border border-gray-200 bg-white active:opacity-80"
+      className="mb-4 overflow-hidden rounded-2xl border border-gray-200 bg-white active:opacity-90"
+      style={cardShadow}
     >
+      {list.imageUrl ? (
+        <Image source={{ uri: list.imageUrl }} contentFit="cover" transition={200} style={{ width: '100%', height: 120 }} />
+      ) : null}
+
       <View className="px-5 py-4">
         <View className="flex-row items-center justify-between">
           <Text className="flex-1 text-lg font-semibold text-ink" numberOfLines={1}>
@@ -30,24 +45,21 @@ export function GiftListCard({ list, onPress }: GiftListCardProps) {
           </View>
         </View>
 
-        <Text className="mt-0.5 text-sm text-mutedForeground">{list.coupleName}</Text>
-        {list.eventDate ? <Text className="mt-1 text-xs text-gray-500">{formatEventDate(list.eventDate)}</Text> : null}
+        <Text className="mt-0.5 text-sm text-mutedForeground" numberOfLines={1}>
+          {list.coupleName}
+          {countdown ? <Text className="text-mutedForeground">  ·  {countdown}</Text> : null}
+        </Text>
 
-        <View className="mt-4 flex-row gap-6">
-          <Stat label="Regalos" value={String(total)} />
-          <Stat label="Comprados" value={String(purchased)} />
-          <Stat label="Recaudado" value={formatCurrency(raised)} />
+        <View className="mt-4">
+          <ProgressBar ratio={ratio} height={8} />
+          <View className="mt-2 flex-row items-center justify-between">
+            <Text className="text-xs font-medium text-gray-600">
+              {purchased} de {total} regalos · {percent}%
+            </Text>
+            <Text className="text-sm font-semibold text-oak">{formatCurrency(raised)}</Text>
+          </View>
         </View>
       </View>
     </Pressable>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <View>
-      <Text className="text-base font-semibold text-ink">{value}</Text>
-      <Text className="text-xs text-gray-500">{label}</Text>
-    </View>
   );
 }

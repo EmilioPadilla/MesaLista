@@ -23,16 +23,6 @@ class PushService {
     const data = await emailService.getPaymentEmailData(cartId);
     const ownerUserId = data.coupleInfo.userId;
 
-    const tokens = await prisma.pushToken.findMany({
-      where: { userId: ownerUserId },
-      select: { token: true },
-    });
-
-    if (tokens.length === 0) {
-      console.log(`No push tokens registered for user ${ownerUserId}; skipping gift-received push.`);
-      return;
-    }
-
     const itemsCount = data.items.reduce((sum, item) => sum + item.quantity, 0);
     const totalAmount = data.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const firstItem = data.items[0]?.giftTitle ?? 'un regalo';
@@ -41,23 +31,95 @@ class PushService {
         ? `${data.guestName} te regaló ${itemsCount} regalos (${currency(totalAmount, data.currency)})`
         : `${data.guestName} te regaló ${firstItem}`;
 
+    await this.sendToUser(ownerUserId, {
+      title: '¡Nuevo regalo! 🎁',
+      body,
+      data: { type: 'gift_received', cartId },
+    });
+  }
+
+  /**
+   * Send an RSVP-received push to the couple who owns the gift list.
+   * Only meaningful responses (CONFIRMED / REJECTED) push; PENDING is skipped.
+   * Fire-and-forget safe.
+   */
+  async sendRsvpReceivedPush(params: {
+    giftListId: number;
+    inviteeName: string;
+    status: string;
+    confirmedTickets?: number | null;
+  }): Promise<void> {
+    if (params.status !== 'CONFIRMED' && params.status !== 'REJECTED') return;
+
+    const giftList = await prisma.giftList.findUnique({
+      where: { id: params.giftListId },
+      select: { userId: true },
+    });
+    if (!giftList) return;
+
+    const name = params.inviteeName.trim() || 'Un invitado';
+    const tickets = params.confirmedTickets ?? 0;
+    const content =
+      params.status === 'CONFIRMED'
+        ? {
+            title: '¡Confirmación de asistencia! 🎉',
+            body: tickets > 1 ? `${name} asistirá con ${tickets} boletos` : `${name} confirmó su asistencia`,
+          }
+        : {
+            title: 'Respuesta de invitación',
+            body: `${name} no podrá asistir`,
+          };
+
+    await this.sendToUser(giftList.userId, {
+      ...content,
+      data: { type: 'rsvp_received', giftListId: params.giftListId },
+    });
+  }
+
+  /**
+   * Send an event-countdown reminder to a couple N days before their event.
+   * Called by the daily eventReminders cron job. Fire-and-forget safe.
+   */
+  async sendEventCountdownPush(params: { userId: number; coupleName: string; daysUntil: number }): Promise<void> {
+    const { userId, coupleName, daysUntil } = params;
+    const content =
+      daysUntil <= 1
+        ? { title: '¡Mañana es el gran día! 💫', body: `El evento de ${coupleName} es mañana` }
+        : { title: 'Tu evento se acerca ✨', body: `Faltan ${daysUntil} días para el evento de ${coupleName}` };
+
+    await this.sendToUser(userId, {
+      ...content,
+      data: { type: 'event_countdown', daysUntil },
+    });
+  }
+
+  /**
+   * Look up a user's device tokens and deliver one notification to each.
+   * Central path for all push types: no tokens is the common, silent case.
+   */
+  private async sendToUser(
+    userId: number,
+    content: { title: string; body: string; data?: Record<string, unknown> },
+  ): Promise<void> {
+    const tokens = await prisma.pushToken.findMany({
+      where: { userId },
+      select: { token: true },
+    });
+    if (tokens.length === 0) return;
+
     const messages: ExpoPushMessage[] = tokens
       .filter((t) => Expo.isExpoPushToken(t.token))
       .map((t) => ({
         to: t.token,
-        title: '¡Nuevo regalo! 🎁',
-        body,
         sound: 'default',
-        data: { type: 'gift_received', cartId },
+        title: content.title,
+        body: content.body,
+        data: content.data,
       }));
-
-    if (messages.length === 0) {
-      console.warn(`No valid Expo push tokens for user ${ownerUserId}; skipping.`);
-      return;
-    }
+    if (messages.length === 0) return;
 
     await this.send(messages);
-    console.log(`Gift-received push sent to user ${ownerUserId} (${messages.length} device(s)).`);
+    console.log(`Push "${content.title}" sent to user ${userId} (${messages.length} device(s)).`);
   }
 
   /**

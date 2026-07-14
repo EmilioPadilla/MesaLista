@@ -20,8 +20,6 @@ Generate a commit message for the currently staged changes and create the commit
    - Add a body **only when it adds value**: explain all the important changes, the "what" and "why", using short bullet points. Skip the body for trivial one-line changes.
    - Be concise but complete: every meaningful change should be reflected, without padding or restating the diff line-by-line.
 
-3. Create the commit with `git commit` using the generated message.
-
 ## Rules
 
 - **Never** add yourself as a co-author. Do NOT include any `Co-Authored-By:` trailer, "Generated with Claude Code" line, or similar attribution.
