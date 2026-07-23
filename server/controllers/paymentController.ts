@@ -265,6 +265,65 @@ const provisionFixedPlanSignupFromMetadata = async ({
   return { user, giftList: createdList, created: true };
 };
 
+/* ------------------------------- RevenueCat -------------------------------- */
+// iOS fixed-plan purchases go through Apple IAP, brokered by RevenueCat. These
+// mirror the Stripe plan flow: `prepare` stashes the signup, the purchase happens
+// natively, then `complete` (or the webhook) provisions the account once the
+// `fixed_plan` entitlement is confirmed server-side.
+const REVENUECAT_SECRET_API_KEY = process.env.REVENUECAT_SECRET_API_KEY || '';
+const REVENUECAT_WEBHOOK_SECRET = process.env.REVENUECAT_WEBHOOK_SECRET || '';
+const REVENUECAT_ENTITLEMENT_ID = process.env.REVENUECAT_ENTITLEMENT_ID || 'fixed_plan';
+// Face value of the fixed plan in MXN — used only for the confirmation email
+// (Apple, not us, is the source of truth for the amount actually charged).
+const FIXED_PLAN_AMOUNT_MXN = 2000;
+
+// Ask RevenueCat's REST API whether this app user currently holds the fixed-plan
+// entitlement. Never trust the client's word that a purchase succeeded — this is
+// the server-side verification gate before we hand out an account.
+const hasActiveFixedPlanEntitlement = async (appUserId: string): Promise<boolean> => {
+  if (!REVENUECAT_SECRET_API_KEY) {
+    console.error('REVENUECAT_SECRET_API_KEY is not configured');
+    return false;
+  }
+  const { data } = await axios.get(
+    `https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(appUserId)}`,
+    { headers: { Authorization: `Bearer ${REVENUECAT_SECRET_API_KEY}` } },
+  );
+  const entitlement = data?.subscriber?.entitlements?.[REVENUECAT_ENTITLEMENT_ID];
+  if (!entitlement) return false;
+  // Non-consumable / lifetime entitlements report `expires_date: null` (never
+  // expires); a dated one must still be in the future to count as active.
+  if (!entitlement.expires_date) return true;
+  return new Date(entitlement.expires_date).getTime() > Date.now();
+};
+
+// Shape a PendingPlanSignup row into the Stripe-metadata-like object that
+// `provisionFixedPlanSignupFromMetadata` already knows how to consume, so both
+// payment rails share one provisioning path. No discount: Apple IAP prices are
+// fixed App Store tiers, so codes never apply on iOS.
+const pendingSignupToMetadata = (pending: {
+  email: string;
+  passwordHash: string;
+  firstName: string;
+  lastName: string;
+  spouseFirstName: string | null;
+  spouseLastName: string | null;
+  phoneNumber: string;
+  slug: string;
+  eventDate: Date | null;
+}): Stripe.Metadata => ({
+  paymentFor: 'PLAN_SUBSCRIPTION',
+  email: pending.email,
+  passwordHash: pending.passwordHash,
+  firstName: pending.firstName,
+  lastName: pending.lastName,
+  spouseFirstName: pending.spouseFirstName || '',
+  spouseLastName: pending.spouseLastName || '',
+  phoneNumber: pending.phoneNumber,
+  slug: pending.slug,
+  ...(pending.eventDate && { eventDate: pending.eventDate.toISOString() }),
+});
+
 // Get PayPal access token
 const getPayPalAccessToken = async (): Promise<string> => {
   if (paypalAccessToken && Date.now() < tokenExpiry) {
@@ -1171,6 +1230,170 @@ export default {
         success: false,
         message: error instanceof Error ? error.message : 'Failed to complete plan signup',
       });
+    }
+  },
+
+  // --- iOS fixed-plan In-App Purchase (RevenueCat) ---
+
+  // Step 1 of the iOS fixed-plan flow. Validates the signup and stashes it
+  // (password hashed) keyed by the RevenueCat app user id, so the account can be
+  // provisioned after the anonymous Apple purchase confirms. No payment happens
+  // here — that's Apple's job — and no discount is accepted (IAP prices are fixed).
+  preparePlanIapSignup: async (req: Request, res: Response) => {
+    try {
+      const {
+        appUserId,
+        email,
+        password,
+        firstName,
+        lastName,
+        spouseFirstName,
+        spouseLastName,
+        phoneNumber,
+        slug,
+        eventDate,
+      } = req.body;
+
+      if (!appUserId || !email || !password || !firstName || !lastName || !phoneNumber || !slug) {
+        return res.status(400).json({ success: false, message: 'Missing required signup data for plan purchase' });
+      }
+
+      // Don't let an IAP flow silently collide with an existing account or slug —
+      // the couple would pay and then fail to provision.
+      const [existingEmail, existingSlug] = await Promise.all([
+        prisma.user.findUnique({ where: { email }, select: { id: true } }),
+        prisma.user.findUnique({ where: { slug }, select: { id: true } }),
+      ]);
+      if (existingEmail) {
+        return res.status(409).json({ success: false, message: 'Ya existe una cuenta con este correo' });
+      }
+      if (existingSlug) {
+        return res.status(409).json({ success: false, message: 'Este enlace ya está en uso' });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 10);
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      const data = {
+        email,
+        passwordHash,
+        firstName,
+        lastName,
+        spouseFirstName: spouseFirstName || null,
+        spouseLastName: spouseLastName || null,
+        phoneNumber,
+        slug,
+        eventDate: eventDate ? new Date(eventDate) : null,
+        expiresAt,
+      };
+
+      // Upsert so a retried purchase (same appUserId) refreshes rather than errors.
+      await prisma.pendingPlanSignup.upsert({
+        where: { appUserId },
+        create: { appUserId, ...data },
+        update: data,
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error preparing plan IAP signup:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to prepare plan purchase',
+      });
+    }
+  },
+
+  // Step 2 of the iOS fixed-plan flow. Called after the native purchase resolves.
+  // Verifies the entitlement with RevenueCat's REST API (never the client), then
+  // provisions the account and returns a Bearer token so the app signs in.
+  completePlanIapSignup: async (req: Request, res: Response) => {
+    try {
+      const { appUserId } = req.body;
+      if (!appUserId) {
+        return res.status(400).json({ success: false, message: 'appUserId is required' });
+      }
+
+      const pending = await prisma.pendingPlanSignup.findUnique({ where: { appUserId } });
+      if (!pending) {
+        return res.status(404).json({ success: false, message: 'No pending signup found for this purchase' });
+      }
+
+      const entitled = await hasActiveFixedPlanEntitlement(appUserId);
+      if (!entitled) {
+        // 402 Payment Required — the purchase hasn't landed at RevenueCat yet.
+        return res.status(402).json({ success: false, message: 'Payment could not be verified' });
+      }
+
+      const provisioned = await provisionFixedPlanSignupFromMetadata({
+        metadata: pendingSignupToMetadata(pending),
+        amount: FIXED_PLAN_AMOUNT_MXN,
+        source: 'success_page_recovery',
+      });
+
+      if (!provisioned?.user) {
+        return res.status(500).json({ success: false, message: 'Failed to provision account' });
+      }
+
+      await prisma.pendingPlanSignup.delete({ where: { appUserId } }).catch(() => {});
+
+      const userAgent = req.get('User-Agent') || 'Unknown';
+      const ipAddress = req.ip || req.connection.remoteAddress;
+      const session = await createSessionAndSetCookie(res, provisioned.user.id, userAgent, ipAddress);
+
+      res.json({
+        success: true,
+        slug: provisioned.user.slug,
+        planType: 'FIXED',
+        giftListId: provisioned.giftList.id,
+        token: session.token, // mobile is Bearer-token based; web relies on the cookie
+      });
+    } catch (error) {
+      console.error('Error completing plan IAP signup:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to complete plan purchase',
+      });
+    }
+  },
+
+  // Backstop for step 2: if the app dies between the Apple purchase and calling
+  // /complete, RevenueCat still fires this server-to-server webhook so the account
+  // is provisioned anyway. Idempotent — provisioning dedupes on the existing
+  // fixed-plan gift list, and the pending row is deleted on success.
+  handleRevenueCatWebhook: async (req: Request, res: Response) => {
+    try {
+      const auth = req.get('Authorization');
+      if (!REVENUECAT_WEBHOOK_SECRET || auth !== `Bearer ${REVENUECAT_WEBHOOK_SECRET}`) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+      }
+
+      const event = req.body?.event;
+      const type: string | undefined = event?.type;
+      const appUserId: string | undefined = event?.app_user_id;
+
+      // A one-time non-consumable comes through as NON_RENEWING_PURCHASE; the
+      // others cover edge cases (sandbox/restore) that still grant entitlement.
+      const purchaseTypes = ['INITIAL_PURCHASE', 'NON_RENEWING_PURCHASE', 'RENEWAL', 'UNCANCELLATION'];
+      if (type && appUserId && purchaseTypes.includes(type)) {
+        const pending = await prisma.pendingPlanSignup.findUnique({ where: { appUserId } });
+        if (pending) {
+          const provisioned = await provisionFixedPlanSignupFromMetadata({
+            metadata: pendingSignupToMetadata(pending),
+            amount: FIXED_PLAN_AMOUNT_MXN,
+            source: 'checkout.session.completed',
+          });
+          if (provisioned?.user) {
+            await prisma.pendingPlanSignup.delete({ where: { appUserId } }).catch(() => {});
+          }
+        }
+      }
+
+      // Always 200 so RevenueCat doesn't retry-storm on events we intentionally ignore.
+      res.json({ received: true });
+    } catch (error) {
+      console.error('Error handling RevenueCat webhook:', error);
+      res.status(500).json({ received: false });
     }
   },
 

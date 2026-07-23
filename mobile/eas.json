@@ -19,7 +19,10 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://www.mesalista.com.mx/api",
-        "EXPO_PUBLIC_WEB_URL": "https://mesalista.com.mx"
+        "EXPO_PUBLIC_WEB_URL": "https://mesalista.com.mx",
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_BDYkCgXwXyHJKBmmEUDedhdzXxo",
+        "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "fixed_plan",
+        "EXPO_PUBLIC_REVENUECAT_OFFERING_ID": "default"
       },
       "channel": "preview"
     },
@@ -27,7 +30,10 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://www.mesalista.com.mx/api",
-        "EXPO_PUBLIC_WEB_URL": "https://mesalista.com.mx"
+        "EXPO_PUBLIC_WEB_URL": "https://mesalista.com.mx",
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_BDYkCgXwXyHJKBmmEUDedhdzXxo",
+        "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "fixed_plan",
+        "EXPO_PUBLIC_REVENUECAT_OFFERING_ID": "default"
       },
       "channel": "production"
     }

@@ -112,6 +112,28 @@ export const useCompletePlanSignupSession = () => {
 };
 
 /**
+ * Hook to stash a fixed-plan signup before the iOS In-App Purchase.
+ */
+export const usePreparePlanIapSignup = () => {
+  return useMutation({
+    mutationFn: paymentService.preparePlanIapSignup,
+  });
+};
+
+/**
+ * Hook to provision the account after the iOS In-App Purchase confirms.
+ */
+export const useCompletePlanIapSignup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: paymentService.completePlanIapSignup,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
+    },
+  });
+};
+
+/**
  * Hook to create gift list checkout session
  */
 export const useCreateGiftListCheckoutSession = () => {

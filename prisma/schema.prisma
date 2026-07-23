@@ -360,6 +360,31 @@ enum DiscountType {
   FIXED_AMOUNT
 }
 
+// Holds hashed signup data for an in-progress iOS fixed-plan In-App Purchase,
+// keyed by the RevenueCat app user id. Apple IAP is anonymous at purchase time
+// (unlike Stripe, which carries the couple's details in session metadata), so we
+// stash the signup here BEFORE the purchase and provision the real account once
+// RevenueCat confirms the entitlement — via /payments/plan/ios/complete or the
+// webhook backstop. Rows are short-lived and deleted the moment provisioning
+// succeeds; `expiresAt` lets a cron sweep abandoned attempts.
+model PendingPlanSignup {
+  id              String    @id @default(cuid())
+  appUserId       String    @unique @map("app_user_id") // RevenueCat app_user_id
+  email           String
+  passwordHash    String    @map("password_hash")
+  firstName       String    @map("first_name")
+  lastName        String    @map("last_name")
+  spouseFirstName String?   @map("spouse_first_name")
+  spouseLastName  String?   @map("spouse_last_name")
+  phoneNumber     String    @map("phone_number")
+  slug            String
+  eventDate       DateTime? @map("event_date")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  expiresAt       DateTime  @map("expires_at")
+
+  @@map("pending_plan_signups")
+}
+
 // Analytics Models
 
 // Session tracking for UTM parameters and referrer

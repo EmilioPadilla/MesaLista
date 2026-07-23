@@ -10,6 +10,8 @@ export const paymentEndpoints = {
   cancelPayment: `/payments/cancel-payment`,
   createPlanCheckoutSession: `/payments/create-plan-checkout-session`,
   completePlanSignupSession: `/payments/complete-plan-signup-session`,
+  preparePlanIapSignup: `/payments/plan/ios/prepare`,
+  completePlanIapSignup: `/payments/plan/ios/complete`,
   createGiftListCheckoutSession: `/payments/create-gift-list-checkout-session`,
   getPurchasedGiftsByWeddingList: (weddingListId: number) =>
     `/payments/wedding-list/${weddingListId}/purchased-gifts`,

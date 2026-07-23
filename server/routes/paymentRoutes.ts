@@ -10,6 +10,14 @@ router.post('/create-plan-checkout-session', paymentController.createPlanCheckou
 
 router.post('/complete-plan-signup-session', paymentController.completePlanSignupSession);
 
+// iOS fixed-plan In-App Purchase (RevenueCat) — prepare stashes the signup,
+// complete provisions after entitlement verification, webhook is the backstop.
+router.post('/plan/ios/prepare', paymentController.preparePlanIapSignup);
+
+router.post('/plan/ios/complete', paymentController.completePlanIapSignup);
+
+router.post('/revenuecat/webhook', paymentController.handleRevenueCatWebhook);
+
 router.post('/create-gift-list-checkout-session', authenticateSession, paymentController.createGiftListCheckoutSession);
 
 router.post('/cancel-payment', paymentController.handlePaymentCancellation);

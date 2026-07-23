@@ -17,7 +17,12 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { useCheckSlugAvailability, useSignupCommission } from 'hooks/useUser';
 import { useSendVerificationCode, useVerifyCode } from 'hooks/useEmailVerification';
-import { useCompletePlanSignupSession, useCreatePlanCheckoutSession } from 'hooks/usePayment';
+import {
+  useCompletePlanIapSignup,
+  useCompletePlanSignupSession,
+  useCreatePlanCheckoutSession,
+  usePreparePlanIapSignup,
+} from 'hooks/usePayment';
 import { useValidateDiscountCode } from 'hooks/useDiscountCode';
 import { queryKeys } from 'hooks/queryKeys';
 import type { User } from 'types/models/user';
@@ -27,6 +32,7 @@ import { useToast } from '@/lib/ToastProvider';
 import { tokenStore } from '@/lib/secureStore';
 import { API_URL } from '@/lib/apiConfig';
 import { openCheckout } from '@/features/guestRegistry/payment';
+import { isIapAvailable, newIapUserId, purchaseFixedPlan } from '@/lib/revenuecat';
 import { DateField } from '../components/DateField';
 import { PasswordStrength } from '../components/PasswordStrength';
 import {
@@ -83,9 +89,16 @@ export function SignupScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [successSlug, setSuccessSlug] = useState('');
 
+  // On iOS the fixed plan must go through Apple IAP (App Store guideline 3.1.1);
+  // discount codes can't apply to fixed StoreKit prices, so we hide that field.
+  const iosIap = Platform.OS === 'ios' && isIapAvailable();
+  const [iapUserId] = useState(newIapUserId);
+
   const { mutateAsync: signupCommission } = useSignupCommission();
   const { mutateAsync: createPlanCheckout } = useCreatePlanCheckoutSession();
   const { mutateAsync: completePlanSignup } = useCompletePlanSignupSession();
+  const { mutateAsync: preparePlanIap } = usePreparePlanIapSignup();
+  const { mutateAsync: completePlanIap } = useCompletePlanIapSignup();
   const { mutateAsync: sendVerificationCode, isPending: isResendingCode } = useSendVerificationCode();
   const { mutateAsync: verifyCode } = useVerifyCode();
   const { data: discountCodeInfo, isLoading: isValidatingDiscount, isError: isDiscountCodeError } = useValidateDiscountCode(discountCode);
@@ -185,6 +198,50 @@ export function SignupScreen() {
   const goToSuccess = (finalSlug?: string) => {
     setSuccessSlug(finalSlug || slug);
     setStep('success');
+  };
+
+  /**
+   * iOS fixed-plan purchase via Apple IAP (RevenueCat). We stash the signup
+   * server-side keyed by a RevenueCat app user id, run the native purchase, then
+   * complete — the server re-verifies the entitlement before provisioning and
+   * returns a Bearer token we store to sign in.
+   */
+  const handleFixedPlanIap = async () => {
+    await preparePlanIap({
+      appUserId: iapUserId,
+      email: details.email.trim(),
+      password: details.password,
+      firstName: details.firstName,
+      lastName: details.lastName,
+      spouseFirstName: details.spouseFirstName || '',
+      spouseLastName: details.spouseLastName || '',
+      phoneNumber: details.phone,
+      slug,
+      ...(details.eventDate && { eventDate: details.eventDate.toISOString() }),
+    });
+
+    const result = await purchaseFixedPlan(iapUserId);
+
+    if (result.userCancelled) {
+      toast.info('Pago cancelado. Puedes intentar nuevamente.');
+      return;
+    }
+    if (!result.entitled) {
+      toast.error('No se pudo verificar la compra. Por favor intenta de nuevo.');
+      return;
+    }
+
+    const completed = await completePlanIap({ appUserId: iapUserId });
+    // Web relies on the cookie; on mobile we store the returned Bearer token
+    // (falling back to a login with the credentials we still hold).
+    if (completed.token) {
+      await tokenStore.set(completed.token);
+      await queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
+    } else if (!(await tryLogin())) {
+      toast.warning('Tu cuenta fue creada. Inicia sesión para continuar.');
+    }
+    toast.success('¡Pago exitoso! Tu cuenta ha sido creada.');
+    goToSuccess(completed.slug);
   };
 
   const handleFixedPlanCheckout = async () => {
@@ -331,8 +388,10 @@ export function SignupScreen() {
       case 'payment': {
         setIsLoading(true);
         try {
-          if (selectedPlan === 'fixed') await handleFixedPlanCheckout();
-          else await handleCommissionSignup();
+          if (selectedPlan === 'fixed') {
+            if (iosIap) await handleFixedPlanIap();
+            else await handleFixedPlanCheckout();
+          } else await handleCommissionSignup();
         } catch (error: any) {
           // User endpoints report `error`; payment endpoints report `message`.
           const data = error?.response?.data;
@@ -398,6 +457,7 @@ export function SignupScreen() {
               discountCodeValid={discountCodeValid}
               discountCodeInfo={discountCodeInfo}
               isValidatingDiscount={isValidatingDiscount}
+              showDiscountField={!iosIap}
             />
           )}
 
@@ -446,6 +506,7 @@ export function SignupScreen() {
           {step === 'payment' && (
             <PaymentStep
               selectedPlan={selectedPlan}
+              iosIap={iosIap}
               discountApplied={!!(discountCodeValid && discountCodeInfo && price.savings > 0)}
               discountCode={discountCodeInfo?.code}
               discountLabel={
@@ -493,6 +554,7 @@ function DetailsStep({
   discountCodeValid,
   discountCodeInfo,
   isValidatingDiscount,
+  showDiscountField,
 }: {
   details: SignupDetails;
   errors: DetailsErrors;
@@ -502,6 +564,7 @@ function DetailsStep({
   discountCodeValid: boolean | null;
   discountCodeInfo: { discountType: 'PERCENTAGE' | 'FIXED_AMOUNT'; discountValue: number } | undefined;
   isValidatingDiscount: boolean;
+  showDiscountField: boolean;
 }) {
   return (
     <View>
@@ -571,26 +634,28 @@ function DetailsStep({
         <DateField value={details.eventDate} onChange={(date) => setField('eventDate', date)} />
       </Field>
 
-      <Field label="Código de descuento (opcional)">
-        <Input
-          value={discountCode}
-          onChangeText={(v) => setDiscountCode(v.toUpperCase())}
-          placeholder="CODIGO2024"
-          autoCapitalize="characters"
-        />
-        {discountCodeValid === true && discountCodeInfo && (
-          <View className="mt-2 rounded-ml border border-success/30 bg-success/10 p-3">
-            <Text className="text-sm text-success">
-              ✓ Código válido:{' '}
-              {discountCodeInfo.discountType === 'PERCENTAGE'
-                ? `${discountCodeInfo.discountValue}% de descuento`
-                : `$${discountCodeInfo.discountValue} MXN de descuento`}
-            </Text>
-          </View>
-        )}
-        {isValidatingDiscount && <Text className="mt-1 text-xs text-info">Validando...</Text>}
-        {discountCodeValid === false && <Text className="mt-1 text-sm text-danger">Código de descuento inválido o expirado</Text>}
-      </Field>
+      {showDiscountField && (
+        <Field label="Código de descuento (opcional)">
+          <Input
+            value={discountCode}
+            onChangeText={(v) => setDiscountCode(v.toUpperCase())}
+            placeholder="CODIGO2024"
+            autoCapitalize="characters"
+          />
+          {discountCodeValid === true && discountCodeInfo && (
+            <View className="mt-2 rounded-ml border border-success/30 bg-success/10 p-3">
+              <Text className="text-sm text-success">
+                ✓ Código válido:{' '}
+                {discountCodeInfo.discountType === 'PERCENTAGE'
+                  ? `${discountCodeInfo.discountValue}% de descuento`
+                  : `$${discountCodeInfo.discountValue} MXN de descuento`}
+              </Text>
+            </View>
+          )}
+          {isValidatingDiscount && <Text className="mt-1 text-xs text-info">Validando...</Text>}
+          {discountCodeValid === false && <Text className="mt-1 text-sm text-danger">Código de descuento inválido o expirado</Text>}
+        </Field>
+      )}
 
       <Field label="Contraseña" error={errors.password}>
         <Input
@@ -873,12 +938,14 @@ function PlanCard({
 
 function PaymentStep({
   selectedPlan,
+  iosIap,
   discountApplied,
   discountCode,
   discountLabel,
   price,
 }: {
   selectedPlan: PlanChoice;
+  iosIap?: boolean;
   discountApplied: boolean;
   discountCode: string | undefined;
   discountLabel: string;
@@ -931,9 +998,11 @@ function PaymentStep({
           </View>
 
           <Text className="mt-5 text-center text-sm text-mutedForeground">
-            Se abrirá nuestro procesador de pagos seguro
+            {iosIap ? 'Se abrirá la ventana de compra de App Store' : 'Se abrirá nuestro procesador de pagos seguro'}
           </Text>
-          <Text className="mt-2 text-center text-xs text-mutedForeground">⚡ Procesamiento seguro con cifrado SSL</Text>
+          <Text className="mt-2 text-center text-xs text-mutedForeground">
+            {iosIap ? '⚡ Compra procesada de forma segura por Apple' : '⚡ Procesamiento seguro con cifrado SSL'}
+          </Text>
         </View>
       ) : (
         <View className="rounded-ml bg-success/10 p-6">

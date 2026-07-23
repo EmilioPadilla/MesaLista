@@ -205,6 +205,40 @@ export const paymentService = {
   },
 
   /**
+   * Stash a fixed-plan signup before the iOS In-App Purchase (RevenueCat). Apple
+   * IAP is anonymous, so the couple's details are held server-side keyed by the
+   * RevenueCat app user id until the purchase confirms. No discount code: Apple
+   * IAP prices are fixed App Store tiers.
+   */
+  preparePlanIapSignup: async (data: {
+    appUserId: string;
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    spouseFirstName?: string;
+    spouseLastName?: string;
+    phoneNumber: string;
+    slug: string;
+    eventDate?: string;
+  }): Promise<{ success: boolean }> => {
+    const response = await apiClient.post(paymentEndpoints.preparePlanIapSignup, data);
+    return response.data;
+  },
+
+  /**
+   * Provision the account after the iOS purchase resolves. The server verifies
+   * the entitlement with RevenueCat before creating anything, then returns a
+   * Bearer token the app stores to sign in.
+   */
+  completePlanIapSignup: async (data: {
+    appUserId: string;
+  }): Promise<{ success: boolean; slug: string; planType: 'FIXED'; giftListId: number; token?: string }> => {
+    const response = await apiClient.post(paymentEndpoints.completePlanIapSignup, data);
+    return response.data;
+  },
+
+  /**
    * Create Stripe checkout session for gift list payment
    *
    * @param data Gift list checkout session data
