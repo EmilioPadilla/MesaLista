@@ -231,17 +231,30 @@ export function SignupScreen() {
       return;
     }
 
-    const completed = await completePlanIap({ appUserId: iapUserId });
-    // Web relies on the cookie; on mobile we store the returned Bearer token
-    // (falling back to a login with the credentials we still hold).
-    if (completed.token) {
-      await tokenStore.set(completed.token);
-      await queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
-    } else if (!(await tryLogin())) {
-      toast.warning('Tu cuenta fue creada. Inicia sesión para continuar.');
+    try {
+      const completed = await completePlanIap({ appUserId: iapUserId });
+      // Web relies on the cookie; on mobile we store the returned Bearer token
+      // (falling back to a login with the credentials we still hold).
+      if (completed.token) {
+        await tokenStore.set(completed.token);
+        await queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
+      } else if (!(await tryLogin())) {
+        toast.warning('Tu cuenta fue creada. Inicia sesión para continuar.');
+      }
+      toast.success('¡Pago exitoso! Tu cuenta ha sido creada.');
+      goToSuccess(completed.slug);
+    } catch (completeError) {
+      // The webhook backstop may have already provisioned the account and removed
+      // the pending row (a race), so /complete 404s even though the account now
+      // exists. Sign in with the credentials we hold and treat it as success;
+      // only surface the error if there's genuinely no account to log into.
+      if (await tryLogin()) {
+        toast.success('¡Pago exitoso! Tu cuenta ha sido creada.');
+        goToSuccess();
+      } else {
+        throw completeError;
+      }
     }
-    toast.success('¡Pago exitoso! Tu cuenta ha sido creada.');
-    goToSuccess(completed.slug);
   };
 
   const handleFixedPlanCheckout = async () => {
@@ -393,9 +406,13 @@ export function SignupScreen() {
             else await handleFixedPlanCheckout();
           } else await handleCommissionSignup();
         } catch (error: any) {
-          // User endpoints report `error`; payment endpoints report `message`.
+          // User endpoints report `error`; payment endpoints report `message`;
+          // thrown RevenueCat/StoreKit errors only carry `.message` — surface it
+          // so IAP failures aren't swallowed into a generic toast.
           const data = error?.response?.data;
-          toast.error(data?.error || data?.message || 'Error al procesar la solicitud. Por favor intenta de nuevo.');
+          toast.error(
+            data?.error || data?.message || error?.message || 'Error al procesar la solicitud. Por favor intenta de nuevo.',
+          );
         } finally {
           setIsLoading(false);
         }

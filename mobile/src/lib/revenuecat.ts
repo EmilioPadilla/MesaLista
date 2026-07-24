@@ -42,6 +42,12 @@ export function newIapUserId(): string {
 let configured = false;
 function configure(Purchases: NonNullable<ReturnType<typeof loadPurchases>>): void {
   if (configured) return;
+  // Verbose RevenueCat logs (visible in Console.app with the device attached)
+  // to diagnose offering/purchase issues in TestFlight/sandbox builds.
+  try {
+    const { LOG_LEVEL } = require('react-native-purchases');
+    if (LOG_LEVEL) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+  } catch {}
   Purchases.configure({ apiKey: IOS_KEY });
   configured = true;
 }
@@ -69,7 +75,11 @@ export async function purchaseFixedPlan(appUserId: string): Promise<IapResult> {
   const offering = (OFFERING_ID && offerings.all[OFFERING_ID]) || offerings.current;
   const pkg: PurchasesPackage | undefined = offering?.availablePackages?.[0];
   if (!pkg) {
-    throw new Error('No hay un plan disponible para comprar');
+    // Diagnostic detail so the surfaced toast tells us WHY there's no package
+    // (offering missing vs. StoreKit not returning the product yet).
+    const offeringIds = Object.keys(offerings.all || {}).join(',') || 'ninguno';
+    const found = offering ? `"${offering.identifier}" con ${offering.availablePackages?.length ?? 0} paquetes` : 'no encontrado';
+    throw new Error(`Sin plan disponible (offerings: [${offeringIds}]; buscado "${OFFERING_ID || 'current'}": ${found})`);
   }
 
   try {
@@ -77,6 +87,9 @@ export async function purchaseFixedPlan(appUserId: string): Promise<IapResult> {
     return { entitled: !!customerInfo.entitlements.active[ENTITLEMENT_ID], userCancelled: false };
   } catch (e: any) {
     if (e?.userCancelled) return { entitled: false, userCancelled: true };
-    throw e;
+    // Surface the StoreKit/RevenueCat reason (code + readable message) instead of
+    // an opaque native error object.
+    const detail = e?.underlyingErrorMessage || e?.message || e?.code || 'compra fallida';
+    throw new Error(`Compra: ${detail}`);
   }
 }
