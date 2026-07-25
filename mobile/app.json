@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.mesalista.app",
-      "buildNumber": "1",
+      "buildNumber": "16",
       "supportsTablet": false,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "MesaLista needs access to your photo library so you can add photos to your gifts and registry.",
@@ -62,7 +62,10 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/f9b0654b-bb4e-4349-86a6-ad1b03359fde"
+      "url": "https://u.expo.dev/f9b0654b-bb4e-4349-86a6-ad1b03359fde",
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      }
     }
   }
 }
