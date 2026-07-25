@@ -13,7 +13,13 @@ import { useGuestCart } from '@/guest/useGuestCart';
 import { useToast } from '@/lib/ToastProvider';
 import { formatCurrency } from '@/lib/format';
 import { buildReturnUrls, openCheckout, type PaymentMethod } from '../payment';
-import { cartItemsTotal, computeCheckoutTotals, type FeePreference } from '../utils';
+import {
+  cartItemsTotal,
+  computeCheckoutTotals,
+  validateGuestDetails,
+  type FeePreference,
+  type GuestDetails,
+} from '../utils';
 
 export function CheckoutScreen({ slug }: { slug: string }) {
   const router = useRouter();
@@ -33,7 +39,7 @@ export function CheckoutScreen({ slug }: { slug: string }) {
   const [rsvpCode, setRsvpCode] = useState('');
   const [debouncedCode, setDebouncedCode] = useState('');
   const [method, setMethod] = useState<PaymentMethod | null>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof GuestDetails, string>>>({});
   const [processing, setProcessing] = useState(false);
 
   // Debounce RSVP code, then validate + auto-fill the name.
@@ -55,12 +61,7 @@ export function CheckoutScreen({ slug }: { slug: string }) {
   const totals = useMemo(() => computeCheckoutTotals(cartTotal, feePreference, method), [cartTotal, feePreference, method]);
 
   const validate = () => {
-    const next: Record<string, string> = {};
-    if (!name.trim()) next.name = 'El nombre es requerido';
-    if (!email.trim()) next.email = 'El correo es requerido';
-    else if (!/\S+@\S+\.\S+/.test(email)) next.email = 'Correo inválido';
-    if (!phone.trim()) next.phone = 'El teléfono es requerido';
-    else if (!/^\d{10}$/.test(phone.replace(/\D/g, ''))) next.phone = 'Debe tener 10 dígitos';
+    const next = validateGuestDetails({ name, email, phone });
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -77,7 +78,7 @@ export function CheckoutScreen({ slug }: { slug: string }) {
           sessionId: cart.sessionId,
           inviteeName: name,
           inviteeEmail: email,
-          phoneNumber: phone,
+          phoneNumber: phone.trim() || undefined,
           message: message || undefined,
           rsvpCode: rsvpCode.trim() || undefined,
         },
@@ -193,7 +194,7 @@ export function CheckoutScreen({ slug }: { slug: string }) {
           />
         </Field>
 
-        <Field label="Teléfono *" error={errors.phone}>
+        <Field label="Teléfono (opcional)" error={errors.phone}>
           <TextInput
             value={phone}
             onChangeText={setPhone}

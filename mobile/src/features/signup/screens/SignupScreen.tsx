@@ -41,6 +41,7 @@ import {
   calculateDiscountedPrice,
   EMPTY_DETAILS,
   formatMxn,
+  optionalPhone,
   sanitizeSlugInput,
   SIGNUP_STEPS,
   validateDetails,
@@ -171,7 +172,7 @@ export function SignupScreen() {
         ...(withProfile && {
           firstName: details.firstName,
           lastName: details.lastName,
-          phone: details.phone,
+          phone: optionalPhone(details.phone),
         }),
       });
       toast.success('Código de verificación enviado a tu correo');
@@ -215,7 +216,7 @@ export function SignupScreen() {
       lastName: details.lastName,
       spouseFirstName: details.spouseFirstName || '',
       spouseLastName: details.spouseLastName || '',
-      phoneNumber: details.phone,
+      phoneNumber: optionalPhone(details.phone),
       slug,
       ...(details.eventDate && { eventDate: details.eventDate.toISOString() }),
     });
@@ -269,7 +270,7 @@ export function SignupScreen() {
       lastName: details.lastName,
       spouseFirstName: details.spouseFirstName || '',
       spouseLastName: details.spouseLastName || '',
-      phoneNumber: details.phone,
+      phoneNumber: optionalPhone(details.phone),
       slug,
       successUrl,
       cancelUrl,
@@ -315,7 +316,7 @@ export function SignupScreen() {
       lastName: details.lastName,
       spouseFirstName: details.spouseFirstName || '',
       spouseLastName: details.spouseLastName || '',
-      phoneNumber: details.phone,
+      phoneNumber: optionalPhone(details.phone),
       slug,
       role: 'COUPLE',
       ...(details.eventDate && { eventDate: details.eventDate.toISOString() }),
@@ -637,7 +638,7 @@ function DetailsStep({
         />
       </Field>
 
-      <Field label="Teléfono" error={errors.phone}>
+      <Field label="Teléfono (opcional)" error={errors.phone}>
         <Input
           value={details.phone}
           onChangeText={(v) => setField('phone', v)}

@@ -136,7 +136,8 @@ const provisionFixedPlanSignupFromMetadata = async ({
   });
 
   if (!user) {
-    if (!metadata.passwordHash || !metadata.firstName || !metadata.lastName || !metadata.phoneNumber || !metadata.slug) {
+    // No phone number check: it's optional data (App Store guideline 5.1.1(v)).
+    if (!metadata.passwordHash || !metadata.firstName || !metadata.lastName || !metadata.slug) {
       console.error(`Missing signup metadata for fixed plan provisioning via ${source}`);
       return null;
     }
@@ -150,7 +151,7 @@ const provisionFixedPlanSignupFromMetadata = async ({
           spouseFirstName: metadata.spouseFirstName || '',
           spouseLastName: metadata.spouseLastName || '',
           password: metadata.passwordHash,
-          phoneNumber: metadata.phoneNumber,
+          phoneNumber: metadata.phoneNumber || null,
           role: 'COUPLE',
           slug: metadata.slug,
         },
@@ -308,7 +309,7 @@ const pendingSignupToMetadata = (pending: {
   lastName: string;
   spouseFirstName: string | null;
   spouseLastName: string | null;
-  phoneNumber: string;
+  phoneNumber: string | null;
   slug: string;
   eventDate: Date | null;
 }): Stripe.Metadata => ({
@@ -319,7 +320,7 @@ const pendingSignupToMetadata = (pending: {
   lastName: pending.lastName,
   spouseFirstName: pending.spouseFirstName || '',
   spouseLastName: pending.spouseLastName || '',
-  phoneNumber: pending.phoneNumber,
+  phoneNumber: pending.phoneNumber || '',
   slug: pending.slug,
   ...(pending.eventDate && { eventDate: pending.eventDate.toISOString() }),
 });
@@ -1082,7 +1083,8 @@ export default {
         eventDate,
       } = req.body;
 
-      if (!planType || !email || !password || !firstName || !lastName || !phoneNumber || !slug) {
+      // phoneNumber is optional (App Store guideline 5.1.1(v)).
+      if (!planType || !email || !password || !firstName || !lastName || !slug) {
         return res.status(400).json({
           success: false,
           message: 'Missing required signup data for plan checkout',
@@ -1161,7 +1163,7 @@ export default {
           lastName,
           spouseFirstName: spouseFirstName || '',
           spouseLastName: spouseLastName || '',
-          phoneNumber,
+          phoneNumber: phoneNumber || '',
           slug,
           ...(eventDate && { eventDate }),
           ...(validatedDiscountCode && {
@@ -1254,7 +1256,8 @@ export default {
         eventDate,
       } = req.body;
 
-      if (!appUserId || !email || !password || !firstName || !lastName || !phoneNumber || !slug) {
+      // phoneNumber is optional (App Store guideline 5.1.1(v)).
+      if (!appUserId || !email || !password || !firstName || !lastName || !slug) {
         return res.status(400).json({ success: false, message: 'Missing required signup data for plan purchase' });
       }
 
@@ -1281,7 +1284,7 @@ export default {
         lastName,
         spouseFirstName: spouseFirstName || null,
         spouseLastName: spouseLastName || null,
-        phoneNumber,
+        phoneNumber: phoneNumber || null,
         slug,
         eventDate: eventDate ? new Date(eventDate) : null,
         expiresAt,

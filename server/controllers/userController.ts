@@ -181,8 +181,10 @@ export const userController = {
     const { email, firstName, lastName, spouseFirstName, spouseLastName, password, phoneNumber, slug, discountCode, eventDate } =
       req.body as UserCreateRequest & { discountCode?: string; eventDate?: string };
 
-    if (!email || !password || !firstName || !lastName || !phoneNumber || !slug) {
-      return res.status(400).json({ error: 'Email, password, first name, last name, phone number, and slug are required' });
+    // The phone number is optional (App Store guideline 5.1.1(v)) — the iOS app
+    // omits it entirely when the couple leaves the field blank.
+    if (!email || !password || !firstName || !lastName || !slug) {
+      return res.status(400).json({ error: 'Email, password, first name, last name, and slug are required' });
     }
 
     const userAgent = req.get('User-Agent') || 'Unknown';
@@ -213,7 +215,7 @@ export const userController = {
             spouseFirstName,
             spouseLastName,
             password: hashedPassword,
-            phoneNumber,
+            phoneNumber: phoneNumber || null,
             role: 'COUPLE',
             slug,
           },

@@ -376,7 +376,7 @@ model PendingPlanSignup {
   lastName        String    @map("last_name")
   spouseFirstName String?   @map("spouse_first_name")
   spouseLastName  String?   @map("spouse_last_name")
-  phoneNumber     String    @map("phone_number")
+  phoneNumber     String?   @map("phone_number")
   slug            String
   eventDate       DateTime? @map("event_date")
   createdAt       DateTime  @default(now()) @map("created_at")

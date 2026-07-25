@@ -186,7 +186,7 @@ export const paymentService = {
     lastName: string;
     spouseFirstName?: string;
     spouseLastName?: string;
-    phoneNumber: string;
+    phoneNumber?: string;
     slug: string;
     successUrl: string;
     cancelUrl: string;
@@ -218,7 +218,7 @@ export const paymentService = {
     lastName: string;
     spouseFirstName?: string;
     spouseLastName?: string;
-    phoneNumber: string;
+    phoneNumber?: string;
     slug: string;
     eventDate?: string;
   }): Promise<{ success: boolean }> => {

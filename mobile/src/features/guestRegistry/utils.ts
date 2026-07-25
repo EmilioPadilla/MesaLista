@@ -43,6 +43,30 @@ export function computeCheckoutTotals(
   return { stripeFee, paypalFee, currentFee: method === 'paypal' ? paypalFee : stripeFee, finalTotal: cartTotal };
 }
 
+export interface GuestDetails {
+  name: string;
+  email: string;
+  phone: string;
+}
+
+/**
+ * Guest checkout validation. Only the name and email are required — they're what
+ * the couple needs to know who sent the gift; the phone is optional (App Store
+ * guideline 5.1.1(v)) and only checked for shape when it's filled in.
+ */
+export function validateGuestDetails({ name, email, phone }: GuestDetails): Partial<Record<keyof GuestDetails, string>> {
+  const errors: Partial<Record<keyof GuestDetails, string>> = {};
+
+  if (!name.trim()) errors.name = 'El nombre es requerido';
+
+  if (!email.trim()) errors.email = 'El correo es requerido';
+  else if (!/\S+@\S+\.\S+/.test(email)) errors.email = 'Correo inválido';
+
+  if (phone.trim() && !/^\d{10}$/.test(phone.replace(/\D/g, ''))) errors.phone = 'Debe tener 10 dígitos';
+
+  return errors;
+}
+
 /** Count of distinct line items in a cart. */
 export function cartItemCount(items?: CartItem[]): number {
   return items?.length ?? 0;

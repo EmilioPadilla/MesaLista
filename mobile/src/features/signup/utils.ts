@@ -1,7 +1,8 @@
 /**
  * Pure signup-flow logic shared by the screen and its tests. Mirrors the web
  * flow in src/app/routes/Signup.tsx — keep validation rules, slug generation
- * and pricing in sync with it.
+ * and pricing in sync with it. One deliberate divergence: the phone number is
+ * optional here (App Store guideline 5.1.1(v)) while web still requires it.
  */
 
 export type SignupStep = 'details' | 'verification' | 'slug' | 'plan' | 'payment' | 'success';
@@ -87,8 +88,9 @@ export function validateDetails(d: SignupDetails): DetailsErrors {
   if (!d.email.trim()) errors.email = 'El correo electrónico es requerido';
   else if (!EMAIL_RE.test(d.email.trim())) errors.email = 'Correo electrónico inválido';
 
-  if (!d.phone.trim()) errors.phone = 'El teléfono es requerido';
-  else if (!PHONE_RE.test(d.phone.trim())) errors.phone = 'Teléfono inválido';
+  // Optional: App Store guideline 5.1.1(v) forbids requiring personal data that
+  // isn't needed for the core flow. Only the format is checked when filled in.
+  if (d.phone.trim() && !PHONE_RE.test(d.phone.trim())) errors.phone = 'Teléfono inválido';
 
   if (!d.eventDate) errors.eventDate = 'La fecha del evento es requerida';
   else if (startOfDay(d.eventDate) < startOfDay(new Date())) errors.eventDate = 'La fecha no puede ser en el pasado';
@@ -103,6 +105,15 @@ export function validateDetails(d: SignupDetails): DetailsErrors {
   if (!d.termsAccepted) errors.termsAccepted = 'Debes aceptar los términos y condiciones';
 
   return errors;
+}
+
+/**
+ * Trimmed phone, or `undefined` when the couple left it blank — the payloads
+ * JSON-serialize, so an undefined value drops the key instead of sending an
+ * empty string the API would store verbatim.
+ */
+export function optionalPhone(phone: string): string | undefined {
+  return phone.trim() || undefined;
 }
 
 export function startOfDay(date: Date): Date {

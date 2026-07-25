@@ -6,6 +6,7 @@ import {
   calculateDiscountedPrice,
   calculatePasswordStrength,
   EMPTY_DETAILS,
+  optionalPhone,
   passwordStrengthLabel,
   sanitizeSlugInput,
   validateDetails,
@@ -63,12 +64,17 @@ describe('validateDetails', () => {
     expect(errors.firstName).toBeTruthy();
     expect(errors.lastName).toBeTruthy();
     expect(errors.email).toBeTruthy();
-    expect(errors.phone).toBeTruthy();
     expect(errors.eventDate).toBeTruthy();
     expect(errors.password).toBeTruthy();
     expect(errors.confirmPassword).toBeTruthy();
     expect(errors.termsAccepted).toBeTruthy();
     expect(errors.spouseFirstName).toBeUndefined(); // not a wedding account
+    expect(errors.phone).toBeUndefined(); // optional (App Store guideline 5.1.1(v))
+  });
+
+  it('accepts a blank phone but rejects a malformed one', () => {
+    expect(validateDetails({ ...validDetails, phone: '' }).phone).toBeUndefined();
+    expect(validateDetails({ ...validDetails, phone: '   ' }).phone).toBeUndefined();
   });
 
   it('requires spouse names only for wedding accounts', () => {
@@ -97,6 +103,23 @@ describe('validateDetails', () => {
     yesterday.setDate(yesterday.getDate() - 1);
     expect(validateDetails({ ...validDetails, eventDate: yesterday }).eventDate).toBeTruthy();
     expect(validateDetails({ ...validDetails, eventDate: new Date() }).eventDate).toBeUndefined();
+  });
+});
+
+describe('optionalPhone', () => {
+  it('drops the key from a JSON payload when the field is blank', () => {
+    // JSON.stringify is what the API client does with the payload, so an
+    // undefined value is what "the couple sent no phone number" looks like
+    // on the wire — never an empty string the server would store.
+    expect(JSON.parse(JSON.stringify({ phoneNumber: optionalPhone('') }))).toEqual({});
+    expect(JSON.parse(JSON.stringify({ phoneNumber: optionalPhone('   ') }))).toEqual({});
+  });
+
+  it('sends the trimmed number when one was typed', () => {
+    expect(optionalPhone(' 55 1234 5678 ')).toBe('55 1234 5678');
+    expect(JSON.parse(JSON.stringify({ phoneNumber: optionalPhone('5512345678') }))).toEqual({
+      phoneNumber: '5512345678',
+    });
   });
 });
 
