@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Form, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from 'components/core/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/core/Card';
 import { Input } from 'components/core/Input';
@@ -13,6 +13,10 @@ interface ForgotPasswordFormValues {
 
 export function ForgotPassword() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Carried over when an app user lands here from an expired reset link, so the new
+  // link keeps pointing them back to the app.
+  const fromApp = searchParams.get('app') === '1';
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [form] = Form.useForm();
@@ -20,7 +24,7 @@ export function ForgotPassword() {
   const onFinish = async (values: ForgotPasswordFormValues) => {
     setIsLoading(true);
     try {
-      await userService.requestPasswordReset(values.email);
+      await userService.requestPasswordReset(values.email, fromApp ? 'app' : undefined);
       setEmailSent(true);
       message.success('Si el correo existe, recibirás un enlace para restablecer tu contraseña');
     } catch (error) {

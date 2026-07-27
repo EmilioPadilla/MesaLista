@@ -84,7 +84,7 @@ export default function LoginScreen() {
 
           <Text className="mb-1 text-sm font-medium text-foreground">Contraseña</Text>
           <TextInput
-            className="mb-6 rounded-ml border border-gray-200 bg-white px-4 py-3 text-base text-ink"
+            className="mb-2 rounded-ml border border-gray-200 bg-white px-4 py-3 text-base text-ink"
             placeholder="••••••••"
             placeholderTextColor="#949ca4"
             secureTextEntry
@@ -92,6 +92,14 @@ export default function LoginScreen() {
             onChangeText={setPassword}
             onSubmitEditing={onSubmit}
           />
+
+          <Pressable
+            className="mb-6 self-end py-1"
+            onPress={() => router.push('/forgot-password')}
+            hitSlop={8}
+          >
+            <Text className="text-sm font-medium text-oak">¿Olvidaste tu contraseña?</Text>
+          </Pressable>
 
           <Pressable
             className="items-center rounded-full bg-oak py-4 active:bg-oakDark"

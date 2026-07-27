@@ -17,6 +17,9 @@ export function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  // Set by the backend when the reset was requested from the mobile app, so we can
+  // send the user back there instead of to the website's login screen.
+  const fromApp = searchParams.get('app') === '1';
 
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
@@ -132,7 +135,7 @@ export function ResetPassword() {
               </div>
 
               <div className="space-y-3">
-                <Button className="w-full h-12" onClick={() => navigate('/olvide-contrasena')}>
+                <Button className="w-full h-12" onClick={() => navigate(fromApp ? '/olvide-contrasena?app=1' : '/olvide-contrasena')}>
                   Solicitar nuevo enlace
                 </Button>
                 <Button variant="outline" className="w-full h-12" onClick={() => navigate('/login')}>
@@ -161,12 +164,31 @@ export function ResetPassword() {
               </div>
               <CardTitle className="text-3xl">¡Contraseña Restablecida!</CardTitle>
               <CardDescription className="text-base">
-                Tu contraseña ha sido actualizada exitosamente. Ahora puedes iniciar sesión con tu nueva contraseña.
+                {fromApp
+                  ? 'Tu contraseña ha sido actualizada exitosamente. Vuelve a la app MesaLista para iniciar sesión con tu nueva contraseña.'
+                  : 'Tu contraseña ha sido actualizada exitosamente. Ahora puedes iniciar sesión con tu nueva contraseña.'}
               </CardDescription>
             </CardHeader>
 
-            <CardContent>
-              <Button className="w-full h-12 shadow-lg hover:shadow-xl transition-all duration-300" onClick={() => navigate('/login')}>
+            <CardContent className="space-y-3">
+              {fromApp && (
+                <>
+                  <Button
+                    className="w-full h-12 shadow-lg hover:shadow-xl transition-all duration-300"
+                    onClick={() => {
+                      window.location.href = 'mesalista://login';
+                    }}>
+                    Abrir la app MesaLista
+                  </Button>
+                  <p className="text-sm text-muted-foreground text-center">
+                    Si no se abre sola, cierra esta pestaña y regresa a la app manualmente.
+                  </p>
+                </>
+              )}
+              <Button
+                variant={fromApp ? 'outline' : 'default'}
+                className="w-full h-12 shadow-lg hover:shadow-xl transition-all duration-300"
+                onClick={() => navigate('/login')}>
                 Ir al inicio de sesión
               </Button>
             </CardContent>

@@ -97,8 +97,16 @@ export const userService = {
     return response.data;
   },
 
-  requestPasswordReset: async (email: string): Promise<{ success: boolean; message: string }> => {
-    const response = await apiClient.post(userEndpoints.requestPasswordReset, { email }, { skipAuth: true } as CustomAxiosRequestConfig);
+  /**
+   * `source: 'app'` marks the request as coming from the mobile app so the emailed
+   * link can tell the reset page to point the user back to the app when they finish.
+   */
+  requestPasswordReset: async (email: string, source?: 'app'): Promise<{ success: boolean; message: string }> => {
+    const response = await apiClient.post(
+      userEndpoints.requestPasswordReset,
+      { email, source },
+      { skipAuth: true } as CustomAxiosRequestConfig
+    );
     return response.data;
   },
 

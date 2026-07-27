@@ -675,7 +675,7 @@ export const userController = {
 
   // Request password reset
   requestPasswordReset: async (req: Request, res: Response) => {
-    const { email } = req.body;
+    const { email, source } = req.body;
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
@@ -690,7 +690,10 @@ export const userController = {
       if (resetData) {
         // Generate reset link
         const baseUrl = process.env.FRONT_END_URL || 'http://localhost:5173';
-        const resetLink = `${baseUrl}/restablecer-contrasena?token=${resetData.token}`;
+        // Requests from the mobile app carry ?app=1 so the reset page can send the
+        // user back to the app instead of to the website's login once they finish.
+        const appSuffix = source === 'app' ? '&app=1' : '';
+        const resetLink = `${baseUrl}/restablecer-contrasena?token=${resetData.token}${appSuffix}`;
 
         // Send password reset email
         await emailService.sendPasswordResetEmail(resetData.email, resetData.firstName, resetLink);
