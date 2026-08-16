@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, useRouter } from 'expo-router';
 
 import { useAuth } from '@/auth/AuthContext';
+import { useScreenView } from '@/lib/analytics';
 
 const serif = Platform.select({ ios: 'Georgia', android: 'serif' });
 
@@ -14,6 +15,9 @@ const serif = Platform.select({ ios: 'Georgia', android: 'serif' });
 export default function WelcomeScreen() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+
+  // Top of the signup/login funnel: gives mobile sessions a `visitors` entry.
+  useScreenView('/welcome');
 
   if (isAuthenticated) {
     return <Redirect href="/(app)" />;

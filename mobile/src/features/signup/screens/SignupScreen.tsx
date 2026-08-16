@@ -28,6 +28,7 @@ import { queryKeys } from 'hooks/queryKeys';
 import type { User } from 'types/models/user';
 
 import { useAuth } from '@/auth/AuthContext';
+import { trackEvent, useScreenView } from '@/lib/analytics';
 import { useToast } from '@/lib/ToastProvider';
 import { tokenStore } from '@/lib/secureStore';
 import { API_URL } from '@/lib/apiConfig';
@@ -107,6 +108,8 @@ export function SignupScreen() {
 
   const discountCodeValid = discountCodeInfo ? true : isDiscountCodeError ? false : null;
   const price = calculateDiscountedPrice(discountCodeValid ? discountCodeInfo : null, selectedPlan);
+
+  useScreenView('/signup');
 
   // Keep the suggested slug in sync while names are being typed (web parity).
   useEffect(() => {
@@ -196,8 +199,12 @@ export function SignupScreen() {
     }
   };
 
+  /** How this signup is being paid for — kept on every checkout event. */
+  const paymentMethod = () => (selectedPlan !== 'fixed' ? 'commission' : iosIap ? 'apple_iap' : 'stripe');
+
   const goToSuccess = (finalSlug?: string) => {
     setSuccessSlug(finalSlug || slug);
+    trackEvent('REGISTRY_PURCHASE', { plan: selectedPlan, slug: finalSlug || slug, method: paymentMethod() });
     setStep('success');
   };
 
@@ -344,6 +351,9 @@ export function SignupScreen() {
         const nextErrors = validateDetails(details);
         setErrors(nextErrors);
         if (Object.keys(nextErrors).length > 0) return;
+        // Funnel entry, same point the web tracks it (plan/slug are picked in
+        // later steps here, so they aren't known yet).
+        trackEvent('REGISTRY_ATTEMPT', { slug });
         if (await handleSendVerificationCode(true)) setStep('verification');
         return;
       }
@@ -401,6 +411,7 @@ export function SignupScreen() {
 
       case 'payment': {
         setIsLoading(true);
+        trackEvent('START_CHECKOUT', { plan: selectedPlan, slug, method: paymentMethod() });
         try {
           if (selectedPlan === 'fixed') {
             if (iosIap) await handleFixedPlanIap();
@@ -411,9 +422,9 @@ export function SignupScreen() {
           // thrown RevenueCat/StoreKit errors only carry `.message` — surface it
           // so IAP failures aren't swallowed into a generic toast.
           const data = error?.response?.data;
-          toast.error(
-            data?.error || data?.message || error?.message || 'Error al procesar la solicitud. Por favor intenta de nuevo.',
-          );
+          const reason = data?.error || data?.message || error?.message;
+          trackEvent('CHECKOUT_ERROR', { plan: selectedPlan, slug, method: paymentMethod(), error: reason });
+          toast.error(reason || 'Error al procesar la solicitud. Por favor intenta de nuevo.');
         } finally {
           setIsLoading(false);
         }

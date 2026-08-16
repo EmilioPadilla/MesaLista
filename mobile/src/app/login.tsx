@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, useRouter } from 'expo-router';
 
 import { useAuth } from '@/auth/AuthContext';
+import { trackEvent, useScreenView } from '@/lib/analytics';
 import { useToast } from '@/lib/ToastProvider';
 
 const serif = Platform.select({ ios: 'Georgia', android: 'serif' });
@@ -24,6 +25,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useScreenView('/login');
 
   if (isAuthenticated) {
     return <Redirect href="/(app)" />;
@@ -41,7 +44,10 @@ export default function LoginScreen() {
     }
     setSubmitting(true);
     try {
-      await login(email.trim(), password);
+      const user = await login(email.trim(), password);
+      // The /users/me query hasn't resolved yet, so take the id from the login
+      // response rather than from the auth context.
+      trackEvent('SIGN_IN', { method: 'password' }, user?.id);
       // Navigation happens via the isAuthenticated redirect once /users/me resolves.
     } catch (err: any) {
       toast.error(err?.response?.data?.error || 'Credenciales inválidas');
