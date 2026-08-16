@@ -243,6 +243,8 @@ export const userController = {
             eventDate: resolveEventDate(eventDate),
             planType: 'COMMISSION',
             isActive: true,
+            // Commission lists start hidden from search
+            isPublic: false,
             invitationCount: 0,
             ...(discountCodeRecord && { discountCodeId: discountCodeRecord.id }),
           },

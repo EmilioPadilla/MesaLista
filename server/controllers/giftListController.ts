@@ -251,6 +251,8 @@ const giftListController = {
           eventDate: new Date(eventDate),
           imageUrl,
           planType,
+          // Commission lists start hidden from search —
+          ...(planType === 'COMMISSION' && { isPublic: false }),
           discountCodeId: discountCodeId ? Number(discountCodeId) : undefined,
         },
       });
