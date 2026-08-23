@@ -2,8 +2,33 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { CreateGiftListRequest, GiftListBrief, UpdateGiftListRequest } from 'types/models/giftList.js';
 import { WhereClause } from 'types/clauses.js';
+// Aliased to keep it distinct from the controller method of the same name below.
+import { publishGiftList as publishGiftListRecord } from '../services/giftListPublishService.js';
 
 const prisma = new PrismaClient();
+
+/**
+ * A list with `publishedAt: null` is a draft — the couple is still building it.
+ * Drafts are invisible to everyone but their owner, so every guest-facing read
+ * filters on this and every owner-facing read does not.
+ */
+const PUBLISHED_ONLY = { publishedAt: { not: null } } as const;
+
+/**
+ * Guest-facing reads are mounted with `optionalAuthenticateSession`, so a signed-in
+ * owner previewing their own draft still gets it while everyone else gets a 404.
+ */
+const canView = (list: { publishedAt: Date | null; userId: number }, req: Request): boolean =>
+  list.publishedAt !== null || req.user?.userId === list.userId;
+
+/** True when the list exists and the caller is allowed to see it. */
+const isViewableList = async (giftListId: number, req: Request): Promise<boolean> => {
+  const list = await prisma.giftList.findUnique({
+    where: { id: giftListId },
+    select: { publishedAt: true, userId: true },
+  });
+  return !!list && canView(list, req);
+};
 
 const giftListController = {
   getAllGiftLists: async (_req: Request, res: Response) => {
@@ -13,6 +38,8 @@ const giftListController = {
       const giftLists = await prisma.giftList.findMany({
         where: {
           isPublic: true,
+          // Drafts never appear in search, even if isPublic was somehow set.
+          ...PUBLISHED_ONLY,
         },
         include: {
           gifts: true,
@@ -144,7 +171,8 @@ const giftListController = {
         },
       });
 
-      if (!giftList) {
+      // Unpublished lists read as non-existent to anyone but their owner.
+      if (!giftList || !canView(giftList, req)) {
         return res.status(404).json({ error: 'Gift list not found' });
       }
 
@@ -187,9 +215,13 @@ const giftListController = {
 
       // Get the first gift list for this user (oldest created).
       // Inactive lists are included so BuyGifts can render the closed-list warning.
+      // Drafts are excluded unless the owner is the one asking — this is the
+      // registry a guest lands on at /:slug, so it must not leak work in progress.
+      const isOwner = req.user?.userId === user.id;
       const giftList = await prisma.giftList.findFirst({
         where: {
           userId: user.id,
+          ...(isOwner ? {} : PUBLISHED_ONLY),
         },
         include: {
           gifts: {
@@ -229,7 +261,10 @@ const giftListController = {
   },
 
   createGiftList: async (req: Request, res: Response) => {
-    const { title, description, coupleName, eventDate, imageUrl, planType, discountCodeId } = req.body as CreateGiftListRequest;
+    const { title, description, coupleName, eventDate, imageUrl, discountCodeId } = req.body as CreateGiftListRequest;
+    // `planType` is intentionally NOT read from the body. Every list starts as a
+    // draft and gets its plan from the publish endpoint, which is the only place
+    // payment is verified — accepting it here would hand out fixed plans for free.
 
     // userId comes from the authenticated session, never the request body. Otherwise
     // any logged-in user could create a list owned by anyone.
@@ -250,9 +285,9 @@ const giftListController = {
           coupleName,
           eventDate: new Date(eventDate),
           imageUrl,
-          planType,
-          // Commission lists start hidden from search —
-          ...(planType === 'COMMISSION' && { isPublic: false }),
+          planType: null,
+          publishedAt: null,
+          isPublic: false,
           discountCodeId: discountCodeId ? Number(discountCodeId) : undefined,
         },
       });
@@ -266,6 +301,54 @@ const giftListController = {
       }
 
       res.status(500).json({ error: 'Failed to create gift list' });
+    }
+  },
+
+  /**
+   * Publishes a draft: assigns its plan and makes it visible to guests.
+   *
+   * Only the commission plan can be published here, because it is the only one
+   * that costs nothing up front. The fixed plan is published by the payment
+   * controller once Stripe or RevenueCat confirms the charge — otherwise this
+   * endpoint would hand out $2,000 plans to anyone who can POST.
+   */
+  publishGiftList: async (req: Request, res: Response) => {
+    const { giftListId } = req.params;
+    const { planType } = req.body as { planType?: string };
+
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const id = Number(giftListId);
+    if (!giftListId || Number.isNaN(id)) {
+      return res.status(400).json({ error: 'Gift list ID is required' });
+    }
+
+    if (planType !== 'COMMISSION' && planType !== 'FIXED') {
+      return res.status(400).json({ error: 'planType must be FIXED or COMMISSION' });
+    }
+
+    if (planType === 'FIXED') {
+      return res.status(402).json({
+        error: 'El Plan Fijo requiere completar el pago antes de publicar',
+        code: 'PAYMENT_REQUIRED',
+      });
+    }
+
+    try {
+      const result = await publishGiftListRecord({ giftListId: id, userId: req.user.userId, planType: 'COMMISSION' });
+
+      if (!result.ok) {
+        return result.reason === 'NOT_FOUND'
+          ? res.status(404).json({ error: 'Gift list not found' })
+          : res.status(409).json({ error: 'Esta mesa de regalos ya fue publicada' });
+      }
+
+      res.json(result.giftList);
+    } catch (error) {
+      console.error('Error publishing gift list:', error);
+      res.status(500).json({ error: 'Failed to publish gift list' });
     }
   },
 
@@ -288,6 +371,7 @@ const giftListController = {
     // `planType` is intentionally NOT destructured — it must be immutable post-creation.
     // Letting it change would retroactively distort the FIXED/COMMISSION split in analytics
     // and could let a couple downgrade from FIXED to COMMISSION after paying for FIXED.
+    // The one legal null -> plan transition lives in publishGiftList above.
 
     if (!giftListId) {
       return res.status(400).json({ error: 'Gift list ID is required' });
@@ -394,6 +478,11 @@ const giftListController = {
     }
 
     try {
+      // Gifts are the substance of a registry — gate them exactly like the list itself.
+      if (!(await isViewableList(Number(giftListId), req))) {
+        return res.status(404).json({ error: 'Gift list not found' });
+      }
+
       const whereClause: WhereClause = {
         giftListId: Number(giftListId),
       };
@@ -457,6 +546,10 @@ const giftListController = {
     }
 
     try {
+      if (!(await isViewableList(Number(giftListId), req))) {
+        return res.status(404).json({ error: 'Gift list not found' });
+      }
+
       const categoriesOnGifts = await prisma.giftCategoryOnGift.findMany({
         where: { giftListId: Number(giftListId) },
         include: { category: true },

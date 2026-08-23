@@ -430,6 +430,7 @@ export function SettingsPage() {
               <PrivacySection
                 isPublic={isPublic}
                 userSlug={userData?.slug}
+                isDraft={!giftListData?.publishedAt}
                 onPublicChange={(value) => {
                   setIsPublic(value);
                   setHasSettingsChanges(true);

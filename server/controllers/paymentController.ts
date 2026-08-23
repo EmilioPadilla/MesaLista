@@ -8,6 +8,7 @@ import pushService from '../services/pushService.js';
 import { discountCodeService } from '../services/discountCodeService.js';
 import { createSessionAndSetCookie } from '../middleware/auth.js';
 import { reconcileStripeFee, reconcilePayPalFee, stripeMexicoGross, paypalMexicoGross } from '../lib/paymentFees.js';
+import { publishGiftList as publishGiftListRecord } from '../services/giftListPublishService.js';
 
 const prisma = new PrismaClient();
 
@@ -103,6 +104,60 @@ const buildCoupleName = (firstName: string, lastName: string, spouseFirstName?: 
   return spouseFirstName ? `${firstName} y ${spouseFirstName}` : `${firstName} ${lastName}`;
 };
 
+/**
+ * UPGRADE mode: the couple already has an account and a draft list, and this
+ * payment publishes it on the fixed plan.
+ *
+ * Everything that makes the transition safe — atomicity, plan immutability,
+ * discount redemption, the confirmation email — lives in the publish service, so
+ * a webhook replay lands on ALREADY_PUBLISHED and changes nothing.
+ */
+const publishFixedPlanUpgradeFromMetadata = async ({
+  metadata,
+  amount,
+  source,
+}: {
+  metadata: Stripe.Metadata;
+  amount: number;
+  source: string;
+}) => {
+  const userId = Number(metadata.userId);
+  const giftListId = Number(metadata.giftListId);
+
+  if (!userId || !giftListId || Number.isNaN(userId) || Number.isNaN(giftListId)) {
+    console.error(`Missing userId/giftListId for fixed plan upgrade via ${source}`);
+    return null;
+  }
+
+  console.log(`Processing fixed plan upgrade for list ${giftListId} via ${source}`);
+
+  const result = await publishGiftListRecord({ giftListId, userId, planType: 'FIXED', amount });
+
+  if (!result.ok && result.reason === 'NOT_FOUND') {
+    console.error(`Fixed plan upgrade target not found or not owned by user ${userId}: list ${giftListId}`);
+    return null;
+  }
+
+  // ALREADY_PUBLISHED is the expected outcome of a replay, not an error.
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, firstName: true, lastName: true, spouseFirstName: true, spouseLastName: true, phoneNumber: true, slug: true, role: true },
+  });
+
+  if (!user) return null;
+
+  const giftList = result.ok
+    ? result.giftList
+    : await prisma.giftList.findUnique({
+        where: { id: giftListId },
+        select: { id: true, title: true, coupleName: true, eventDate: true },
+      });
+
+  if (!giftList) return null;
+
+  return { user, giftList, created: result.ok };
+};
+
 const provisionFixedPlanSignupFromMetadata = async ({
   metadata,
   amount,
@@ -112,6 +167,13 @@ const provisionFixedPlanSignupFromMetadata = async ({
   amount: number;
   source: 'checkout.session.completed' | 'payment_intent.succeeded' | 'success_page_recovery';
 }) => {
+  // Current flow: the account and draft already exist, so publish rather than create.
+  if (metadata?.paymentFor === 'PLAN_UPGRADE') {
+    return publishFixedPlanUpgradeFromMetadata({ metadata, amount, source });
+  }
+
+  // Legacy flow: App Store builds <= 1.0.2 (18) pay before the account exists,
+  // so the signup payload rides along in the payment metadata.
   if (metadata?.paymentFor !== 'PLAN_SUBSCRIPTION' || !metadata.email) {
     return null;
   }
@@ -208,21 +270,35 @@ const provisionFixedPlanSignupFromMetadata = async ({
     return null;
   }
 
+  // Dedup on ANY list this user owns, not just a FIXED one. Scoping this to
+  // `planType: 'FIXED'` used to be safe because a user reaching here had no
+  // lists at all; now they may hold a draft or a commission list, and a
+  // narrower check would happily create a second list beside it.
   const existingGiftList = await prisma.giftList.findFirst({
     where: {
       userId: user.id,
-      planType: 'FIXED',
     },
     select: {
       id: true,
       title: true,
       coupleName: true,
       eventDate: true,
+      planType: true,
+      publishedAt: true,
     },
+    orderBy: { createdAt: 'asc' },
   });
 
   if (existingGiftList) {
-    console.log('User already has fixed plan gift list, skipping creation (deduplication)');
+    // A draft found here means an old client paid against an account that had
+    // already signed up through the new flow. Publish it rather than duplicating.
+    if (existingGiftList.planType === null) {
+      console.log(`Legacy fixed-plan payment landed on draft list ${existingGiftList.id}; publishing it`);
+      await publishGiftListRecord({ giftListId: existingGiftList.id, userId: user.id, planType: 'FIXED', amount });
+      return { user, giftList: existingGiftList, created: true };
+    }
+
+    console.log('User already has a gift list, skipping creation (deduplication)');
     return { user, giftList: existingGiftList, created: false };
   }
 
@@ -235,6 +311,8 @@ const provisionFixedPlanSignupFromMetadata = async ({
       coupleName,
       eventDate: resolveEventDate(metadata.eventDate),
       planType: 'FIXED',
+      // Legacy signups have no publish step — the payment is the publish.
+      publishedAt: new Date(),
       isActive: true,
       invitationCount: 0,
       ...(discountCodeId && { discountCodeId }),
@@ -303,27 +381,139 @@ const hasActiveFixedPlanEntitlement = async (appUserId: string): Promise<boolean
 // payment rails share one provisioning path. No discount: Apple IAP prices are
 // fixed App Store tiers, so codes never apply on iOS.
 const pendingSignupToMetadata = (pending: {
-  email: string;
-  passwordHash: string;
-  firstName: string;
-  lastName: string;
+  userId: number | null;
+  giftListId: number | null;
+  email: string | null;
+  passwordHash: string | null;
+  firstName: string | null;
+  lastName: string | null;
   spouseFirstName: string | null;
   spouseLastName: string | null;
   phoneNumber: string | null;
-  slug: string;
+  slug: string | null;
   eventDate: Date | null;
-}): Stripe.Metadata => ({
-  paymentFor: 'PLAN_SUBSCRIPTION',
-  email: pending.email,
-  passwordHash: pending.passwordHash,
-  firstName: pending.firstName,
-  lastName: pending.lastName,
-  spouseFirstName: pending.spouseFirstName || '',
-  spouseLastName: pending.spouseLastName || '',
-  phoneNumber: pending.phoneNumber || '',
-  slug: pending.slug,
-  ...(pending.eventDate && { eventDate: pending.eventDate.toISOString() }),
-});
+}): Stripe.Metadata => {
+  // UPGRADE rows carry ids only — the account already exists.
+  if (pending.userId && pending.giftListId) {
+    return {
+      paymentFor: 'PLAN_UPGRADE',
+      planType: 'FIXED',
+      userId: String(pending.userId),
+      giftListId: String(pending.giftListId),
+    };
+  }
+
+  return {
+    paymentFor: 'PLAN_SUBSCRIPTION',
+    email: pending.email || '',
+    passwordHash: pending.passwordHash || '',
+    firstName: pending.firstName || '',
+    lastName: pending.lastName || '',
+    spouseFirstName: pending.spouseFirstName || '',
+    spouseLastName: pending.spouseLastName || '',
+    phoneNumber: pending.phoneNumber || '',
+    slug: pending.slug || '',
+    ...(pending.eventDate && { eventDate: pending.eventDate.toISOString() }),
+  };
+};
+
+/** Apply a validated discount to the fixed-plan price. Returns cents for Stripe. */
+const applyDiscountToFixedPlan = (discount: { discountType: string; discountValue: number } | null): number => {
+  if (!discount) return FIXED_PLAN_AMOUNT_MXN * 100;
+  const discounted =
+    discount.discountType === 'PERCENTAGE'
+      ? FIXED_PLAN_AMOUNT_MXN - (FIXED_PLAN_AMOUNT_MXN * discount.discountValue) / 100
+      : FIXED_PLAN_AMOUNT_MXN - discount.discountValue;
+  return Math.max(0, Math.round(discounted * 100));
+};
+
+/**
+ * Stripe checkout for publishing an existing draft on the fixed plan.
+ *
+ * Unlike the legacy signup session this carries no credentials — the couple is
+ * already authenticated, so metadata only needs to say who is paying and which
+ * list the payment publishes. The list is verified to be an unpublished draft
+ * owned by the caller before Stripe is involved, so a couple can't pay twice for
+ * a list that is already live.
+ */
+const createFixedPlanUpgradeSession = async (
+  req: Request,
+  res: Response,
+  {
+    userId,
+    giftListId,
+    successUrl,
+    cancelUrl,
+    discountCode,
+  }: { userId: number; giftListId: number; successUrl: string; cancelUrl: string; discountCode?: string },
+) => {
+  const giftList = await prisma.giftList.findUnique({
+    where: { id: giftListId },
+    select: { id: true, userId: true, planType: true, publishedAt: true },
+  });
+
+  if (!giftList || giftList.userId !== userId) {
+    return res.status(404).json({ success: false, message: 'Gift list not found' });
+  }
+
+  if (giftList.planType !== null || giftList.publishedAt !== null) {
+    return res.status(409).json({ success: false, message: 'Esta mesa de regalos ya fue publicada' });
+  }
+
+  let validatedDiscountCode = null;
+  if (discountCode) {
+    const validation = await discountCodeService.validateDiscountCode(discountCode);
+    if (!validation.valid) {
+      return res.status(400).json({ success: false, message: validation.error });
+    }
+    validatedDiscountCode = validation.discountCode ?? null;
+  }
+
+  const finalAmount = applyDiscountToFixedPlan(validatedDiscountCode);
+
+  // Attach the code to the draft now; the publish transaction redeems it once
+  // payment settles, so an abandoned checkout leaves the code unused.
+  if (validatedDiscountCode) {
+    await prisma.giftList.update({
+      where: { id: giftListId },
+      data: { discountCodeId: validatedDiscountCode.id },
+    });
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price_data: {
+          currency: 'mxn',
+          product_data: {
+            name: 'Plan Fijo - MesaLista',
+            description: validatedDiscountCode
+              ? `Publica tu mesa de regalos sin comisiones por venta (Código: ${validatedDiscountCode.code})`
+              : 'Publica tu mesa de regalos sin comisiones por venta',
+          },
+          unit_amount: finalAmount,
+        },
+        quantity: 1,
+      },
+    ],
+    mode: 'payment',
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    metadata: {
+      paymentFor: 'PLAN_UPGRADE',
+      planType: 'FIXED',
+      userId: String(userId),
+      giftListId: String(giftListId),
+      ...(validatedDiscountCode && {
+        discountCodeId: validatedDiscountCode.id.toString(),
+        discountCode: validatedDiscountCode.code,
+      }),
+    },
+  });
+
+  return res.json({ success: true, sessionId: session.id, url: session.url });
+};
 
 // Get PayPal access token
 const getPayPalAccessToken = async (): Promise<string> => {
@@ -381,6 +571,15 @@ export default {
         return res.status(400).json({
           success: false,
           message: 'Cart is empty',
+        });
+      }
+
+      // An unpublished draft must never take a guest's money. The frontend hides
+      // the registry, but that is UI — this is the control.
+      if (cart.giftList && cart.giftList.publishedAt === null) {
+        return res.status(409).json({
+          success: false,
+          message: 'Esta mesa de regalos todavía no está publicada',
         });
       }
 
@@ -802,6 +1001,15 @@ export default {
         });
       }
 
+      // An unpublished draft must never take a guest's money. The frontend hides
+      // the registry, but that is UI — this is the control.
+      if (cart.giftList && cart.giftList.publishedAt === null) {
+        return res.status(409).json({
+          success: false,
+          message: 'Esta mesa de regalos todavía no está publicada',
+        });
+      }
+
       // Get fee preference from gift list (default to 'couple' if not set)
       const feePreference = cart.giftList?.feePreference || 'couple';
 
@@ -1064,7 +1272,16 @@ export default {
     }
   },
 
-  // Create Stripe checkout session for plan payment (signup)
+  /**
+   * Stripe checkout for the fixed plan, in two modes:
+   *
+   *   UPGRADE (current) — an authenticated couple publishing an existing draft.
+   *     Identified by a session plus `giftListId`; carries only ids in metadata.
+   *   SIGNUP (legacy)   — an anonymous caller paying before the account exists.
+   *     Used by App Store builds <= 1.0.2 (18). Carries the whole signup payload.
+   *
+   * The route is mounted with `optionalAuthenticateSession` so both can reach it.
+   */
   createPlanCheckoutSession: async (req: Request, res: Response) => {
     try {
       const {
@@ -1081,21 +1298,34 @@ export default {
         cancelUrl,
         discountCode,
         eventDate,
+        giftListId,
       } = req.body;
-
-      // phoneNumber is optional (App Store guideline 5.1.1(v)).
-      if (!planType || !email || !password || !firstName || !lastName || !slug) {
-        return res.status(400).json({
-          success: false,
-          message: 'Missing required signup data for plan checkout',
-        });
-      }
 
       // Only fixed plan requires payment
       if (planType !== 'FIXED') {
         return res.status(400).json({
           success: false,
           message: 'Only fixed plan requires payment',
+        });
+      }
+
+      const isUpgrade = !!req.user && !!giftListId;
+
+      if (isUpgrade) {
+        return createFixedPlanUpgradeSession(req, res, {
+          userId: req.user!.userId,
+          giftListId: Number(giftListId),
+          successUrl,
+          cancelUrl,
+          discountCode,
+        });
+      }
+
+      // phoneNumber is optional (App Store guideline 5.1.1(v)).
+      if (!email || !password || !firstName || !lastName || !slug) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required signup data for plan checkout',
         });
       }
 
@@ -1197,7 +1427,10 @@ export default {
 
       const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-      if (session.metadata?.paymentFor !== 'PLAN_SUBSCRIPTION') {
+      // Both plan rails land here: PLAN_UPGRADE publishes an existing draft,
+      // PLAN_SUBSCRIPTION is the legacy pre-account signup from old iOS builds.
+      const paymentFor = session.metadata?.paymentFor;
+      if (paymentFor !== 'PLAN_UPGRADE' && paymentFor !== 'PLAN_SUBSCRIPTION') {
         return res.status(400).json({ success: false, message: 'Invalid checkout session' });
       }
 
@@ -1237,10 +1470,13 @@ export default {
 
   // --- iOS fixed-plan In-App Purchase (RevenueCat) ---
 
-  // Step 1 of the iOS fixed-plan flow. Validates the signup and stashes it
-  // (password hashed) keyed by the RevenueCat app user id, so the account can be
-  // provisioned after the anonymous Apple purchase confirms. No payment happens
-  // here — that's Apple's job — and no discount is accepted (IAP prices are fixed).
+  // Step 1 of the iOS fixed-plan flow. Stashes the intent keyed by the RevenueCat
+  // app user id so it can be acted on after the anonymous Apple purchase confirms.
+  // No payment happens here — that's Apple's job — and no discount is accepted
+  // (IAP prices are fixed App Store tiers).
+  //
+  // UPGRADE mode (authenticated + giftListId) stores only ids. SIGNUP mode stores
+  // the hashed signup payload for App Store builds <= 1.0.2 (18).
   preparePlanIapSignup: async (req: Request, res: Response) => {
     try {
       const {
@@ -1254,10 +1490,43 @@ export default {
         phoneNumber,
         slug,
         eventDate,
+        giftListId,
       } = req.body;
 
+      if (!appUserId) {
+        return res.status(400).json({ success: false, message: 'appUserId is required' });
+      }
+
+      if (req.user && giftListId) {
+        const giftList = await prisma.giftList.findUnique({
+          where: { id: Number(giftListId) },
+          select: { id: true, userId: true, planType: true, publishedAt: true },
+        });
+
+        if (!giftList || giftList.userId !== req.user.userId) {
+          return res.status(404).json({ success: false, message: 'Gift list not found' });
+        }
+        if (giftList.planType !== null || giftList.publishedAt !== null) {
+          return res.status(409).json({ success: false, message: 'Esta mesa de regalos ya fue publicada' });
+        }
+
+        const upgradeData = {
+          userId: req.user.userId,
+          giftListId: giftList.id,
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+        };
+
+        await prisma.pendingPlanSignup.upsert({
+          where: { appUserId },
+          create: { appUserId, ...upgradeData },
+          update: upgradeData,
+        });
+
+        return res.json({ success: true });
+      }
+
       // phoneNumber is optional (App Store guideline 5.1.1(v)).
-      if (!appUserId || !email || !password || !firstName || !lastName || !slug) {
+      if (!email || !password || !firstName || !lastName || !slug) {
         return res.status(400).json({ success: false, message: 'Missing required signup data for plan purchase' });
       }
 
@@ -1339,6 +1608,18 @@ export default {
       }
 
       await prisma.pendingPlanSignup.delete({ where: { appUserId } }).catch(() => {});
+
+      // UPGRADE mode: the couple is already signed in, so don't mint a second
+      // session. SIGNUP mode has no session yet and needs one to land the app.
+      const isUpgrade = !!pending.userId;
+      if (isUpgrade) {
+        return res.json({
+          success: true,
+          slug: provisioned.user.slug,
+          planType: 'FIXED',
+          giftListId: provisioned.giftList.id,
+        });
+      }
 
       const userAgent = req.get('User-Agent') || 'Unknown';
       const ipAddress = req.ip || req.connection.remoteAddress;

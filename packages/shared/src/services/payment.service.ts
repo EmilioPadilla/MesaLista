@@ -178,16 +178,26 @@ export const paymentService = {
    * @param data Plan checkout session data
    * @returns Checkout session response with URL
    */
+  /**
+   * Stripe checkout for the fixed plan.
+   *
+   * UPGRADE (current): an authenticated couple publishing an existing draft —
+   * pass `giftListId` and nothing else but the URLs. SIGNUP (legacy): an
+   * anonymous caller paying before the account exists, which carries the whole
+   * signup payload. The server picks the mode from the session plus giftListId.
+   */
   createPlanCheckoutSession: async (data: {
     planType: string;
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
+    /** UPGRADE mode: the draft this payment publishes. */
+    giftListId?: number;
+    email?: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
     spouseFirstName?: string;
     spouseLastName?: string;
     phoneNumber?: string;
-    slug: string;
+    slug?: string;
     successUrl: string;
     cancelUrl: string;
     discountCode?: string;
@@ -212,14 +222,16 @@ export const paymentService = {
    */
   preparePlanIapSignup: async (data: {
     appUserId: string;
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
+    /** UPGRADE mode: the draft this purchase publishes. Signup fields are unused then. */
+    giftListId?: number;
+    email?: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
     spouseFirstName?: string;
     spouseLastName?: string;
     phoneNumber?: string;
-    slug: string;
+    slug?: string;
     eventDate?: string;
   }): Promise<{ success: boolean }> => {
     const response = await apiClient.post(paymentEndpoints.preparePlanIapSignup, data);

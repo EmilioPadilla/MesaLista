@@ -108,6 +108,28 @@ export const useUpdateGiftList = () => {
 };
 
 /**
+ * Hook to publish a draft gift list on the commission plan.
+ *
+ * The fixed plan is published server-side by the payment flow, so it has no hook
+ * here — see usePayment's plan checkout / IAP mutations.
+ *
+ * Invalidates the by-slug query too: it is what the public registry reads, and a
+ * stale entry would keep showing the couple a draft banner on a live registry.
+ */
+export const usePublishGiftList = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => giftListService.publishGiftList(id, 'COMMISSION'),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftLists] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftListById, id] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftListsByUser] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.giftListBySlug] });
+    },
+  });
+};
+
+/**
  * Hook to delete a gift list
  */
 export const useDeleteGiftList = () => {

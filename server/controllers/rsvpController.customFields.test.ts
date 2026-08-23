@@ -70,6 +70,9 @@ const makeField = (overrides = {}) => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // respondToRsvp refuses to collect RSVPs for an unpublished draft, so the
+  // default fixture is a published list. The draft case is asserted separately.
+  mockPrisma.giftList.findUnique.mockResolvedValue({ publishedAt: new Date('2026-01-01') });
 });
 
 // ─── respondToRsvp ─────────────────────────────────────────────────────────────

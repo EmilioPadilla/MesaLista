@@ -9,6 +9,19 @@ export interface LoginResponse extends User {
 }
 
 export const userService = {
+  /**
+   * Free signup. Creates the couple and a draft list they can start building
+   * immediately; no plan and no payment are involved. A discount code passed
+   * here is attached to the draft and only redeemed when they publish.
+   */
+  signup: async (
+    userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { password: string; discountCode?: string; eventDate?: string },
+  ): Promise<User & { giftListId: number; planType: string | null; publishedAt: string | null; token?: string }> => {
+    const response = await apiClient.post(userEndpoints.signup, userData);
+    return response.data;
+  },
+
+  /** @deprecated Legacy pre-publish signup, kept for App Store builds <= 1.0.2 (18). */
   signupCommission: async (
     userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { password: string; discountCode?: string; eventDate?: string },
   ): Promise<User> => {
@@ -77,6 +90,16 @@ export const userService = {
       params,
       skipAuth: true,
     } as CustomAxiosRequestConfig);
+    return response.data;
+  },
+
+  /**
+   * Signup-form check: is this email free? POSTed so the address never lands in a
+   * URL or access log. Older deployed APIs 404 this route — callers treat that as
+   * "unknown" and let the signup request itself catch the duplicate.
+   */
+  checkEmailAvailability: async (email: string): Promise<{ available: boolean; email: string }> => {
+    const response = await apiClient.post(userEndpoints.checkEmail, { email }, { skipAuth: true } as CustomAxiosRequestConfig);
     return response.data;
   },
 

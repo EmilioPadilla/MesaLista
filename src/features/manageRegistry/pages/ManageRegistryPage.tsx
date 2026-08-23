@@ -14,6 +14,7 @@ import { StatsTabContent } from '../components/StatsTabContent';
 import { PurchasedGiftsTab } from '../components/PurchasedGiftsTab';
 import { GiftsList } from '../components/GiftsList';
 import { GiftModal } from '../components/GiftModal';
+import { DraftBanner, PublishModal } from 'src/features/publish';
 import type { GiftItem, SortOption, FilterOption } from '../types';
 
 export function ManageRegistryPage() {
@@ -45,6 +46,10 @@ export function ManageRegistryPage() {
   const [sortBy, setSortBy] = useState<SortOption>('original');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
+  const [isPublishOpen, setIsPublishOpen] = useState(false);
+
+  // No plan yet means the couple hasn't published — the list is a draft.
+  const isDraft = !!giftList && !giftList.publishedAt;
 
   // Debounce search term to prevent excessive filtering (300ms delay)
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -165,6 +170,23 @@ export function ManageRegistryPage() {
           <span className="hidden md:flex">Configuración</span>
         </Button>
       </div>
+
+      {/* Draft registries aren't visible to guests until the couple publishes. */}
+      {isDraft && (
+        <DraftBanner
+          giftCount={gifts.length}
+          eventDate={giftList.eventDate}
+          coverImageUrl={giftList.imageUrl}
+          onPublish={() => setIsPublishOpen(true)}
+        />
+      )}
+
+      <PublishModal
+        open={isPublishOpen}
+        onClose={() => setIsPublishOpen(false)}
+        giftListId={giftList.id}
+        suggestedGoal={gifts.reduce((sum, gift) => sum + gift.price * (gift.quantity ?? 1), 0)}
+      />
 
       {/* Enhanced Stats Cards */}
       <StatsCards gifts={gifts} />

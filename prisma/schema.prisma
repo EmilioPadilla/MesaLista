@@ -72,7 +72,11 @@ model GiftList {
   eventLocation String?   @map("event_location")
   eventVenue    String?   @map("event_venue")
   imageUrl      String?   @map("image_url")
-  planType      PlanType? @map("plan_type") // Payment plan for this list
+  // A list with no plan is a DRAFT: the couple is still building it, so it is
+  // invisible to guests and cannot receive money. The plan is chosen at publish
+  // time (POST /giftLists/:id/publish) and is immutable from then on.
+  planType      PlanType? @map("plan_type") // Payment plan for this list; null while draft
+  publishedAt   DateTime? @map("published_at") // Set once, when the couple publishes; null while draft
   discountCodeId Int?     @map("discount_code_id") // Discount code used for this list
   isActive      Boolean   @default(true) @map("is_active") // Whether this list is currently active
   isPublic      Boolean   @default(true) @map("is_public") // Whether this list appears in search results
@@ -91,6 +95,7 @@ model GiftList {
   rsvpCustomFields RsvpCustomField[] // Custom fields for RSVP responses
 
   @@index([userId])
+  @@index([publishedAt])
   @@map("gift_lists")
 }
 
@@ -360,24 +365,33 @@ enum DiscountType {
   FIXED_AMOUNT
 }
 
-// Holds hashed signup data for an in-progress iOS fixed-plan In-App Purchase,
-// keyed by the RevenueCat app user id. Apple IAP is anonymous at purchase time
-// (unlike Stripe, which carries the couple's details in session metadata), so we
-// stash the signup here BEFORE the purchase and provision the real account once
-// RevenueCat confirms the entitlement — via /payments/plan/ios/complete or the
-// webhook backstop. Rows are short-lived and deleted the moment provisioning
-// succeeds; `expiresAt` lets a cron sweep abandoned attempts.
+// Holds an in-progress iOS fixed-plan In-App Purchase, keyed by the RevenueCat
+// app user id. Apple IAP is anonymous at purchase time (unlike Stripe, which
+// carries details in session metadata), so we stash the intent here BEFORE the
+// purchase and act on it once RevenueCat confirms the entitlement — via
+// /payments/plan/ios/complete or the webhook backstop. Rows are short-lived and
+// deleted the moment provisioning succeeds; `expiresAt` sweeps abandoned attempts.
+//
+// Two modes share this table:
+//   UPGRADE (current) — `userId`/`giftListId` set, signup columns null. The
+//     couple already has an account and a draft list; the purchase publishes it.
+//   SIGNUP (legacy)   — signup columns set, `userId`/`giftListId` null. Used by
+//     App Store builds <= 1.0.2 (18), which pay before the account exists.
+// The signup columns are nullable only to support that legacy mode; drop them
+// once old-build traffic is gone.
 model PendingPlanSignup {
   id              String    @id @default(cuid())
   appUserId       String    @unique @map("app_user_id") // RevenueCat app_user_id
-  email           String
-  passwordHash    String    @map("password_hash")
-  firstName       String    @map("first_name")
-  lastName        String    @map("last_name")
+  userId          Int?      @map("user_id") // UPGRADE mode: the existing couple
+  giftListId      Int?      @map("gift_list_id") // UPGRADE mode: the draft being published
+  email           String?
+  passwordHash    String?   @map("password_hash")
+  firstName       String?   @map("first_name")
+  lastName        String?   @map("last_name")
   spouseFirstName String?   @map("spouse_first_name")
   spouseLastName  String?   @map("spouse_last_name")
   phoneNumber     String?   @map("phone_number")
-  slug            String
+  slug            String?
   eventDate       DateTime? @map("event_date")
   createdAt       DateTime  @default(now()) @map("created_at")
   expiresAt       DateTime  @map("expires_at")
@@ -434,6 +448,11 @@ enum AnalyticsEventType {
   SIGN_IN
   REGISTRY_ATTEMPT
   REGISTRY_PURCHASE
+  // Free signup completed — a draft list now exists.
+  REGISTRY_DRAFT_CREATED
+  // Draft published on a plan. With REGISTRY_DRAFT_CREATED this gives the
+  // draft -> publish rate, the headline metric for the free-to-build flow.
+  REGISTRY_PUBLISHED
   GIFT_PURCHASE
   VIEW_PRICING
   VIEW_REGISTRY_BUILDER
@@ -449,6 +468,8 @@ model AnalyticsDaily {
   visitors              Int      @default(0) // Unique sessions with PAGE_VIEW
   signIns               Int      @default(0) @map("sign_ins") // Unique users with SIGN_IN
   registryPurchases     Int      @default(0) @map("registry_purchases") // REGISTRY_PURCHASE events
+  draftsCreated         Int      @default(0) @map("drafts_created") // REGISTRY_DRAFT_CREATED events
+  registriesPublished   Int      @default(0) @map("registries_published") // REGISTRY_PUBLISHED events
   giftPurchases         Int      @default(0) @map("gift_purchases") // GIFT_PURCHASE events
   viewPricing           Int      @default(0) @map("view_pricing") // VIEW_PRICING events
   viewRegistryBuilder   Int      @default(0) @map("view_registry_builder") // VIEW_REGISTRY_BUILDER events
@@ -471,6 +492,8 @@ model AnalyticsHourly {
   visitors              Int      @default(0)
   signIns               Int      @default(0) @map("sign_ins")
   registryPurchases     Int      @default(0) @map("registry_purchases")
+  draftsCreated         Int      @default(0) @map("drafts_created")
+  registriesPublished   Int      @default(0) @map("registries_published")
   giftPurchases         Int      @default(0) @map("gift_purchases")
   viewPricing           Int      @default(0) @map("view_pricing")
   viewRegistryBuilder   Int      @default(0) @map("view_registry_builder")

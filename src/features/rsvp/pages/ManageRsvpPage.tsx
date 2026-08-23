@@ -22,6 +22,7 @@ import {
 } from 'src/hooks/useRsvp';
 import { useCurrentUser } from 'src/hooks/useUser';
 import { useGiftListsByUser } from 'src/hooks/useGiftList';
+import { DraftShareNotice } from 'src/features/publish';
 import { Collapsible } from 'src/components/core/Collapsible';
 import type { RsvpInvitee, RsvpInviteeInput, RsvpStatus, ImportInviteeRow } from '../types';
 
@@ -41,6 +42,8 @@ export function ManageRsvpPage() {
   const { data: giftLists = [], isLoading: isLoadingLists } = useGiftListsByUser(user?.id);
 
   // Set initial active gift list
+  const activeGiftList = giftLists.find((list) => list.id === activeGiftListId);
+
   useEffect(() => {
     if (giftLists.length > 0 && !activeGiftListId) {
       setActiveGiftListId(giftLists[0].id);
@@ -228,6 +231,11 @@ export function ManageRsvpPage() {
 
   const renderContent = () => (
     <>
+      {/* RSVP codes don't resolve for guests until the registry is published. */}
+      {activeGiftList && !activeGiftList.publishedAt && (
+        <DraftShareNotice userSlug={user?.slug} subject="tu lista de invitados" />
+      )}
+
       {/* Statistics Cards */}
       <RsvpStatistics stats={localStats} />
 

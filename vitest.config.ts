@@ -34,6 +34,11 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // `mobile/_vendor` is a build-time copy of packages/shared with its own
+    // node_modules. Running its tests here loads a second React and every render
+    // fails on a null dispatcher — the originals under packages/shared already
+    // cover the same code.
+    exclude: ['**/node_modules/**', '**/dist/**', 'mobile/_vendor/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

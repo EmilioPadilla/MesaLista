@@ -55,6 +55,10 @@ export const analyticsController = {
         'PAGE_VIEW',
         'SIGN_IN',
         'REGISTRY_ATTEMPT',
+        // Free signup completed — a draft now exists. The top of the new funnel.
+        'REGISTRY_DRAFT_CREATED',
+        // Draft published on a plan. The conversion the free-to-build flow exists to move.
+        'REGISTRY_PUBLISHED',
         'REGISTRY_PURCHASE',
         'GIFT_PURCHASE',
         'VIEW_PRICING',

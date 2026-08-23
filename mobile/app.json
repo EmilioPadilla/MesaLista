@@ -2,14 +2,14 @@
   "expo": {
     "name": "MesaLista",
     "slug": "mesalista",
-    "version": "1.0.2",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/ios-icon.png",
     "scheme": "mesalista",
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.mesalista.app",
-      "buildNumber": "18",
+      "buildNumber": "19",
       "supportsTablet": false,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "MesaLista needs access to your photo library so you can add photos to your gifts and registry.",

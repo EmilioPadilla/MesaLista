@@ -1,22 +1,43 @@
-import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Lock } from 'lucide-react';
 
 interface PrivacySectionProps {
   isPublic: boolean;
   userSlug?: string;
+  /** Draft registries aren't visible to anyone yet, so the choice doesn't apply. */
+  isDraft?: boolean;
   onPublicChange: (isPublic: boolean) => void;
 }
 
-export function PrivacySection({ isPublic, userSlug, onPublicChange }: PrivacySectionProps) {
+export function PrivacySection({ isPublic, userSlug, isDraft = false, onPublicChange }: PrivacySectionProps) {
+  // While the list is a draft this setting has no effect — the server hides
+  // unpublished lists from search regardless. Locking it here keeps the UI honest
+  // instead of implying a choice that does nothing.
+  const handleChange = (next: boolean) => {
+    if (isDraft) return;
+    onPublicChange(next);
+  };
+
   return (
     <section className="space-y-6">
-      <div className="space-y-4">
+      {isDraft && (
+        <div className="bg-[#d4704a]/5 border border-[#d4704a]/25 rounded-xl p-4">
+          <div className="flex items-start gap-2">
+            <Lock className="h-5 w-5 text-[#d4704a] mt-0.5 shrink-0" />
+            <p className="text-sm text-foreground font-medium mb-0">
+              Tu mesa es un borrador, así que todavía nadie puede verla. Podrás elegir su visibilidad cuando la publiques.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className={`space-y-4 ${isDraft ? 'opacity-50 pointer-events-none' : ''}`} aria-disabled={isDraft}>
         <div
           className="flex items-start space-x-4 p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer"
           style={{
             borderColor: isPublic ? 'rgba(212, 112, 74, 0.35)' : 'rgba(0, 0, 0, 0.06)',
             backgroundColor: isPublic ? 'rgba(212, 112, 74, 0.04)' : 'transparent',
           }}
-          onClick={() => onPublicChange(true)}>
+          onClick={() => handleChange(true)}>
           <div className="mt-1">
             <div
               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isPublic ? 'border-[#d4704a] bg-[#d4704a]' : 'border-foreground/30'}`}>
@@ -40,7 +61,7 @@ export function PrivacySection({ isPublic, userSlug, onPublicChange }: PrivacySe
             borderColor: !isPublic ? 'rgba(212, 112, 74, 0.35)' : 'rgba(0, 0, 0, 0.06)',
             backgroundColor: !isPublic ? 'rgba(212, 112, 74, 0.04)' : 'transparent',
           }}
-          onClick={() => onPublicChange(false)}>
+          onClick={() => handleChange(false)}>
           <div className="mt-1">
             <div
               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${!isPublic ? 'border-[#d4704a] bg-[#d4704a]' : 'border-foreground/30'}`}>
@@ -59,16 +80,18 @@ export function PrivacySection({ isPublic, userSlug, onPublicChange }: PrivacySe
         </div>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
-          <p className="text-sm text-blue-900 font-medium">
-            {isPublic
-              ? 'Tu mesa es visible en la página de búsqueda. Los invitados también pueden acceder con tu enlace directo.'
-              : `Tu mesa solo es accesible mediante tu enlace: mesalista.com.mx/${userSlug || 'tu-enlace'}`}
-          </p>
+      {!isDraft && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+            <p className="text-sm text-blue-900 font-medium">
+              {isPublic
+                ? 'Tu mesa es visible en la página de búsqueda. Los invitados también pueden acceder con tu enlace directo.'
+                : `Tu mesa solo es accesible mediante tu enlace: mesalista.com.mx/${userSlug || 'tu-enlace'}`}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

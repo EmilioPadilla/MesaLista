@@ -38,11 +38,19 @@ export function GiftListCard({ list, onPress }: GiftListCardProps) {
           <Text className="flex-1 text-lg font-semibold text-ink" numberOfLines={1}>
             {list.title || list.coupleName}
           </Text>
-          <View className={`ml-3 rounded-full px-2.5 py-0.5 ${list.isActive ? 'bg-success/15' : 'bg-gray-200'}`}>
-            <Text className={`text-xs font-medium ${list.isActive ? 'text-success' : 'text-gray-600'}`}>
-              {list.isActive ? 'Activa' : 'Inactiva'}
-            </Text>
-          </View>
+          {/* Draft outranks active/inactive: an unpublished list isn't visible to
+              anyone, which is the more important thing for the couple to know. */}
+          {!list.publishedAt ? (
+            <View className="ml-3 rounded-full bg-oak/15 px-2.5 py-0.5">
+              <Text className="text-xs font-medium text-oak">Borrador</Text>
+            </View>
+          ) : (
+            <View className={`ml-3 rounded-full px-2.5 py-0.5 ${list.isActive ? 'bg-success/15' : 'bg-gray-200'}`}>
+              <Text className={`text-xs font-medium ${list.isActive ? 'text-success' : 'text-gray-600'}`}>
+                {list.isActive ? 'Activa' : 'Inactiva'}
+              </Text>
+            </View>
+          )}
         </View>
 
         <Text className="mt-0.5 text-sm text-mutedForeground" numberOfLines={1}>

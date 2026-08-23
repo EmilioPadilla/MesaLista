@@ -1,18 +1,20 @@
 import express from 'express';
 import paymentController from '../controllers/paymentController.js';
-import { authenticateSession } from '../middleware/auth.js';
+import { authenticateSession, optionalAuthenticateSession } from '../middleware/auth.js';
 
 const router = express.Router();
 
 router.post('/create-checkout-session', paymentController.createCheckoutSession);
 
-router.post('/create-plan-checkout-session', paymentController.createPlanCheckoutSession);
+// Optional auth: an authenticated caller with a giftListId is publishing an
+// existing draft (UPGRADE); an anonymous one is a legacy pre-account signup.
+router.post('/create-plan-checkout-session', optionalAuthenticateSession, paymentController.createPlanCheckoutSession);
 
 router.post('/complete-plan-signup-session', paymentController.completePlanSignupSession);
 
-// iOS fixed-plan In-App Purchase (RevenueCat) — prepare stashes the signup,
-// complete provisions after entitlement verification, webhook is the backstop.
-router.post('/plan/ios/prepare', paymentController.preparePlanIapSignup);
+// iOS fixed-plan In-App Purchase (RevenueCat) — prepare stashes the intent,
+// complete acts on it after entitlement verification, webhook is the backstop.
+router.post('/plan/ios/prepare', optionalAuthenticateSession, paymentController.preparePlanIapSignup);
 
 router.post('/plan/ios/complete', paymentController.completePlanIapSignup);
 

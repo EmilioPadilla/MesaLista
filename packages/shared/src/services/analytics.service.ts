@@ -4,6 +4,11 @@ import { analyticsEndpoints } from './analytics.endpoints';
 export type AnalyticsEventType =
   | 'PAGE_VIEW'
   | 'SIGN_IN'
+  // Free signup completed — a draft list now exists.
+  | 'REGISTRY_DRAFT_CREATED'
+  // Draft published on a plan. Paired with REGISTRY_DRAFT_CREATED this is the
+  // draft -> publish rate, the headline metric for the free-to-build flow.
+  | 'REGISTRY_PUBLISHED'
   | 'REGISTRY_PURCHASE'
   | 'REGISTRY_ATTEMPT'
   | 'GIFT_PURCHASE'

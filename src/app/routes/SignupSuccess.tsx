@@ -32,9 +32,10 @@ function SignupSuccess() {
         setPaymentSuccess(true);
         setIsVerifying(false);
 
-        trackEvent('REGISTRY_PURCHASE', {
-          planType: result.planType,
+        trackEvent('REGISTRY_PUBLISHED', {
+          plan: result.planType,
           slug: result.slug,
+          method: 'stripe',
         });
 
         setTimeout(() => {
@@ -59,7 +60,7 @@ function SignupSuccess() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 text-[#d4704a] animate-spin mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold text-foreground mb-2">Procesando pago y creando cuenta...</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">Procesando tu pago y publicando tu mesa...</h2>
           <p className="text-muted-foreground">Por favor espera un momento</p>
         </div>
       </div>
@@ -92,11 +93,11 @@ function SignupSuccess() {
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Check className="h-10 w-10 text-green-600" />
           </div>
-          <h1 className="text-3xl font-bold mb-4 text-foreground">¡Pago exitoso!</h1>
-          <p className="text-xl text-muted-foreground mb-4">Tu cuenta ha sido creada y tu pago ha sido procesado correctamente.</p>
+          <h1 className="text-3xl font-bold mb-4 text-foreground">¡Tu mesa ya está publicada!</h1>
+          <p className="text-xl text-muted-foreground mb-4">Tu pago se procesó correctamente y tus invitados ya pueden verla.</p>
           <p className="text-muted-foreground mb-8">Serás redirigido a tu mesa de regalos en unos segundos...</p>
           <div className="bg-[#d4704a]/10 rounded-2xl p-4">
-            <p className="text-sm text-[#d4704a] font-semibold">✓ Plan Fijo activado</p>
+            <p className="text-sm text-[#d4704a] font-semibold">✓ Plan Fijo activado — sin comisiones por regalo</p>
             <p className="text-xs text-muted-foreground mt-1">Tu enlace: mesalista.com/{signupSlug}</p>
           </div>
         </div>

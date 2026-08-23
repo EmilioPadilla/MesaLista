@@ -39,8 +39,7 @@ export default function WelcomeScreen() {
               shadowRadius: 16,
               shadowOffset: { width: 0, height: 8 },
               elevation: 8,
-            }}
-          >
+            }}>
             <Image
               source={require('../../assets/images/ios-icon.png')}
               className="h-24 w-24 rounded-3xl"
@@ -76,23 +75,19 @@ export default function WelcomeScreen() {
 
       <FadeIn delay={480}>
         <View className="px-8 pb-6">
-          <Pressable
-            className="items-center rounded-full bg-oak py-4 active:bg-oakDark"
-            onPress={() => router.push('/login')}
-          >
+          <Pressable className="items-center rounded-full bg-oak py-4 active:bg-oakDark" onPress={() => router.push('/login')}>
             <Text className="text-base font-semibold text-white">Iniciar sesión</Text>
           </Pressable>
 
           <Pressable
             className="mt-3 items-center rounded-full border border-oak/40 bg-white/60 py-4 active:bg-oak/5"
-            onPress={() => router.push('/explore')}
-          >
+            onPress={() => router.push('/explore')}>
             <Text className="text-base font-semibold text-oak">Explorar mesas de regalos</Text>
           </Pressable>
 
           <Pressable className="mt-4 items-center py-1" onPress={() => router.push('/signup')} hitSlop={8}>
             <Text className="text-sm text-mutedForeground">
-              ¿Aún no tienes cuenta? <Text className="font-semibold text-oak">Crear cuenta</Text>
+              ¿Aún no tienes cuenta? <Text className="font-semibold text-oak">Crear Mi Mesa Gratis</Text>
             </Text>
           </Pressable>
 
@@ -116,8 +111,7 @@ function FadeIn({ delay, children }: { delay: number; children: React.ReactNode 
       style={{
         opacity: progress,
         transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
-      }}
-    >
+      }}>
       {children}
     </Animated.View>
   );

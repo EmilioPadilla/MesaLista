@@ -5,6 +5,14 @@ import { authenticateSession, requireAdmin } from '../middleware/auth.js';
 const router = express.Router();
 
 // Public routes (no authentication required)
+
+// Free signup: creates the couple plus a draft list. The plan is chosen later,
+// at POST /giftLists/:giftListId/publish.
+router.post('/signup', userController.signupDraft);
+
+// Legacy: publishes a COMMISSION list straight out of signup. Still called by
+// App Store builds <= 1.0.2 (18), which have no publish step. Do not remove
+// until those builds are off the estate.
 router.post('/signup/commission', userController.signupCommission);
 
 router.post('/', userController.createUser); // Registration is public
@@ -14,6 +22,8 @@ router.post('/login', userController.loginUser); // Login is public
 router.get('/slug/:slug', userController.getUserBySlug); // Get user by couple slug
 
 router.get('/check-slug/:slug', userController.checkSlugAvailability); // Check if slug is available
+
+router.post('/check-email', userController.checkEmailAvailability); // Check if an email is free (signup form)
 
 // Password reset routes (public)
 router.post('/password-reset/request', userController.requestPasswordReset); // Request password reset

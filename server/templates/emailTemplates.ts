@@ -1208,6 +1208,148 @@ El equipo de MesaLista
   /**
    * Generate HTML email template for gift list creation confirmation
    */
+  /**
+   * Welcome email for a freshly created draft. No plan, no price, one call to
+   * action: get back into the builder. Sent by sendDraftWelcomeEmail.
+   */
+  static generateDraftWelcomeEmailHTML(data: {
+    userName: string;
+    userEmail: string;
+    giftListTitle: string;
+    coupleName: string;
+    eventDate: Date;
+    builderUrl: string;
+  }): string {
+    const formatDate = (date: Date) => this.formatDate(date);
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tu mesa de regalos te está esperando</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f7;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f7; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #d4704a 0%, #c05f3d 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 300;">¡Bienvenidos a MesaLista! 💛</h1>
+            </td>
+          </tr>
+
+          <!-- Intro -->
+          <tr>
+            <td style="padding: 40px 30px 24px; text-align: center;">
+              <h2 style="color: #1d1d1f; margin: 0 0 10px; font-size: 24px; font-weight: 500;">Hola ${data.coupleName}</h2>
+              <p style="color: #86868b; margin: 0; font-size: 16px; line-height: 1.5;">
+                Tu mesa de regalos ya existe y es toda tuya para armarla con calma.
+                Todavía no está publicada, así que nadie más puede verla por ahora.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Details -->
+          <tr>
+            <td style="padding: 0 30px 30px;">
+              <div style="background-color: #f5f5f7; border-radius: 12px; padding: 24px;">
+                <table width="100%" cellpadding="8" cellspacing="0">
+                  <tr>
+                    <td style="color: #86868b; font-size: 14px; padding: 8px 0;">Tu mesa:</td>
+                    <td style="color: #1d1d1f; font-size: 14px; font-weight: 500; text-align: right; padding: 8px 0;">${data.giftListTitle}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #86868b; font-size: 14px; padding: 8px 0;">Fecha del evento:</td>
+                    <td style="color: #1d1d1f; font-size: 14px; font-weight: 500; text-align: right; padding: 8px 0;">${formatDate(data.eventDate)}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #86868b; font-size: 14px; padding: 8px 0;">Estado:</td>
+                    <td style="color: #d4704a; font-size: 14px; font-weight: 500; text-align: right; padding: 8px 0;">Borrador</td>
+                  </tr>
+                </table>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Next steps -->
+          <tr>
+            <td style="padding: 0 30px 20px;">
+              <h3 style="color: #1d1d1f; margin: 0 0 16px; font-size: 18px; font-weight: 500;">Los siguientes pasos</h3>
+              <p style="color: #86868b; margin: 0 0 10px; font-size: 15px; line-height: 1.6;">
+                <strong style="color: #1d1d1f;">1.</strong> Agrega los regalos que te gustaría recibir.
+              </p>
+              <p style="color: #86868b; margin: 0 0 10px; font-size: 15px; line-height: 1.6;">
+                <strong style="color: #1d1d1f;">2.</strong> Personaliza tu portada y los datos de tu evento.
+              </p>
+              <p style="color: #86868b; margin: 0; font-size: 15px; line-height: 1.6;">
+                <strong style="color: #1d1d1f;">3.</strong> Cuando esté lista, elige tu plan y publícala para compartirla con tus invitados.
+              </p>
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td style="padding: 10px 30px 40px; text-align: center;">
+              <a href="${data.builderUrl}" style="display: inline-block; background-color: #d4704a; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 10px; font-size: 16px; font-weight: 500;">Seguir armando mi mesa</a>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f5f5f7; padding: 24px 30px; text-align: center;">
+              <p style="color: #86868b; margin: 0; font-size: 13px; line-height: 1.5;">
+                ¿Tienes dudas? Responde a este correo y te ayudamos.<br>
+                MesaLista · @mesalista.mx
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `;
+  }
+
+  static generateDraftWelcomeEmailText(data: {
+    userName: string;
+    userEmail: string;
+    giftListTitle: string;
+    coupleName: string;
+    eventDate: Date;
+    builderUrl: string;
+  }): string {
+    return `
+¡Bienvenidos a MesaLista!
+
+Hola ${data.coupleName},
+
+Tu mesa de regalos ya existe y es toda tuya para armarla con calma. Todavía no
+está publicada, así que nadie más puede verla por ahora.
+
+Tu mesa: ${data.giftListTitle}
+Fecha del evento: ${this.formatDate(data.eventDate)}
+Estado: Borrador
+
+LOS SIGUIENTES PASOS
+1. Agrega los regalos que te gustaría recibir.
+2. Personaliza tu portada y los datos de tu evento.
+3. Cuando esté lista, elige tu plan y publícala para compartirla con tus invitados.
+
+Seguir armando mi mesa: ${data.builderUrl}
+
+¿Tienes dudas? Responde a este correo y te ayudamos.
+MesaLista · @mesalista.mx
+    `.trim();
+  }
+
   static generateGiftListCreationEmailHTML(data: {
     userName: string;
     userEmail: string;

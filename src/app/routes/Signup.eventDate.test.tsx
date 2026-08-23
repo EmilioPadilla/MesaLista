@@ -10,16 +10,15 @@ const sendVerificationCode = vi.fn().mockResolvedValue({});
 vi.mock('hooks/useUser', () => ({
   useIsAuthenticated: () => ({ data: false, isLoading: false }),
   useCheckSlugAvailability: () => ({ data: undefined, isLoading: false }),
-  useSignupCommission: () => ({ mutateAsync: vi.fn() }),
+  useCheckEmailAvailability: () => ({ mutateAsync: vi.fn().mockResolvedValue({ available: true }), isPending: false }),
+  // Signup is free now: it creates a draft rather than taking payment, so there
+  // is no plan-checkout hook to stub any more.
+  useSignup: () => ({ mutateAsync: vi.fn() }),
 }));
 
 vi.mock('hooks/useEmailVerification', () => ({
   useSendVerificationCode: () => ({ mutateAsync: sendVerificationCode, isPending: false }),
   useVerifyCode: () => ({ mutateAsync: vi.fn() }),
-}));
-
-vi.mock('hooks/usePayment', () => ({
-  useCreatePlanCheckoutSession: () => ({ mutateAsync: vi.fn() }),
 }));
 
 vi.mock('hooks/useAnalyticsTracking', () => ({
@@ -70,5 +69,25 @@ describe('Signup event date field', () => {
     // be chosen via the calendar popup.
     const input = screen.getByPlaceholderText(/selecciona la fecha/i) as HTMLInputElement;
     expect(input).toHaveAttribute('readonly');
+  });
+});
+
+// TEST-W2 — signup is free and produces a draft. Plan choice and payment moved to
+// the publish step, so neither should be reachable from signup any more.
+describe('Signup flow shape', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('is four steps, not six', () => {
+    renderSignup();
+    expect(screen.getByText(/paso 1 de 4/i)).toBeInTheDocument();
+  });
+
+  it('shows no pricing on the details step', () => {
+    renderSignup();
+    expect(screen.queryByText(/\$2,000/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/3\.00%/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/elige tu plan/i)).not.toBeInTheDocument();
   });
 });

@@ -3,6 +3,8 @@ import { Content } from 'antd/es/layout/layout';
 import { useEffect, useState, useCallback } from 'react';
 import { Outlet, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
+import { EyeOff } from 'lucide-react';
+import { useGiftListBySlug } from 'src/hooks/useGiftList';
 import { TopNav } from 'src/app/modules/navigation/topnav/TopNav';
 import { TopNavWrapper } from 'src/app/modules/navigation/topnav/TopNavWrapper';
 
@@ -33,6 +35,11 @@ export default function PublicRegistry() {
   const { slug } = useParams();
   const [guestId, setGuestId] = useState<string | null>(null);
 
+  // The server 404s an unpublished list for everyone but its owner, so getting a
+  // draft back here means the couple is previewing their own work in progress.
+  const { data: giftList } = useGiftListBySlug(slug);
+  const isOwnerPreviewingDraft = !!giftList && !giftList.publishedAt;
+
   useEffect(() => {
     setGuestId(getOrCreateGuestId());
   }, []);
@@ -45,6 +52,12 @@ export default function PublicRegistry() {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Layout>
+        {isOwnerPreviewingDraft && (
+          <div className="bg-[#d4704a] px-4 py-2.5 text-center text-sm font-medium text-white">
+            <EyeOff className="mr-2 inline h-4 w-4" />
+            Vista previa — tu mesa no está publicada y tus invitados todavía no pueden verla.
+          </div>
+        )}
         <TopNav slug={slug} />
         <TopNavWrapper>
           <Content>

@@ -5,13 +5,11 @@
  * optional here (App Store guideline 5.1.1(v)) while web still requires it.
  */
 
-export type SignupStep = 'details' | 'verification' | 'slug' | 'plan' | 'payment' | 'success';
+// Signup is free and ends with a DRAFT registry. Plan choice and payment live in
+// the publish flow (features/publish), not here.
+export type SignupStep = 'details' | 'verification' | 'slug' | 'success';
 
-export const SIGNUP_STEPS: SignupStep[] = ['details', 'verification', 'slug', 'plan', 'payment', 'success'];
-
-export type PlanChoice = 'fixed' | 'commission' | '';
-
-export const FIXED_PLAN_PRICE = 2000;
+export const SIGNUP_STEPS: SignupStep[] = ['details', 'verification', 'slug', 'success'];
 
 export interface SignupDetails {
   firstName: string;
@@ -150,44 +148,4 @@ export function passwordStrengthLabel(score: number): string {
   if (score === 2) return 'Débil';
   if (score === 3) return 'Buena';
   return 'Muy segura';
-}
-
-export interface DiscountedPrice {
-  original: number;
-  discounted: number;
-  savings: number;
-}
-
-/** Fixed-plan price after an (already validated) discount code. */
-export function calculateDiscountedPrice(discountInfo: DiscountInfo | null | undefined, selectedPlan: PlanChoice): DiscountedPrice {
-  const basePrice = FIXED_PLAN_PRICE;
-  if (!discountInfo || selectedPlan !== 'fixed') {
-    return { original: basePrice, discounted: basePrice, savings: 0 };
-  }
-
-  const discounted =
-    discountInfo.discountType === 'PERCENTAGE'
-      ? basePrice - (basePrice * discountInfo.discountValue) / 100
-      : basePrice - discountInfo.discountValue;
-
-  const clamped = Math.max(0, discounted);
-  return { original: basePrice, discounted: clamped, savings: basePrice - clamped };
-}
-
-export function formatMxn(amount: number): string {
-  return `$${amount.toLocaleString('es-MX')} MXN`;
-}
-
-/**
- * Return URLs for the fixed-plan Stripe checkout. Stripe only substitutes a
- * LITERAL `{CHECKOUT_SESSION_ID}` placeholder, so the success URL is assembled
- * by hand instead of URLSearchParams (which would percent-encode the braces).
- * Both point at the backend bridge, which 302s to our `redirect` deep link.
- */
-export function buildPlanReturnUrls(apiUrl: string, redirect: string): { successUrl: string; cancelUrl: string } {
-  const base = `${apiUrl}/payments/mobile-return?redirect=${encodeURIComponent(redirect)}`;
-  return {
-    successUrl: `${base}&status=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancelUrl: `${base}&status=cancel`,
-  };
 }

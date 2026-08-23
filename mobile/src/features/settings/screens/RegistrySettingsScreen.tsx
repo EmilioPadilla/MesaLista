@@ -85,6 +85,8 @@ export function RegistrySettingsScreen({ listId }: { listId: number }) {
   }, [messages]);
 
   const hasReceivedGifts = useMemo(() => (list?.gifts ?? []).some((g) => g.isPurchased), [list?.gifts]);
+  // No publish timestamp means the couple is still building — the list is a draft.
+  const isDraft = !!list && !list.publishedAt;
 
   const pickCover = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -253,7 +255,13 @@ export function RegistrySettingsScreen({ listId }: { listId: number }) {
             </Text>
           </Section>
 
-          <Section title="Enlace público">
+          {/* Showing a couple a link that 404s is worse than hiding it. */}
+          <Section title={isDraft ? 'Tu enlace (aún no activo)' : 'Enlace público'}>
+            {isDraft && (
+              <Text className="mb-3 text-sm text-mutedForeground">
+                Este será el enlace de tu mesa. Empezará a funcionar en cuanto la publiques.
+              </Text>
+            )}
             <View className="flex-row items-center rounded-ml border border-gray-200 bg-white">
               <Text className="pl-3 text-sm text-mutedForeground">mesalista.com.mx/</Text>
               <TextInput
@@ -316,20 +324,35 @@ export function RegistrySettingsScreen({ listId }: { listId: number }) {
             />
           </Section>
 
+          {/* While the list is a draft this setting has no effect — the server
+              hides unpublished lists from search regardless. Locking it keeps the
+              UI honest instead of implying a choice that does nothing. */}
           <Section title="Privacidad">
+            {isDraft && (
+              <Text className="mb-3 text-sm text-mutedForeground">
+                Tu mesa es un borrador, así que todavía nadie puede verla. Podrás elegir su visibilidad cuando la publiques.
+              </Text>
+            )}
             <RadioOption
               selected={isPublic}
+              disabled={isDraft}
               title="Pública"
               description="Aparece en la búsqueda. Cualquiera puede encontrarla buscando tu nombre."
               onPress={() => setIsPublic(true)}
             />
             <RadioOption
               selected={!isPublic}
+              disabled={isDraft}
               title="Privada"
               description="No aparece en búsquedas. Solo quienes tengan tu enlace podrán acceder."
               onPress={() => setIsPublic(false)}
             />
-            <PrimaryButton label="Guardar privacidad" loading={updateGiftList.isPending} disabled={!privacyDirty} onPress={savePrivacy} />
+            <PrimaryButton
+              label="Guardar privacidad"
+              loading={updateGiftList.isPending}
+              disabled={!privacyDirty || isDraft}
+              onPress={savePrivacy}
+            />
           </Section>
 
           <Section title="Comisiones">

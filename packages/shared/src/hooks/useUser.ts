@@ -129,6 +129,19 @@ export const useCreateUser = () => {
   });
 };
 
+/** Free signup: creates the couple plus a draft list. */
+export const useSignup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: userService.signup,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.users] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
+    },
+  });
+};
+
+/** @deprecated Legacy pre-publish signup, kept for App Store builds <= 1.0.2 (18). */
 export const useSignupCommission = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -177,6 +190,18 @@ export const useCheckSlugAvailability = (
     enabled: !!slug && slug.length > 0,
     staleTime: 0, // Always fetch fresh data
     ...options,
+  });
+};
+
+/**
+ * Checks an email against existing accounts when the couple leaves the details
+ * step, so a duplicate is flagged on the email field rather than blowing up on
+ * the final create call. A mutation, not a query: one request per attempt keeps
+ * the endpoint from being a keystroke-by-keystroke address oracle.
+ */
+export const useCheckEmailAvailability = () => {
+  return useMutation({
+    mutationFn: (email: string) => userService.checkEmailAvailability(email),
   });
 };
 

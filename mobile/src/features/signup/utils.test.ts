@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  buildPlanReturnUrls,
+  SIGNUP_STEPS,
   buildSlugFromNames,
-  calculateDiscountedPrice,
   calculatePasswordStrength,
   EMPTY_DETAILS,
   optionalPhone,
@@ -147,42 +146,20 @@ describe('calculatePasswordStrength', () => {
   });
 });
 
-describe('calculateDiscountedPrice', () => {
-  it('returns base price without a discount or on the commission plan', () => {
-    expect(calculateDiscountedPrice(null, 'fixed')).toEqual({ original: 2000, discounted: 2000, savings: 0 });
-    expect(
-      calculateDiscountedPrice({ code: 'X', discountType: 'PERCENTAGE', discountValue: 50 }, 'commission'),
-    ).toEqual({ original: 2000, discounted: 2000, savings: 0 });
+// TEST-M1 — signup is free and ends at a draft; plan choice and payment moved to
+// the publish flow, so they must not be reachable from here any more.
+describe('SIGNUP_STEPS', () => {
+  it('is the four free steps, in order', () => {
+    expect(SIGNUP_STEPS).toEqual(['details', 'verification', 'slug', 'success']);
   });
 
-  it('applies percentage and fixed-amount discounts', () => {
-    expect(calculateDiscountedPrice({ code: 'X', discountType: 'PERCENTAGE', discountValue: 25 }, 'fixed')).toEqual({
-      original: 2000,
-      discounted: 1500,
-      savings: 500,
-    });
-    expect(calculateDiscountedPrice({ code: 'X', discountType: 'FIXED_AMOUNT', discountValue: 300 }, 'fixed')).toEqual({
-      original: 2000,
-      discounted: 1700,
-      savings: 300,
-    });
+  it('has no plan or payment step', () => {
+    expect(SIGNUP_STEPS).not.toContain('plan');
+    expect(SIGNUP_STEPS).not.toContain('payment');
   });
 
-  it('never discounts below zero', () => {
-    expect(calculateDiscountedPrice({ code: 'X', discountType: 'FIXED_AMOUNT', discountValue: 5000 }, 'fixed')).toEqual({
-      original: 2000,
-      discounted: 0,
-      savings: 2000,
-    });
-  });
-});
-
-describe('buildPlanReturnUrls', () => {
-  it('keeps the Stripe session placeholder literal and encodes the redirect', () => {
-    const { successUrl, cancelUrl } = buildPlanReturnUrls('https://api.example.com/api', 'mesalista://signup-return');
-    expect(successUrl).toBe(
-      'https://api.example.com/api/payments/mobile-return?redirect=mesalista%3A%2F%2Fsignup-return&status=success&session_id={CHECKOUT_SESSION_ID}',
-    );
-    expect(cancelUrl).toBe('https://api.example.com/api/payments/mobile-return?redirect=mesalista%3A%2F%2Fsignup-return&status=cancel');
+  it('mirrors the web flow step count', () => {
+    // src/app/routes/Signup.tsx SIGNUP_STEPS — keep the two in sync.
+    expect(SIGNUP_STEPS).toHaveLength(4);
   });
 });

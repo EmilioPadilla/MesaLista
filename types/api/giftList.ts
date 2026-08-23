@@ -7,8 +7,11 @@ export interface CreateGiftListRequest {
   coupleName: string;
   eventDate: string;
   imageUrl?: string | null;
-  planType?: PlanType;
   discountCodeId?: number;
+}
+
+export interface PublishGiftListRequest {
+  planType: PlanType;
 }
 
 export interface UpdateGiftListRequest {
@@ -21,7 +24,8 @@ export interface UpdateGiftListRequest {
   eventVenue?: string | null;
   imageUrl?: string | null;
   invitationCount?: number;
-  planType?: PlanType;
+  // `planType` is deliberately absent: it is set once by the publish endpoint and
+  // immutable afterwards, so the general update must not be able to carry it.
   isActive?: boolean;
   isPublic?: boolean;
   feePreference?: 'couple' | 'guest';

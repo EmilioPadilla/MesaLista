@@ -35,6 +35,184 @@ const buildCoupleName = (firstName: string, lastName: string, spouseFirstName?: 
   return spouseFirstName ? `${firstName} y ${spouseFirstName}` : `${firstName} ${lastName}`;
 };
 
+/**
+ * Creates a couple and their first gift list. Shared by the two signup entry
+ * points, which differ only in what state the list starts in:
+ *
+ *   DRAFT      — current flow. No plan, not published, discount code attached
+ *                but not redeemed. The couple builds first and pays at publish.
+ *   COMMISSION — legacy flow for old App Store builds. Published on the spot
+ *                with the commission plan, and the discount code is redeemed
+ *                here because there is no later publish step to redeem it in.
+ */
+const createCoupleWithList = async (req: Request, res: Response, { mode }: { mode: 'DRAFT' | 'COMMISSION' }) => {
+  const { email, firstName, lastName, spouseFirstName, spouseLastName, password, phoneNumber, slug, discountCode, eventDate } =
+    req.body as UserCreateRequest & { discountCode?: string; eventDate?: string };
+
+  // The phone number is optional (App Store guideline 5.1.1(v)) — the iOS app
+  // omits it entirely when the couple leaves the field blank.
+  if (!email || !password || !firstName || !lastName || !slug) {
+    return res.status(400).json({ error: 'Faltan datos obligatorios: correo, contraseña, nombre, apellido y enlace.' });
+  }
+
+  const userAgent = req.get('User-Agent') || 'Unknown';
+  const ipAddress = req.ip || req.connection.remoteAddress;
+  const isDraft = mode === 'DRAFT';
+
+  try {
+    let discountCodeRecord: { id: number } | null = null;
+
+    if (discountCode) {
+      const validation = await discountCodeService.validateDiscountCode(discountCode);
+      if (!validation.valid) {
+        return res.status(400).json({ error: validation.error || 'El código de descuento no es válido.' });
+      }
+
+      discountCodeRecord = validation.discountCode ?? null;
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const coupleName = buildCoupleName(firstName, lastName, spouseFirstName);
+
+    const result = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email,
+          firstName,
+          lastName,
+          spouseFirstName,
+          spouseLastName,
+          password: hashedPassword,
+          phoneNumber: phoneNumber || null,
+          role: 'COUPLE',
+          slug,
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          spouseFirstName: true,
+          spouseLastName: true,
+          slug: true,
+          imageUrl: true,
+          phoneNumber: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      const giftList = await tx.giftList.create({
+        data: {
+          userId: user.id,
+          title: `Mesa de Regalos de ${coupleName}`,
+          description: '',
+          coupleName,
+          eventDate: resolveEventDate(eventDate),
+          planType: isDraft ? null : 'COMMISSION',
+          publishedAt: isDraft ? null : new Date(),
+          isActive: true,
+          // Drafts are invisible until published; commission lists start hidden
+          // from search and the couple opts in from Settings.
+          isPublic: false,
+          invitationCount: 0,
+          ...(discountCodeRecord && { discountCodeId: discountCodeRecord.id }),
+        },
+        select: {
+          id: true,
+          title: true,
+          coupleName: true,
+          eventDate: true,
+          planType: true,
+          publishedAt: true,
+        },
+      });
+
+      // Drafts defer redemption to publish — see signupDraft.
+      if (discountCodeRecord && !isDraft) {
+        await tx.discountCode.update({
+          where: { id: discountCodeRecord.id },
+          data: {
+            usageCount: {
+              increment: 1,
+            },
+          },
+        });
+      }
+
+      return { user, giftList };
+    });
+
+    const session = await createSessionAndSetCookie(res, result.user.id, userAgent, ipAddress);
+
+    try {
+      if (isDraft) {
+        await emailService.sendDraftWelcomeEmail({
+          userId: result.user.id,
+          giftListId: result.giftList.id,
+          giftListTitle: result.giftList.title,
+          coupleName: result.giftList.coupleName,
+          eventDate: result.giftList.eventDate,
+        });
+      } else {
+        await emailService.sendGiftListCreationEmail({
+          userId: result.user.id,
+          giftListId: result.giftList.id,
+          giftListTitle: result.giftList.title,
+          coupleName: result.giftList.coupleName,
+          eventDate: result.giftList.eventDate,
+          planType: 'COMMISSION',
+          amount: 0,
+        });
+      }
+    } catch (emailError) {
+      console.error(`Error sending ${isDraft ? 'draft welcome' : 'gift list creation'} email:`, emailError);
+    }
+
+    res.status(201).json({
+      ...result.user,
+      giftListId: result.giftList.id,
+      planType: result.giftList.planType,
+      publishedAt: result.giftList.publishedAt,
+      token: session.token,
+    });
+  } catch (error: unknown) {
+    console.error(`Error creating ${mode.toLowerCase()} signup:`, error);
+
+    // P2002 is a unique-constraint collision. `meta.target` names the column, and
+    // email and slug are the only ones this transaction can hit — the couple fixes
+    // each in a different step, so say which one and what to do about it.
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+      const target = (error as { meta?: { target?: string[] | string } }).meta?.target;
+      const fields = (Array.isArray(target) ? target : target ? [target] : []).map((field) => String(field).toLowerCase());
+      const slugTaken = fields.some((field) => field.includes('slug'));
+      const emailTaken = fields.some((field) => field.includes('email'));
+
+      if (slugTaken && !emailTaken) {
+        return res.status(409).json({
+          code: 'SLUG_TAKEN',
+          error: 'Ese enlace ya está ocupado. Elige otro para tu mesa de regalos.',
+        });
+      }
+
+      if (emailTaken && !slugTaken) {
+        return res.status(409).json({
+          code: 'EMAIL_TAKEN',
+          error: 'Ya existe una cuenta con este correo electrónico. Inicia sesión o regístrate con otro correo.',
+        });
+      }
+
+      return res.status(409).json({
+        code: 'EMAIL_OR_SLUG_TAKEN',
+        error: 'Ese correo electrónico o enlace ya está en uso. Inicia sesión, o prueba con otro correo o enlace.',
+      });
+    }
+
+    res.status(500).json({ error: 'No pudimos crear tu cuenta. Por favor intenta de nuevo.' });
+  }
+};
+
 export const userController = {
   // Get all users
   getAllUsers: async (req: Request, res: Response) => {
@@ -177,131 +355,28 @@ export const userController = {
     }
   },
 
+  /**
+   * Free signup: creates the couple and a DRAFT list they can start building
+   * immediately. No plan, no payment — the plan is chosen later at
+   * POST /giftLists/:id/publish.
+   *
+   * A discount code supplied here is validated and attached to the draft but
+   * NOT redeemed: a draft that never publishes must not burn a code. The
+   * increment happens inside the publish transaction.
+   */
+  signupDraft: async (req: Request, res: Response) => {
+    return createCoupleWithList(req, res, { mode: 'DRAFT' });
+  },
+
+  /**
+   * Legacy signup that publishes a COMMISSION list immediately.
+   *
+   * Kept for App Store builds <= 1.0.2 (18), which have no publish step and
+   * expect a live list straight out of signup. New clients call `signupDraft`.
+   * Do not repurpose this handler — old binaries stay in the wild for months.
+   */
   signupCommission: async (req: Request, res: Response) => {
-    const { email, firstName, lastName, spouseFirstName, spouseLastName, password, phoneNumber, slug, discountCode, eventDate } =
-      req.body as UserCreateRequest & { discountCode?: string; eventDate?: string };
-
-    // The phone number is optional (App Store guideline 5.1.1(v)) — the iOS app
-    // omits it entirely when the couple leaves the field blank.
-    if (!email || !password || !firstName || !lastName || !slug) {
-      return res.status(400).json({ error: 'Email, password, first name, last name, and slug are required' });
-    }
-
-    const userAgent = req.get('User-Agent') || 'Unknown';
-    const ipAddress = req.ip || req.connection.remoteAddress;
-
-    try {
-      let discountCodeRecord = null;
-
-      if (discountCode) {
-        const validation = await discountCodeService.validateDiscountCode(discountCode);
-        if (!validation.valid) {
-          return res.status(400).json({ error: validation.error || 'Invalid discount code' });
-        }
-
-        discountCodeRecord = validation.discountCode;
-      }
-
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-      const coupleName = buildCoupleName(firstName, lastName, spouseFirstName);
-
-      const result = await prisma.$transaction(async (tx) => {
-        const user = await tx.user.create({
-          data: {
-            email,
-            firstName,
-            lastName,
-            spouseFirstName,
-            spouseLastName,
-            password: hashedPassword,
-            phoneNumber: phoneNumber || null,
-            role: 'COUPLE',
-            slug,
-          },
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            spouseFirstName: true,
-            spouseLastName: true,
-            slug: true,
-            imageUrl: true,
-            phoneNumber: true,
-            role: true,
-            createdAt: true,
-          },
-        });
-
-        const giftList = await tx.giftList.create({
-          data: {
-            userId: user.id,
-            title: `Mesa de Regalos de ${coupleName}`,
-            description: '',
-            coupleName,
-            eventDate: resolveEventDate(eventDate),
-            planType: 'COMMISSION',
-            isActive: true,
-            // Commission lists start hidden from search
-            isPublic: false,
-            invitationCount: 0,
-            ...(discountCodeRecord && { discountCodeId: discountCodeRecord.id }),
-          },
-          select: {
-            id: true,
-            title: true,
-            coupleName: true,
-            eventDate: true,
-            planType: true,
-          },
-        });
-
-        if (discountCodeRecord) {
-          await tx.discountCode.update({
-            where: { id: discountCodeRecord.id },
-            data: {
-              usageCount: {
-                increment: 1,
-              },
-            },
-          });
-        }
-
-        return { user, giftList };
-      });
-
-      const session = await createSessionAndSetCookie(res, result.user.id, userAgent, ipAddress);
-
-      try {
-        await emailService.sendGiftListCreationEmail({
-          userId: result.user.id,
-          giftListId: result.giftList.id,
-          giftListTitle: result.giftList.title,
-          coupleName: result.giftList.coupleName,
-          eventDate: result.giftList.eventDate,
-          planType: 'COMMISSION',
-          amount: 0,
-        });
-      } catch (emailError) {
-        console.error('Error sending gift list creation email for commission signup:', emailError);
-      }
-
-      res.status(201).json({
-        ...result.user,
-        giftListId: result.giftList.id,
-        planType: result.giftList.planType,
-        token: session.token,
-      });
-    } catch (error: unknown) {
-      console.error('Error creating commission signup:', error);
-
-      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
-        return res.status(409).json({ error: 'Email or slug already exists' });
-      }
-
-      res.status(500).json({ error: 'Failed to create account' });
-    }
+    return createCoupleWithList(req, res, { mode: 'COMMISSION' });
   },
 
   // Create new user
@@ -638,6 +713,34 @@ export const userController = {
   },
 
   // Check if couple slug is available
+  /**
+   * Tells the signup form whether an email is free before it sends a verification
+   * code, so "ya existe una cuenta" lands on the email field instead of surfacing
+   * as a duplicate-key failure three steps later. POST so the address stays out of
+   * URLs and access logs.
+   */
+  checkEmailAvailability: async (req: Request, res: Response) => {
+    const { email } = req.body as { email?: string };
+
+    if (!email || typeof email !== 'string' || !email.trim()) {
+      return res.status(400).json({ error: 'El correo electrónico es requerido.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    try {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: normalizedEmail },
+        select: { id: true },
+      });
+
+      res.json({ available: !existingUser, email: normalizedEmail });
+    } catch (error: unknown) {
+      console.error('Error checking email availability:', error);
+      res.status(500).json({ error: 'No pudimos verificar el correo electrónico.' });
+    }
+  },
+
   checkSlugAvailability: async (req: Request, res: Response) => {
     const { slug } = req.params;
     const { excludeUserId } = req.query;

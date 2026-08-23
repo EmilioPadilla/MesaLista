@@ -27,6 +27,10 @@ interface MetricsSummary {
   signIns: number;
   registryAttempts: number;
   registryPurchases: number;
+  // Free-to-build funnel. Signup and payment used to be one step, so
+  // `registryPurchases` covered both; these split them apart.
+  draftsCreated: number;
+  registriesPublished: number;
   giftPurchases: number;
   viewPricing: number;
   viewRegistryBuilder: number;
@@ -37,6 +41,7 @@ interface MetricsSummary {
   avgSessionDurationMs: number;
   signInRate: number;
   registryPurchaseRate: number;
+  draftToPublishRate: number;
   giftPurchaseRate: number;
   checkoutAbandonmentRate: number;
   topUtmSources?: Array<{ source: string; visitors: number; conversions: number; conversionRate: number }>;
@@ -250,6 +255,31 @@ export const analyticsService = {
         },
       });
 
+      // Free-to-build funnel. Under the old flow signup and payment were the same
+      // step, so `registryPurchases` was both. They are now separate moments and
+      // the gap between them is the number worth watching.
+      const draftsCreated = await prisma.analyticsEvent.count({
+        where: {
+          eventType: 'REGISTRY_DRAFT_CREATED',
+          createdAt: {
+            gte: fromDate,
+            lte: toDate,
+          },
+          ...(ownerUserHash ? { userHash: ownerUserHash } : {}),
+        },
+      });
+
+      const registriesPublished = await prisma.analyticsEvent.count({
+        where: {
+          eventType: 'REGISTRY_PUBLISHED',
+          createdAt: {
+            gte: fromDate,
+            lte: toDate,
+          },
+          ...(ownerUserHash ? { userHash: ownerUserHash } : {}),
+        },
+      });
+
       // Get gift purchases count
       const giftPurchases = await prisma.analyticsEvent.count({
         where: {
@@ -342,6 +372,8 @@ export const analyticsService = {
       const registryPurchaseRate = signIns > 0 ? (registryPurchases / signIns) * 100 : 0;
       const giftPurchaseRate = visitors > 0 ? (giftPurchases / visitors) * 100 : 0;
       const checkoutAbandonmentRate = startCheckouts > 0 ? (checkoutAbandonments / startCheckouts) * 100 : 0;
+      // How many couples who started a registry for free went on to publish one.
+      const draftToPublishRate = draftsCreated > 0 ? (registriesPublished / draftsCreated) * 100 : 0;
 
       // Get top UTM sources
       const utmSourceSessions = await prisma.analyticsSession.groupBy({
@@ -395,6 +427,8 @@ export const analyticsService = {
         signIns,
         registryAttempts,
         registryPurchases,
+        draftsCreated,
+        registriesPublished,
         giftPurchases,
         viewPricing,
         viewRegistryBuilder,
@@ -405,6 +439,7 @@ export const analyticsService = {
         avgSessionDurationMs: Math.round(avgSessionDurationMs),
         signInRate: Math.round(signInRate * 100) / 100,
         registryPurchaseRate: Math.round(registryPurchaseRate * 100) / 100,
+        draftToPublishRate: Math.round(draftToPublishRate * 100) / 100,
         giftPurchaseRate: Math.round(giftPurchaseRate * 100) / 100,
         checkoutAbandonmentRate: Math.round(checkoutAbandonmentRate * 100) / 100,
         topUtmSources,
@@ -424,6 +459,8 @@ export const analyticsService = {
       | 'signIns'
       | 'registryAttempts'
       | 'registryPurchases'
+      | 'draftsCreated'
+      | 'registriesPublished'
       | 'giftPurchases'
       | 'viewPricing'
       | 'viewRegistryBuilder'
@@ -459,6 +496,8 @@ export const analyticsService = {
           signIns: 'SIGN_IN',
           registryAttempts: 'REGISTRY_ATTEMPT',
           registryPurchases: 'REGISTRY_PURCHASE',
+          draftsCreated: 'REGISTRY_DRAFT_CREATED',
+          registriesPublished: 'REGISTRY_PUBLISHED',
           giftPurchases: 'GIFT_PURCHASE',
           viewPricing: 'VIEW_PRICING',
           viewRegistryBuilder: 'VIEW_REGISTRY_BUILDER',
@@ -564,6 +603,27 @@ export const analyticsService = {
         },
       });
 
+      // Free-to-build funnel: drafts started vs. drafts that went live.
+      const draftsCreated = await prisma.analyticsEvent.count({
+        where: {
+          eventType: 'REGISTRY_DRAFT_CREATED',
+          createdAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+      });
+
+      const registriesPublished = await prisma.analyticsEvent.count({
+        where: {
+          eventType: 'REGISTRY_PUBLISHED',
+          createdAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+      });
+
       // Get gift purchases
       const giftPurchases = await prisma.analyticsEvent.count({
         where: {
@@ -658,6 +718,8 @@ export const analyticsService = {
           visitors,
           signIns,
           registryPurchases,
+          draftsCreated,
+          registriesPublished,
           giftPurchases,
           viewPricing,
           viewRegistryBuilder,
@@ -671,6 +733,8 @@ export const analyticsService = {
           visitors,
           signIns,
           registryPurchases,
+          draftsCreated,
+          registriesPublished,
           giftPurchases,
           viewPricing,
           viewRegistryBuilder,

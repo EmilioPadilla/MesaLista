@@ -4,6 +4,8 @@ import { InvitationTemplateSelector } from '../components/InvitationTemplateSele
 import { InvitationEditor } from '../components/InvitationEditor/InvitationEditor';
 import { Invitation as InvitationType, InvitationTemplate } from 'types/models/invitation';
 import { useInvitationByGiftList } from 'src/hooks/useInvitation';
+import { useGiftListById } from 'src/hooks/useGiftList';
+import { DraftShareNotice } from 'src/features/publish';
 import { Spin } from 'antd';
 
 type InvitationView = 'templates' | 'editor' | 'public';
@@ -19,6 +21,10 @@ export function InvitationsPage() {
 
   // Fetch invitation from backend using effectiveGiftListId
   const { data: invitationData, isLoading } = useInvitationByGiftList(effectiveGiftListId);
+
+  // An invitation for an unpublished registry links to a URL that 404s.
+  const { data: giftList } = useGiftListById(effectiveGiftListId);
+  const isDraft = !!giftList && !giftList.publishedAt;
 
   // Determine initial view based on whether invitation exists
   useEffect(() => {
@@ -74,5 +80,10 @@ export function InvitationsPage() {
     }
   };
 
-  return <div className="min-h-screen bg-background">{renderView()}</div>;
+  return (
+    <div className="min-h-screen bg-background">
+      {isDraft && <DraftShareNotice userSlug={giftList?.user?.slug} subject="tu invitación" />}
+      {renderView()}
+    </div>
+  );
 }

@@ -34,7 +34,23 @@ export function isIapAvailable(): boolean {
   return !!IOS_KEY && !!loadPurchases();
 }
 
-/** Fresh RevenueCat app user id for one signup attempt (held stable in the screen). */
+/**
+ * RevenueCat app user id for a signed-in couple.
+ *
+ * Publishing happens after signup, so there is a real user id to key the
+ * purchase on. That makes the entitlement durably attributable — and it is what
+ * makes "restore purchases" resolvable later, which an anonymous id never was.
+ */
+export function iapUserIdForUser(userId: number): string {
+  return `user_${userId}`;
+}
+
+/**
+ * Fresh anonymous RevenueCat app user id.
+ *
+ * @deprecated Only used by the legacy pay-before-signup flow in App Store builds
+ * <= 1.0.2 (18), where no account exists yet. Remove with those builds.
+ */
 export function newIapUserId(): string {
   return `rc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
 }

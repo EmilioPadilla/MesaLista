@@ -28,8 +28,8 @@ export function PricingPage() {
     <div className="flex flex-col min-h-screen">
       <PageSEO
         title="Precios - Mesa de Regalos Digital"
-        description="Planes flexibles para tu mesa de regalos. Sin costos ocultos, sin comisiones por transacción. Elige el plan perfecto para tu evento."
-        keywords="precios mesa de regalos, planes boda, costo mesa de regalos, precio lista de bodas, México"
+        description="Crea tu mesa de regalos gratis y elige tu plan solo cuando la publiques. Plan Fijo de $2,000 MXN o 3% por venta, sin costos ocultos."
+        keywords="precios mesa de regalos, mesa de regalos gratis, planes boda, costo mesa de regalos, precio lista de bodas, México"
         customStructuredData={faqStructuredData}
         breadcrumbs={[
           { name: 'Inicio', url: 'https://www.mesalista.com.mx' },
@@ -88,7 +88,7 @@ export function PricingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}>
-            Elige el plan que mejor se adapte a tus necesidades y comienza a crear tu mesa de regalos
+            Arma tu mesa de regalos gratis y sin tarjeta. Eliges tu plan hasta que decidas publicarla.
           </motion.p>
         </div>
       </section>

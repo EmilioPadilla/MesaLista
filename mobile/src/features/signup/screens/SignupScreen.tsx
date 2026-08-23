@@ -1,29 +1,14 @@
 import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, useRouter } from 'expo-router';
-import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { useCheckSlugAvailability, useSignupCommission } from 'hooks/useUser';
+import { useCheckSlugAvailability, useCheckEmailAvailability, useSignup } from 'hooks/useUser';
 import { useSendVerificationCode, useVerifyCode } from 'hooks/useEmailVerification';
-import {
-  useCompletePlanIapSignup,
-  useCompletePlanSignupSession,
-  useCreatePlanCheckoutSession,
-  usePreparePlanIapSignup,
-} from 'hooks/usePayment';
 import { useValidateDiscountCode } from 'hooks/useDiscountCode';
+import { resolveSignupError, SIGNUP_ERROR_MESSAGES } from 'utils/signupErrors';
 import { queryKeys } from 'hooks/queryKeys';
 import type { User } from 'types/models/user';
 
@@ -31,44 +16,37 @@ import { useAuth } from '@/auth/AuthContext';
 import { trackEvent, useScreenView } from '@/lib/analytics';
 import { useToast } from '@/lib/ToastProvider';
 import { tokenStore } from '@/lib/secureStore';
-import { API_URL } from '@/lib/apiConfig';
-import { openCheckout } from '@/features/guestRegistry/payment';
-import { isIapAvailable, newIapUserId, purchaseFixedPlan } from '@/lib/revenuecat';
 import { DateField } from '../components/DateField';
 import { PasswordStrength } from '../components/PasswordStrength';
 import {
-  buildPlanReturnUrls,
   buildSlugFromNames,
-  calculateDiscountedPrice,
   EMPTY_DETAILS,
-  formatMxn,
   optionalPhone,
   sanitizeSlugInput,
   SIGNUP_STEPS,
   validateDetails,
   type DetailsErrors,
-  type PlanChoice,
   type SignupDetails,
   type SignupStep,
 } from '../utils';
 
 const serif = Platform.select({ ios: 'Georgia', android: 'serif' });
 
-const TERMS_URL =
-  'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Te%CC%81rminos%20y%20Condiciones%20MesaLista%20Mx.pdf';
-const PRIVACY_URL =
-  'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Aviso%20de%20Privacidad%20MesaLista%20Mx.pdf';
+const TERMS_URL = 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Te%CC%81rminos%20y%20Condiciones%20MesaLista%20Mx.pdf';
+const PRIVACY_URL = 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documents/Aviso%20de%20Privacidad%20MesaLista%20Mx.pdf';
 
 /**
  * Couple signup, mirroring the web flow (src/app/routes/Signup.tsx):
- * details → email verification → slug → plan → payment → success.
+ * details → email verification → slug → success.
  *
- * Mobile-specific differences from web:
- * - Auth is Bearer-token based: commission signup stores the token from the
- *   response; the fixed plan signs in with the held credentials after the
- *   Stripe session is completed (that endpoint only sets a web cookie).
- * - Stripe checkout opens in an in-app browser and returns via the
- *   /payments/mobile-return deep-link bridge instead of a page redirect.
+ * Signup is free and produces a DRAFT registry — no plan and no payment happen
+ * here. The couple builds the list first and chooses a plan on the publish
+ * screen (app/(app)/list/[listId]/publish.tsx), which is also where the Apple
+ * IAP for the fixed plan now lives.
+ *
+ * Mobile-specific difference from web: auth is Bearer-token based, so the token
+ * returned in the signup response is stored directly rather than relying on a
+ * cookie.
  */
 export function SignupScreen() {
   const router = useRouter();
@@ -85,29 +63,18 @@ export function SignupScreen() {
   const [slug, setSlug] = useState('');
   const [debouncedSlug, setDebouncedSlug] = useState('');
   const [slugError, setSlugError] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<PlanChoice>('');
-  const [planError, setPlanError] = useState('');
   const [discountCode, setDiscountCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [successSlug, setSuccessSlug] = useState('');
 
-  // On iOS the fixed plan must go through Apple IAP (App Store guideline 3.1.1);
-  // discount codes can't apply to fixed StoreKit prices, so we hide that field.
-  const iosIap = Platform.OS === 'ios' && isIapAvailable();
-  const [iapUserId] = useState(newIapUserId);
-
-  const { mutateAsync: signupCommission } = useSignupCommission();
-  const { mutateAsync: createPlanCheckout } = useCreatePlanCheckoutSession();
-  const { mutateAsync: completePlanSignup } = useCompletePlanSignupSession();
-  const { mutateAsync: preparePlanIap } = usePreparePlanIapSignup();
-  const { mutateAsync: completePlanIap } = useCompletePlanIapSignup();
+  const { mutateAsync: signup } = useSignup();
+  const { mutateAsync: checkEmailAvailability, isPending: isCheckingEmail } = useCheckEmailAvailability();
   const { mutateAsync: sendVerificationCode, isPending: isResendingCode } = useSendVerificationCode();
   const { mutateAsync: verifyCode } = useVerifyCode();
   const { data: discountCodeInfo, isLoading: isValidatingDiscount, isError: isDiscountCodeError } = useValidateDiscountCode(discountCode);
   const { data: slugCheck, isLoading: isCheckingSlug } = useCheckSlugAvailability(debouncedSlug);
 
   const discountCodeValid = discountCodeInfo ? true : isDiscountCodeError ? false : null;
-  const price = calculateDiscountedPrice(discountCodeValid ? discountCodeInfo : null, selectedPlan);
 
   useScreenView('/signup');
 
@@ -199,124 +166,19 @@ export function SignupScreen() {
     }
   };
 
-  /** How this signup is being paid for — kept on every checkout event. */
-  const paymentMethod = () => (selectedPlan !== 'fixed' ? 'commission' : iosIap ? 'apple_iap' : 'stripe');
-
   const goToSuccess = (finalSlug?: string) => {
     setSuccessSlug(finalSlug || slug);
-    trackEvent('REGISTRY_PURCHASE', { plan: selectedPlan, slug: finalSlug || slug, method: paymentMethod() });
+    trackEvent('REGISTRY_DRAFT_CREATED', { slug: finalSlug || slug });
     setStep('success');
   };
 
   /**
-   * iOS fixed-plan purchase via Apple IAP (RevenueCat). We stash the signup
-   * server-side keyed by a RevenueCat app user id, run the native purchase, then
-   * complete — the server re-verifies the entitlement before provisioning and
-   * returns a Bearer token we store to sign in.
+   * Creates the account and a draft registry. Nothing is charged here — the
+   * couple picks a plan later from the publish screen, once they can see what
+   * they are buying.
    */
-  const handleFixedPlanIap = async () => {
-    await preparePlanIap({
-      appUserId: iapUserId,
-      email: details.email.trim(),
-      password: details.password,
-      firstName: details.firstName,
-      lastName: details.lastName,
-      spouseFirstName: details.spouseFirstName || '',
-      spouseLastName: details.spouseLastName || '',
-      phoneNumber: optionalPhone(details.phone),
-      slug,
-      ...(details.eventDate && { eventDate: details.eventDate.toISOString() }),
-    });
-
-    const result = await purchaseFixedPlan(iapUserId);
-
-    if (result.userCancelled) {
-      toast.info('Pago cancelado. Puedes intentar nuevamente.');
-      return;
-    }
-    if (!result.entitled) {
-      toast.error('No se pudo verificar la compra. Por favor intenta de nuevo.');
-      return;
-    }
-
-    try {
-      const completed = await completePlanIap({ appUserId: iapUserId });
-      // Web relies on the cookie; on mobile we store the returned Bearer token
-      // (falling back to a login with the credentials we still hold).
-      if (completed.token) {
-        await tokenStore.set(completed.token);
-        await queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
-      } else if (!(await tryLogin())) {
-        toast.warning('Tu cuenta fue creada. Inicia sesión para continuar.');
-      }
-      toast.success('¡Pago exitoso! Tu cuenta ha sido creada.');
-      goToSuccess(completed.slug);
-    } catch (completeError) {
-      // The webhook backstop may have already provisioned the account and removed
-      // the pending row (a race), so /complete 404s even though the account now
-      // exists. Sign in with the credentials we hold and treat it as success;
-      // only surface the error if there's genuinely no account to log into.
-      if (await tryLogin()) {
-        toast.success('¡Pago exitoso! Tu cuenta ha sido creada.');
-        goToSuccess();
-      } else {
-        throw completeError;
-      }
-    }
-  };
-
-  const handleFixedPlanCheckout = async () => {
-    const redirect = Linking.createURL('signup-return');
-    const { successUrl, cancelUrl } = buildPlanReturnUrls(API_URL, redirect);
-
-    const checkout = await createPlanCheckout({
-      planType: 'FIXED',
-      email: details.email.trim(),
-      password: details.password,
-      firstName: details.firstName,
-      lastName: details.lastName,
-      spouseFirstName: details.spouseFirstName || '',
-      spouseLastName: details.spouseLastName || '',
-      phoneNumber: optionalPhone(details.phone),
-      slug,
-      successUrl,
-      cancelUrl,
-      ...(details.eventDate && { eventDate: details.eventDate.toISOString() }),
-      ...(discountCode && discountCodeValid && { discountCode }),
-    });
-
-    if (!checkout.success || !checkout.url) {
-      toast.error('Error al crear la sesión de pago');
-      return;
-    }
-
-    const result = await openCheckout(checkout.url, redirect);
-
-    if (result.status === 'success' && result.params.session_id) {
-      const completed = await completePlanSignup({ sessionId: result.params.session_id });
-      // The completion endpoint authenticates via web cookie only; on mobile we
-      // sign in with the credentials we still hold to get a Bearer token.
-      const loggedIn = await tryLogin();
-      if (!loggedIn) toast.warning('Tu cuenta fue creada. Inicia sesión para continuar.');
-      toast.success('¡Pago exitoso! Tu cuenta ha sido creada.');
-      goToSuccess(completed.slug);
-    } else if (result.status === 'cancel') {
-      toast.info('Pago cancelado. Puedes intentar nuevamente.');
-    } else {
-      // Browser closed without reaching our deep link. The charge may still
-      // have gone through (the webhook provisions the account), so probe by
-      // signing in before treating it as abandoned.
-      if (await tryLogin()) {
-        toast.success('¡Pago exitoso! Tu cuenta ha sido creada.');
-        goToSuccess();
-      } else {
-        toast.info('No se completó el pago. Puedes intentar nuevamente.');
-      }
-    }
-  };
-
-  const handleCommissionSignup = async () => {
-    const created = await signupCommission({
+  const handleCreateAccount = async () => {
+    const created = await signup({
       email: details.email.trim(),
       password: details.password,
       firstName: details.firstName,
@@ -333,7 +195,7 @@ export function SignupScreen() {
     // The endpoint returns a session token in the body (web relies on the
     // cookie instead). Store it so the new account is signed in immediately;
     // fall back to a normal login for older deployed APIs without it.
-    const token = (created as User & { token?: string }).token;
+    const token = created.token;
     if (token) {
       await tokenStore.set(token);
       await queryClient.invalidateQueries({ queryKey: [queryKeys.currentUser] });
@@ -341,8 +203,27 @@ export function SignupScreen() {
       await tryLogin();
     }
 
-    toast.success('¡Cuenta creada exitosamente!');
+    toast.success('¡Tu mesa de regalos está lista para armar!');
     goToSuccess(created.slug);
+  };
+
+  /**
+   * A taken email used to surface only when the account was created, three steps
+   * later. Check it here so the couple sees the problem on the field they just
+   * filled in. A check that fails (older deployed API, network blip) doesn't block
+   * signup — the create call still rejects duplicates.
+   */
+  const isEmailAvailable = async (email: string) => {
+    try {
+      const result = await checkEmailAvailability(email);
+      if (!result.available) {
+        setErrors((prev) => ({ ...prev, email: SIGNUP_ERROR_MESSAGES.EMAIL_TAKEN }));
+        return false;
+      }
+    } catch (error) {
+      console.error('Error checking email availability:', error);
+    }
+    return true;
   };
 
   const handleNext = async () => {
@@ -351,6 +232,7 @@ export function SignupScreen() {
         const nextErrors = validateDetails(details);
         setErrors(nextErrors);
         if (Object.keys(nextErrors).length > 0) return;
+        if (!(await isEmailAvailable(details.email.trim()))) return;
         // Funnel entry, same point the web tracks it (plan/slug are picked in
         // later steps here, so they aren't known yet).
         trackEvent('REGISTRY_ATTEMPT', { slug });
@@ -395,36 +277,23 @@ export function SignupScreen() {
           return;
         }
         setSlugError('');
-        setStep('plan');
-        return;
-      }
 
-      case 'plan': {
-        if (!selectedPlan) {
-          setPlanError('Selecciona un plan');
-          return;
-        }
-        setPlanError('');
-        setStep('payment');
-        return;
-      }
-
-      case 'payment': {
+        // Last step: create the account and the draft registry.
         setIsLoading(true);
-        trackEvent('START_CHECKOUT', { plan: selectedPlan, slug, method: paymentMethod() });
         try {
-          if (selectedPlan === 'fixed') {
-            if (iosIap) await handleFixedPlanIap();
-            else await handleFixedPlanCheckout();
-          } else await handleCommissionSignup();
+          await handleCreateAccount();
         } catch (error: any) {
-          // User endpoints report `error`; payment endpoints report `message`;
-          // thrown RevenueCat/StoreKit errors only carry `.message` — surface it
-          // so IAP failures aren't swallowed into a generic toast.
-          const data = error?.response?.data;
-          const reason = data?.error || data?.message || error?.message;
-          trackEvent('CHECKOUT_ERROR', { plan: selectedPlan, slug, method: paymentMethod(), error: reason });
-          toast.error(reason || 'Error al procesar la solicitud. Por favor intenta de nuevo.');
+          const { code, message } = resolveSignupError(error);
+          toast.error(message);
+
+          // Send the couple back to whichever field collided — the email is two
+          // steps back, the slug is the field they are looking at.
+          if (code === 'EMAIL_TAKEN') {
+            setErrors((prev) => ({ ...prev, email: message }));
+            setStep('details');
+          } else if (code === 'SLUG_TAKEN') {
+            setSlugError(message);
+          }
         } finally {
           setIsLoading(false);
         }
@@ -440,12 +309,6 @@ export function SignupScreen() {
         break;
       case 'slug':
         setStep('verification');
-        break;
-      case 'plan':
-        setStep('slug');
-        break;
-      case 'payment':
-        setStep('plan');
         break;
       default:
         if (router.canGoBack()) router.back();
@@ -469,7 +332,9 @@ export function SignupScreen() {
         <ScrollView contentContainerClassName="px-6 pb-10" keyboardShouldPersistTaps="handled">
           {step !== 'success' && (
             <View className="mb-6">
-              <Text className="mb-2 text-sm text-mutedForeground">Paso {stepNumber} de {SIGNUP_STEPS.length}</Text>
+              <Text className="mb-2 text-sm text-mutedForeground">
+                Paso {stepNumber} de {SIGNUP_STEPS.length}
+              </Text>
               <View className="h-1 rounded-full bg-gray-200">
                 <View className="h-1 rounded-full bg-oak" style={{ width: `${(stepNumber / SIGNUP_STEPS.length) * 100}%` }} />
               </View>
@@ -486,7 +351,7 @@ export function SignupScreen() {
               discountCodeValid={discountCodeValid}
               discountCodeInfo={discountCodeInfo}
               isValidatingDiscount={isValidatingDiscount}
-              showDiscountField={!iosIap}
+              showDiscountField
             />
           )}
 
@@ -518,51 +383,17 @@ export function SignupScreen() {
             />
           )}
 
-          {step === 'plan' && (
-            <PlanStep
-              selectedPlan={selectedPlan}
-              onSelect={(plan) => {
-                setSelectedPlan(plan);
-                setPlanError('');
-              }}
-              error={planError}
-              discountApplied={!!(discountCodeValid && discountCodeInfo)}
-              discountCode={discountCodeInfo?.code}
-              price={calculateDiscountedPrice(discountCodeValid ? discountCodeInfo : null, 'fixed')}
-            />
-          )}
-
-          {step === 'payment' && (
-            <PaymentStep
-              selectedPlan={selectedPlan}
-              iosIap={iosIap}
-              discountApplied={!!(discountCodeValid && discountCodeInfo && price.savings > 0)}
-              discountCode={discountCodeInfo?.code}
-              discountLabel={
-                discountCodeInfo?.discountType === 'PERCENTAGE' ? `${discountCodeInfo.discountValue}% descuento` : 'Descuento fijo'
-              }
-              price={price}
-            />
-          )}
-
           {step === 'success' && <SuccessStep slug={successSlug || slug} onContinue={() => router.replace('/(app)')} />}
 
           {step !== 'success' && (
             <Pressable
               onPress={handleNext}
-              disabled={isLoading}
-              className={`mt-8 items-center rounded-full py-4 ${isLoading ? 'bg-gray-300' : 'bg-oak active:bg-oakDark'}`}
-            >
-              {isLoading ? (
+              disabled={isLoading || isCheckingEmail}
+              className={`mt-8 items-center rounded-full py-4 ${isLoading || isCheckingEmail ? 'bg-gray-300' : 'bg-oak active:bg-oakDark'}`}>
+              {isLoading || isCheckingEmail ? (
                 <ActivityIndicator color="#ffffff" />
               ) : (
-                <Text className="text-base font-semibold text-white">
-                  {step === 'payment'
-                    ? selectedPlan === 'fixed'
-                      ? `Pagar ${formatMxn(price.discounted)}`
-                      : 'Crear Cuenta'
-                    : 'Continuar →'}
-                </Text>
+                <Text className="text-base font-semibold text-white">{step === 'slug' ? 'Crear Mi Mesa Gratis' : 'Continuar →'}</Text>
               )}
             </Pressable>
           )}
@@ -600,9 +431,7 @@ function DetailsStep({
       <Text className="text-center text-3xl text-ink" style={{ fontFamily: serif }}>
         Únete a MesaLista
       </Text>
-      <Text className="mb-6 mt-2 text-center text-base text-mutedForeground">
-        Necesitamos algunos datos para crear tu cuenta
-      </Text>
+      <Text className="mb-6 mt-2 text-center text-base text-mutedForeground">Necesitamos algunos datos para crear tu cuenta</Text>
 
       <View className="flex-row gap-3">
         <View className="flex-1">
@@ -801,9 +630,7 @@ function SlugStep({
       <Text className="text-center text-3xl text-ink" style={{ fontFamily: serif }}>
         Tu enlace personalizado
       </Text>
-      <Text className="mb-6 mt-2 text-center text-base text-mutedForeground">
-        Este será el enlace único de tu mesa de regalos
-      </Text>
+      <Text className="mb-6 mt-2 text-center text-base text-mutedForeground">Este será el enlace único de tu mesa de regalos</Text>
 
       <View className="mb-5 rounded-ml bg-muted p-5">
         <Text className="mb-1 text-center text-sm text-mutedForeground">Tu enlace será:</Text>
@@ -824,224 +651,6 @@ function SlugStep({
         <Text className="mt-1 text-xs text-mutedForeground">• Debe ser único y fácil de recordar</Text>
         <Text className="mt-1 text-xs text-mutedForeground">• Podrás cambiarlo más tarde si quieres</Text>
       </View>
-    </View>
-  );
-}
-
-function PlanStep({
-  selectedPlan,
-  onSelect,
-  error,
-  discountApplied,
-  discountCode,
-  price,
-}: {
-  selectedPlan: PlanChoice;
-  onSelect: (plan: 'fixed' | 'commission') => void;
-  error: string;
-  discountApplied: boolean;
-  discountCode: string | undefined;
-  price: { discounted: number; savings: number };
-}) {
-  const showDiscount = discountApplied && price.savings > 0;
-  return (
-    <View>
-      <Text className="text-center text-3xl text-ink" style={{ fontFamily: serif }}>
-        Elige tu plan
-      </Text>
-      <Text className="mb-6 mt-2 text-center text-base text-mutedForeground">
-        Selecciona la opción que mejor se adapte a ti
-      </Text>
-
-      <PlanCard
-        selected={selectedPlan === 'fixed'}
-        onPress={() => onSelect('fixed')}
-        emoji="💳"
-        title="Plan Fijo"
-        priceNode={
-          showDiscount ? (
-            <View className="items-end">
-              <Text className="text-xs text-mutedForeground line-through">{formatMxn(2000)}</Text>
-              <Text className="text-xl font-bold text-success">{formatMxn(price.discounted)}</Text>
-            </View>
-          ) : (
-            <Text className="text-xl font-bold text-oak">{formatMxn(2000)}</Text>
-          )
-        }
-        subtitle="Pago único"
-        features={[
-          '1 Mesa de regalos ilimitada',
-          'Sin comisiones por regalos',
-          'Gestión de RSVP',
-          'Soporte al cliente',
-          'Listas de regalos inspiradas por nosotros',
-        ]}
-        extra={
-          showDiscount ? (
-            <View className="mt-2 rounded-ml border border-success/30 bg-success/10 p-2">
-              <Text className="text-xs font-medium text-success">
-                Código &quot;{discountCode}&quot; aplicado — Ahorras {formatMxn(price.savings)}
-              </Text>
-            </View>
-          ) : null
-        }
-      />
-
-      <PlanCard
-        selected={selectedPlan === 'commission'}
-        onPress={() => onSelect('commission')}
-        emoji="📈"
-        title="Plan por Comisión"
-        priceNode={<Text className="text-xl font-bold text-success">3.00%</Text>}
-        subtitle="Comisión de 3.00% por cada venta"
-        features={[
-          '1 Mesa de regalos ilimitada',
-          'Sin costo inicial',
-          'Gestión de RSVP',
-          'Soporte al cliente',
-          'Listas de regalos inspiradas por nosotros',
-        ]}
-      />
-
-      {!!error && <Text className="mt-2 text-sm text-danger">{error}</Text>}
-
-      <View className="mt-4 rounded-ml bg-info/10 p-3">
-        <Text className="text-center text-sm text-info">ⓘ Una vez elegido tu plan, no podrás cambiarlo</Text>
-      </View>
-    </View>
-  );
-}
-
-function PlanCard({
-  selected,
-  onPress,
-  emoji,
-  title,
-  priceNode,
-  subtitle,
-  features,
-  extra,
-}: {
-  selected: boolean;
-  onPress: () => void;
-  emoji: string;
-  title: string;
-  priceNode: React.ReactNode;
-  subtitle: string;
-  features: string[];
-  extra?: React.ReactNode;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{ selected }}
-      className={`mb-4 rounded-2xl border-2 p-4 ${selected ? 'border-oak bg-oak/5' : 'border-gray-200 bg-white'}`}
-    >
-      <View className="flex-row items-center">
-        <View className="mr-3 h-11 w-11 items-center justify-center rounded-full bg-oak/10">
-          <Text className="text-xl">{emoji}</Text>
-        </View>
-        <View className="flex-1 flex-row items-center justify-between">
-          <Text className="text-base font-semibold text-ink">{title}</Text>
-          {priceNode}
-        </View>
-        {selected && (
-          <View className="absolute -right-1 -top-1 h-6 w-6 items-center justify-center rounded-full bg-oak">
-            <Text className="text-xs font-bold text-white">✓</Text>
-          </View>
-        )}
-      </View>
-      <Text className="mt-1 text-sm text-mutedForeground">{subtitle}</Text>
-      {extra}
-      <View className="mt-2">
-        {features.map((f) => (
-          <Text key={f} className="mt-1 text-sm text-mutedForeground">
-            • {f}
-          </Text>
-        ))}
-      </View>
-    </Pressable>
-  );
-}
-
-function PaymentStep({
-  selectedPlan,
-  iosIap,
-  discountApplied,
-  discountCode,
-  discountLabel,
-  price,
-}: {
-  selectedPlan: PlanChoice;
-  iosIap?: boolean;
-  discountApplied: boolean;
-  discountCode: string | undefined;
-  discountLabel: string;
-  price: { discounted: number; savings: number };
-}) {
-  return (
-    <View>
-      <Text className="text-center text-3xl text-ink" style={{ fontFamily: serif }}>
-        {selectedPlan === 'fixed' ? 'Confirmar pago' : 'Confirmar cuenta'}
-      </Text>
-      <Text className="mb-6 mt-2 text-center text-base text-mutedForeground">
-        {selectedPlan === 'fixed'
-          ? discountApplied
-            ? `Pago único de ${formatMxn(price.discounted)}`
-            : `Pago único de ${formatMxn(2000)}`
-          : 'Sin costo inicial - 3% por venta'}
-      </Text>
-
-      {selectedPlan === 'fixed' ? (
-        <View>
-          <View className="rounded-ml bg-muted p-5">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-base text-ink">Plan Fijo</Text>
-              {discountApplied ? (
-                <View className="items-end">
-                  <Text className="text-xs text-mutedForeground line-through">{formatMxn(2000)}</Text>
-                  <Text className="text-xl font-bold text-success">{formatMxn(price.discounted)}</Text>
-                </View>
-              ) : (
-                <Text className="text-xl font-bold text-oak">{formatMxn(2000)}</Text>
-              )}
-            </View>
-
-            {discountApplied && (
-              <View className="mt-3 rounded-ml border border-success/30 bg-success/10 p-3">
-                <View className="flex-row items-center justify-between">
-                  <View>
-                    <Text className="text-sm font-medium text-success">Código de descuento aplicado</Text>
-                    <Text className="text-xs text-success">&quot;{discountCode}&quot;</Text>
-                  </View>
-                  <View className="items-end">
-                    <Text className="text-sm font-medium text-success">-{formatMxn(price.savings)}</Text>
-                    <Text className="text-xs text-success">{discountLabel}</Text>
-                  </View>
-                </View>
-              </View>
-            )}
-
-            <Text className="mt-3 text-sm text-mutedForeground">Pago único, sin comisiones adicionales</Text>
-          </View>
-
-          <Text className="mt-5 text-center text-sm text-mutedForeground">
-            {iosIap ? 'Se abrirá la ventana de compra de App Store' : 'Se abrirá nuestro procesador de pagos seguro'}
-          </Text>
-          <Text className="mt-2 text-center text-xs text-mutedForeground">
-            {iosIap ? '⚡ Compra procesada de forma segura por Apple' : '⚡ Procesamiento seguro con cifrado SSL'}
-          </Text>
-        </View>
-      ) : (
-        <View className="rounded-ml bg-success/10 p-6">
-          <Text className="text-center text-3xl">✓</Text>
-          <Text className="mt-2 text-center text-base font-semibold text-ink">Sin costo inicial</Text>
-          <Text className="mt-1 text-center text-sm text-mutedForeground">
-            Solo pagarás el 3% cuando tengas ventas en tu mesa de regalos
-          </Text>
-        </View>
-      )}
     </View>
   );
 }
@@ -1096,11 +705,8 @@ function CheckRow({ checked, onToggle, label }: { checked: boolean; onToggle: ()
       onPress={onToggle}
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
-      className="mt-4 flex-row items-center gap-2.5"
-    >
-      <View
-        className={`h-5 w-5 items-center justify-center rounded border ${checked ? 'border-oak bg-oak' : 'border-gray-300 bg-white'}`}
-      >
+      className="mt-4 flex-row items-center gap-2.5">
+      <View className={`h-5 w-5 items-center justify-center rounded border ${checked ? 'border-oak bg-oak' : 'border-gray-300 bg-white'}`}>
         {checked && <Text className="text-xs font-bold text-white">✓</Text>}
       </View>
       {label}

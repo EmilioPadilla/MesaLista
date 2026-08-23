@@ -73,6 +73,12 @@ export default {
         return res.status(400).json({ error: 'Gift is already purchased' });
       }
 
+      // Refuse at the earliest boundary: a draft registry isn't open for gifts,
+      // so a guest should never get as far as a cart with items in it.
+      if (gift.giftList && gift.giftList.publishedAt === null) {
+        return res.status(409).json({ error: 'Esta mesa de regalos todavía no está publicada' });
+      }
+
       const giftListId = gift.giftListId;
 
       // Find or create cart

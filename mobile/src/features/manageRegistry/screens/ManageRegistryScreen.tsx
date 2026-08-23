@@ -9,6 +9,7 @@ import type { Gift } from 'types/models/gift';
 
 import { useToast } from '@/lib/ToastProvider';
 import { formatCurrency } from '@/lib/format';
+import { checkPublishReadiness } from '@/features/publish/utils';
 import { GiftCard } from '../components/GiftCard';
 import { GiftFormModal, type GiftFormValues } from '../components/GiftFormModal';
 
@@ -34,6 +35,10 @@ export function ManageRegistryScreen({ listId }: { listId: number }) {
   const gifts = useMemo(() => [...(list?.gifts ?? [])].sort((a, b) => a.order - b.order), [list?.gifts]);
   const purchased = gifts.filter((g) => g.isPurchased).length;
   const raised = gifts.filter((g) => g.isPurchased).reduce((s, g) => s + g.price, 0);
+
+  // No publish timestamp means the couple is still building — the list is a draft.
+  const isDraft = !!list && !list.publishedAt;
+  const readiness = checkPublishReadiness({ giftCount: gifts.length, eventDate: list?.eventDate, coverImageUrl: list?.imageUrl });
 
   const openCreate = () => {
     setEditing(null);
@@ -104,6 +109,31 @@ export function ManageRegistryScreen({ listId }: { listId: number }) {
           <Text className="mt-1 text-sm text-mutedForeground">
             {gifts.length} regalos · {purchased} comprados · {formatCurrency(raised)} recaudado
           </Text>
+
+          {/* Draft registries aren't visible to guests until the couple publishes. */}
+          {isDraft && (
+            <View className="mt-4 rounded-2xl border-2 border-oak/25 bg-oak/5 p-4">
+              <Text className="mb-1 text-base font-semibold text-ink">Tu mesa todavía es un borrador</Text>
+              <Text className="mb-3 text-sm text-mutedForeground">
+                {readiness.ready
+                  ? 'Solo tú puedes verla. Publícala para compartirla con tus invitados.'
+                  : 'Solo tú puedes verla. Para publicarla te falta:'}
+              </Text>
+              {!readiness.ready &&
+                readiness.missing.map((item) => (
+                  <Text key={item} className="mb-1 text-sm text-oak">
+                    • {item}
+                  </Text>
+                ))}
+              <Pressable
+                onPress={() => router.push(`/list/${listId}/publish`)}
+                disabled={!readiness.ready}
+                className={`mt-2 items-center rounded-full py-3 ${readiness.ready ? 'bg-oak active:bg-oakDark' : 'bg-gray-300'}`}
+              >
+                <Text className="text-base font-semibold text-white">Publicar mesa</Text>
+              </Pressable>
+            </View>
+          )}
 
           <View className="mb-4 mt-3 flex-row gap-2">
             <SectionLink label="Confirmaciones" onPress={() => router.push(`/list/${listId}/rsvp`)} />

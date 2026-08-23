@@ -3,18 +3,40 @@ import { useNavigate } from 'react-router-dom';
 import { Checkbox, message, Form, Input, Radio, Spin, DatePicker } from 'antd';
 import dayjs from 'dayjs';
 import { Button } from 'components/core/Button';
-import { Mail, Lock, ArrowLeft, Phone, Edit3, ArrowRight, Check, CreditCard, TrendingUp, Zap, ShieldCheck, Tag, Calendar } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  ArrowLeft,
+  Phone,
+  Edit3,
+  ArrowRight,
+  Check,
+  CreditCard,
+  TrendingUp,
+  Zap,
+  ShieldCheck,
+  Tag,
+  Calendar,
+} from 'lucide-react';
 import { userService } from 'services/user.service';
-import { useIsAuthenticated, useCheckSlugAvailability, useSignupCommission } from 'hooks/useUser';
+import { useIsAuthenticated, useCheckSlugAvailability, useCheckEmailAvailability, useSignup } from 'hooks/useUser';
 import { useSendVerificationCode, useVerifyCode } from 'hooks/useEmailVerification';
-import { useCreatePlanCheckoutSession } from 'hooks/usePayment';
 import { motion, AnimatePresence } from 'motion/react';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { PasswordStrengthIndicator } from 'components/auth/PasswordStrengthIndicator';
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
 import { useValidateDiscountCode } from 'hooks/useDiscountCode';
+import { resolveSignupError, SIGNUP_ERROR_MESSAGES } from 'utils/signupErrors';
 
-type Step = 'details' | 'verification' | 'slug' | 'plan' | 'payment' | 'success';
+/**
+ * Signup is free and creates a draft registry — no plan, no payment. The couple
+ * builds the list first and chooses a plan from the builder when they publish
+ * (see src/features/publish). Keep in sync with the mobile flow in
+ * mobile/src/features/signup/utils.ts.
+ */
+type Step = 'details' | 'verification' | 'slug' | 'success';
+
+const SIGNUP_STEPS: Step[] = ['details', 'verification', 'slug', 'success'];
 
 function Signup() {
   const navigate = useNavigate();
@@ -22,10 +44,8 @@ function Signup() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [currentStep, setCurrentStep] = useState<Step>('details');
   const [slug, setCoupleSlug] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<'fixed' | 'commission' | ''>('');
   const [isLoading, setIsLoading] = useState(false);
   const [slugError, setSlugError] = useState('');
-  const [planError, setPlanError] = useState('');
   const [isWeddingAccount, setIsWeddingAccount] = useState(false);
   const [debouncedSlug, setDebouncedSlug] = useState('');
   const [formData, setFormData] = useState<any>(null); // Store form data across steps
@@ -36,8 +56,8 @@ function Signup() {
   const [discountCode, setDiscountCode] = useState('');
   const [successSlug, setSuccessSlug] = useState('');
 
-  const { mutateAsync: signupCommission } = useSignupCommission();
-  const { mutateAsync: createPlanCheckout } = useCreatePlanCheckoutSession();
+  const { mutateAsync: signup } = useSignup();
+  const { mutateAsync: checkEmailAvailability, isPending: isCheckingEmail } = useCheckEmailAvailability();
   const { mutateAsync: sendVerificationCode, isPending: isResendingCode } = useSendVerificationCode();
   const { mutateAsync: verifyCode } = useVerifyCode();
   const {
@@ -129,7 +149,12 @@ function Signup() {
     }
   }, [navigate, isAuthenticated, isAuthLoading]);
 
-  const handlePaymentOrCreateAccount = async (values: any) => {
+  /**
+   * Creates the account and a draft registry. Nothing is charged here — the
+   * couple picks a plan later, from the builder, once they can see what they
+   * are buying.
+   */
+  const handleCreateAccount = async (values: any) => {
     setIsLoading(true);
 
     // The DatePicker stores a dayjs value on the form; serialize it to an ISO
@@ -137,58 +162,43 @@ function Signup() {
     const eventDate = values.eventDate ? dayjs(values.eventDate).toISOString() : undefined;
 
     try {
-      // If fixed plan, redirect to payment FIRST
-      if (selectedPlan === 'fixed') {
-        const baseUrl = window.location.origin;
-        const checkoutResponse = await createPlanCheckout({
-          planType: 'FIXED',
-          email: values.email,
-          password: values.password,
-          firstName: values.firstName,
-          lastName: values.lastName,
-          spouseFirstName: values.spouseFirstName || '',
-          spouseLastName: values.spouseLastName || '',
-          phoneNumber: values.phone,
-          slug: slug,
-          successUrl: `${baseUrl}/registro-exitoso?session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${baseUrl}/registro?step=payment&cancelled=true`,
-          ...(eventDate && { eventDate }),
-          ...(discountCode && discountCodeValid && { discountCode }),
-        });
+      const createdUser = await signup({
+        email: values.email,
+        password: values.password,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        spouseFirstName: values.spouseFirstName || '',
+        spouseLastName: values.spouseLastName || '',
+        phoneNumber: values.phone,
+        slug: slug,
+        role: 'COUPLE',
+        ...(eventDate && { eventDate }),
+        ...(discountCode && discountCodeValid && { discountCode }),
+      });
 
-        if (checkoutResponse.success && checkoutResponse.url) {
-          // Redirect to Stripe checkout
-          window.location.href = checkoutResponse.url;
-        } else {
-          message.error('Error al crear la sesión de pago');
-        }
-      } else {
-        const createdUser = await signupCommission({
-          email: values.email,
-          password: values.password,
-          firstName: values.firstName,
-          lastName: values.lastName,
-          spouseFirstName: values.spouseFirstName || '',
-          spouseLastName: values.spouseLastName || '',
-          phoneNumber: values.phone,
-          slug: slug,
-          role: 'COUPLE',
-          ...(eventDate && { eventDate }),
-          ...(discountCode && discountCodeValid && { discountCode }),
-        });
+      const finalSlug = createdUser.slug || slug;
+      trackEvent('REGISTRY_DRAFT_CREATED', { slug: finalSlug });
+      message.success('¡Tu mesa de regalos está lista para armar!');
 
-        message.success('¡Cuenta creada exitosamente!');
+      setSuccessSlug(finalSlug);
+      // Straight into the builder — the empty registry is the next thing to do.
+      setTimeout(() => navigate(`/${finalSlug}/gestionar`), 3000);
 
-        setSuccessSlug(createdUser.slug || slug);
-        setTimeout(() => navigate(`/${createdUser.slug || slug}`), 8000);
-
-        // Go to success
-        setCurrentStep('success');
-      }
+      setCurrentStep('success');
     } catch (error: any) {
       console.error('Error:', error);
-      const errorMessage = error.response?.data?.error || 'Error al procesar la solicitud. Por favor intenta de nuevo.';
+      const { code, message: errorMessage } = resolveSignupError(error);
       message.error(errorMessage);
+
+      // Point the couple at the field that actually collided: the email lives two
+      // steps back, so re-open it and flag it (after the form remounts); the slug
+      // is on this step and gets the inline error the availability check uses.
+      if (code === 'EMAIL_TAKEN') {
+        setCurrentStep('details');
+        setTimeout(() => form.setFields([{ name: 'email', errors: [errorMessage] }]), 0);
+      } else if (code === 'SLUG_TAKEN') {
+        setSlugError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -213,12 +223,31 @@ function Signup() {
     await handleSendVerificationCode(formData.email);
   };
 
+  /**
+   * A taken email used to surface only when the account was created, three steps
+   * later. Check it here so the couple sees the problem on the field they just
+   * filled in. A check that fails (older deployed API, network blip) doesn't block
+   * signup — the create call still rejects duplicates.
+   */
+  const isEmailAvailable = async (email: string) => {
+    try {
+      const result = await checkEmailAvailability(email);
+      if (!result.available) {
+        form.setFields([{ name: 'email', errors: [SIGNUP_ERROR_MESSAGES.EMAIL_TAKEN] }]);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error checking email availability:', error);
+    }
+    return true;
+  };
+
   const validateCurrentStep = async () => {
     switch (currentStep) {
       case 'details':
         try {
-          await form.validateFields();
-          return true;
+          const values = await form.validateFields();
+          return await isEmailAvailable(values.email);
         } catch (error) {
           return false;
         }
@@ -247,14 +276,6 @@ function Signup() {
         setSlugError('');
         return true;
 
-      case 'plan':
-        if (!selectedPlan) {
-          setPlanError('Selecciona un plan');
-          return false;
-        }
-        setPlanError('');
-        return true;
-
       default:
         return true;
     }
@@ -267,11 +288,7 @@ function Signup() {
     switch (currentStep) {
       case 'details':
         // Save form data and send verification code
-        // Track registry purchase
-        trackEvent('REGISTRY_ATTEMPT', {
-          plan: selectedPlan,
-          slug: slug,
-        });
+        trackEvent('REGISTRY_ATTEMPT', { slug });
         const values = form.getFieldsValue();
         setFormData(values);
         await handleSendVerificationCode(values.email, {
@@ -301,15 +318,9 @@ function Signup() {
         }
         break;
       case 'slug':
-        setCurrentStep('plan');
-        break;
-      case 'plan':
-        setCurrentStep('payment');
-        break;
-      case 'payment':
-        // Use stored form data
+        // Last step: the slug is confirmed, so create the account and the draft.
         if (formData) {
-          handlePaymentOrCreateAccount(formData);
+          handleCreateAccount(formData);
         } else {
           message.error('Error: No se encontraron los datos del formulario');
         }
@@ -325,44 +336,17 @@ function Signup() {
       case 'slug':
         setCurrentStep('verification');
         break;
-      case 'plan':
-        setCurrentStep('slug');
-        break;
-      case 'payment':
-        setCurrentStep('plan');
-        break;
       default:
         navigate('/');
     }
   };
 
   const getStepNumber = () => {
-    const steps = ['details', 'verification', 'slug', 'plan', 'payment', 'success'];
-    return steps.indexOf(currentStep) + 1;
+    return SIGNUP_STEPS.indexOf(currentStep) + 1;
   };
 
   const getTotalSteps = () => {
-    return 6;
-  };
-
-  const calculateDiscountedPrice = () => {
-    const basePrice = 2000;
-    if (!discountCodeValid || !discountCodeInfo || selectedPlan !== 'fixed') {
-      return { original: basePrice, discounted: basePrice, savings: 0 };
-    }
-
-    let discounted = basePrice;
-    if (discountCodeInfo.discountType === 'PERCENTAGE') {
-      discounted = basePrice - (basePrice * discountCodeInfo.discountValue) / 100;
-    } else {
-      discounted = basePrice - discountCodeInfo.discountValue;
-    }
-
-    return {
-      original: basePrice,
-      discounted: Math.max(0, discounted),
-      savings: basePrice - Math.max(0, discounted),
-    };
+    return SIGNUP_STEPS.length;
   };
 
   const renderProgressBar = () => (
@@ -789,212 +773,17 @@ function Signup() {
               </>
             )}
 
-            {currentStep === 'plan' && (
-              <>
-                <div className="text-center mb-8">
-                  <h1 className="text-3xl sm:text-4xl mb-4 text-foreground">Elige tu plan</h1>
-                  <p className="text-xl text-muted-foreground">Selecciona la opción que mejor se adapte a ti</p>
-                </div>
-
-                <div className="space-y-4 mb-8 w-full">
-                  <Radio.Group
-                    className="w-full"
-                    value={selectedPlan}
-                    onChange={(e) => setSelectedPlan(e.target.value as 'fixed' | 'commission')}>
-                    <div className="space-y-4">
-                      <div className="relative">
-                        <Radio value="fixed" id="fixed" className="peer sr-only" />
-                        <label
-                          htmlFor="fixed"
-                          onClick={() => setSelectedPlan('fixed')}
-                          className={`flex items-center p-6 rounded-2xl border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                            selectedPlan === 'fixed'
-                              ? 'border-[#d4704a] bg-[#d4704a]/5 shadow-md'
-                              : 'border-border/30 hover:border-[#d4704a]/50'
-                          }`}>
-                          {selectedPlan === 'fixed' && (
-                            <div className="absolute top-3 right-3 w-6 h-6 bg-[#d4704a] rounded-full flex items-center justify-center">
-                              <Check className="h-4 w-4 text-white" />
-                            </div>
-                          )}
-                          <div className="w-12 h-12 bg-[#d4704a]/10 rounded-full flex items-center justify-center mr-4">
-                            <CreditCard className="h-6 w-6 text-[#d4704a]" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1 pr-8">
-                              <h3 className="text-lg text-foreground font-semibold">Plan Fijo</h3>
-                              <div className="flex flex-col items-end">
-                                {discountCodeValid && discountCodeInfo && calculateDiscountedPrice().savings > 0 ? (
-                                  <>
-                                    <span className="text-sm text-muted-foreground line-through">$2,000 MXN</span>
-                                    <span className="text-2xl text-green-600 font-bold">
-                                      ${calculateDiscountedPrice().discounted.toLocaleString('es-MX')} MXN
-                                    </span>
-                                  </>
-                                ) : (
-                                  <span className="text-2xl text-[#d4704a] font-bold">$2,000 MXN</span>
-                                )}
-                              </div>
-                            </div>
-                            <p className="text-muted-foreground">Pago único</p>
-                            {discountCodeValid && discountCodeInfo && calculateDiscountedPrice().savings > 0 && (
-                              <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                                <div className="flex items-center gap-2">
-                                  <Tag className="h-4 w-4 text-green-700" />
-                                  <span className="text-sm text-green-700 font-medium">
-                                    Código "{discountCodeInfo.code}" aplicado - Ahorras $
-                                    {calculateDiscountedPrice().savings.toLocaleString('es-MX')} MXN
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                            <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                              <li>• 1 Mesa de regalos ilimitada</li>
-                              <li>• Sin comisiones por regalos</li>
-                              <li>• Gestión de RSVP</li>
-                              <li>• Soporte al cliente</li>
-                              <li>• Listas de regalos inspiradas por nosotros</li>
-                            </ul>
-                          </div>
-                        </label>
-                      </div>
-
-                      <div className="relative">
-                        <Radio value="commission" id="commission" className="peer sr-only" />
-                        <label
-                          htmlFor="commission"
-                          onClick={() => setSelectedPlan('commission')}
-                          className={`flex items-center w-full p-6 rounded-2xl border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                            selectedPlan === 'commission'
-                              ? 'border-[#d4704a] bg-[#d4704a]/5 shadow-md'
-                              : 'border-border/30 hover:border-[#d4704a]/50'
-                          }`}>
-                          {selectedPlan === 'commission' && (
-                            <div className="absolute top-3 right-3 w-6 h-6 bg-[#d4704a] rounded-full flex items-center justify-center">
-                              <Check className="h-4 w-4 text-white" />
-                            </div>
-                          )}
-                          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                            <TrendingUp className="h-6 w-6 text-green-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1 pr-8">
-                              <h3 className="text-lg text-foreground font-semibold">Plan por Comisión</h3>
-                              <span className="text-2xl text-green-600 font-bold">3.00%</span>
-                            </div>
-                            <p className="text-muted-foreground">Comisión de 3.00% por cada venta</p>
-                            <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                              <li>• 1 Mesa de regalos ilimitada</li>
-                              <li>• Sin costo inicial</li>
-                              <li>• Gestión de RSVP</li>
-                              <li>• Soporte al cliente</li>
-                              <li>• Listas de regalos inspiradas por nosotros</li>
-                            </ul>
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-                  </Radio.Group>
-                  {planError && <p className="text-sm text-red-500">{planError}</p>}
-                </div>
-
-                <div className="bg-blue-50 rounded-2xl p-4 text-center">
-                  <InfoCircleOutlined className="text-blue-700! mr-2!" />
-                  <span className="text-sm text-blue-700">Una vez elegido tu plan, no podrás cambiarlo</span>
-                </div>
-              </>
-            )}
-
-            {currentStep === 'payment' && (
-              <>
-                <div className="text-center mb-8">
-                  <h1 className="text-3xl sm:text-4xl mb-4 text-foreground">Confirmar pago</h1>
-                  <p className="text-xl text-muted-foreground">
-                    {selectedPlan === 'fixed'
-                      ? discountCodeValid && discountCodeInfo && calculateDiscountedPrice().savings > 0
-                        ? `Pago único de $${calculateDiscountedPrice().discounted.toLocaleString('es-MX')} MXN`
-                        : 'Pago único de $2,000 MXN'
-                      : 'Sin costo inicial - 3% por venta'}
-                  </p>
-                </div>
-
-                {selectedPlan === 'fixed' ? (
-                  <div className="space-y-6">
-                    <div className="bg-gray-50 rounded-2xl p-6">
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-lg">Plan Fijo</span>
-                        <div className="flex flex-col items-end">
-                          {discountCodeValid && discountCodeInfo && calculateDiscountedPrice().savings > 0 ? (
-                            <>
-                              <span className="text-sm text-muted-foreground line-through">$2,000 MXN</span>
-                              <span className="text-2xl text-green-600 font-bold">
-                                ${calculateDiscountedPrice().discounted.toLocaleString('es-MX')} MXN
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-2xl text-[#d4704a]">$2,000 MXN</span>
-                          )}
-                        </div>
-                      </div>
-
-                      {discountCodeValid && discountCodeInfo && calculateDiscountedPrice().savings > 0 && (
-                        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Tag className="h-5 w-5 text-green-700" />
-                              <div>
-                                <p className="text-sm font-medium text-green-700">Código de descuento aplicado</p>
-                                <p className="text-xs text-green-600">"{discountCodeInfo.code}"</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-medium text-green-700">
-                                -${calculateDiscountedPrice().savings.toLocaleString('es-MX')} MXN
-                              </p>
-                              <p className="text-xs text-green-600">
-                                {discountCodeInfo.discountType === 'PERCENTAGE'
-                                  ? `${discountCodeInfo.discountValue}% descuento`
-                                  : 'Descuento fijo'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="text-sm text-muted-foreground">Pago único, sin comisiones adicionales</div>
-                    </div>
-
-                    <div className="text-center">
-                      <p className="text-muted-foreground mb-4">Serás redirigido a nuestro procesador de pagos seguro</p>
-                      <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-                        <Zap className="h-4 w-4" />
-                        <span>Procesamiento seguro con cifrado SSL</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center space-y-6">
-                    <div className="bg-green-50 rounded-2xl p-6">
-                      <div className="text-center">
-                        <Check className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                        <h3 className="text-lg mb-2">Sin costo inicial</h3>
-                        <p className="text-muted-foreground">Solo pagarás el 3% cuando tengas ventas en tu mesa de regalos</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-
             {currentStep === 'success' && (
               <div className="text-center py-8">
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Check className="h-10 w-10 text-green-600" />
                 </div>
-                <h1 className="text-3xl sm:text-4xl mb-4 text-foreground">¡Cuenta creada exitosamente!</h1>
-                <p className="text-xl text-muted-foreground mb-8">Tu mesa de regalos está lista. Te redirigiremos en unos segundos.</p>
+                <h1 className="text-3xl sm:text-4xl mb-4 text-foreground">¡Tu mesa está lista para armar!</h1>
+                <p className="text-xl text-muted-foreground mb-8">
+                  Agrega tus regalos con calma. Nadie puede verla hasta que tú la publiques.
+                </p>
                 <div className="bg-blue-50 rounded-2xl p-4 text-center">
-                  <p className="text-sm text-blue-700">Tu enlace: mesalista.com/{successSlug || slug}</p>
+                  <p className="text-sm text-blue-700">Tu enlace será: mesalista.com/{successSlug || slug}</p>
                 </div>
               </div>
             )}
@@ -1004,16 +793,12 @@ function Signup() {
               <div className="flex justify-end mt-8">
                 <Button
                   onClick={handleNext}
-                  disabled={isLoading}
+                  disabled={isLoading || isCheckingEmail}
                   className="px-8 py-3 bg-[#d4704a]  text-white rounded-full border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                  {isLoading ? (
+                  {isLoading || isCheckingEmail ? (
                     'Procesando...'
-                  ) : currentStep === 'payment' ? (
-                    selectedPlan === 'fixed' ? (
-                      `Pagar $${calculateDiscountedPrice().discounted.toLocaleString('es-MX')}`
-                    ) : (
-                      'Crear Cuenta'
-                    )
+                  ) : currentStep === 'slug' ? (
+                    'Crear Mi Mesa Gratis'
                   ) : (
                     <>
                       Continuar

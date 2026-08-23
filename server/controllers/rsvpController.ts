@@ -107,6 +107,17 @@ export const rsvpController = {
         });
       }
 
+      // Codes for an unpublished draft read as invalid — the RSVP flow shouldn't
+      // open at all before the couple launches.
+      const giftList = await prisma.giftList.findUnique({
+        where: { id: giftListId },
+        select: { publishedAt: true },
+      });
+
+      if (!giftList || giftList.publishedAt === null) {
+        return res.json({ success: true, valid: false, message: 'Código no encontrado' });
+      }
+
       const invitee = await rsvpService.getInviteeBySecretCode(giftListId, secretCode as string);
 
       res.json({
@@ -449,6 +460,20 @@ export const rsvpController = {
         return res.status(400).json({
           success: false,
           message: 'Estado inválido',
+        });
+      }
+
+      // A draft isn't collecting RSVPs yet. Without this, a leaked secret code
+      // could gather responses against a registry the couple hasn't launched.
+      const giftList = await prisma.giftList.findUnique({
+        where: { id: giftListId },
+        select: { publishedAt: true },
+      });
+
+      if (!giftList || giftList.publishedAt === null) {
+        return res.status(404).json({
+          success: false,
+          message: 'Esta mesa de regalos no está disponible',
         });
       }
 

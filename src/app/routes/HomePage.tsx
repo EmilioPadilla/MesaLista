@@ -96,13 +96,13 @@ export const HomePage = () => {
     <>
       <h1 className="text-6xl md:text-8xl font-semibold tracking-tight text-foreground mb-8 leading-tight">MesaLista</h1>
       <p className="text-2xl md:text-3xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed font-light">
-        La forma más elegante de crear y gestionar tu mesa de regalos
+        La forma más elegante de crear y gestionar tu mesa de regalos. Ármala gratis y paga solo cuando la publiques.
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
         <Button onClick={() => navigate('/registro')} type="primary" size="large" className="px-8 py-4 hover:-translate-y-1">
           <Heart className="mr-2 h-5 w-5" />
-          Crear Mesa de Regalos
+          Crear Mi Mesa Gratis
         </Button>
         <Button
           size="large"
@@ -645,7 +645,7 @@ export const HomePage = () => {
             <p className="text-lg text-muted-foreground mb-6 font-light">Incluido sin costo adicional en todos nuestros planes</p>
             {!isAuthenticated && (
               <Button size="large" onClick={() => navigate('/registro')} type="primary">
-                Comenzar ahora
+                Crear Mi Mesa Gratis
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             )}
@@ -1026,13 +1026,15 @@ export const HomePage = () => {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}>
             <h2 className="text-5xl md:text-6xl font-semibold text-foreground mb-8 tracking-tight">Comienza hoy.</h2>
-            <p className="text-xl text-muted-foreground mb-12 font-light leading-relaxed">Crea tu mesa de regalos perfecta en minutos.</p>
+            <p className="text-xl text-muted-foreground mb-12 font-light leading-relaxed">
+              Arma tu mesa de regalos en minutos. Sin tarjeta, sin compromiso.
+            </p>
             <Button
               size="large"
               type="primary"
               className="px-12 py-4 text-lg bg-primary hover:bg-[#d4a574] text-white rounded-full border-0 shadow-lg hover:shadow-xl transition-all duration-300"
               onClick={() => navigate('/registro')}>
-              Empezar
+              Crear Mi Mesa Gratis
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </motion.div>

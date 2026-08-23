@@ -13,7 +13,10 @@ export interface GiftList {
   eventLocation?: string;
   eventVenue?: string;
   imageUrl?: string;
-  planType?: PlanType;
+  /** Null while the list is a draft; set once at publish and immutable after. */
+  planType?: PlanType | null;
+  /** Null while the list is a draft. Guests can't see or pay a list until this is set. */
+  publishedAt?: string | Date | null;
   discountCodeId?: number;
   isActive: boolean;
   isPublic: boolean;

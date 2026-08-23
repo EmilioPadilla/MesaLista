@@ -7,6 +7,11 @@ export const faqs = [
       'MesaLista funciona siendo una plataforma digital en donde tu eliges la “idea” de los regalos que quieras recibir, ya sean cosas físicas, experiencias, servicios, etc… Tu fijas un monto, foto y descripción de cada regalo. Al finalizar tu evento, tu recibes el 100% de lo recaudado en una transferencia en tu cuenta de banco.',
   },
   {
+    question: '¿Cómo creo mi mesa de regalos?',
+    answer:
+      'Crear tu cuenta es gratis y no necesitas tarjeta. Empiezas agregando los regalos que te gustaría recibir: puedes crearlos uno por uno con su foto, monto y descripción, o partir de nuestras colecciones prediseñadas y ajustarlas a tu gusto. Mientras la armas, tu mesa es un borrador que solo tú puedes ver. Cuando quede lista eliges tu plan —Plan Fijo de $2,000 MXN por única vez, o Plan por Comisión de 3.00% por cada regalo recibido— y la publicas. En ese momento tu enlace se activa y ya puedes compartirlo con tus invitados.',
+  },
+  {
     question: '¿Cómo puedo retirar mis fondos?',
     answer:
       'En la semana de tu evento te enviaremos un correo para solicitar tu número de cuenta Clabe así como la carátula de tu estado de cuenta donde podamos ver el nombre tuyo o de tu pareja. Una vez que finalice tu evento, te haremos llegar el resumen de tu Mesa de Regalos para que nos confirmes y enviaremos los fondos en un lapso menor a 15 días hábiles.',
@@ -45,6 +50,8 @@ export const faqs = [
   },
 ];
 
+// Shown on the pricing page. Both plans are chosen at publish time, not signup —
+// building a registry is free, so every CTA here points at the free signup.
 export const plans = [
   {
     name: 'Plan Fijo',
@@ -70,7 +77,7 @@ export const plans = [
     ],
     limitations: [],
     popular: true,
-    cta: 'Comenzar con Plan Fijo',
+    cta: 'Crear Mi Mesa Gratis',
   },
   {
     name: 'Plan por Comisión',
@@ -96,6 +103,6 @@ export const plans = [
     ],
     limitations: [],
     popular: false,
-    cta: 'Comenzar con Comisión',
+    cta: 'Crear Mi Mesa Gratis',
   },
 ];

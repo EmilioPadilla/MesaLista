@@ -322,6 +322,63 @@ class EmailService {
   }
 
   /**
+   * Welcome email for a free signup, sent while the list is still a draft.
+   *
+   * Deliberately mentions no plan and no amount — nothing has been paid for yet.
+   * Its job is to get the couple back into the builder, so the only call to
+   * action is the builder link. The plan confirmation is a separate email sent
+   * at publish (`sendGiftListCreationEmail`).
+   */
+  async sendDraftWelcomeEmail(data: {
+    userId: number;
+    giftListId: number;
+    giftListTitle: string;
+    coupleName: string;
+    eventDate: Date;
+  }): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: data.userId },
+        select: { email: true, firstName: true, lastName: true, slug: true },
+      });
+
+      if (!user || !user.email) {
+        console.error('User not found or email missing');
+        return;
+      }
+
+      const baseUrl = process.env.FRONTEND_URL || 'https://mesalista.com.mx';
+      const emailData = {
+        userName: `${user.firstName} ${user.lastName}`,
+        userEmail: user.email,
+        giftListTitle: data.giftListTitle,
+        coupleName: data.coupleName,
+        eventDate: data.eventDate,
+        builderUrl: `${baseUrl}/${user.slug}/gestionar`,
+      };
+
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: user.email,
+        Subject: 'Tu mesa de regalos te está esperando 💛',
+        HtmlBody: EmailTemplates.generateDraftWelcomeEmailHTML(emailData),
+        TextBody: EmailTemplates.generateDraftWelcomeEmailText(emailData),
+        MessageStream: 'outbound',
+      });
+
+      console.log(`Draft welcome email sent to: ${user.email}`);
+    } catch (error) {
+      console.error('Error sending draft welcome email:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Send gift list creation confirmation email
    */
   async sendGiftListCreationEmail(data: {
