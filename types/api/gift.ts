@@ -1,5 +1,5 @@
 import { WeddingList } from '../models/weddingList.js';
-import { GiftCategory } from '../models/gift.js';
+import { GiftCategory, GiftType } from '../models/gift.js';
 
 export interface GiftWithWeddingList {
   id: number;
@@ -22,8 +22,22 @@ export interface GiftWithWeddingListResponse extends Omit<GiftWithWeddingList, '
   categories: string[];
 }
 
+/**
+ * The group-gift shape a couple can set on create or edit.
+ *
+ * `price` carries the goal for both group variants (see Gift.price), so the only
+ * extra inputs are how the gift is split. Omitting `giftType` leaves a gift SINGLE.
+ */
+export interface GiftTypeFields {
+  giftType?: GiftType;
+  /** Required when giftType is GROUP_FIXED: number of equal shares. */
+  contributorTarget?: number | null;
+  /** Optional when giftType is GROUP_OPEN: minimum a guest may chip in. */
+  minContribution?: number | null;
+}
+
 // Request types
-export interface CreateGiftRequest {
+export interface CreateGiftRequest extends GiftTypeFields {
   title: string;
   description?: string | null;
   price: number;
@@ -35,7 +49,7 @@ export interface CreateGiftRequest {
   weddingListId: number;
 }
 
-export interface UpdateGiftRequest {
+export interface UpdateGiftRequest extends GiftTypeFields {
   title?: string;
   description?: string | null;
   price?: number;

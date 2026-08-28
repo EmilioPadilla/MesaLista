@@ -20,6 +20,11 @@ export function PredesignedListTabContent({ registry, addedGifts, onAddGift }: P
     imageUrl: gift.imageUrl,
     isPurchased: false,
     isMostWanted: false,
+    // A catalogue gift is a template, not a funded one: it's always shown as an
+    // ordinary single gift, and the couple picks a funding shape after adding it.
+    giftType: 'SINGLE',
+    amountFunded: 0,
+    contributorCount: 0,
     giftListId: gift.predesignedListId,
     quantity: 0,
     order: gift.order,

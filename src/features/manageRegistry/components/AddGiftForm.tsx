@@ -9,6 +9,9 @@ import { UploadChangeParam } from 'antd/es/upload';
 import { useCreateGift } from 'src/hooks/useGift';
 import { useUploadFile } from 'src/hooks/useFiles';
 import { convertHeicToJpegIfNeeded, isHeic } from '../utils/heicToJpeg';
+import { GiftTypeSelector } from './GiftTypeSelector';
+import type { GiftType } from 'types/models/gift';
+import { MIN_CONTRIBUTOR_TARGET } from 'src/utils/giftFunding';
 
 interface AddGiftFormProps {
   giftListId?: number;
@@ -32,6 +35,12 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
     url: string | undefined;
     name: string | undefined;
   }>({ file: null, url: undefined, name: undefined });
+  // Funding shape for the gift being created. New gifts default to the original
+  // single-buyer behaviour, so nothing changes for a couple who ignores this.
+  const [giftType, setGiftType] = useState<GiftType>('SINGLE');
+  const [contributorTarget, setContributorTarget] = useState<number | null>(null);
+  const [minContribution, setMinContribution] = useState<number | null>(null);
+  const [priceDraft, setPriceDraft] = useState<number>(0);
 
   const { mutate: createGift, isSuccess: createSuccess, isError: createError } = useCreateGift();
   const { mutate: uploadFile } = useUploadFile();
@@ -47,6 +56,10 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
       message.success('Regalo agregado correctamente!');
       form.resetFields();
       setImageState({ file: null, url: undefined, name: undefined });
+      setGiftType('SINGLE');
+      setContributorTarget(null);
+      setMinContribution(null);
+      setPriceDraft(0);
       onGiftCreated?.();
     }
     if (createError) {
@@ -68,11 +81,25 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
       categoriesPayload = categoriesPayload.map((cat: string) => ({ name: cat }));
     }
 
+    if (giftType === 'GROUP_FIXED' && (!contributorTarget || contributorTarget < MIN_CONTRIBUTOR_TARGET)) {
+      message.error(`Un regalo en partes se divide entre al menos ${MIN_CONTRIBUTOR_TARGET} personas`);
+      return;
+    }
+
+    // Only the selected variant's field travels; the other is explicitly null so
+    // the server never stores a leftover from a type the couple moved away from.
+    const fundingShape = {
+      giftType,
+      contributorTarget: giftType === 'GROUP_FIXED' ? contributorTarget : null,
+      minContribution: giftType === 'GROUP_OPEN' ? minContribution : null,
+    };
+
     if (imageState.file) {
       uploadFile(imageState.file, {
         onSuccess: (data) => {
           const newGift = {
             ...values,
+            ...fundingShape,
             categories: categoriesPayload,
             giftListId: giftListId,
             imageUrl: data,
@@ -84,6 +111,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
     } else {
       const newGift = {
         ...values,
+        ...fundingShape,
         categories: categoriesPayload,
         giftListId: giftListId,
         imageUrl: undefined,
@@ -171,10 +199,16 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
                 <div className="space-y-2">
                   <Form.Item
                     name="price"
-                    label="Precio (MXN)"
+                    label={giftType === 'SINGLE' ? 'Precio (MXN)' : 'Meta (MXN)'}
                     className="!mb-0"
                     rules={[{ required: true, message: 'Por favor, ingresa el precio del regalo' }]}>
-                    <Input id="price" type="number" placeholder="1500" className="shadow-sm" />
+                    <Input
+                      id="price"
+                      type="number"
+                      placeholder="1500"
+                      className="shadow-sm"
+                      onChange={(event) => setPriceDraft(Number(event.target.value) || 0)}
+                    />
                   </Form.Item>
                 </div>
 
@@ -203,6 +237,16 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
                   </Form.Item>
                 </div>
               </div>
+
+              <GiftTypeSelector
+                value={giftType}
+                onChange={setGiftType}
+                price={priceDraft}
+                contributorTarget={contributorTarget}
+                onContributorTargetChange={setContributorTarget}
+                minContribution={minContribution}
+                onMinContributionChange={setMinContribution}
+              />
 
               <div className="space-y-2">
                 <Form.Item name="description" label="Descripción" className="!mb-0">

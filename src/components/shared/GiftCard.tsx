@@ -1,5 +1,5 @@
 import { DragOutlined, ExclamationCircleFilled, StarFilled } from '@ant-design/icons';
-import { Edit, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { Edit, Minus, Plus, ShoppingCart, Trash2, Users } from 'lucide-react';
 import type { GiftItem } from 'src/features/manageRegistry';
 import { useState, memo } from 'react';
 import type { DraggableAttributes } from '@dnd-kit/core';
@@ -7,6 +7,8 @@ import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import { Popconfirm, Tag, Button, Card, Tooltip } from 'antd';
 import { useDeviceType } from 'src/hooks/useDeviceType';
 import { CartItem } from 'types/models/cart';
+import { FundingMeter } from './FundingMeter';
+import { isGroupGift, isFullyFunded } from 'src/utils/giftFunding';
 
 export interface DragHandleProps {
   listeners: SyntheticListenerMap | undefined;
@@ -46,6 +48,12 @@ const GiftCardComponent = ({
   // Find if this gift is in the cart
   const cartItem = cartItems?.find((item) => item.gift?.id === gift.id);
   const isInCart = Boolean(cartItem);
+
+  // A group gift is never "added" from the card: the guest has to choose how many
+  // shares or how much to give first, so the card opens the details modal instead
+  // of silently dropping an arbitrary amount into the cart.
+  const isGroup = isGroupGift(gift);
+  const isComplete = gift.isPurchased || (isGroup && isFullyFunded(gift));
 
   const handleEditGift = (e: React.MouseEvent) => {
     e?.preventDefault();
@@ -199,10 +207,10 @@ const GiftCardComponent = ({
               />
             )}
           </div>
-          {gift.isPurchased && (
+          {isComplete && (
             <div className="absolute top-2 right-2">
               <Tag bordered={false} className="shadow-md backdrop-blur-sm !rounded-lg font-bold !bg-green-500">
-                Comprado
+                {isGroup ? 'Completo' : 'Comprado'}
               </Tag>
             </div>
           )}
@@ -271,10 +279,21 @@ const GiftCardComponent = ({
             </div>
             <span className="text-lg text-primary">${gift.price.toLocaleString()}</span>
           </div>
+
+          {isGroup && <FundingMeter gift={gift} size="compact" className="pt-1" />}
         </div>
 
         {/* Cart Controls - Moved to bottom with mt-auto to push it to the bottom */}
-        {isGuest && !gift.isPurchased && (
+        {isGuest && !isComplete && isGroup && (
+          <div className="mt-auto pt-4">
+            <Button className="w-full h-full" onClick={handleEditGift} type={isInCart ? 'default' : 'primary'}>
+              <Users className="h-4 w-4 mr-2" />
+              {isInCart ? 'Cambiar mi aportación' : 'Aportar'}
+            </Button>
+          </div>
+        )}
+
+        {isGuest && !isComplete && !isGroup && (
           <div className="mt-auto pt-4">
             {!isInCart ? (
               <Button className="w-full h-full" onClick={handleAddToCart} type="primary">
@@ -320,6 +339,12 @@ export const GiftCard = memo(GiftCardComponent, (prevProps, nextProps) => {
     prevProps.gift.price === nextProps.gift.price &&
     prevProps.gift.isPurchased === nextProps.gift.isPurchased &&
     prevProps.gift.isMostWanted === nextProps.gift.isMostWanted &&
+    // Funding progress moves without any other field changing — leaving these out
+    // would freeze a group gift's meter at whatever it showed on first render.
+    prevProps.gift.giftType === nextProps.gift.giftType &&
+    prevProps.gift.amountFunded === nextProps.gift.amountFunded &&
+    prevProps.gift.contributorCount === nextProps.gift.contributorCount &&
+    prevProps.gift.contributorTarget === nextProps.gift.contributorTarget &&
     prevProps.gift.imageUrl === nextProps.gift.imageUrl &&
     prevProps.gift.imagePosition === nextProps.gift.imagePosition &&
     prevProps.gift.imageScale === nextProps.gift.imageScale &&

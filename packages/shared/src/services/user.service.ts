@@ -11,11 +11,11 @@ export interface LoginResponse extends User {
 export const userService = {
   /**
    * Free signup. Creates the couple and a draft list they can start building
-   * immediately; no plan and no payment are involved. A discount code passed
-   * here is attached to the draft and only redeemed when they publish.
+   * immediately; no plan and no payment are involved. Discount codes belong to
+   * the publish flow, where a plan is actually paid for, not here.
    */
   signup: async (
-    userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { password: string; discountCode?: string; eventDate?: string },
+    userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { password: string; eventDate?: string },
   ): Promise<User & { giftListId: number; planType: string | null; publishedAt: string | null; token?: string }> => {
     const response = await apiClient.post(userEndpoints.signup, userData);
     return response.data;

@@ -1,7 +1,10 @@
 import { Image, Pressable, Text, View } from 'react-native';
 import type { Gift } from 'types/models/gift';
 
+import { isFullyFunded, isGroupGift } from 'utils/giftFunding';
+
 import { formatCurrency } from '@/lib/format';
+import { FundingMeter } from '@/features/guestRegistry/components/FundingMeter';
 
 interface GiftCardProps {
   gift: Gift;
@@ -14,6 +17,9 @@ interface GiftCardProps {
  * top with the title, price and status below.
  */
 export function GiftCard({ gift, onEdit, onDelete }: GiftCardProps) {
+  const isGroup = isGroupGift(gift);
+  const isComplete = gift.isPurchased || (isGroup && isFullyFunded(gift));
+
   return (
     <Pressable
       onPress={() => onEdit(gift)}
@@ -39,9 +45,18 @@ export function GiftCard({ gift, onEdit, onDelete }: GiftCardProps) {
           {gift.title}
         </Text>
         <Text className="mt-0.5 text-sm text-mutedForeground">{formatCurrency(gift.price)}</Text>
+
+        {/* The couple sees the same meter their guests do, so progress on a
+            shared gift is legible without opening it. */}
+        {isGroup ? (
+          <View className="mt-2">
+            <FundingMeter gift={gift} compact />
+          </View>
+        ) : null}
+
         <View className="mt-1 flex-row items-center justify-between">
-          {gift.isPurchased ? (
-            <Text className="text-xs font-medium text-success">Comprado</Text>
+          {isComplete ? (
+            <Text className="text-xs font-medium text-success">{isGroup ? 'Completo' : 'Comprado'}</Text>
           ) : (
             <Text className="text-xs text-gray-500">Disponible</Text>
           )}

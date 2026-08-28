@@ -23,7 +23,18 @@ export const PurchasedGiftsTab: React.FC<PurchasedGiftsTabProps> = ({ weddingLis
       key: 'giftTitle',
       width: 200,
       fixed: ['mobile', 'small-tablet'].includes(deviceType) ? false : 'left',
-      render: (text: string) => <Text strong>{text}</Text>,
+      // A group row is one guest's share of a gift, not the whole thing. The tag
+      // is what stops a $1,000 row against a $3,000 honeymoon looking like a bug.
+      render: (text: string, record: PurchasedGift) => (
+        <div className="flex flex-col gap-1">
+          <Text strong>{text}</Text>
+          {record.giftType && record.giftType !== 'SINGLE' && (
+            <Tag bordered={false} className="!bg-[#f5ece6] !text-[#d4704a] w-fit font-medium">
+              Aportación
+            </Tag>
+          )}
+        </div>
+      ),
     },
     {
       title: 'Invitado',

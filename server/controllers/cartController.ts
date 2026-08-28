@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import { AddToCartRequest, UpdateCartDetailsRequest, UpdateCartItemRequest, CartItem } from 'types/models/cart.js';
+import { AddToCartRequest, UpdateCartDetailsRequest, UpdateCartItemRequest } from 'types/models/cart.js';
+import { isGroupGift, priceContribution } from '../lib/giftFunding.js';
 
 const prisma = new PrismaClient();
 
@@ -53,7 +54,7 @@ export default {
   // Add a gift to the cart
   addToCart: async (req: Request, res: Response) => {
     try {
-      const { giftId, quantity = 1, sessionId }: AddToCartRequest = req.body;
+      const { giftId, quantity = 1, sessionId, shares, amount }: AddToCartRequest = req.body;
 
       if (!giftId) {
         return res.status(400).json({ error: 'Gift ID is required' });
@@ -77,6 +78,25 @@ export default {
       // so a guest should never get as far as a cart with items in it.
       if (gift.giftList && gift.giftList.publishedAt === null) {
         return res.status(409).json({ error: 'Esta mesa de regalos todavía no está publicada' });
+      }
+
+      // Group gifts are priced by the server, never by the client: the guest says
+      // how many shares or how much they want to give, and we decide what that
+      // costs against the money actually raised so far. A single line stays
+      // `price * quantity`, exactly like a normal gift — which is why checkout,
+      // the Stripe/PayPal line items and the emails needed no changes: they all
+      // price off the LINE. Anything that prices off `gift.price` instead is
+      // wrong for group gifts, because there that column is the funding goal.
+      let linePrice = gift.price;
+      let lineQuantity = quantity;
+
+      if (isGroupGift(gift.giftType)) {
+        const priced = priceContribution(gift, { shares, amount });
+        if (!priced.ok) {
+          return res.status(409).json({ error: priced.error });
+        }
+        linePrice = priced.price;
+        lineQuantity = priced.quantity;
       }
 
       const giftListId = gift.giftListId;
@@ -125,27 +145,30 @@ export default {
         },
       });
 
-      let cartItem;
-
+      // The row is re-read below via findMany to recompute the cart total, so
+      // neither write's return value is used.
       if (existingCartItem) {
-        // Update quantity if item exists
-        cartItem = await prisma.cartItem.update({
+        // Re-adding a normal gift bumps the count, as it always has. Re-adding a
+        // group gift REPLACES the line instead: the contribution sheet always
+        // submits the guest's intended total, so accumulating would silently
+        // double whatever they just confirmed on screen.
+        await prisma.cartItem.update({
           where: { id: existingCartItem.id },
-          data: {
-            quantity: existingCartItem.quantity + quantity,
-          },
+          data: isGroupGift(gift.giftType)
+            ? { quantity: lineQuantity, price: linePrice }
+            : { quantity: existingCartItem.quantity + lineQuantity },
           include: {
             gift: true,
           },
         });
       } else {
         // Create new cart item if it doesn't exist
-        cartItem = await prisma.cartItem.create({
+        await prisma.cartItem.create({
           data: {
             cartId: cart.id,
             giftId,
-            quantity,
-            price: gift.price, // Store the current price of the gift
+            quantity: lineQuantity,
+            price: linePrice, // Price at time of adding; for group gifts, the share/contribution
           },
           include: {
             gift: true,
@@ -194,20 +217,16 @@ export default {
   updateCartItem: async (req: Request, res: Response) => {
     try {
       const { id: cartItemId } = req.params;
-      const { quantity }: UpdateCartItemRequest = req.body;
+      const { quantity, amount }: UpdateCartItemRequest = req.body;
 
       if (!cartItemId) {
         return res.status(400).json({ error: 'Cart item ID is required' });
       }
 
-      if (quantity < 1) {
-        return res.status(400).json({ error: 'Quantity must be at least 1' });
-      }
-
       // Refuse to mutate a paid cart (see removeFromCart for context).
       const existing = await prisma.cartItem.findUnique({
         where: { id: Number(cartItemId) },
-        include: { cart: { select: { status: true } } },
+        include: { cart: { select: { status: true } }, gift: true },
       });
       if (!existing) {
         return res.status(404).json({ error: 'Cart item not found' });
@@ -216,10 +235,32 @@ export default {
         return res.status(409).json({ error: 'No se puede modificar un carrito que ya fue pagado' });
       }
 
+      // Re-price group lines through the same server-side authority `addToCart`
+      // uses. The stepper on a shared gift sends shares, not units, and a gift can
+      // fill up while the cart sits open — so "3 shares" has to be re-checked
+      // against what is still available, not just written through.
+      let updateData: { quantity: number; price?: number };
+
+      if (isGroupGift(existing.gift.giftType)) {
+        const priced = priceContribution(existing.gift, {
+          shares: quantity,
+          amount: amount ?? existing.price,
+        });
+        if (!priced.ok) {
+          return res.status(409).json({ error: priced.error });
+        }
+        updateData = { quantity: priced.quantity, price: priced.price };
+      } else {
+        if (quantity === undefined || quantity < 1) {
+          return res.status(400).json({ error: 'Quantity must be at least 1' });
+        }
+        updateData = { quantity };
+      }
+
       // Update cart item quantity
       const updatedCartItem = await prisma.cartItem.update({
         where: { id: Number(cartItemId) },
-        data: { quantity },
+        data: updateData,
         include: {
           gift: true,
         },

@@ -7,9 +7,15 @@
  * keep the two in sync so the surfaces don't disagree about what's missing.
  */
 import { COMMISSION_RATE, comparePlans, discountedFixedPrice, FIXED_PLAN_PRICE_MXN, PLAN_BREAK_EVEN_MXN } from 'config/plans';
-import type { DiscountInfo } from '@/features/signup/utils';
 
 export { COMMISSION_RATE, comparePlans, discountedFixedPrice, FIXED_PLAN_PRICE_MXN, PLAN_BREAK_EVEN_MXN };
+
+/** Same shape the discount validation endpoint returns. */
+export interface DiscountInfo {
+  code: string;
+  discountType: 'PERCENTAGE' | 'FIXED_AMOUNT';
+  discountValue: number;
+}
 
 /** Commission rate as shown to couples, e.g. "3.00%". */
 export const COMMISSION_LABEL = `${(COMMISSION_RATE * 100).toFixed(2)}%`;

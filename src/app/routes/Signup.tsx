@@ -1,23 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Checkbox, message, Form, Input, Radio, Spin, DatePicker } from 'antd';
+import { Checkbox, message, Form, Input, Radio, DatePicker } from 'antd';
 import dayjs from 'dayjs';
 import { Button } from 'components/core/Button';
-import {
-  Mail,
-  Lock,
-  ArrowLeft,
-  Phone,
-  Edit3,
-  ArrowRight,
-  Check,
-  CreditCard,
-  TrendingUp,
-  Zap,
-  ShieldCheck,
-  Tag,
-  Calendar,
-} from 'lucide-react';
+import { Mail, Lock, ArrowLeft, Phone, Edit3, ArrowRight, Check, CreditCard, TrendingUp, Zap, ShieldCheck, Calendar } from 'lucide-react';
 import { userService } from 'services/user.service';
 import { useIsAuthenticated, useCheckSlugAvailability, useCheckEmailAvailability, useSignup } from 'hooks/useUser';
 import { useSendVerificationCode, useVerifyCode } from 'hooks/useEmailVerification';
@@ -25,14 +11,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { PasswordStrengthIndicator } from 'components/auth/PasswordStrengthIndicator';
 import { useTrackEvent } from 'hooks/useAnalyticsTracking';
-import { useValidateDiscountCode } from 'hooks/useDiscountCode';
 import { resolveSignupError, SIGNUP_ERROR_MESSAGES } from 'utils/signupErrors';
 
 /**
  * Signup is free and creates a draft registry — no plan, no payment. The couple
  * builds the list first and chooses a plan from the builder when they publish
- * (see src/features/publish). Keep in sync with the mobile flow in
- * mobile/src/features/signup/utils.ts.
+ * (see src/features/publish), which is also where a discount code is entered:
+ * there is nothing to discount until a plan is being paid for. Keep in sync with
+ * the mobile flow in mobile/src/features/signup/utils.ts.
  */
 type Step = 'details' | 'verification' | 'slug' | 'success';
 
@@ -53,22 +39,13 @@ function Signup() {
   const [verificationError, setVerificationError] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
   const [password, setPassword] = useState('');
-  const [discountCode, setDiscountCode] = useState('');
   const [successSlug, setSuccessSlug] = useState('');
 
   const { mutateAsync: signup } = useSignup();
   const { mutateAsync: checkEmailAvailability, isPending: isCheckingEmail } = useCheckEmailAvailability();
   const { mutateAsync: sendVerificationCode, isPending: isResendingCode } = useSendVerificationCode();
   const { mutateAsync: verifyCode } = useVerifyCode();
-  const {
-    data: discountCodeInfo,
-    isLoading: isValidatingDiscountCode,
-    isError: isDiscountCodeError,
-  } = useValidateDiscountCode(discountCode);
   const trackEvent = useTrackEvent();
-
-  // Derive discount code validity from hook response
-  const discountCodeValid = discountCodeInfo ? true : isDiscountCodeError ? false : null;
 
   // Check slug availability
   const { data: slugCheck, isLoading: isCheckingSlug } = useCheckSlugAvailability(debouncedSlug);
@@ -173,7 +150,6 @@ function Signup() {
         slug: slug,
         role: 'COUPLE',
         ...(eventDate && { eventDate }),
-        ...(discountCode && discountCodeValid && { discountCode }),
       });
 
       const finalSlug = createdUser.slug || slug;
@@ -554,42 +530,6 @@ function Signup() {
                       inputReadOnly
                       disabledDate={(current) => !!current && current < dayjs().startOf('day')}
                     />
-                  </Form.Item>
-
-                  <Form.Item name="discountCode" label={<label className="text-sm">Código de descuento (opcional)</label>}>
-                    <div>
-                      <div className="relative">
-                        <Input
-                          type="outline"
-                          prefix={<Tag className="h-4 w-4 text-muted-foreground" />}
-                          placeholder="CODIGO2024"
-                          value={discountCode}
-                          onChange={(e) => {
-                            const value = e.target.value.toUpperCase();
-                            setDiscountCode(value);
-                          }}
-                          className="h-12 rounded-xl border border-border!"
-                          status={discountCodeValid === false ? 'error' : discountCodeValid === true ? undefined : undefined}
-                        />
-                      </div>
-                      {discountCodeValid === true && discountCodeInfo && (
-                        <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                          <p className="text-sm text-green-700">
-                            ✓ Código válido:{' '}
-                            {discountCodeInfo.discountType === 'PERCENTAGE'
-                              ? `${discountCodeInfo.discountValue}% de descuento`
-                              : `$${discountCodeInfo.discountValue} MXN de descuento`}
-                          </p>
-                        </div>
-                      )}
-                      {isValidatingDiscountCode ? (
-                        <div className="flex items-center gap-2 text-blue-500 mt-2">
-                          <Spin size="small" style={{ color: 'blue' }} />
-                          <span className="text-xs">Validando...</span>
-                        </div>
-                      ) : null}
-                      {discountCodeValid === false && <p className="text-sm text-red-500 mt-2">Código de descuento inválido o expirado</p>}
-                    </div>
                   </Form.Item>
 
                   <Form.Item

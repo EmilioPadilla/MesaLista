@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { normalizeGiftType } from '../lib/giftFunding.js';
 
 const prisma = new PrismaClient();
 
@@ -48,7 +49,20 @@ export const giftController = {
 
   // Create a new gift
   createGift: async (req: Request, res: Response) => {
-    const { title, description, price, imageUrl, imagePosition, categories, giftListId, quantity, isMostWanted } = req.body as any;
+    const {
+      title,
+      description,
+      price,
+      imageUrl,
+      imagePosition,
+      categories,
+      giftListId,
+      quantity,
+      isMostWanted,
+      giftType,
+      contributorTarget,
+      minContribution,
+    } = req.body as any;
 
     if (!title || !price || !giftListId) {
       return res.status(400).json({ error: 'Title, price, and gift list ID are required' });
@@ -56,6 +70,13 @@ export const giftController = {
 
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // A payload with no `giftType` normalises to SINGLE, so existing clients —
+    // including App Store builds that predate group gifts — keep working untouched.
+    const giftTypeResult = normalizeGiftType({ giftType, contributorTarget, minContribution }, Number(price));
+    if (!giftTypeResult.ok) {
+      return res.status(400).json({ error: giftTypeResult.error });
     }
 
     try {
@@ -85,6 +106,9 @@ export const giftController = {
           imagePosition: imagePosition ? Number(imagePosition) : 50,
           quantity: quantity ? Number(quantity) : 1,
           isMostWanted: Boolean(isMostWanted),
+          giftType: giftTypeResult.value.giftType,
+          contributorTarget: giftTypeResult.value.contributorTarget,
+          minContribution: giftTypeResult.value.minContribution,
           giftListId: Number(giftListId),
         },
       });
@@ -150,8 +174,21 @@ export const giftController = {
   // Update a gift
   updateGift: async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { title, description, price, imageUrl, imagePosition, imageScale, category, categories, quantity, isMostWanted } =
-      req.body as any;
+    const {
+      title,
+      description,
+      price,
+      imageUrl,
+      imagePosition,
+      imageScale,
+      category,
+      categories,
+      quantity,
+      isMostWanted,
+      giftType,
+      contributorTarget,
+      minContribution,
+    } = req.body as any;
 
     if (!id) {
       return res.status(400).json({ error: 'Gift ID is required' });
@@ -166,9 +203,55 @@ export const giftController = {
       // the image without having to delete the gift outright.
       const normalizedImageUrl = imageUrl === '' ? null : imageUrl;
 
+      // Read the current row before writing. Group gifts made this necessary: how a
+      // gift is funded can only be validated against the money already raised on it,
+      // and against the price the gift will actually have after this update.
+      const current = await prisma.gift.findFirst({
+        where: { id: Number(id), giftList: { userId: req.user.userId } },
+        select: { giftType: true, price: true, amountFunded: true, contributorTarget: true, minContribution: true },
+      });
+
+      if (!current) {
+        return res.status(404).json({ error: 'Gift not found' });
+      }
+
+      const effectivePrice = price ? Number(price) : current.price;
+
+      // Absent means "leave the funding shape alone" — the same presence-of-field
+      // rule the categories block uses, and what keeps older clients that don't know
+      // about group gifts from silently converting one back to SINGLE.
+      const giftTypeProvided = giftType !== undefined && giftType !== null;
+      let giftTypeData: { giftType: any; contributorTarget: number | null; minContribution: number | null } | null = null;
+
+      if (giftTypeProvided) {
+        const giftTypeResult = normalizeGiftType({ giftType, contributorTarget, minContribution }, effectivePrice);
+        if (!giftTypeResult.ok) {
+          return res.status(400).json({ error: giftTypeResult.error });
+        }
+        giftTypeData = giftTypeResult.value;
+      }
+
+      // Once real money is on a gift its funding terms are frozen. Re-splitting a
+      // gift that guests have already paid into would silently rewrite what they
+      // bought — a guest who paid 1/3 of a gift would find themselves owning 1/5 of
+      // it — and could push it past or below its goal. Everything cosmetic (title,
+      // description, image, categories, priority) stays editable.
+      if (current.amountFunded > 0) {
+        const changesShape =
+          (giftTypeData !== null && giftTypeData.giftType !== current.giftType) ||
+          (giftTypeData !== null && giftTypeData.contributorTarget !== current.contributorTarget) ||
+          (price !== undefined && price !== null && Number(price) !== current.price);
+
+        if (changesShape) {
+          return res.status(409).json({
+            error: 'Este regalo ya recibió aportaciones, así que no puedes cambiar su precio ni cómo se divide',
+          });
+        }
+      }
+
       // Owner-scoped update via `updateMany` so the ownership filter sits in the SQL
       // `where`. Prisma's `update` requires a unique where clause, so we use
-      // `updateMany` and treat count === 0 as not-found / not-owned. One round-trip.
+      // `updateMany` and treat count === 0 as not-found / not-owned.
       const result = await prisma.gift.updateMany({
         where: { id: Number(id), giftList: { userId: req.user.userId } },
         data: {
@@ -180,6 +263,13 @@ export const giftController = {
           ...(imageScale !== undefined && { imageScale: Number(imageScale) }),
           ...(quantity && { quantity: Number(quantity) }),
           ...(isMostWanted !== undefined && { isMostWanted: Boolean(isMostWanted) }),
+          // Written as a unit so switching away from a fixed split actually CLEARS
+          // contributorTarget rather than leaving a stale value to resurface later.
+          ...(giftTypeData !== null && {
+            giftType: giftTypeData.giftType,
+            contributorTarget: giftTypeData.contributorTarget,
+            minContribution: giftTypeData.minContribution,
+          }),
         },
       });
 

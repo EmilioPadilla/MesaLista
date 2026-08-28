@@ -5,6 +5,7 @@ import { GiftIcon, Minus, Package, Plus, Trash2, X } from 'lucide-react';
 import { Card, CardContent } from 'src/components/core/Card';
 import { useNavigate } from 'react-router-dom';
 import { useRemoveGiftFromCart, useUpdateCartItemQuantity } from 'src/hooks/useCart';
+import { cartItemsTotal, cartLineTotal, isGroupGift, shareAmount } from 'src/utils/giftFunding';
 
 interface CartDrawerProps {
   open: boolean;
@@ -19,11 +20,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData,
   const { mutate: removeFromCart } = useRemoveGiftFromCart();
   const { mutate: updateCartQuantity } = useUpdateCartItemQuantity();
 
-  // Calculate cart total and item count
-  const cartTotal =
-    cartData?.items?.reduce((sum: number, item: CartItem) => {
-      return sum + (item.gift?.price || 0) * item.quantity;
-    }, 0) || 0;
+  // Total comes from the stored LINE price, not the gift's price: for a group
+  // gift those differ (the gift's price is the goal), so reading the gift here
+  // would show a $500 contribution as the gift's full $5,000.
+  const cartTotal = cartItemsTotal(cartData?.items);
   const cartItemCount = cartData?.items?.length || 0;
 
   return (
@@ -77,24 +77,38 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, cartData,
                       />
                       <div className="flex-1 min-w-0">
                         <h4 className="truncate">{item.gift?.title}</h4>
-                        <p className="text-md text-muted-foreground">${item.gift?.price}</p>
+                        {/* A contribution is named for what it is, so the guest
+                            never wonders why the price differs from the gift's. */}
+                        {item.gift && isGroupGift(item.gift) ? (
+                          <p className="text-md text-muted-foreground">
+                            {item.gift.giftType === 'GROUP_FIXED'
+                              ? `${item.quantity} ${item.quantity === 1 ? 'parte' : 'partes'} · $${shareAmount(item.gift).toLocaleString('es-MX')} c/u`
+                              : 'Tu aportación'}
+                          </p>
+                        ) : (
+                          <p className="text-md text-muted-foreground">${item.gift?.price}</p>
+                        )}
 
                         <div className="flex items-center justify-between mt-2">
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => updateCartQuantity({ cartItemId: item.id as unknown as number, quantity: item.quantity - 1 })}>
-                              <Minus className="h-3 w-3" />
-                            </Button>
-                            <span className="w-8 text-center">{item.quantity}</span>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => updateCartQuantity({ cartItemId: item.id as unknown as number, quantity: item.quantity + 1 })}>
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                          </div>
+                          {item.gift && isGroupGift(item.gift) ? (
+                            <span className="font-semibold text-primary">${cartLineTotal(item).toLocaleString('es-MX')}</span>
+                          ) : (
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => updateCartQuantity({ cartItemId: item.id as unknown as number, quantity: item.quantity - 1 })}>
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <span className="w-8 text-center">{item.quantity}</span>
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => updateCartQuantity({ cartItemId: item.id as unknown as number, quantity: item.quantity + 1 })}>
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
 
                           <Button type="default" size="small" onClick={() => removeFromCart(item.id as unknown as number)}>
                             <Trash2 className="h-4 w-4 text-destructive" />

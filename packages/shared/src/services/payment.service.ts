@@ -57,6 +57,8 @@ export interface Payment {
 export interface PurchasedGift {
   id: number;
   giftTitle: string;
+  /** How the gift was funded — group rows are one guest's contribution, not the whole gift. */
+  giftType?: 'SINGLE' | 'GROUP_FIXED' | 'GROUP_OPEN';
   guestName: string;
   guestEmail: string;
   message: string;

@@ -5,6 +5,8 @@ import { Stack, useRouter } from 'expo-router';
 import { useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'hooks/useCart';
 import type { CartItem } from 'types/models/cart';
 
+import { cartLineTotal, isGroupGift, shareAmount } from 'utils/giftFunding';
+
 import { useGuestCart } from '@/guest/useGuestCart';
 import { formatCurrency } from '@/lib/format';
 import { cartItemsTotal } from '../utils';
@@ -93,7 +95,10 @@ function CartRow({
   onDecrease: () => void;
   onRemove: () => void;
 }) {
-  const lineTotal = (item.gift?.price ?? 0) * item.quantity;
+  // The stored line price, never gift.price — for a group gift the latter is the
+  // funding goal, not what this guest is paying.
+  const lineTotal = cartLineTotal(item);
+  const isGroup = !!item.gift && isGroupGift(item.gift);
   return (
     <View className="mb-3 flex-row items-center gap-3 rounded-ml border border-gray-200 bg-white p-3">
       {item.gift?.imageUrl ? (
@@ -110,18 +115,33 @@ function CartRow({
         </Text>
         <Text className="mt-0.5 text-sm font-bold text-oak">{formatCurrency(lineTotal)}</Text>
 
-        <View className="mt-2 flex-row items-center gap-3">
-          <Pressable onPress={onDecrease} hitSlop={8} className="h-7 w-7 items-center justify-center rounded-full bg-gray-100">
-            <Text className="text-lg font-bold text-oak">−</Text>
-          </Pressable>
-          <Text className="text-base font-semibold text-ink">{item.quantity}</Text>
-          <Pressable onPress={onIncrease} hitSlop={8} className="h-7 w-7 items-center justify-center rounded-full bg-gray-100">
-            <Text className="text-lg font-bold text-oak">+</Text>
-          </Pressable>
-          <Pressable onPress={onRemove} hitSlop={8} className="ml-auto px-2 py-1">
-            <Text className="text-sm font-medium text-danger">Quitar</Text>
-          </Pressable>
-        </View>
+        {/* A contribution is named for what it is, so the amount never looks like
+            a mispriced gift. Its size is changed in the sheet, not with steppers. */}
+        {isGroup ? (
+          <View className="mt-2 flex-row items-center gap-3">
+            <Text className="text-sm text-mutedForeground">
+              {item.gift!.giftType === 'GROUP_FIXED'
+                ? `${item.quantity} ${item.quantity === 1 ? 'parte' : 'partes'} · ${formatCurrency(shareAmount(item.gift!))} c/u`
+                : 'Tu aportación'}
+            </Text>
+            <Pressable onPress={onRemove} hitSlop={8} className="ml-auto px-2 py-1">
+              <Text className="text-sm font-medium text-danger">Quitar</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View className="mt-2 flex-row items-center gap-3">
+            <Pressable onPress={onDecrease} hitSlop={8} className="h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+              <Text className="text-lg font-bold text-oak">−</Text>
+            </Pressable>
+            <Text className="text-base font-semibold text-ink">{item.quantity}</Text>
+            <Pressable onPress={onIncrease} hitSlop={8} className="h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+              <Text className="text-lg font-bold text-oak">+</Text>
+            </Pressable>
+            <Pressable onPress={onRemove} hitSlop={8} className="ml-auto px-2 py-1">
+              <Text className="text-sm font-medium text-danger">Quitar</Text>
+            </Pressable>
+          </View>
+        )}
       </View>
     </View>
   );

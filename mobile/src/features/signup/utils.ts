@@ -39,13 +39,6 @@ export const EMPTY_DETAILS: SignupDetails = {
   termsAccepted: false,
 };
 
-/** Same shape the discount validation endpoint returns. */
-export interface DiscountInfo {
-  code: string;
-  discountType: 'PERCENTAGE' | 'FIXED_AMOUNT';
-  discountValue: number;
-}
-
 /** Lowercase and collapse whitespace to dashes (slug charset is enforced server-side). */
 export function sanitizeSlugInput(raw: string): string {
   return raw.toLowerCase().replace(/\s+/g, '-');
@@ -55,7 +48,9 @@ export function sanitizeSlugInput(raw: string): string {
  * Default registry slug: "maria-gonzalez", or "maria-y-juan" once both spouse
  * names are present on a wedding account (same rule as the web form).
  */
-export function buildSlugFromNames(d: Pick<SignupDetails, 'firstName' | 'lastName' | 'isWeddingAccount' | 'spouseFirstName' | 'spouseLastName'>): string {
+export function buildSlugFromNames(
+  d: Pick<SignupDetails, 'firstName' | 'lastName' | 'isWeddingAccount' | 'spouseFirstName' | 'spouseLastName'>,
+): string {
   const first = d.firstName.trim();
   const last = d.lastName.trim();
   if (!first || !last) return '';
@@ -136,10 +131,7 @@ export function calculatePasswordStrength(password: string): PasswordStrength {
   const hasLowercase = /[a-z]/.test(password);
   const hasNumber = /\d/.test(password);
   const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-  const score = Math.min(
-    [hasMinLength, hasUppercase, hasLowercase, hasNumber, hasSpecialChar].filter(Boolean).length,
-    4,
-  );
+  const score = Math.min([hasMinLength, hasUppercase, hasLowercase, hasNumber, hasSpecialChar].filter(Boolean).length, 4);
   return { score, hasMinLength, hasUppercase, hasLowercase, hasNumber, hasSpecialChar };
 }
 

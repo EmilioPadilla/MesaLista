@@ -5,7 +5,13 @@ export const generateStats = (gifts: GiftItem[]) => {
     totalItems: gifts.length,
     purchasedItems: gifts.filter((g) => g.isPurchased).length,
     totalValue: gifts.reduce((sum, g) => sum + g.price, 0),
-    purchasedValue: gifts.filter((g) => g.isPurchased).reduce((sum, g) => sum + g.price, 0),
+    // Money actually raised. A partly-funded group gift has real money against it
+    // even though it isn't purchased yet, so counting only purchased gifts would
+    // under-report what the couple has coming — the number they care about most.
+    purchasedValue: gifts.reduce((sum, g) => {
+      if (g.giftType && g.giftType !== 'SINGLE') return sum + (g.amountFunded ?? 0);
+      return g.isPurchased ? sum + g.price : sum;
+    }, 0),
     averagePrice: gifts.length > 0 ? Math.round(gifts.reduce((sum, g) => sum + g.price, 0) / gifts.length) : 0,
     minPrice: gifts.length > 0 ? Math.min(...gifts.map((g) => g.price)) : 0,
     maxPrice: gifts.length > 0 ? Math.max(...gifts.map((g) => g.price)) : 0,

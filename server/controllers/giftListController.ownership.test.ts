@@ -17,6 +17,9 @@ const giftListUpdate = vi.fn();
 const giftListDelete = vi.fn();
 const giftCreate = vi.fn();
 const giftUpdateMany = vi.fn();
+// updateGift reads the owner-scoped row first so it can validate a gift's funding
+// shape against the money already raised on it.
+const giftFindFirst = vi.fn();
 const giftDeleteMany = vi.fn();
 const giftFindUnique = vi.fn();
 const giftFindMany = vi.fn();
@@ -41,6 +44,7 @@ vi.mock('@prisma/client', () => ({
       deleteMany: giftDeleteMany,
       findUnique: giftFindUnique,
       findMany: giftFindMany,
+      findFirst: giftFindFirst,
     };
     giftCategoryOnGift = { findMany: giftCategoryOnGiftFindMany };
     $transaction = transactionMock;
@@ -85,6 +89,17 @@ type OwnerCase = {
   // What the mock returns to simulate "owned" (count: 1 or row)
   ownedReturn: any;
   buildReq: (userId: number) => any;
+  // Some controllers must READ the row before writing it (updateGift has to
+  // validate a gift's funding shape against the money already raised on it). That
+  // read becomes the not-owned gate, so it carries the owner filter too — the
+  // point of these tests is that the filter lives in the SQL `where` on whichever
+  // query decides the answer, never in application code after an unscoped fetch.
+  gate?: {
+    mock: ReturnType<typeof vi.fn>;
+    expectedWhere: (userId: number) => any;
+    notOwnedReturn: any;
+    ownedReturn: any;
+  };
 };
 
 const ownerCases: OwnerCase[] = [
@@ -132,6 +147,12 @@ const ownerCases: OwnerCase[] = [
     expectedWhere: (userId) => ({ id: GIFT_ID, giftList: { userId } }),
     notOwnedReturn: { count: 0 },
     ownedReturn: { count: 1 },
+    gate: {
+      mock: giftFindFirst,
+      expectedWhere: (userId) => ({ id: GIFT_ID, giftList: { userId } }),
+      notOwnedReturn: null,
+      ownedReturn: { giftType: 'SINGLE', price: 100, amountFunded: 0, contributorTarget: null, minContribution: null },
+    },
     buildReq: (userId) =>
       reqAs(userId, {
         params: { id: String(GIFT_ID) },
@@ -144,20 +165,26 @@ describe('ownership enforcement — couple-owned mutations', () => {
   describe.each(ownerCases)('$name', (c) => {
     it('returns 404 when the caller is NOT the owner (count === 0)', async () => {
       c.mock.mockResolvedValue(c.notOwnedReturn);
+      c.gate?.mock.mockResolvedValue(c.gate.notOwnedReturn);
 
       const req = c.buildReq(OTHER_USER_ID);
       const res = makeRes();
       await c.invoke(req, res);
 
-      // Owner filter must be embedded in the SQL where, not enforced via a pre-fetch.
-      expect(c.mock).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining(c.expectedWhere(OTHER_USER_ID)) }),
+      // Owner filter must be embedded in the SQL where of whichever query decides
+      // the answer — never applied in application code after an unscoped fetch.
+      const decider = c.gate ?? c;
+      expect(decider.mock).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining(decider.expectedWhere(OTHER_USER_ID)) }),
       );
       expect(res.status).toHaveBeenCalledWith(404);
+      // A gated controller must not reach its write at all when not owned.
+      if (c.gate) expect(c.mock).not.toHaveBeenCalled();
     });
 
     it('allows the operation when the caller IS the owner (count === 1)', async () => {
       c.mock.mockResolvedValue(c.ownedReturn);
+      c.gate?.mock.mockResolvedValue(c.gate.ownedReturn);
       // Some controllers re-fetch the row for the response payload.
       giftListFindUnique.mockResolvedValue({ id: LIST_ID, userId: OWNER_ID });
       giftFindUnique.mockResolvedValue({

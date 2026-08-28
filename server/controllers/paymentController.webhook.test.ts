@@ -14,6 +14,16 @@ const paymentFindFirst = vi.fn();
 const paymentUpdateMany = vi.fn();
 const cartUpdate = vi.fn();
 const cartItemFindMany = vi.fn();
+const giftUpdate = vi.fn();
+
+// A plain single-gift cart line, with the `gift` relation the settlement step
+// includes so it can tell a normal purchase from a group contribution.
+const singleLine = (giftId: number) => ({
+  giftId,
+  price: 100,
+  quantity: 1,
+  gift: { id: giftId, giftType: 'SINGLE', price: 100, amountFunded: 0, contributorTarget: null, isPurchased: false },
+});
 const giftUpdateMany = vi.fn();
 const giftListCreate = vi.fn();
 const userFindUnique = vi.fn();
@@ -35,6 +45,9 @@ vi.mock('@prisma/client', () => ({
     payment = { create: paymentCreate, findFirst: paymentFindFirst, updateMany: paymentUpdateMany };
     cart = { update: cartUpdate };
     cartItem = { findMany: cartItemFindMany };
+    // Settling a paid cart runs in a transaction now: normal gifts are marked
+    // purchased, group gifts accrue funding. See creditGiftsForPaidCart.
+    $transaction = async (fn: any) => fn({ gift: { updateMany: giftUpdateMany, update: giftUpdate } });
     gift = { updateMany: giftUpdateMany };
     giftList = { create: giftListCreate, findFirst: giftListFindFirst };
     user = { findUnique: userFindUnique, create: userCreate };
@@ -113,7 +126,7 @@ describe('Stripe webhook — checkout.session.completed', () => {
     stripePaymentIntentsRetrieve.mockResolvedValue({
       latest_charge: { balance_transaction: { fee: 9026, net: 190974 } },
     });
-    cartItemFindMany.mockResolvedValue([{ giftId: 1 }, { giftId: 2 }]);
+    cartItemFindMany.mockResolvedValue([singleLine(1), singleLine(2)]);
     // First call succeeds...
     paymentCreate.mockResolvedValueOnce({ id: 1 });
     // ...second throws a Prisma P2002 unique-constraint violation on cartId.
@@ -140,7 +153,7 @@ describe('Stripe webhook — checkout.session.completed', () => {
     stripeWebhookConstructEvent.mockReturnValue(baseCartSession());
     // Simulate the Stripe API being down — paymentIntents.retrieve throws.
     stripePaymentIntentsRetrieve.mockRejectedValue(new Error('Stripe API unavailable'));
-    cartItemFindMany.mockResolvedValue([{ giftId: 1 }]);
+    cartItemFindMany.mockResolvedValue([singleLine(1)]);
     paymentCreate.mockResolvedValue({ id: 1 });
 
     const req: any = { headers: { 'stripe-signature': 'sig' }, body: Buffer.from('') };
@@ -166,7 +179,7 @@ describe('Stripe webhook — checkout.session.completed', () => {
     stripePaymentIntentsRetrieve.mockResolvedValue({
       latest_charge: { balance_transaction: { fee: 9026, net: 190974 } },
     });
-    cartItemFindMany.mockResolvedValue([{ giftId: 1 }]);
+    cartItemFindMany.mockResolvedValue([singleLine(1)]);
     paymentCreate.mockResolvedValue({ id: 1 });
     emailSendPaymentEmails.mockRejectedValue(new Error('Postmark 503'));
 
@@ -193,7 +206,7 @@ describe('Stripe webhook — checkout.session.completed', () => {
     stripePaymentIntentsRetrieve.mockResolvedValue({
       latest_charge: { balance_transaction: { fee: 9026, net: 190974 } },
     });
-    cartItemFindMany.mockResolvedValue([{ giftId: 1 }]);
+    cartItemFindMany.mockResolvedValue([singleLine(1)]);
     paymentCreate.mockResolvedValue({ id: 1 });
     emailSendPaymentEmails.mockResolvedValue(undefined);
 

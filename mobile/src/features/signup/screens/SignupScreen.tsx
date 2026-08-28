@@ -7,7 +7,6 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { useCheckSlugAvailability, useCheckEmailAvailability, useSignup } from 'hooks/useUser';
 import { useSendVerificationCode, useVerifyCode } from 'hooks/useEmailVerification';
-import { useValidateDiscountCode } from 'hooks/useDiscountCode';
 import { resolveSignupError, SIGNUP_ERROR_MESSAGES } from 'utils/signupErrors';
 import { queryKeys } from 'hooks/queryKeys';
 import type { User } from 'types/models/user';
@@ -41,8 +40,8 @@ const PRIVACY_URL = 'https://pub-659df55516a64947b3e528a4322c71ac.r2.dev/documen
  *
  * Signup is free and produces a DRAFT registry — no plan and no payment happen
  * here. The couple builds the list first and chooses a plan on the publish
- * screen (app/(app)/list/[listId]/publish.tsx), which is also where the Apple
- * IAP for the fixed plan now lives.
+ * screen (app/(app)/list/[listId]/publish.tsx), which is also where the discount
+ * code is entered and where the Apple IAP for the fixed plan now lives.
  *
  * Mobile-specific difference from web: auth is Bearer-token based, so the token
  * returned in the signup response is stored directly rather than relying on a
@@ -63,7 +62,6 @@ export function SignupScreen() {
   const [slug, setSlug] = useState('');
   const [debouncedSlug, setDebouncedSlug] = useState('');
   const [slugError, setSlugError] = useState('');
-  const [discountCode, setDiscountCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [successSlug, setSuccessSlug] = useState('');
 
@@ -71,10 +69,7 @@ export function SignupScreen() {
   const { mutateAsync: checkEmailAvailability, isPending: isCheckingEmail } = useCheckEmailAvailability();
   const { mutateAsync: sendVerificationCode, isPending: isResendingCode } = useSendVerificationCode();
   const { mutateAsync: verifyCode } = useVerifyCode();
-  const { data: discountCodeInfo, isLoading: isValidatingDiscount, isError: isDiscountCodeError } = useValidateDiscountCode(discountCode);
   const { data: slugCheck, isLoading: isCheckingSlug } = useCheckSlugAvailability(debouncedSlug);
-
-  const discountCodeValid = discountCodeInfo ? true : isDiscountCodeError ? false : null;
 
   useScreenView('/signup');
 
@@ -189,8 +184,7 @@ export function SignupScreen() {
       slug,
       role: 'COUPLE',
       ...(details.eventDate && { eventDate: details.eventDate.toISOString() }),
-      ...(discountCode && discountCodeValid && { discountCode }),
-    } as Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { password: string; discountCode?: string; eventDate?: string });
+    } as Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { password: string; eventDate?: string });
 
     // The endpoint returns a session token in the body (web relies on the
     // cookie instead). Store it so the new account is signed in immediately;
@@ -341,19 +335,7 @@ export function SignupScreen() {
             </View>
           )}
 
-          {step === 'details' && (
-            <DetailsStep
-              details={details}
-              errors={errors}
-              setField={setField}
-              discountCode={discountCode}
-              setDiscountCode={setDiscountCode}
-              discountCodeValid={discountCodeValid}
-              discountCodeInfo={discountCodeInfo}
-              isValidatingDiscount={isValidatingDiscount}
-              showDiscountField
-            />
-          )}
+          {step === 'details' && <DetailsStep details={details} errors={errors} setField={setField} />}
 
           {step === 'verification' && (
             <VerificationStep
@@ -409,22 +391,10 @@ function DetailsStep({
   details,
   errors,
   setField,
-  discountCode,
-  setDiscountCode,
-  discountCodeValid,
-  discountCodeInfo,
-  isValidatingDiscount,
-  showDiscountField,
 }: {
   details: SignupDetails;
   errors: DetailsErrors;
   setField: <K extends keyof SignupDetails>(key: K, value: SignupDetails[K]) => void;
-  discountCode: string;
-  setDiscountCode: (value: string) => void;
-  discountCodeValid: boolean | null;
-  discountCodeInfo: { discountType: 'PERCENTAGE' | 'FIXED_AMOUNT'; discountValue: number } | undefined;
-  isValidatingDiscount: boolean;
-  showDiscountField: boolean;
 }) {
   return (
     <View>
@@ -491,29 +461,6 @@ function DetailsStep({
       <Field label="Fecha del evento" error={errors.eventDate}>
         <DateField value={details.eventDate} onChange={(date) => setField('eventDate', date)} />
       </Field>
-
-      {showDiscountField && (
-        <Field label="Código de descuento (opcional)">
-          <Input
-            value={discountCode}
-            onChangeText={(v) => setDiscountCode(v.toUpperCase())}
-            placeholder="CODIGO2024"
-            autoCapitalize="characters"
-          />
-          {discountCodeValid === true && discountCodeInfo && (
-            <View className="mt-2 rounded-ml border border-success/30 bg-success/10 p-3">
-              <Text className="text-sm text-success">
-                ✓ Código válido:{' '}
-                {discountCodeInfo.discountType === 'PERCENTAGE'
-                  ? `${discountCodeInfo.discountValue}% de descuento`
-                  : `$${discountCodeInfo.discountValue} MXN de descuento`}
-              </Text>
-            </View>
-          )}
-          {isValidatingDiscount && <Text className="mt-1 text-xs text-info">Validando...</Text>}
-          {discountCodeValid === false && <Text className="mt-1 text-sm text-danger">Código de descuento inválido o expirado</Text>}
-        </Field>
-      )}
 
       <Field label="Contraseña" error={errors.password}>
         <Input

@@ -3,19 +3,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // TEST-S2 / TEST-S4 / TEST-S9 — the publish service is the ONLY place a list
 // moves from draft to published, so its invariants are asserted here: the
 // transition is atomic and single-shot, the plan is immutable afterwards, and a
-// discount code is redeemed exactly once.
+// discount code is redeemed exactly once, on the plan it discounted.
 
 const giftListUpdateMany = vi.fn();
+const giftListUpdate = vi.fn();
 const giftListFindUnique = vi.fn();
 const discountCodeUpdate = vi.fn();
 
 vi.mock('../lib/prisma.js', () => ({
   default: {
-    giftList: { updateMany: giftListUpdateMany, findUnique: giftListFindUnique },
+    giftList: { updateMany: giftListUpdateMany, update: giftListUpdate, findUnique: giftListFindUnique },
     discountCode: { update: discountCodeUpdate },
     $transaction: async (cb: (tx: any) => Promise<any>) =>
       cb({
-        giftList: { updateMany: giftListUpdateMany, findUnique: giftListFindUnique },
+        giftList: { updateMany: giftListUpdateMany, update: giftListUpdate, findUnique: giftListFindUnique },
         discountCode: { update: discountCodeUpdate },
       }),
   },
@@ -41,6 +42,7 @@ const draft = {
 beforeEach(() => {
   vi.clearAllMocks();
   giftListUpdateMany.mockResolvedValue({ count: 1 });
+  giftListUpdate.mockResolvedValue({});
   giftListFindUnique.mockResolvedValue(draft);
 });
 
@@ -90,24 +92,48 @@ describe('publishGiftList', () => {
   });
 
   it('redeems an attached discount code exactly once, inside the transition', async () => {
-    giftListFindUnique.mockResolvedValue({ ...draft, discountCodeId: 7 });
+    giftListFindUnique.mockResolvedValue({ ...draft, planType: 'FIXED', discountCodeId: 7 });
 
-    await publishGiftList({ giftListId: 10, userId: 1, planType: 'COMMISSION' });
+    await publishGiftList({ giftListId: 10, userId: 1, planType: 'FIXED', amount: 1800 });
 
     expect(discountCodeUpdate).toHaveBeenCalledTimes(1);
     expect(discountCodeUpdate).toHaveBeenCalledWith({
       where: { id: 7 },
       data: { usageCount: { increment: 1 } },
     });
+    // Redeemed, so the link stays: the admin stats should show this registry
+    // against the code.
+    expect(giftListUpdate).not.toHaveBeenCalled();
+  });
+
+  it('drops the attachment instead of burning the code when the couple publishes on commission', async () => {
+    // The code was attached when a FIXED checkout session was created. Abandoning
+    // that checkout and publishing on commission means it discounted nothing.
+    giftListFindUnique.mockResolvedValue({ ...draft, discountCodeId: 7 });
+
+    const result = await publishGiftList({ giftListId: 10, userId: 1, planType: 'COMMISSION' });
+
+    expect(result.ok).toBe(true);
+    expect(discountCodeUpdate).not.toHaveBeenCalled();
+    expect(giftListUpdate).toHaveBeenCalledTimes(1);
+    expect(giftListUpdate).toHaveBeenCalledWith({ where: { id: 10 }, data: { discountCodeId: null } });
+  });
+
+  it('leaves the list alone on a commission publish with no code attached', async () => {
+    await publishGiftList({ giftListId: 10, userId: 1, planType: 'COMMISSION' });
+
+    expect(discountCodeUpdate).not.toHaveBeenCalled();
+    expect(giftListUpdate).not.toHaveBeenCalled();
   });
 
   it('does not redeem the code on a replayed publish', async () => {
     giftListUpdateMany.mockResolvedValue({ count: 0 });
-    giftListFindUnique.mockResolvedValue({ userId: 1, planType: 'COMMISSION' });
+    giftListFindUnique.mockResolvedValue({ userId: 1, planType: 'FIXED' });
 
-    await publishGiftList({ giftListId: 10, userId: 1, planType: 'COMMISSION' });
+    await publishGiftList({ giftListId: 10, userId: 1, planType: 'FIXED', amount: 1800 });
 
     expect(discountCodeUpdate).not.toHaveBeenCalled();
+    expect(giftListUpdate).not.toHaveBeenCalled();
   });
 
   it('still reports success when the confirmation email fails', async () => {

@@ -13,6 +13,7 @@ const pendingUpsert = vi.fn();
 const pendingFindUnique = vi.fn();
 const pendingDelete = vi.fn();
 const giftListFindUnique = vi.fn();
+const giftListUpdateMany = vi.fn();
 const userFindUnique = vi.fn();
 const publishGiftListRecord = vi.fn();
 const axiosGet = vi.fn();
@@ -20,7 +21,13 @@ const axiosGet = vi.fn();
 vi.mock('@prisma/client', () => ({
   PrismaClient: class {
     pendingPlanSignup = { upsert: pendingUpsert, findUnique: pendingFindUnique, delete: pendingDelete };
-    giftList = { findUnique: giftListFindUnique, findFirst: vi.fn(), create: vi.fn(), update: vi.fn() };
+    giftList = {
+      findUnique: giftListFindUnique,
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      updateMany: giftListUpdateMany,
+    };
     user = { findUnique: userFindUnique, create: vi.fn() };
     discountCode = { update: vi.fn() };
     cart = { findUnique: vi.fn() };
@@ -68,6 +75,7 @@ const makeReq = (body: Record<string, unknown>, user?: { userId: number }) => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  giftListUpdateMany.mockResolvedValue({ count: 0 });
   userFindUnique.mockResolvedValue({ id: 1, slug: 'maria-y-juan', email: 'maria@example.com' });
   // The controller chains `.catch()` onto the delete, so it must be thenable.
   pendingDelete.mockResolvedValue(undefined);
@@ -138,6 +146,22 @@ describe('completePlanIapSignup (upgrade mode)', () => {
       expect.objectContaining({ giftListId: 10, userId: 1, planType: 'FIXED' }),
     );
     expect(pendingDelete).toHaveBeenCalled();
+  });
+
+  it('drops a discount code the Apple price never honored', async () => {
+    pendingFindUnique.mockResolvedValue({ appUserId: 'user_1', userId: 1, giftListId: 10 });
+    axiosGet.mockResolvedValue({ data: { subscriber: { entitlements: { fixed_plan: { expires_date: null } } } } });
+
+    const res = makeRes();
+    await paymentController.completePlanIapSignup(makeReq({ appUserId: 'user_1' }) as any, res as any);
+
+    // Apple sets the IAP price, so a code can never apply here — the app hides
+    // the field on iOS. A draft that picked one up from a Stripe checkout started
+    // on another device must not have it redeemed by this full-price purchase.
+    expect(giftListUpdateMany).toHaveBeenCalledWith({
+      where: { id: 10, userId: 1, planType: null, discountCodeId: { not: null } },
+      data: { discountCodeId: null },
+    });
   });
 
   it('does not mint a second session for an already signed-in couple', async () => {

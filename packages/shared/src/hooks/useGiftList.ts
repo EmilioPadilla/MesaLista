@@ -6,6 +6,18 @@ import { queryKeys } from './queryKeys';
 import { GiftListWithGifts } from 'types/models/giftList';
 
 /**
+ * A 404 from these endpoints is an answer, not a failure: the slug has no
+ * published list behind it. Retrying it three times only makes the guest stare
+ * at a spinner for seven seconds before the UI can say so. Server errors still
+ * get the default retries.
+ */
+const retryUnlessClientError = (failureCount: number, error: unknown) => {
+  const status = (error as { response?: { status?: number } })?.response?.status;
+  if (status && status >= 400 && status < 500) return false;
+  return failureCount < 3;
+};
+
+/**
  * Hook to fetch all gift lists
  *
  * @param options React Query options
@@ -44,6 +56,7 @@ export const useGiftListById = (giftListId: number | undefined, options?: Partia
     queryKey: [queryKeys.giftListById, giftListId],
     queryFn: () => giftListService.getGiftListById(giftListId!),
     enabled: !!giftListId,
+    retry: retryUnlessClientError,
     ...options,
   });
 };
@@ -59,6 +72,7 @@ export const useGiftListBySlug = (slug: string | undefined, options?: Partial<Us
     queryKey: [queryKeys.giftListBySlug, slug],
     queryFn: () => giftListService.getGiftListBySlug(slug!),
     enabled: !!slug,
+    retry: retryUnlessClientError,
     ...options,
   });
 };

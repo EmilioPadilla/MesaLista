@@ -8,6 +8,7 @@ import { useAddGiftToCart, useGetCart, useUpdateCartItemQuantity, useRemoveGiftF
 import { useComponentMountControl } from 'src/hooks/useComponentMountControl';
 import { useGiftListBySlug, useGetCategoriesByGiftList, useGiftListById } from 'src/hooks/useGiftList';
 import { OutletContextType } from 'src/app/routes/guest/PublicRegistry';
+import { RegistryNotFound } from 'src/app/routes/guest/RegistryNotFound';
 import { GiftDetailsModal } from '../components/GiftDetailsModal';
 import { CartDrawer } from '../components/CartDrawer';
 import type { SortOption, FilterOption, GiftItem } from 'src/features/manageRegistry';
@@ -47,11 +48,17 @@ export function BuyGiftsPage() {
   }, [cartData?.status, regenerateGuestId]);
 
   // Fetch gift list by ID if listId is provided, otherwise fetch first list by user slug
-  const { data: giftListById } = useGiftListById(listIdFromQuery ? Number(listIdFromQuery) : undefined);
-  const { data: giftListBySlug } = useGiftListBySlug(!listIdFromQuery ? slug : undefined);
+  const { data: giftListById, error: byIdError } = useGiftListById(listIdFromQuery ? Number(listIdFromQuery) : undefined);
+  const { data: giftListBySlug, error: bySlugError } = useGiftListBySlug(!listIdFromQuery ? slug : undefined);
 
   // Use whichever gift list was fetched
   const giftList = listIdFromQuery ? giftListById : giftListBySlug;
+
+  // The layout already guards the slug lookup, but `?listId=` bypasses it: a
+  // draft or deleted list addressed by id 404s here, and without this the page
+  // would sit on its spinner forever.
+  const loadError = listIdFromQuery ? byIdError : bySlugError;
+  const loadErrorStatus = (loadError as { response?: { status?: number } } | null)?.response?.status;
 
   const { data: giftListCategories } = useGetCategoriesByGiftList(giftList?.id);
   const { mutate: updateCartQuantity } = useUpdateCartItemQuantity();
@@ -102,9 +109,16 @@ export function BuyGiftsPage() {
     }
   };
 
-  const handleAddToCart = (giftId: number, quantity: number = 1) => {
+  /**
+   * One entry point for everything a guest can put in the cart.
+   *
+   * A normal gift sends a quantity; a group gift sends intent — `shares` for a
+   * fixed split, `amount` for an open goal — and the server prices it. Passing
+   * the options straight through keeps that decision in exactly one place.
+   */
+  const handleAddToCart = (giftId: number, options: { quantity?: number; shares?: number; amount?: number } = {}) => {
     if (!giftId || !guestId) return;
-    addGiftToCart({ giftId, quantity, sessionId: guestId });
+    addGiftToCart({ giftId, quantity: options.quantity ?? 1, shares: options.shares, amount: options.amount, sessionId: guestId });
     setShowGiftDetailsModal(false);
   };
 
@@ -185,6 +199,8 @@ export function BuyGiftsPage() {
     // Apply sorting
     return sortGifts(filtered);
   }, [gifts, filterBy, sortBy, searchTerm, categoryArray, showPurchased]);
+
+  if (loadError) return <RegistryNotFound slug={slug} variant={loadErrorStatus === 404 ? 'not-found' : 'error'} />;
 
   if (!gifts || !giftList)
     return (

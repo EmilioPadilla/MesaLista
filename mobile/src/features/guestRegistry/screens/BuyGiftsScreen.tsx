@@ -6,9 +6,12 @@ import { Stack, useRouter } from 'expo-router';
 import { useGiftListBySlug } from 'hooks/useGiftList';
 import { useAddGiftToCart, useUpdateCartItemQuantity, useRemoveGiftFromCart } from 'hooks/useCart';
 import type { Gift } from 'types/models/gift';
+import type { CartItem } from 'types/models/cart';
 
 import { useGuestCart } from '@/guest/useGuestCart';
+import { useToast } from '@/lib/ToastProvider';
 import { GuestGiftCard } from '../components/GuestGiftCard';
+import { ContributionSheet } from '../components/ContributionSheet';
 import { cartItemCount } from '../utils';
 
 type SortOption = 'original' | 'price-asc' | 'price-desc' | 'name';
@@ -16,11 +19,15 @@ type SortOption = 'original' | 'price-asc' | 'price-desc' | 'name';
 export function BuyGiftsScreen({ slug }: { slug: string }) {
   const router = useRouter();
 
-  const { data: list, isLoading, isRefetching, refetch } = useGiftListBySlug(slug);
+  const { data: list, isLoading, isRefetching, refetch, isError } = useGiftListBySlug(slug);
   const { data: cart, guestId } = useGuestCart();
   const addToCart = useAddGiftToCart(guestId || undefined);
   const updateQuantity = useUpdateCartItemQuantity();
   const removeFromCart = useRemoveGiftFromCart();
+
+  const toast = useToast();
+  // The gift whose contribution sheet is open, if any.
+  const [contributing, setContributing] = useState<Gift | null>(null);
 
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('original');
@@ -56,6 +63,34 @@ export function BuyGiftsScreen({ slug }: { slug: string }) {
     addToCart.mutate({ giftId, quantity: 1, sessionId: guestId });
   };
 
+  /**
+   * A group gift sends intent, not a price: `shares` for a fixed split, `amount`
+   * for an open goal. The server decides what that costs against the money
+   * actually raised, so it can reject a share someone else just took.
+   */
+  const handleContribute = (payload: { shares?: number; amount?: number }) => {
+    if (!guestId || !contributing) return;
+    addToCart.mutate(
+      { giftId: contributing.id, sessionId: guestId, ...payload },
+      {
+        onSuccess: () => setContributing(null),
+        onError: (error: any) => {
+          // Most likely the gift filled up while the sheet was open — refresh so
+          // the meter tells the truth before the guest tries again.
+          toast.error(error?.response?.data?.error || 'No se pudo agregar tu aportación');
+          refetch();
+        },
+      },
+    );
+  };
+
+  // Read the live gift back out of the list so the sheet reflects contributions
+  // that landed while it was open, rather than a snapshot from when it opened.
+  const contributingGift = contributing ? (list?.gifts?.find((g) => g.id === contributing.id) ?? contributing) : null;
+  const contributingCartItem = contributingGift
+    ? cart?.items?.find((item: CartItem) => item.giftId === contributingGift.id)
+    : undefined;
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -76,6 +111,18 @@ export function BuyGiftsScreen({ slug }: { slug: string }) {
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color="#d4704a" size="large" />
+        </View>
+      ) : isError || !list ? (
+        // An unpublished or missing list 404s here just like on the landing
+        // screen; without this the page renders an empty gift grid instead.
+        <View className="flex-1 items-center justify-center px-8">
+          <Text className="text-center text-base font-semibold text-ink">No encontramos esta mesa de regalos</Text>
+          <Text className="mt-1 text-center text-sm text-mutedForeground">
+            Verifica el enlace o busca a la pareja en Explorar.
+          </Text>
+          <Pressable onPress={() => router.replace('/explore')} className="mt-5 rounded-full bg-oak px-5 py-2.5">
+            <Text className="text-sm font-semibold text-white">Ir a Explorar</Text>
+          </Pressable>
         </View>
       ) : (
         <ScrollView
@@ -117,6 +164,7 @@ export function BuyGiftsScreen({ slug }: { slug: string }) {
                   onUpdateQuantity={(cartItemId, quantity) => updateQuantity.mutate({ cartItemId, quantity })}
                   onRemove={(cartItemId) => removeFromCart.mutate(cartItemId)}
                   onPress={() => router.push(`/registry/${slug}/cart`)}
+                  onContribute={setContributing}
                 />
               ))
             ) : (
@@ -128,6 +176,15 @@ export function BuyGiftsScreen({ slug }: { slug: string }) {
           </View>
         </ScrollView>
       )}
+      <ContributionSheet
+        visible={!!contributingGift}
+        gift={contributingGift}
+        currentShares={contributingGift?.giftType === 'GROUP_FIXED' ? contributingCartItem?.quantity : undefined}
+        currentAmount={contributingGift?.giftType === 'GROUP_OPEN' ? contributingCartItem?.price : undefined}
+        submitting={addToCart.isPending}
+        onCancel={() => setContributing(null)}
+        onSubmit={handleContribute}
+      />
     </SafeAreaView>
   );
 }

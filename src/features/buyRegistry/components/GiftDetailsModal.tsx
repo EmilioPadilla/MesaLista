@@ -3,6 +3,8 @@ import { DeleteOutlined, MinusOutlined, PlusOutlined, ShoppingCartOutlined } fro
 import { useGiftById } from 'src/hooks/useGift';
 import { useState, useEffect } from 'react';
 import { CartItem } from 'types/models/cart';
+import { ContributionPicker } from './ContributionPicker';
+import { isGroupGift, isFullyFunded, shareAmount } from 'src/utils/giftFunding';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -12,7 +14,7 @@ interface GiftDetailsModalProps {
   open: boolean;
   onCancel: () => void;
   afterClose: () => void;
-  onAddToCart?: (giftId: number, quantity: number) => void;
+  onAddToCart?: (giftId: number, options?: { quantity?: number; shares?: number; amount?: number }) => void;
   cartItems?: CartItem[];
   onUpdateCartQuantity?: (cartItemId: number, quantity: number) => void;
   onRemoveFromCart?: (cartItemId: number) => void;
@@ -49,7 +51,15 @@ export const GiftDetailsModal = ({
 
   const handleAddToCart = () => {
     if (gift && onAddToCart) {
-      onAddToCart(gift.id, selectedQuantity);
+      onAddToCart(gift.id, { quantity: selectedQuantity });
+      onCancel();
+    }
+  };
+
+  // Group gifts hand the server intent (shares / amount) rather than a quantity.
+  const handleContribute = (payload: { shares?: number; amount?: number }) => {
+    if (gift && onAddToCart) {
+      onAddToCart(gift.id, payload);
       onCancel();
     }
   };
@@ -136,16 +146,34 @@ export const GiftDetailsModal = ({
 
                 {/* Price */}
                 <div className="mb-4">
-                  <Title level={2} className="!mb-0 text-green-600">
-                    ${gift.price.toFixed(2)}
-                  </Title>
+                  {isGroupGift(gift) ? (
+                    <>
+                      <Text className="text-gray-500">
+                        {gift.giftType === 'GROUP_FIXED' ? 'Se divide en partes de' : 'Meta'}
+                      </Text>
+                      <Title level={2} className="!mb-0 !mt-1 !text-[#d4704a]">
+                        ${(gift.giftType === 'GROUP_FIXED' ? shareAmount(gift) : gift.price).toLocaleString('es-MX')}
+                      </Title>
+                      {gift.giftType === 'GROUP_FIXED' && (
+                        <Text className="text-sm text-gray-500">
+                          Regalo completo: ${gift.price.toLocaleString('es-MX')}
+                        </Text>
+                      )}
+                    </>
+                  ) : (
+                    <Title level={2} className="!mb-0 text-green-600">
+                      ${gift.price.toFixed(2)}
+                    </Title>
+                  )}
                 </div>
 
                 {/* Quantity info */}
                 <div className="mb-4">
-                  <Text className="text-gray-600">
-                    Cantidad solicitada: <strong>{gift.quantity}</strong>
-                  </Text>
+                  {!isGroupGift(gift) && (
+                    <Text className="text-gray-600">
+                      Cantidad solicitada: <strong>{gift.quantity}</strong>
+                    </Text>
+                  )}
 
                   {gift.isMostWanted && (
                     <div className="mt-2">
@@ -165,7 +193,27 @@ export const GiftDetailsModal = ({
 
               {/* Action buttons */}
               <div className="mt-auto">
-                {gift.isPurchased ? (
+                {isGroupGift(gift) ? (
+                  isFullyFunded(gift) || gift.isPurchased ? (
+                    <div className="rounded-2xl bg-green-50 p-4 text-center">
+                      <Text className="font-semibold text-green-700">
+                        ¡Este regalo ya está completo! 🎉
+                      </Text>
+                      {gift.contributorCount > 0 && (
+                        <div className="mt-1 text-sm text-green-600">
+                          Entre {gift.contributorCount} {gift.contributorCount === 1 ? 'persona' : 'personas'}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <ContributionPicker
+                      gift={gift}
+                      currentShares={gift.giftType === 'GROUP_FIXED' ? cartItem?.quantity : undefined}
+                      currentAmount={gift.giftType === 'GROUP_OPEN' ? cartItem?.price : undefined}
+                      onSubmit={handleContribute}
+                    />
+                  )
+                ) : gift.isPurchased ? (
                   <Button type="primary" size="large" disabled className="flex-1 w-full">
                     Ya comprado
                   </Button>

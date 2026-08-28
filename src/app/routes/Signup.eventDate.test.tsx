@@ -25,10 +25,6 @@ vi.mock('hooks/useAnalyticsTracking', () => ({
   useTrackEvent: () => vi.fn(),
 }));
 
-vi.mock('hooks/useDiscountCode', () => ({
-  useValidateDiscountCode: () => ({ data: undefined, isLoading: false, isError: false }),
-}));
-
 vi.mock('services/user.service', () => ({
   userService: { getCurrentUser: vi.fn() },
 }));

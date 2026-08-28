@@ -26,8 +26,8 @@ describe('resolveSignupError', () => {
   });
 
   it('passes Spanish server copy through untouched', () => {
-    expect(resolveSignupError(apiError({ error: 'Código de descuento expirado' }))).toEqual({
-      message: 'Código de descuento expirado',
+    expect(resolveSignupError(apiError({ error: 'Ese enlace contiene caracteres no permitidos.' }))).toEqual({
+      message: 'Ese enlace contiene caracteres no permitidos.',
     });
   });
 

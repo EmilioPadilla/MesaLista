@@ -54,6 +54,7 @@ describe('cartController — guard against mutating PAID carts', () => {
         id: 5,
         cartId: 1,
         cart: { status: 'PAID' },
+        gift: { id: 1, giftType: 'SINGLE', price: 100, amountFunded: 0, contributorTarget: null, isPurchased: false },
       });
 
       const req: any = { params: { id: '5' } };
@@ -69,6 +70,9 @@ describe('cartController — guard against mutating PAID carts', () => {
         id: 5,
         cartId: 1,
         cart: { status: 'PENDING' },
+        // updateCartItem includes the gift so it can tell a normal line from a
+        // group contribution (which it must re-price server-side).
+        gift: { id: 1, giftType: 'SINGLE', price: 100, amountFunded: 0, contributorTarget: null, isPurchased: false },
       });
       cartItemDelete.mockResolvedValue({ id: 5 });
       cartFindUnique.mockResolvedValue({ id: 1, items: [{ id: 6 }] });
@@ -86,6 +90,7 @@ describe('cartController — guard against mutating PAID carts', () => {
         id: 5,
         cartId: 1,
         cart: { status: 'CANCELLED' },
+        gift: { id: 1, giftType: 'SINGLE', price: 100, amountFunded: 0, contributorTarget: null, isPurchased: false },
       });
 
       const req: any = { params: { id: '5' } };
@@ -103,6 +108,7 @@ describe('cartController — guard against mutating PAID carts', () => {
         id: 5,
         cartId: 1,
         cart: { status: 'PAID' },
+        gift: { id: 1, giftType: 'SINGLE', price: 100, amountFunded: 0, contributorTarget: null, isPurchased: false },
       });
 
       const req: any = { params: { id: '5' }, body: { quantity: 3 } };
@@ -118,6 +124,9 @@ describe('cartController — guard against mutating PAID carts', () => {
         id: 5,
         cartId: 1,
         cart: { status: 'PENDING' },
+        // updateCartItem includes the gift so it can tell a normal line from a
+        // group contribution (which it must re-price server-side).
+        gift: { id: 1, giftType: 'SINGLE', price: 100, amountFunded: 0, contributorTarget: null, isPurchased: false },
       });
       cartItemUpdate.mockResolvedValue({ id: 5, cartId: 1, quantity: 3 });
       cartFindUnique.mockResolvedValue({ id: 1, items: [] });

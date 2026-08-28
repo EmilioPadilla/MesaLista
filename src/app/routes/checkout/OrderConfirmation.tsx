@@ -12,6 +12,7 @@ import { motion } from 'motion/react';
 import { message } from 'antd';
 import { useTrackEvent } from 'src/hooks/useAnalyticsTracking';
 import { useGiftListBySlug } from 'src/hooks/useGiftList';
+import { cartLineTotal } from 'src/utils/giftFunding';
 
 export function OrderConfirmation() {
   const navigate = useNavigate();
@@ -211,7 +212,7 @@ export function OrderConfirmation() {
                           <h3 className="font-semibold text-foreground">{item.gift?.title}</h3>
                           <div className="text-right">
                             <div className="text-sm text-muted-foreground font-light">Cantidad: {item.quantity}</div>
-                            <div className="text-lg font-semibold text-foreground">${item?.gift?.price * item?.quantity}</div>
+                            <div className="text-lg font-semibold text-foreground">${cartLineTotal(item).toLocaleString('es-MX')}</div>
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground font-light mb-3 leading-relaxed">{item?.gift?.description}</p>

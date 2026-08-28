@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { lineTotal, lineUnitPrice } from '../lib/giftFunding.js';
 
 const prisma = new PrismaClient();
 const FIXED_PLAN_PRICE = 2000;
@@ -256,7 +257,12 @@ const paymentAnalyticsService = {
       // belonging to the gift list being reported on.
       const relevantItems = cart.items.filter((item: any) => item.gift?.giftListId === giftListId);
       if (relevantItems.length === 0) continue;
-      const cartGross = cart.items.reduce((sum: number, item: any) => sum + (item.gift?.price || 0) * item.quantity, 0);
+      // Price every line off the STORED line price, not gift.price. For a group gift
+      // gift.price is the funding goal, so a $500 contribution toward a $3,000
+      // honeymoon would otherwise be reported as $3,000 — and because cartGross
+      // drives the fee proration below, one group line would skew the reported fee
+      // and net of every OTHER line in the same cart too.
+      const cartGross = cart.items.reduce((sum: number, item: any) => sum + lineTotal(item), 0);
 
       // Prefer the real fee reported by Stripe/PayPal at capture time.
       // Fall back to formula-based estimates for legacy payments captured before reconciliation was wired up.
@@ -266,7 +272,7 @@ const paymentAnalyticsService = {
       for (const item of relevantItems) {
         if (!item.gift) continue;
 
-        const giftPrice = item.gift.price * item.quantity;
+        const giftPrice = lineTotal(item);
         const itemShare = cartGross > 0 ? giftPrice / cartGross : 0;
 
         let paymentFee = 0;
@@ -307,7 +313,7 @@ const paymentAnalyticsService = {
         giftPayments.push({
           giftId: item.gift.id,
           giftTitle: item.gift.title,
-          giftPrice: item.gift.price,
+          giftPrice: lineUnitPrice(item),
           paymentId: cart.payment.id,
           paymentType,
           paymentAmount: giftPrice,

@@ -6,7 +6,6 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import jestDom from 'eslint-plugin-jest-dom';
 import json from 'eslint-plugin-json';
 import prettier from 'eslint-config-prettier';
-import storybook from 'eslint-plugin-storybook';
 import globals from 'globals';
 
 /**
@@ -14,10 +13,24 @@ import globals from 'globals';
  *
  * @type {import('eslint').Linter.Config}
  */
-export default [   
+export default [
+  // Global ignores. This MUST be an object with `ignores` and nothing else —
+  // flat config only treats it as a global ignore when it stands alone. Sitting
+  // beside `files` in the block below, it applied to that block only, which is
+  // how 2,200+ errors from the generated Prisma runtime bundles were reaching
+  // the report. Everything here is build output and gitignored.
   {
-    ignores: ['dist/**', 'node_modules/**', 'storybook-static/**'],
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      'src/generated/**',
+      'mobile/_vendor/**',
+      'mobile/.expo/**',
+      'coverage/**',
+    ],
+  },
 
+  {
     files: ['**/*.{js,jsx,ts,tsx}'],
 
     languageOptions: {
@@ -56,6 +69,15 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
       'react/react-in-jsx-scope': 'off',
       'react-hooks/exhaustive-deps': 'off',
+
+      // TypeScript already resolves identifiers, and core ESLint can't see TS
+      // type space — so `no-undef` only ever fired on types here (`React.FC`,
+      // `NodeJS.Timeout`, `BodyInit`), never on a real bug. Turning it off for
+      // TS is what typescript-eslint itself recommends.
+      'no-undef': 'off',
+      // Props are typed by TypeScript; prop-types would be a second, weaker
+      // declaration of the same thing.
+      'react/prop-types': 'off',
     },
 
     settings: {
@@ -74,7 +96,17 @@ export default [
     },
   },
 
-  ...storybook.configs['flat/recommended'],
+  // CommonJS is correct in these, so the ESM-only import rule doesn't apply:
+  //   *.js  — metro/tailwind configs, build scripts and server/start.js are CJS.
+  //   mobile — React Native resolves static assets ONLY via `require('...png')`,
+  //            and native modules are require()d lazily so a missing native side
+  //            can't crash the bundle at import time.
+  {
+    files: ['**/*.js', 'mobile/**/*.{ts,tsx}', 'scripts/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
 
   // @mesalista/shared spine: forbid bare intra-package alias imports.
   // Aliases like `services/x` / `config/x` are rewritten to

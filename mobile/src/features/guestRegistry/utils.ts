@@ -1,13 +1,21 @@
 import { stripeMexico, paypalMexico, stripeMexicoBreakdown, paypalMexicoBreakdown } from 'utils/feeUtils';
+import { cartItemsTotal as sharedCartItemsTotal } from 'utils/giftFunding';
 import type { CartItem } from 'types/models/cart';
 
 import type { PaymentMethod } from './payment';
 
 export type FeePreference = 'guest' | 'couple';
 
-/** Subtotal of the cart (sum of gift price × quantity). */
+/**
+ * Subtotal of the cart.
+ *
+ * Delegates to the shared helper, which sums the stored LINE price rather than
+ * `gift.price`. For a group gift those are different numbers — the gift's price
+ * is the funding goal — so the old `gift.price * quantity` showed (and would have
+ * charged) the whole goal for a small contribution.
+ */
 export function cartItemsTotal(items?: CartItem[]): number {
-  return (items ?? []).reduce((sum, item) => sum + (item.gift?.price ?? 0) * item.quantity, 0);
+  return sharedCartItemsTotal(items);
 }
 
 export interface CheckoutTotals {

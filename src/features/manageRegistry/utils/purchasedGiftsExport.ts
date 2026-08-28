@@ -32,7 +32,9 @@ const formatDate = (iso: string): string => {
 };
 
 export const toKeepsakeRow = (g: PurchasedGift): KeepsakeRow => ({
-  gift: g.giftTitle,
+  // A group row is one guest's share, not the whole gift. Without saying so the
+  // keepsake reads as though somebody bought a $3,000 honeymoon for $1,000.
+  gift: g.giftType && g.giftType !== 'SINGLE' ? `Aportación para ${g.giftTitle}` : g.giftTitle,
   guest: g.guestName,
   rsvpName: g.rsvpInvitee ? `${g.rsvpInvitee.firstName} ${g.rsvpInvitee.lastName}` : '',
   rsvpStatus: g.rsvpInvitee?.status ?? '',

@@ -8,6 +8,7 @@ import pushService from '../services/pushService.js';
 import { discountCodeService } from '../services/discountCodeService.js';
 import { createSessionAndSetCookie } from '../middleware/auth.js';
 import { reconcileStripeFee, reconcilePayPalFee, stripeMexicoGross, paypalMexicoGross } from '../lib/paymentFees.js';
+import { fundingGoal, isGroupGift, roundMoney } from '../lib/giftFunding.js';
 import { publishGiftList as publishGiftListRecord } from '../services/giftListPublishService.js';
 
 const prisma = new PrismaClient();
@@ -52,6 +53,94 @@ const resolveEventDate = (raw?: string | null): Date => {
     }
   }
   return getDefaultEventDate();
+};
+
+/**
+ * Re-check a cart's group-gift lines immediately before charging.
+ *
+ * A cart can sit open for a long time, and nothing reserves a share while it
+ * does — another guest may have finished the gift off in the meantime. Taking the
+ * money anyway would leave us holding a payment for a gift that cannot absorb it,
+ * so we stop at the till and send the guest back to their cart.
+ *
+ * Returns null when the cart is safe to charge, or a guest-facing Spanish message.
+ */
+const findStaleContribution = (items: any[]): string | null => {
+  for (const item of items) {
+    const gift = item.gift;
+    if (!gift || !isGroupGift(gift.giftType)) continue;
+
+    const remaining = roundMoney(fundingGoal(gift) - gift.amountFunded);
+    const lineTotal = roundMoney(item.price * item.quantity);
+
+    if (gift.isPurchased || remaining <= 0) {
+      return `"${gift.title}" ya se completó. Quítalo de tu carrito para continuar.`;
+    }
+    if (lineTotal - 0.005 > remaining) {
+      return `"${gift.title}" ya casi se completa: ajusta tu aportación a $${remaining.toLocaleString('es-MX')} o menos.`;
+    }
+  }
+  return null;
+};
+
+/**
+ * Settle every gift in a cart that has just been paid for.
+ *
+ * A normal gift is simply bought: mark it purchased, exactly as before. A group
+ * gift instead accrues — the guest's line is added to `amountFunded`, the
+ * contributor count ticks up, and `isPurchased` flips only once the funding goal
+ * is met. Keeping `isPurchased` as "this gift is settled" is what lets every
+ * existing badge, filter, stat and export keep working without knowing group
+ * gifts exist at all.
+ *
+ * Runs in one transaction so a cart mixing normal and group gifts can never
+ * half-apply, and uses an atomic `increment` rather than read-modify-write so two
+ * guests paying into the same gift at the same moment can't clobber each other.
+ *
+ * Both payment paths (the Stripe webhook and the PayPal capture) funnel through
+ * here so they cannot drift apart.
+ */
+export const creditGiftsForPaidCart = async (cartId: number): Promise<void> => {
+  const cartItems = await prisma.cartItem.findMany({
+    where: { cartId },
+    include: { gift: true },
+  });
+
+  if (cartItems.length === 0) return;
+
+  const singleGiftIds = cartItems.filter((item: any) => !isGroupGift(item.gift.giftType)).map((item: any) => item.giftId);
+
+  const contributions = cartItems.filter((item: any) => isGroupGift(item.gift.giftType));
+
+  await prisma.$transaction(async (tx: any) => {
+    if (singleGiftIds.length > 0) {
+      await tx.gift.updateMany({
+        where: { id: { in: singleGiftIds } },
+        data: { isPurchased: true },
+      });
+    }
+
+    for (const item of contributions) {
+      const contributed = roundMoney(item.price * item.quantity);
+
+      const updated = await tx.gift.update({
+        where: { id: item.giftId },
+        data: {
+          amountFunded: { increment: contributed },
+          contributorCount: { increment: 1 },
+        },
+      });
+
+      // Read the post-increment total back from the row we just wrote, so the
+      // completion check sees any concurrent contribution too.
+      if (!updated.isPurchased && updated.amountFunded + 0.005 >= fundingGoal(updated)) {
+        await tx.gift.update({
+          where: { id: item.giftId },
+          data: { isPurchased: true },
+        });
+      }
+    }
+  });
 };
 
 // Run an email-sending function and stamp the outcome on the Payment row. Webhook
@@ -130,6 +219,20 @@ const publishFixedPlanUpgradeFromMetadata = async ({
   }
 
   console.log(`Processing fixed plan upgrade for list ${giftListId} via ${source}`);
+
+  // Only redeem a code this payment actually honored. A Stripe session carries
+  // the applied code in its metadata; Apple's IAP price can't take one at all
+  // (the app hides the field on iOS). So a draft still carrying a code that this
+  // payment did not apply — a Stripe session started on another device, say —
+  // has it dropped before the publish transaction sees it, rather than burning a
+  // use for a discount nobody received. Scoped to `planType: null` so a replay
+  // can never strip the link off an already published list.
+  if (!metadata.discountCodeId) {
+    await prisma.giftList.updateMany({
+      where: { id: giftListId, userId, planType: null, discountCodeId: { not: null } },
+      data: { discountCodeId: null },
+    });
+  }
 
   const result = await publishGiftListRecord({ giftListId, userId, planType: 'FIXED', amount });
 
@@ -449,7 +552,7 @@ const createFixedPlanUpgradeSession = async (
 ) => {
   const giftList = await prisma.giftList.findUnique({
     where: { id: giftListId },
-    select: { id: true, userId: true, planType: true, publishedAt: true },
+    select: { id: true, userId: true, planType: true, publishedAt: true, discountCodeId: true },
   });
 
   if (!giftList || giftList.userId !== userId) {
@@ -472,11 +575,15 @@ const createFixedPlanUpgradeSession = async (
   const finalAmount = applyDiscountToFixedPlan(validatedDiscountCode);
 
   // Attach the code to the draft now; the publish transaction redeems it once
-  // payment settles, so an abandoned checkout leaves the code unused.
-  if (validatedDiscountCode) {
+  // payment settles, so an abandoned checkout leaves the code unused. Clearing it
+  // when this checkout carries no code matters just as much: a code from an
+  // earlier, abandoned attempt would otherwise ride along on a full-price session
+  // and be redeemed at publish for a discount nobody received.
+  const nextDiscountCodeId = validatedDiscountCode?.id ?? null;
+  if (nextDiscountCodeId !== giftList.discountCodeId) {
     await prisma.giftList.update({
       where: { id: giftListId },
-      data: { discountCodeId: validatedDiscountCode.id },
+      data: { discountCodeId: nextDiscountCodeId },
     });
   }
 
@@ -583,6 +690,13 @@ export default {
         });
       }
 
+      // A group gift may have been completed by someone else while this cart sat
+      // open. Refuse before charging rather than collecting money we can't apply.
+      const staleContribution = findStaleContribution(cart.items);
+      if (staleContribution) {
+        return res.status(409).json({ success: false, message: staleContribution });
+      }
+
       // Get fee preference from gift list (default to 'couple' if not set)
       const feePreference = cart.giftList?.feePreference || 'couple';
 
@@ -593,7 +707,9 @@ export default {
         const price = item.price || item.gift.price;
 
         const productData: any = {
-          name: item.gift.title,
+          // Name the contribution for what it is, so the Stripe page doesn't look
+          // like the guest is buying a $3,000 gift for $1,000.
+          name: isGroupGift(item.gift.giftType) ? `Aportación para ${item.gift.title}` : item.gift.title,
         };
 
         // Only include images if URL exists and encode it properly
@@ -781,25 +897,9 @@ export default {
               },
             });
 
-            // Get cart items and mark the corresponding gifts as purchased
-            const cartItems = await prisma.cartItem.findMany({
-              where: { cartId },
-              select: { giftId: true },
-            });
-
-            const giftIds = cartItems.map((item: { giftId: number }) => item.giftId);
-
-            // Update all gifts as purchased in a single query
-            if (giftIds.length > 0) {
-              await prisma.gift.updateMany({
-                where: {
-                  id: { in: giftIds },
-                },
-                data: {
-                  isPurchased: true,
-                },
-              });
-            }
+            // Settle the gifts: outright purchase for normal gifts, funding credit
+            // for group gifts (which only complete once their goal is reached).
+            await creditGiftsForPaidCart(cartId);
 
             // Send payment confirmation emails. Postmark glitches must not 500 the
             // webhook (Stripe would retry the whole event), so we swallow + persist
@@ -1008,6 +1108,12 @@ export default {
           success: false,
           message: 'Esta mesa de regalos todavía no está publicada',
         });
+      }
+
+      // Same pre-charge re-check as the Stripe path (see findStaleContribution).
+      const staleContribution = findStaleContribution(cart.items);
+      if (staleContribution) {
+        return res.status(409).json({ success: false, message: staleContribution });
       }
 
       // Get fee preference from gift list (default to 'couple' if not set)
@@ -1226,25 +1332,9 @@ export default {
           },
         });
 
-        // Get cart items and mark the corresponding gifts as purchased
-        const cartItems = await prisma.cartItem.findMany({
-          where: { cartId },
-          select: { giftId: true },
-        });
-
-        const giftIds = cartItems.map((item: { giftId: number }) => item.giftId);
-
-        // Update all gifts as purchased in a single query
-        if (giftIds.length > 0) {
-          await prisma.gift.updateMany({
-            where: {
-              id: { in: giftIds },
-            },
-            data: {
-              isPurchased: true,
-            },
-          });
-        }
+        // Settle the gifts: outright purchase for normal gifts, funding credit for
+        // group gifts (which only complete once their goal is reached).
+        await creditGiftsForPaidCart(cartId);
 
         // Send payment confirmation emails. Same pattern as the Stripe webhook —
         // persist outcome rather than throwing so PayPal doesn't retry the capture.
@@ -1854,6 +1944,10 @@ export default {
         payment.cart.items.map((item: any) => ({
           id: item.id,
           giftTitle: item.gift.title,
+          // Money on this row is already right (price × quantity). The type tells
+          // the couple whether a row is a whole gift or one guest's share of one,
+          // which a title alone can't convey.
+          giftType: item.gift.giftType,
           guestName: payment.cart.inviteeName || 'Anónimo',
           guestEmail: payment.cart.inviteeEmail || '',
           message: payment.cart.message || '',

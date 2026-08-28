@@ -19,15 +19,33 @@ export const cartService = {
   },
 
   /**
-   * Add an item to the cart
+   * Add an item to the cart.
+   *
+   * For a group gift the guest states intent, not price: `shares` for a fixed
+   * split, `amount` for an open goal. The server prices the line against the
+   * money actually raised — a client-sent price is never trusted.
    *
    * @param giftId ID of the gift to add
-   * @param quantity Quantity to add
+   * @param quantity Quantity to add (single gifts)
    * @param sessionId Guest session ID
+   * @param shares Number of equal shares claimed (GROUP_FIXED)
+   * @param amount Amount to chip in (GROUP_OPEN)
    * @returns Updated cart
    */
-  addToCart: async ({ giftId, quantity = 1, sessionId }: { giftId: number; quantity?: number; sessionId?: string }): Promise<Cart> => {
-    const response = await apiClient.post(cartEndpoints.addItem, { giftId, quantity, sessionId });
+  addToCart: async ({
+    giftId,
+    quantity = 1,
+    sessionId,
+    shares,
+    amount,
+  }: {
+    giftId: number;
+    quantity?: number;
+    sessionId?: string;
+    shares?: number;
+    amount?: number;
+  }): Promise<Cart> => {
+    const response = await apiClient.post(cartEndpoints.addItem, { giftId, quantity, sessionId, shares, amount });
     return response.data;
   },
 
@@ -49,8 +67,16 @@ export const cartService = {
    * @param quantity New quantity
    * @returns Updated cart
    */
-  updateCartItemQuantity: async ({ cartItemId, quantity }: { cartItemId: number; quantity: number }): Promise<Cart> => {
-    const response = await apiClient.patch(cartEndpoints.byId(cartItemId), { quantity });
+  updateCartItemQuantity: async ({
+    cartItemId,
+    quantity,
+    amount,
+  }: {
+    cartItemId: number;
+    quantity?: number;
+    amount?: number;
+  }): Promise<Cart> => {
+    const response = await apiClient.patch(cartEndpoints.byId(cartItemId), { quantity, amount });
     return response.data;
   },
 

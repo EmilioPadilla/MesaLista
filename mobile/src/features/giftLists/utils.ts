@@ -14,10 +14,18 @@ export function formatEventDate(date: Date | string): string {
   return new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
 }
 
-/** Sum of purchased gift prices for a list. */
+/**
+ * Money actually raised for a list.
+ *
+ * A partly-funded group gift holds real money even though it isn't purchased
+ * yet, so it contributes what it has raised rather than all-or-nothing.
+ */
 export function getRaisedAmount(list: GiftListWithGifts): number {
   if (!list.gifts) return 0;
-  return list.gifts.filter((g) => g.isPurchased).reduce((sum, g) => sum + g.price, 0);
+  return list.gifts.reduce((sum, g) => {
+    if (g.giftType && g.giftType !== 'SINGLE') return sum + (g.amountFunded ?? 0);
+    return g.isPurchased ? sum + g.price : sum;
+  }, 0);
 }
 
 /**
@@ -29,7 +37,7 @@ export function getListProgress(list: GiftListWithGifts) {
   const total = gifts.length;
   const purchased = gifts.filter((g) => g.isPurchased).length;
   const goal = gifts.reduce((sum, g) => sum + g.price, 0);
-  const raised = gifts.filter((g) => g.isPurchased).reduce((sum, g) => sum + g.price, 0);
+  const raised = getRaisedAmount(list);
   const ratio = goal > 0 ? raised / goal : 0;
   return { total, purchased, goal, raised, ratio };
 }

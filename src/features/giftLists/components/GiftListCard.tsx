@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import type { GiftListWithGifts } from 'types/models/giftList';
 import { MLButton } from 'src/components/core/MLButton';
 import { InvitationButton } from './InvitationButton';
+import { raisedAmount } from 'src/utils/giftFunding';
 
 interface GiftListCardProps {
   list: GiftListWithGifts;
@@ -38,7 +39,8 @@ export function GiftListCard({ list, index, onViewList, onDeleteList, onManageIn
   })();
 
   const totalValue = list.gifts?.reduce((sum, gift) => sum + gift.price, 0) || 0;
-  const raisedAmount = list.gifts?.filter((g) => g.isPurchased).reduce((sum, gift) => sum + gift.price, 0) || 0;
+  // Includes partially funded group gifts — see raisedAmount().
+  const raisedAmountValue = raisedAmount(list.gifts);
   const purchasedGifts = list.gifts?.filter((g) => g.isPurchased).length || 0;
   const totalGiftsCount = list.gifts?.length || 0;
 
@@ -129,11 +131,11 @@ export function GiftListCard({ list, index, onViewList, onDeleteList, onManageIn
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <p className="text-sm text-muted-foreground font-light mb-2">Recaudado</p>
-                    <p className="text-xl font-medium text-[#34c759]">{formatCurrency(raisedAmount)}</p>
+                    <p className="text-xl font-medium text-[#34c759]">{formatCurrency(raisedAmountValue)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground font-light mb-2">Pendiente</p>
-                    <p className="text-xl font-medium text-[#ff9500]">{formatCurrency(totalValue - raisedAmount)}</p>
+                    <p className="text-xl font-medium text-[#ff9500]">{formatCurrency(totalValue - raisedAmountValue)}</p>
                   </div>
                 </div>
 

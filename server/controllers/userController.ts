@@ -39,8 +39,10 @@ const buildCoupleName = (firstName: string, lastName: string, spouseFirstName?: 
  * Creates a couple and their first gift list. Shared by the two signup entry
  * points, which differ only in what state the list starts in:
  *
- *   DRAFT      — current flow. No plan, not published, discount code attached
- *                but not redeemed. The couple builds first and pays at publish.
+ *   DRAFT      — current flow. No plan, not published, nothing charged. The
+ *                couple builds first and picks a plan at publish, which is also
+ *                where a discount code is entered and applied — so a code sent
+ *                to this path is ignored.
  *   COMMISSION — legacy flow for old App Store builds. Published on the spot
  *                with the commission plan, and the discount code is redeemed
  *                here because there is no later publish step to redeem it in.
@@ -60,9 +62,11 @@ const createCoupleWithList = async (req: Request, res: Response, { mode }: { mod
   const isDraft = mode === 'DRAFT';
 
   try {
+    // Only the legacy commission path charges anything at signup, so it is the
+    // only one a code can apply to. Drafts take theirs at publish/checkout.
     let discountCodeRecord: { id: number } | null = null;
 
-    if (discountCode) {
+    if (!isDraft && discountCode) {
       const validation = await discountCodeService.validateDiscountCode(discountCode);
       if (!validation.valid) {
         return res.status(400).json({ error: validation.error || 'El código de descuento no es válido.' });
@@ -129,8 +133,8 @@ const createCoupleWithList = async (req: Request, res: Response, { mode }: { mod
         },
       });
 
-      // Drafts defer redemption to publish — see signupDraft.
-      if (discountCodeRecord && !isDraft) {
+      // Only reachable on the commission path; drafts never resolve a code.
+      if (discountCodeRecord) {
         await tx.discountCode.update({
           where: { id: discountCodeRecord.id },
           data: {
@@ -358,11 +362,9 @@ export const userController = {
   /**
    * Free signup: creates the couple and a DRAFT list they can start building
    * immediately. No plan, no payment — the plan is chosen later at
-   * POST /giftLists/:id/publish.
-   *
-   * A discount code supplied here is validated and attached to the draft but
-   * NOT redeemed: a draft that never publishes must not burn a code. The
-   * increment happens inside the publish transaction.
+   * POST /giftLists/:id/publish, which is where a discount code is entered and
+   * applied. A code sent here is ignored rather than attached: there is nothing
+   * to discount until the couple is paying for a plan.
    */
   signupDraft: async (req: Request, res: Response) => {
     return createCoupleWithList(req, res, { mode: 'DRAFT' });

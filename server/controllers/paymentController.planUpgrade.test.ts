@@ -12,13 +12,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const giftListFindFirst = vi.fn();
 const giftListCreate = vi.fn();
+const giftListUpdateMany = vi.fn();
 const userFindUnique = vi.fn();
 const userCreate = vi.fn();
 const publishGiftListRecord = vi.fn();
 
 vi.mock('@prisma/client', () => ({
   PrismaClient: class {
-    giftList = { findFirst: giftListFindFirst, create: giftListCreate, findUnique: vi.fn(), update: vi.fn() };
+    giftList = {
+      findFirst: giftListFindFirst,
+      create: giftListCreate,
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      updateMany: giftListUpdateMany,
+    };
     user = { findUnique: userFindUnique, create: userCreate };
     discountCode = { update: vi.fn() };
     cart = { findUnique: vi.fn() };
@@ -80,6 +87,7 @@ const makeReq = (body: Record<string, unknown>) => ({
 beforeEach(() => {
   vi.clearAllMocks();
   userFindUnique.mockResolvedValue(user);
+  giftListUpdateMany.mockResolvedValue({ count: 0 });
   publishGiftListRecord.mockResolvedValue({
     ok: true,
     giftList: { id: 10, title: 'Mesa', coupleName: 'Maria y Juan', eventDate: new Date(), planType: 'FIXED', publishedAt: new Date() },
@@ -123,6 +131,39 @@ describe('fixed-plan upgrade provisioning', () => {
     expect(giftListCreate).not.toHaveBeenCalled();
   });
 
+  it('drops a code this payment never applied before the publish redeems it', async () => {
+    // Full price: nothing in the metadata, so any code still attached to the
+    // draft comes from a checkout the couple abandoned (or an iOS IAP purchase,
+    // where Apple's price can't take a code at all).
+    stripeSessionRetrieve.mockResolvedValue(upgradeSession);
+
+    const res = makeRes();
+    await completeSession(makeReq({ sessionId: 'cs_test_123' }) as any, res as any);
+
+    expect(giftListUpdateMany).toHaveBeenCalledWith({
+      // `planType: null` keeps a replay from stripping the link off a list that
+      // is already published, and whose code may already be redeemed.
+      where: { id: 10, userId: 1, planType: null, discountCodeId: { not: null } },
+      data: { discountCodeId: null },
+    });
+  });
+
+  it('keeps the attachment when the session actually applied the code', async () => {
+    stripeSessionRetrieve.mockResolvedValue({
+      ...upgradeSession,
+      metadata: { ...upgradeSession.metadata, discountCodeId: '7', discountCode: 'BODA10' },
+      amount_total: 150000,
+    });
+
+    const res = makeRes();
+    await completeSession(makeReq({ sessionId: 'cs_test_123' }) as any, res as any);
+
+    // The charge was discounted, so the publish transaction should find the code
+    // and redeem it.
+    expect(giftListUpdateMany).not.toHaveBeenCalled();
+    expect(publishGiftListRecord).toHaveBeenCalledWith(expect.objectContaining({ giftListId: 10, planType: 'FIXED' }));
+  });
+
   it('rejects an unpaid session before publishing anything', async () => {
     stripeSessionRetrieve.mockResolvedValue({ ...upgradeSession, payment_status: 'unpaid' });
 
@@ -131,6 +172,7 @@ describe('fixed-plan upgrade provisioning', () => {
 
     expect(res.status).toHaveBeenCalledWith(409);
     expect(publishGiftListRecord).not.toHaveBeenCalled();
+    expect(giftListUpdateMany).not.toHaveBeenCalled();
   });
 });
 

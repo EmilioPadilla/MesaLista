@@ -58,6 +58,11 @@ const baseGift: GiftItem = {
   imageScale: 100,
   isPurchased: false,
   isMostWanted: false,
+  // An ordinary single gift — these tests cover the image/category save paths,
+  // which behave identically whatever the funding shape.
+  giftType: 'SINGLE',
+  amountFunded: 0,
+  contributorCount: 0,
   giftListId: 1,
   quantity: 1,
   categories: [

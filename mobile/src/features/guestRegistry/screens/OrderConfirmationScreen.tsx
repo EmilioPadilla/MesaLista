@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
+import { cartLineTotal } from 'utils/giftFunding';
 
 import { useGetCart } from 'hooks/useCart';
 import { useCapturePayPalPayment } from 'hooks/usePayment';
@@ -77,7 +78,7 @@ export function OrderConfirmationScreen({ slug, cartSession, method, paypalToken
                     {item.quantity}× {item.gift?.title}
                   </Text>
                   <Text className="ml-3 text-sm font-semibold text-ink">
-                    {formatCurrency((item.gift?.price ?? 0) * item.quantity)}
+                    {formatCurrency(cartLineTotal(item))}
                   </Text>
                 </View>
               ))}

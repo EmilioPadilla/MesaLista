@@ -7,6 +7,7 @@ import { Plus, Gift, CheckCircle, ShoppingBag, DollarSign, Search } from 'lucide
 import type { GiftListWithGifts } from 'types/models/giftList';
 import { MLButton } from 'src/components/core/MLButton';
 import { GiftListCard } from '../components/GiftListCard';
+import { raisedAmount } from 'src/utils/giftFunding';
 
 export function MyGiftListsPage() {
   const navigate = useNavigate();
@@ -50,7 +51,8 @@ export function MyGiftListsPage() {
 
   const getRaisedAmount = (list: GiftListWithGifts) => {
     if (!list.gifts) return 0;
-    return list.gifts.filter((g) => g.isPurchased).reduce((sum, gift) => sum + gift.price, 0);
+    // Includes partially funded group gifts — see raisedAmount().
+    return raisedAmount(list.gifts);
   };
 
   // Stats

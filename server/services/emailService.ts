@@ -151,8 +151,13 @@ class EmailService {
         guestPhone: cart.phoneNumber || undefined,
         message: cart.message || undefined,
         coupleThankYouMessage: giftList.thankYouMessage || undefined,
+        // `item.price` is already the amount charged for this line, so a group
+        // contribution reports the right money. Only the NAME needs help: without
+        // it a $1,000 line against a $3,000 honeymoon reads like a mispriced gift
+        // rather than one guest's third of it.
         items: cart.items.map((item) => ({
-          giftTitle: item.gift.title,
+          giftTitle:
+            item.gift.giftType === 'SINGLE' ? item.gift.title : `Aportación para ${item.gift.title}`,
           giftDescription: item.gift.description || undefined,
           quantity: item.quantity,
           price: item.price,

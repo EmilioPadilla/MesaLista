@@ -13,6 +13,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTrackEvent } from 'src/hooks/useAnalyticsTracking';
 import { useValidateRsvpCode, useInviteeByCode } from 'src/hooks/useRsvp';
 import { stripeMexico, paypalMexico, stripeMexicoBreakdown, paypalMexicoBreakdown } from 'src/utils/feeUtils';
+import { cartItemsTotal, cartLineTotal, isGroupGift, shareAmount } from 'src/utils/giftFunding';
 
 const { TextArea } = Input;
 
@@ -83,7 +84,10 @@ export function Checkout() {
     }
   }, [cancelled, cartId, paymentMethod]);
 
-  const cartTotal = cart?.items?.reduce((sum: number, item: any) => sum + (item.gift?.price || 0) * item.quantity, 0) || 0;
+  // Sum the stored LINE prices. `gift.price` is the funding goal for a group
+  // gift, not what this guest is paying — charging off it would bill someone
+  // $5,000 for the $500 they chose to chip in.
+  const cartTotal = cartItemsTotal(cart?.items);
 
   // Get fee preference from gift list (default to 'couple')
   const feePreference = giftList?.feePreference || 'couple';
@@ -455,15 +459,23 @@ export function Checkout() {
                           alt={item.gift?.title}
                           className="w-16 h-16 object-cover rounded-2xl"
                         />
-                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#d4704a] rounded-full flex items-center justify-center">
-                          <span className="text-xs text-white font-medium">{item.quantity}</span>
-                        </div>
+                        {!(item.gift && item.gift.giftType === 'GROUP_OPEN') && (
+                          <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#d4704a] rounded-full flex items-center justify-center">
+                            <span className="text-xs text-white font-medium">{item.quantity}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-foreground truncate">{item.gift?.title}</h4>
-                        <p className="text-sm text-muted-foreground font-light">Cantidad: {item.quantity}</p>
+                        <p className="text-sm text-muted-foreground font-light">
+                          {item.gift && isGroupGift(item.gift)
+                            ? item.gift.giftType === 'GROUP_FIXED'
+                              ? `${item.quantity} ${item.quantity === 1 ? 'parte' : 'partes'} de $${shareAmount(item.gift).toLocaleString('es-MX')}`
+                              : 'Aportación'
+                            : `Cantidad: ${item.quantity}`}
+                        </p>
                         <p className="text-lg font-semibold text-foreground mt-1">
-                          ${((item.gift?.price || 0) * item.quantity).toLocaleString()}
+                          ${cartLineTotal(item).toLocaleString()}
                         </p>
                       </div>
                     </div>

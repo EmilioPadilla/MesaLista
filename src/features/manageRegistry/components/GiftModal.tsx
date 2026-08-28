@@ -9,6 +9,9 @@ import { UploadChangeParam } from 'antd/es/upload';
 import { useUploadFile } from 'src/hooks/useFiles';
 import { useGetCategoriesByGiftList } from 'src/hooks/useGiftList';
 import { convertHeicToJpegIfNeeded, isHeic } from '../utils/heicToJpeg';
+import { GiftTypeSelector } from './GiftTypeSelector';
+import type { GiftType } from 'types/models/gift';
+import { MIN_CONTRIBUTOR_TARGET } from 'src/utils/giftFunding';
 
 interface GiftModalProps {
   gift: GiftItem | null;
@@ -33,6 +36,13 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
   }>({ file: null, url: undefined, name: undefined, imageRemoved: false });
   const [imagePosition, setImagePosition] = useState<number>(50);
   const [imageScale, setImageScale] = useState<number>(100);
+  // How the gift gets paid for. Kept outside the antd Form because the three
+  // fields move as a unit — switching type has to clear the other type's input.
+  const [giftType, setGiftType] = useState<GiftType>('SINGLE');
+  const [contributorTarget, setContributorTarget] = useState<number | null>(null);
+  const [minContribution, setMinContribution] = useState<number | null>(null);
+  // Live price, so the per-share preview updates as the couple types.
+  const [priceDraft, setPriceDraft] = useState<number>(0);
   const { mutate: updateGift, isError: updateError } = useUpdateGift();
   const { mutate: uploadFile } = useUploadFile();
   const { data: categories } = useGetCategoriesByGiftList(weddingListId);
@@ -50,6 +60,10 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
       setImageState({ file: null, url: gift.imageUrl || '', name: gift.imageUrl || '', imageRemoved: false });
       setImagePosition((gift as any).imagePosition ?? 50);
       setImageScale((gift as any).imageScale ?? 100);
+      setGiftType(gift.giftType ?? 'SINGLE');
+      setContributorTarget(gift.contributorTarget ?? null);
+      setMinContribution(gift.minContribution ?? null);
+      setPriceDraft(Number(gift.price) || 0);
     }
   }, [gift, isOpen]);
 
@@ -109,6 +123,11 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
   const handleFinish = (values: any) => {
     if (!gift) return;
 
+    if (giftType === 'GROUP_FIXED' && (!contributorTarget || contributorTarget < MIN_CONTRIBUTOR_TARGET)) {
+      message.error(`Un regalo en partes se divide entre al menos ${MIN_CONTRIBUTOR_TARGET} personas`);
+      return;
+    }
+
     const buildUpdatedGift = (finalImageUrl: string | undefined): GiftItem => ({
       ...gift,
       title: values.title,
@@ -123,6 +142,11 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
       imageUrl: finalImageUrl,
       imagePosition,
       imageScale,
+      // Sent as a unit so switching type clears the other variant's field —
+      // the server writes all three columns together for the same reason.
+      giftType,
+      contributorTarget: giftType === 'GROUP_FIXED' ? contributorTarget : null,
+      minContribution: giftType === 'GROUP_OPEN' ? minContribution : null,
     });
 
     const dispatchUpdate = (finalImageUrl: string | undefined) => {
@@ -166,7 +190,7 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
 
           <Form.Item
             name="price"
-            label="Precio (MXN)"
+            label={giftType === 'SINGLE' ? 'Precio (MXN)' : 'Meta (MXN)'}
             rules={[
               { required: true, message: 'Por favor ingresa el precio' },
               {
@@ -179,9 +203,25 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
                 },
               },
             ]}>
-            <Input type="number" placeholder="1500" className="shadow-sm" />
+            <Input
+              type="number"
+              placeholder="1500"
+              className="shadow-sm"
+              onChange={(event) => setPriceDraft(Number(event.target.value) || 0)}
+            />
           </Form.Item>
         </div>
+
+        <GiftTypeSelector
+          value={giftType}
+          onChange={setGiftType}
+          price={priceDraft}
+          contributorTarget={contributorTarget}
+          onContributorTargetChange={setContributorTarget}
+          minContribution={minContribution}
+          onMinContributionChange={setMinContribution}
+          locked={(gift.amountFunded ?? 0) > 0}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Form.Item name="categories" label="Categorías">

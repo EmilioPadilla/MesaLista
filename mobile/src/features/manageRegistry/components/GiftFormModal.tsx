@@ -4,8 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import type { Gift } from 'types/models/gift';
 
+import type { GiftType } from 'types/models/gift';
+import { MIN_CONTRIBUTOR_TARGET } from 'utils/giftFunding';
+
 import { useToast } from '@/lib/ToastProvider';
 import { uploadImageAsync } from '@/lib/uploadImage';
+import { GiftTypeSelector } from './GiftTypeSelector';
 
 export interface GiftFormValues {
   title: string;
@@ -14,6 +18,10 @@ export interface GiftFormValues {
   quantity: number;
   isMostWanted: boolean;
   imageUrl: string;
+  /** How the gift gets paid for. The three fields always travel together. */
+  giftType: GiftType;
+  contributorTarget: number | null;
+  minContribution: number | null;
 }
 
 interface GiftFormModalProps {
@@ -34,6 +42,9 @@ export function GiftFormModal({ visible, gift, submitting, onCancel, onSubmit }:
   const [isMostWanted, setIsMostWanted] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [giftType, setGiftType] = useState<GiftType>('SINGLE');
+  const [contributorTarget, setContributorTarget] = useState('');
+  const [minContribution, setMinContribution] = useState('');
 
   useEffect(() => {
     if (visible) {
@@ -44,6 +55,9 @@ export function GiftFormModal({ visible, gift, submitting, onCancel, onSubmit }:
       setIsMostWanted(gift?.isMostWanted ?? false);
       setImageUrl(gift?.imageUrl ?? '');
       setUploading(false);
+      setGiftType(gift?.giftType ?? 'SINGLE');
+      setContributorTarget(gift?.contributorTarget != null ? String(gift.contributorTarget) : '');
+      setMinContribution(gift?.minContribution != null ? String(gift.minContribution) : '');
     }
   }, [visible, gift]);
 
@@ -72,7 +86,10 @@ export function GiftFormModal({ visible, gift, submitting, onCancel, onSubmit }:
     }
   };
 
-  const canSubmit = title.trim().length > 0 && Number(price) > 0 && !uploading;
+  // A split gift is incomplete without a share count, so Save stays disabled
+  // rather than letting the couple submit something the server will reject.
+  const fixedSplitReady = giftType !== 'GROUP_FIXED' || Number(contributorTarget) >= MIN_CONTRIBUTOR_TARGET;
+  const canSubmit = title.trim().length > 0 && Number(price) > 0 && !uploading && fixedSplitReady;
 
   const submit = () => {
     if (!canSubmit) return;
@@ -83,6 +100,11 @@ export function GiftFormModal({ visible, gift, submitting, onCancel, onSubmit }:
       quantity: Math.max(1, Number(quantity) || 1),
       isMostWanted,
       imageUrl,
+      giftType,
+      // Only the selected variant's value travels; the other is explicitly null so
+      // no leftover from a type the couple moved away from is ever stored.
+      contributorTarget: giftType === 'GROUP_FIXED' ? Number(contributorTarget) : null,
+      minContribution: giftType === 'GROUP_OPEN' && minContribution ? Number(minContribution) : null,
     });
   };
 
@@ -153,7 +175,7 @@ export function GiftFormModal({ visible, gift, submitting, onCancel, onSubmit }:
           </Field>
 
           <View className="flex-row gap-3">
-            <Field label="Precio (MXN)" className="flex-1">
+            <Field label={giftType === 'SINGLE' ? 'Precio (MXN)' : 'Meta (MXN)'} className="flex-1">
               <TextInput
                 className="rounded-ml border border-gray-200 bg-white px-4 py-3 text-base text-ink"
                 placeholder="0"
@@ -174,6 +196,17 @@ export function GiftFormModal({ visible, gift, submitting, onCancel, onSubmit }:
               />
             </Field>
           </View>
+
+          <GiftTypeSelector
+            value={giftType}
+            onChange={setGiftType}
+            price={Number(price) || 0}
+            contributorTarget={contributorTarget}
+            onContributorTargetChange={setContributorTarget}
+            minContribution={minContribution}
+            onMinContributionChange={setMinContribution}
+            locked={(gift?.amountFunded ?? 0) > 0}
+          />
 
           <View className="mt-2 flex-row items-center justify-between rounded-ml border border-gray-200 bg-white px-4 py-3">
             <Text className="text-base text-ink">Más deseado</Text>

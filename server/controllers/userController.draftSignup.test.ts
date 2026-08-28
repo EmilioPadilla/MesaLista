@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // TEST-S1 — Signup is free and produces a DRAFT list: no plan, not published,
-// invisible to guests. The legacy /signup/commission route still has to publish
-// a COMMISSION list on the spot for App Store builds <= 1.0.2 (18).
+// invisible to guests, and no discount code (that is a publish-time concern).
+// The legacy /signup/commission route still has to publish a COMMISSION list on
+// the spot for App Store builds <= 1.0.2 (18), discount code included.
 
 const userCreate = vi.fn();
 const giftListCreate = vi.fn();
@@ -100,7 +101,7 @@ describe('POST /user/signup (draft signup)', () => {
     expect(emailService.sendGiftListCreationEmail).not.toHaveBeenCalled();
   });
 
-  it('attaches a discount code to the draft without redeeming it', async () => {
+  it('ignores a discount code sent by an old client — codes belong to publish', async () => {
     (discountCodeService.validateDiscountCode as any).mockResolvedValue({
       valid: true,
       discountCode: { id: 7, code: 'BODA10' },
@@ -109,20 +110,23 @@ describe('POST /user/signup (draft signup)', () => {
     const res = makeRes();
     await userController.signupDraft(makeReq({ ...signupBody, discountCode: 'BODA10' }) as any, res as any);
 
-    expect(giftListCreate.mock.calls[0][0].data.discountCodeId).toBe(7);
-    // A draft that never publishes must not burn the code — redemption happens
-    // inside the publish transaction instead.
+    // Nothing is charged at signup, so there is nothing to discount: the code is
+    // neither validated, attached nor redeemed here. The couple enters it on the
+    // publish screen, and the plan checkout attaches it to the draft.
+    expect(discountCodeService.validateDiscountCode).not.toHaveBeenCalled();
+    expect(giftListCreate.mock.calls[0][0].data.discountCodeId).toBeUndefined();
     expect(discountCodeUpdate).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(201);
   });
 
-  it('rejects an invalid discount code before creating anything', async () => {
+  it('does not 400 on a stale or invalid code from an old client', async () => {
     (discountCodeService.validateDiscountCode as any).mockResolvedValue({ valid: false, error: 'Código expirado' });
 
     const res = makeRes();
     await userController.signupDraft(makeReq({ ...signupBody, discountCode: 'NOPE' }) as any, res as any);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(userCreate).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(userCreate).toHaveBeenCalledTimes(1);
   });
 });
 

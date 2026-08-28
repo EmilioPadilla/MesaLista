@@ -11,6 +11,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const giftUpdateMany = vi.fn();
 const giftFindUnique = vi.fn();
+const giftFindFirst = vi.fn();
 const giftListFindFirst = vi.fn();
 const giftCategoryOnGiftDeleteMany = vi.fn();
 const giftCategoryOnGiftCreate = vi.fn();
@@ -22,6 +23,7 @@ vi.mock('@prisma/client', () => ({
     gift = {
       updateMany: giftUpdateMany,
       findUnique: giftFindUnique,
+      findFirst: giftFindFirst,
     };
     giftList = {
       findFirst: giftListFindFirst,
@@ -60,6 +62,15 @@ beforeEach(() => {
   vi.clearAllMocks();
   // Default happy-path stubs so each test only overrides what matters to it.
   giftUpdateMany.mockResolvedValue({ count: 1 });
+  // The controller now reads the gift before writing so it can validate funding
+  // shape against the money already raised. Default: an untouched SINGLE gift.
+  giftFindFirst.mockResolvedValue({
+    giftType: 'SINGLE',
+    price: 1000,
+    amountFunded: 0,
+    contributorTarget: null,
+    minContribution: null,
+  });
   giftCategoryOnGiftDeleteMany.mockResolvedValue({ count: 0 });
   giftCategoryOnGiftCreate.mockResolvedValue({});
   giftFindUnique.mockImplementation(({ select }: any) => {

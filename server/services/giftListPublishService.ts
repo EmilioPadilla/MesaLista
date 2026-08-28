@@ -9,7 +9,7 @@ export type PublishResult =
 
 /**
  * Publishes a draft gift list: assigns its plan, stamps `publishedAt`, and
- * redeems any discount code the couple attached at signup.
+ * settles any discount code the plan checkout attached to the draft.
  *
  * This is the ONLY place a list moves from draft to published. Both the
  * commission path (giftListController.publishGiftList) and the fixed path
@@ -23,8 +23,9 @@ export type PublishResult =
  *   - The plan is immutable afterwards. Because the guard requires
  *     `planType: null`, a published list can never be re-planned through here,
  *     which is what stops a paid FIXED list being downgraded to COMMISSION.
- *   - The discount code is redeemed exactly once, inside the same transaction as
- *     the transition. A draft that never publishes never burns its code.
+ *   - A discount code is redeemed exactly once, inside the same transaction as
+ *     the transition, and only on the plan it actually discounted. A draft that
+ *     never publishes never burns its code.
  */
 export async function publishGiftList({
   giftListId,
@@ -64,14 +65,27 @@ export async function publishGiftList({
       },
     });
 
-    // Redeeming here rather than at signup means an abandoned draft leaves the
-    // code available. Safe to run unconditionally: we only reach it on the one
-    // call that won the compare-and-set above.
+    // A code is attached when the FIXED checkout session is created, before the
+    // couple pays, and only the fixed price is ever discounted. So redeem it
+    // here — an abandoned checkout then leaves the code available — but only
+    // when this publish is the fixed one it was attached for. Publishing on
+    // commission instead means that checkout never completed and the code
+    // discounted nothing, so drop the attachment rather than burn a use: it
+    // would otherwise count against the usage limit and show up in the admin
+    // stats as a registry that used the code.
+    // Both branches only run on the one call that won the compare-and-set above.
     if (giftList?.discountCodeId) {
-      await tx.discountCode.update({
-        where: { id: giftList.discountCodeId },
-        data: { usageCount: { increment: 1 } },
-      });
+      if (planType === 'FIXED') {
+        await tx.discountCode.update({
+          where: { id: giftList.discountCodeId },
+          data: { usageCount: { increment: 1 } },
+        });
+      } else {
+        await tx.giftList.update({
+          where: { id: giftListId },
+          data: { discountCodeId: null },
+        });
+      }
     }
 
     return giftList;
