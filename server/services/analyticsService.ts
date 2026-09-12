@@ -1,5 +1,105 @@
 import crypto from 'crypto';
+import { Prisma } from '@prisma/client';
 import prisma from '../lib/prisma.js';
+
+function pct(numerator: number, denominator: number): number {
+  if (denominator <= 0) return 0;
+  return Math.round((numerator / denominator) * 10000) / 100;
+}
+
+const COUPLE_SUBROUTES = ['gestionar', 'listas', 'crear-lista', 'configuracion', 'invitacion', 'gestionar-rsvp'];
+const RESERVED_TOP_LEVEL_PATHS = [
+  'login',
+  'olvide-contrasena',
+  'restablecer-contrasena',
+  'registro',
+  'registro-exitoso',
+  'buscar',
+  'contacto',
+  'precios',
+  'colecciones',
+  'admin',
+];
+
+/**
+ * Unique sessions that opened a public registry (`/:slug` or `/:slug/regalos`).
+ * PAGE_VIEW paths are the only signal we have for "looked at a mesa"; product
+ * tables take over from add-to-cart onward.
+ */
+async function countRegistryViewSessions(fromDate: Date, toDate: Date, slug?: string | null): Promise<number> {
+  try {
+    if (slug) {
+      const exact = `/${slug}`;
+      const prefix = `/${slug}/%`;
+      const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+        SELECT COUNT(DISTINCT session_id) AS count
+        FROM analytics_events
+        WHERE event_type::text = 'PAGE_VIEW'
+          AND created_at >= ${fromDate}
+          AND created_at <= ${toDate}
+          AND (
+            metadata->>'path' = ${exact}
+            OR metadata->>'path' LIKE ${prefix}
+          )
+          AND COALESCE(split_part(metadata->>'path', '/', 3), '') NOT IN (${Prisma.join(
+            COUPLE_SUBROUTES.map((s) => Prisma.sql`${s}`),
+          )})
+      `;
+      return Number(rows[0]?.count ?? 0);
+    }
+
+    const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(DISTINCT session_id) AS count
+      FROM analytics_events
+      WHERE event_type::text = 'PAGE_VIEW'
+        AND created_at >= ${fromDate}
+        AND created_at <= ${toDate}
+        AND (
+          (
+            metadata->>'path' ~ '^/[^/]+$'
+            AND split_part(metadata->>'path', '/', 2) NOT IN (${Prisma.join(
+              RESERVED_TOP_LEVEL_PATHS.map((s) => Prisma.sql`${s}`),
+            )})
+          )
+          OR metadata->>'path' LIKE '%/regalos'
+        )
+    `;
+    return Number(rows[0]?.count ?? 0);
+  } catch (error) {
+    console.error('Error counting registry views:', error);
+    return 0;
+  }
+}
+
+/**
+ * Per-day counts straight from a product table, so a trend line matches the
+ * summary card it sits under. `analytics_daily` only ever aggregated events.
+ */
+type ProductSeriesMetric = 'signupsCompleted' | 'draftsCreated' | 'giftsAdded' | 'registriesPublished' | 'cartsWithItems' | 'giftPurchases';
+
+const PRODUCT_TIME_SERIES: Record<ProductSeriesMetric, Prisma.Sql> = {
+  signupsCompleted: Prisma.sql`SELECT created_at AS ts FROM users WHERE role = 'COUPLE'`,
+  draftsCreated: Prisma.sql`SELECT created_at AS ts FROM gift_lists`,
+  giftsAdded: Prisma.sql`SELECT created_at AS ts FROM gifts`,
+  registriesPublished: Prisma.sql`SELECT published_at AS ts FROM gift_lists WHERE published_at IS NOT NULL`,
+  // One row per cart, dated by the first item added to it.
+  cartsWithItems: Prisma.sql`SELECT MIN(created_at) AS ts FROM cart_items GROUP BY cart_id`,
+  giftPurchases: Prisma.sql`SELECT created_at AS ts FROM payments WHERE status = 'PAID'`,
+};
+
+async function countByDay(source: Prisma.Sql, fromDate: Date, toDate: Date): Promise<TimeSeriesData[]> {
+  const rows = await prisma.$queryRaw<Array<{ day: Date; count: bigint }>>`
+    SELECT date_trunc('day', src.ts) AS day, COUNT(*) AS count
+    FROM (${source}) AS src
+    WHERE src.ts >= ${fromDate} AND src.ts <= ${toDate}
+    GROUP BY 1
+    ORDER BY 1 ASC
+  `;
+  return rows.map((row) => ({
+    date: row.day.toISOString().split('T')[0],
+    value: Number(row.count),
+  }));
+}
 
 interface LogEventParams {
   sessionId: string;
@@ -22,6 +122,31 @@ interface SessionParams {
   userAgent?: string;
 }
 
+interface ConversionMetrics {
+  registryAttempts: number;
+  signupsCompleted: number;
+  draftsCreated: number;
+  draftsWithGifts: number;
+  giftsAdded: number;
+  registriesPublished: number;
+  publishedFixed: number;
+  publishedCommission: number;
+  registryViewers: number;
+  cartsWithItems: number;
+  checkoutsStarted: number;
+  giftPurchases: number;
+  giftsSold: number;
+  giftPurchaseAmount: number;
+  attemptToSignupRate: number;
+  attemptToDraftRate: number;
+  draftActivationRate: number;
+  draftToPublishRate: number;
+  cartToPurchaseRate: number;
+  checkoutCompletionRate: number;
+  checkoutAbandonments: number;
+  checkoutAbandonmentRate: number;
+}
+
 interface MetricsSummary {
   visitors: number;
   signIns: number;
@@ -29,9 +154,18 @@ interface MetricsSummary {
   registryPurchases: number;
   // Free-to-build funnel. Signup and payment used to be one step, so
   // `registryPurchases` covered both; these split them apart.
+  signupsCompleted: number;
   draftsCreated: number;
+  draftsWithGifts: number;
+  giftsAdded: number;
   registriesPublished: number;
+  publishedFixed: number;
+  publishedCommission: number;
+  registryViewers: number;
+  cartsWithItems: number;
   giftPurchases: number;
+  giftsSold: number;
+  giftPurchaseAmount: number;
   viewPricing: number;
   viewRegistryBuilder: number;
   startCheckouts: number;
@@ -41,7 +175,12 @@ interface MetricsSummary {
   avgSessionDurationMs: number;
   signInRate: number;
   registryPurchaseRate: number;
+  attemptToSignupRate: number;
+  attemptToDraftRate: number;
+  draftActivationRate: number;
   draftToPublishRate: number;
+  cartToPurchaseRate: number;
+  checkoutCompletionRate: number;
   giftPurchaseRate: number;
   checkoutAbandonmentRate: number;
   topUtmSources?: Array<{ source: string; visitors: number; conversions: number; conversionRate: number }>;
@@ -72,6 +211,124 @@ export const analyticsService = {
    */
   hashUserId(userId: number): string {
     return crypto.createHash('sha256').update(userId.toString()).digest('hex');
+  },
+
+  /**
+   * Product-table conversion metrics. Client events undercount (adblock, mobile
+   * gaps, list-filter by owner hash hiding guest purchases). gift_lists / carts /
+   * payments are the source of truth for "did someone create a mesa / buy a gift".
+   *
+   * The two exceptions are intent, which leaves no row behind: REGISTRY_ATTEMPT
+   * (opened the signup form) and START_CHECKOUT (hit pay). A `payments` row is
+   * only written after the charge clears, so counting it as "started checkout"
+   * would make abandonment permanently zero.
+   */
+  async getConversionMetrics(fromDate: Date, toDate: Date, weddingListId?: number, slug?: string | null): Promise<ConversionMetrics> {
+    const createdInRange = { gte: fromDate, lte: toDate };
+    const listWhere = weddingListId ? { id: weddingListId } : {};
+    const cartForList = weddingListId ? { giftListId: weddingListId } : { giftListId: { not: null } };
+
+    const [
+      attemptSessions,
+      signupsCompleted,
+      draftsCreated,
+      draftsWithGifts,
+      giftsAdded,
+      registriesPublished,
+      publishedByPlan,
+      registryViewers,
+      cartsWithItems,
+      checkoutStartEvents,
+      giftPurchases,
+      paidAmount,
+      giftsSold,
+    ] = await Promise.all([
+      prisma.analyticsEvent.groupBy({
+        by: ['sessionId'],
+        where: { eventType: 'REGISTRY_ATTEMPT', createdAt: createdInRange },
+      }),
+      // Signup and the first draft are one transaction (userController.signup),
+      // so this is "attempted and got all the way through the form".
+      weddingListId ? Promise.resolve(0) : prisma.user.count({ where: { role: 'COUPLE', createdAt: createdInRange } }),
+      prisma.giftList.count({ where: { ...listWhere, createdAt: createdInRange } }),
+      prisma.giftList.count({
+        where: { ...listWhere, createdAt: createdInRange, gifts: { some: {} } },
+      }),
+      prisma.gift.count({
+        where: { createdAt: createdInRange, ...(weddingListId ? { giftListId: weddingListId } : {}) },
+      }),
+      prisma.giftList.count({ where: { ...listWhere, publishedAt: createdInRange } }),
+      prisma.giftList.groupBy({
+        by: ['planType'],
+        where: { ...listWhere, publishedAt: createdInRange, planType: { not: null } },
+        _count: true,
+      }),
+      countRegistryViewSessions(fromDate, toDate, slug),
+      prisma.cart.count({
+        where: { ...cartForList, items: { some: { createdAt: createdInRange } } },
+      }),
+      prisma.analyticsEvent.findMany({
+        where: { eventType: 'START_CHECKOUT', createdAt: createdInRange },
+        select: { metadata: true },
+      }),
+      prisma.payment.count({
+        where: { status: 'PAID', createdAt: createdInRange, cart: cartForList },
+      }),
+      prisma.payment.aggregate({
+        _sum: { amount: true },
+        where: { status: 'PAID', createdAt: createdInRange, cart: cartForList },
+      }),
+      prisma.cartItem.count({
+        where: {
+          cart: {
+            ...cartForList,
+            payment: { status: 'PAID', createdAt: createdInRange },
+          },
+        },
+      }),
+    ]);
+
+    const registryAttempts = attemptSessions.length;
+    const publishedFixed = publishedByPlan.find((row) => row.planType === 'FIXED')?._count ?? 0;
+    const publishedCommission = publishedByPlan.find((row) => row.planType === 'COMMISSION')?._count ?? 0;
+
+    // A guest checkout carries `cartId`; a FIXED-plan publish checkout carries
+    // `plan` instead. Only the former belongs in the guest funnel. Dedupe by cart
+    // so a guest who retries payment three times is still one abandoned checkout.
+    const checkoutCartIds = new Set<number>();
+    for (const event of checkoutStartEvents) {
+      const cartId = Number((event.metadata as { cartId?: unknown } | null)?.cartId);
+      if (Number.isInteger(cartId)) checkoutCartIds.add(cartId);
+    }
+    const checkoutsStarted = weddingListId
+      ? await prisma.cart.count({ where: { id: { in: [...checkoutCartIds] }, giftListId: weddingListId } })
+      : checkoutCartIds.size;
+    const checkoutAbandonments = Math.max(0, checkoutsStarted - giftPurchases);
+
+    return {
+      registryAttempts,
+      signupsCompleted,
+      draftsCreated,
+      draftsWithGifts,
+      giftsAdded,
+      registriesPublished,
+      publishedFixed,
+      publishedCommission,
+      registryViewers,
+      cartsWithItems,
+      checkoutsStarted,
+      giftPurchases,
+      giftsSold,
+      giftPurchaseAmount: paidAmount._sum.amount ?? 0,
+      attemptToSignupRate: pct(signupsCompleted, registryAttempts),
+      attemptToDraftRate: pct(draftsCreated, registryAttempts),
+      draftActivationRate: pct(draftsWithGifts, draftsCreated),
+      draftToPublishRate: pct(registriesPublished, draftsCreated),
+      cartToPurchaseRate: pct(giftPurchases, cartsWithItems),
+      checkoutCompletionRate: pct(giftPurchases, checkoutsStarted),
+      checkoutAbandonments,
+      checkoutAbandonmentRate: pct(checkoutAbandonments, checkoutsStarted),
+    };
   },
 
   /**
@@ -187,17 +444,22 @@ export const analyticsService = {
     try {
       // If filtering by wedding list, get the owner's user hash
       let ownerUserHash: string | undefined;
+      let registrySlug: string | null = null;
       if (weddingListId) {
         const weddingList = await prisma.giftList.findUnique({
           where: { id: weddingListId },
-          select: { userId: true },
+          select: { userId: true, user: { select: { slug: true } } },
         });
         if (weddingList) {
           ownerUserHash = this.hashUserId(weddingList.userId);
+          registrySlug = weddingList.user.slug;
         }
       }
 
-      // Get unique visitors (unique sessionIds with PAGE_VIEW)
+      const conversion = await this.getConversionMetrics(fromDate, toDate, weddingListId, registrySlug);
+
+      // Site-wide unique sessions. Filtering by list uses registry page views
+      // instead of the owner's hash — guests buying gifts are not the couple.
       const visitorsResult = await prisma.analyticsEvent.groupBy({
         by: ['sessionId'],
         where: {
@@ -206,13 +468,12 @@ export const analyticsService = {
             gte: fromDate,
             lte: toDate,
           },
-          ...(ownerUserHash ? { userHash: ownerUserHash } : {}),
         },
         _count: {
           sessionId: true,
         },
       });
-      const visitors = visitorsResult.length;
+      const visitors = weddingListId ? conversion.registryViewers : visitorsResult.length;
 
       // Get unique sign-ins (unique userHash with SIGN_IN)
       const signInsResult = await prisma.analyticsEvent.groupBy({
@@ -231,59 +492,16 @@ export const analyticsService = {
       });
       const signIns = signInsResult.length;
 
-      // Get registry attempts count
-      const registryAttempts = await prisma.analyticsEvent.count({
-        where: {
-          eventType: 'REGISTRY_ATTEMPT',
-          createdAt: {
-            gte: fromDate,
-            lte: toDate,
-          },
-          ...(ownerUserHash ? { userHash: ownerUserHash } : {}),
-        },
-      });
+      const registryAttempts = conversion.registryAttempts;
+      const draftsCreated = conversion.draftsCreated;
+      const registriesPublished = conversion.registriesPublished;
+      const giftPurchases = conversion.giftPurchases;
 
-      // Get registry purchases count
+      // Paid-plan publishes still come from the event stream; the product tables
+      // don't distinguish a FIXED publish paid this period from one already paid.
       const registryPurchases = await prisma.analyticsEvent.count({
         where: {
           eventType: 'REGISTRY_PURCHASE',
-          createdAt: {
-            gte: fromDate,
-            lte: toDate,
-          },
-          ...(ownerUserHash ? { userHash: ownerUserHash } : {}),
-        },
-      });
-
-      // Free-to-build funnel. Under the old flow signup and payment were the same
-      // step, so `registryPurchases` was both. They are now separate moments and
-      // the gap between them is the number worth watching.
-      const draftsCreated = await prisma.analyticsEvent.count({
-        where: {
-          eventType: 'REGISTRY_DRAFT_CREATED',
-          createdAt: {
-            gte: fromDate,
-            lte: toDate,
-          },
-          ...(ownerUserHash ? { userHash: ownerUserHash } : {}),
-        },
-      });
-
-      const registriesPublished = await prisma.analyticsEvent.count({
-        where: {
-          eventType: 'REGISTRY_PUBLISHED',
-          createdAt: {
-            gte: fromDate,
-            lte: toDate,
-          },
-          ...(ownerUserHash ? { userHash: ownerUserHash } : {}),
-        },
-      });
-
-      // Get gift purchases count
-      const giftPurchases = await prisma.analyticsEvent.count({
-        where: {
-          eventType: 'GIFT_PURCHASE',
           createdAt: {
             gte: fromDate,
             lte: toDate,
@@ -316,17 +534,7 @@ export const analyticsService = {
         },
       });
 
-      // Get start checkouts count
-      const startCheckouts = await prisma.analyticsEvent.count({
-        where: {
-          eventType: 'START_CHECKOUT',
-          createdAt: {
-            gte: fromDate,
-            lte: toDate,
-          },
-          ...(ownerUserHash ? { userHash: ownerUserHash } : {}),
-        },
-      });
+      const startCheckouts = conversion.checkoutsStarted;
 
       // Get checkout errors count
       const checkoutErrors = await prisma.analyticsEvent.count({
@@ -340,9 +548,7 @@ export const analyticsService = {
         },
       });
 
-      // Calculate checkout abandonments (start_checkouts - total purchases)
-      const totalPurchases = registryPurchases + giftPurchases;
-      const checkoutAbandonments = Math.max(0, startCheckouts - totalPurchases);
+      const checkoutAbandonments = conversion.checkoutAbandonments;
 
       // Get session metrics
       const sessions = await prisma.analyticsSession.findMany({
@@ -368,12 +574,11 @@ export const analyticsService = {
           : 0;
 
       // Calculate conversion rates
-      const signInRate = visitors > 0 ? (signIns / visitors) * 100 : 0;
-      const registryPurchaseRate = signIns > 0 ? (registryPurchases / signIns) * 100 : 0;
-      const giftPurchaseRate = visitors > 0 ? (giftPurchases / visitors) * 100 : 0;
-      const checkoutAbandonmentRate = startCheckouts > 0 ? (checkoutAbandonments / startCheckouts) * 100 : 0;
-      // How many couples who started a registry for free went on to publish one.
-      const draftToPublishRate = draftsCreated > 0 ? (registriesPublished / draftsCreated) * 100 : 0;
+      const signInRate = pct(signIns, visitors);
+      const registryPurchaseRate = pct(registryPurchases, signIns);
+      const giftPurchaseRate = conversion.cartToPurchaseRate;
+      const checkoutAbandonmentRate = conversion.checkoutAbandonmentRate;
+      const draftToPublishRate = conversion.draftToPublishRate;
 
       // Get top UTM sources
       const utmSourceSessions = await prisma.analyticsSession.groupBy({
@@ -427,9 +632,18 @@ export const analyticsService = {
         signIns,
         registryAttempts,
         registryPurchases,
+        signupsCompleted: conversion.signupsCompleted,
         draftsCreated,
+        draftsWithGifts: conversion.draftsWithGifts,
+        giftsAdded: conversion.giftsAdded,
         registriesPublished,
+        publishedFixed: conversion.publishedFixed,
+        publishedCommission: conversion.publishedCommission,
+        registryViewers: conversion.registryViewers,
+        cartsWithItems: conversion.cartsWithItems,
         giftPurchases,
+        giftsSold: conversion.giftsSold,
+        giftPurchaseAmount: conversion.giftPurchaseAmount,
         viewPricing,
         viewRegistryBuilder,
         startCheckouts,
@@ -437,11 +651,16 @@ export const analyticsService = {
         checkoutAbandonments,
         avgPagesPerSession: Math.round(avgPagesPerSession * 100) / 100,
         avgSessionDurationMs: Math.round(avgSessionDurationMs),
-        signInRate: Math.round(signInRate * 100) / 100,
-        registryPurchaseRate: Math.round(registryPurchaseRate * 100) / 100,
-        draftToPublishRate: Math.round(draftToPublishRate * 100) / 100,
-        giftPurchaseRate: Math.round(giftPurchaseRate * 100) / 100,
-        checkoutAbandonmentRate: Math.round(checkoutAbandonmentRate * 100) / 100,
+        signInRate,
+        registryPurchaseRate,
+        attemptToSignupRate: conversion.attemptToSignupRate,
+        attemptToDraftRate: conversion.attemptToDraftRate,
+        draftActivationRate: conversion.draftActivationRate,
+        draftToPublishRate,
+        cartToPurchaseRate: conversion.cartToPurchaseRate,
+        checkoutCompletionRate: conversion.checkoutCompletionRate,
+        giftPurchaseRate,
+        checkoutAbandonmentRate,
         topUtmSources,
       };
     } catch (error) {
@@ -459,8 +678,11 @@ export const analyticsService = {
       | 'signIns'
       | 'registryAttempts'
       | 'registryPurchases'
+      | 'signupsCompleted'
       | 'draftsCreated'
+      | 'giftsAdded'
       | 'registriesPublished'
+      | 'cartsWithItems'
       | 'giftPurchases'
       | 'viewPricing'
       | 'viewRegistryBuilder'
@@ -470,6 +692,13 @@ export const analyticsService = {
     granularity: 'daily' | 'hourly' = 'daily',
   ): Promise<TimeSeriesData[]> {
     try {
+      // Metrics the summary cards read off the product tables have to trend off
+      // the same tables, or the chart and the card above it disagree.
+      const productSeries = PRODUCT_TIME_SERIES[metric as ProductSeriesMetric];
+      if (productSeries) {
+        return await countByDay(productSeries, fromDate, toDate);
+      }
+
       if (granularity === 'daily') {
         // Use aggregated daily data if available
         const dailyData = await prisma.analyticsDaily.findMany({

@@ -40,6 +40,21 @@ export interface UpsertSessionParams {
   userAgent?: string;
 }
 
+export type TimeSeriesMetric =
+  | 'visitors'
+  | 'signIns'
+  | 'registryAttempts'
+  | 'registryPurchases'
+  | 'signupsCompleted'
+  | 'draftsCreated'
+  | 'giftsAdded'
+  | 'registriesPublished'
+  | 'cartsWithItems'
+  | 'giftPurchases'
+  | 'viewPricing'
+  | 'viewRegistryBuilder'
+  | 'startCheckouts';
+
 export interface MetricsSummary {
   from: string;
   to: string;
@@ -47,7 +62,18 @@ export interface MetricsSummary {
   signIns: number;
   registryAttempts: number;
   registryPurchases: number;
+  signupsCompleted: number;
+  draftsCreated: number;
+  draftsWithGifts: number;
+  giftsAdded: number;
+  registriesPublished: number;
+  publishedFixed: number;
+  publishedCommission: number;
+  registryViewers: number;
+  cartsWithItems: number;
   giftPurchases: number;
+  giftsSold: number;
+  giftPurchaseAmount: number;
   viewPricing: number;
   viewRegistryBuilder: number;
   startCheckouts: number;
@@ -57,6 +83,12 @@ export interface MetricsSummary {
   avgSessionDurationMs: number;
   signInRate: number;
   registryPurchaseRate: number;
+  attemptToSignupRate: number;
+  attemptToDraftRate: number;
+  draftActivationRate: number;
+  draftToPublishRate: number;
+  cartToPurchaseRate: number;
+  checkoutCompletionRate: number;
   giftPurchaseRate: number;
   checkoutAbandonmentRate: number;
   topUtmSources?: Array<{ source: string; visitors: number; conversions: number; conversionRate: number }>;
@@ -147,7 +179,7 @@ export const analyticsService = {
    * Get time series data for a specific metric
    */
   getTimeSeries: async (
-    metric: 'visitors' | 'signIns' | 'registryAttempts' | 'registryPurchases' | 'giftPurchases',
+    metric: TimeSeriesMetric,
     from?: string,
     to?: string,
     granularity: 'daily' | 'hourly' = 'daily',

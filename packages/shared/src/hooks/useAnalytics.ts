@@ -8,6 +8,7 @@ import {
   type TimeSeriesResponse,
   type FunnelBreakdownResponse,
   type AlertsResponse,
+  type TimeSeriesMetric,
 } from '../services/analytics.service';
 import { queryKeys } from './queryKeys';
 
@@ -47,7 +48,7 @@ export const useMetricsSummary = (from?: string, to?: string, weddingListId?: nu
  * Hook to get time series data
  */
 export const useTimeSeries = (
-  metric: 'visitors' | 'signIns' | 'registryAttempts' | 'registryPurchases' | 'giftPurchases',
+  metric: TimeSeriesMetric,
   from?: string,
   to?: string,
   granularity: 'daily' | 'hourly' = 'daily',

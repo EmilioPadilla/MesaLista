@@ -18,11 +18,13 @@ type MetricType =
   | 'visitors'
   | 'signIns'
   | 'registryAttempts'
-  | 'registryPurchases'
-  | 'giftPurchases'
-  | 'viewPricing'
-  | 'viewRegistryBuilder'
-  | 'startCheckouts';
+  | 'signupsCompleted'
+  | 'draftsCreated'
+  | 'giftsAdded'
+  | 'registriesPublished'
+  | 'cartsWithItems'
+  | 'startCheckouts'
+  | 'giftPurchases';
 type FunnelDimension = 'utm_source' | 'landing_page';
 
 export function AnalyticsPage() {
@@ -69,12 +71,7 @@ export function AnalyticsPage() {
   // Fetch data
   const { data: weddingLists } = useGiftLists();
   const { data: summary, isLoading: isSummaryLoading } = useMetricsSummary(from, to, selectedWeddingListId);
-  const { data: timeSeriesData, isLoading: isTimeSeriesLoading } = useTimeSeries(
-    selectedMetric as 'visitors' | 'signIns' | 'registryAttempts' | 'registryPurchases' | 'giftPurchases',
-    from,
-    to,
-    'daily',
-  );
+  const { data: timeSeriesData, isLoading: isTimeSeriesLoading } = useTimeSeries(selectedMetric, from, to, 'daily');
   const { data: funnelBreakdown, isLoading: isFunnelLoading } = useFunnelBreakdown(funnelDimension, from, to);
   const { data: alerts } = useMetricAlerts();
 
@@ -88,22 +85,21 @@ export function AnalyticsPage() {
   const { data: paymentListsData, isLoading: isPaymentListsLoading } = useGiftListsPaymentAnalytics();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
-          <p className="text-gray-600">Visualiza el embudo de conversión y métricas clave</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-600">Visualiza el embudo de conversión y métricas clave</p>
         </div>
 
         {/* Filters */}
-        <Card className="mb-6">
-          <div className="flex flex-wrap gap-4 items-center">
+        <Card className="mb-4 sm:mb-6">
+          <div className="flex flex-wrap gap-3 sm:gap-4 items-center">
             <Select
-              className="shadow-sm! rounded-md!"
+              className="shadow-sm! rounded-md! w-full sm:w-[200px]"
               value={dateRange}
-              onChange={(value) => setDateRange(value as DateRange)}
-              style={{ width: 200 }}>
+              onChange={(value) => setDateRange(value as DateRange)}>
               <Option value="today">Hoy</Option>
               <Option value="last7days">Últimos 7 días</Option>
               <Option value="last30days">Últimos 30 días</Option>
@@ -111,11 +107,16 @@ export function AnalyticsPage() {
             </Select>
 
             {dateRange === 'custom' && (
-              <RangePicker value={customDates} onChange={(dates) => setCustomDates(dates as [Dayjs, Dayjs])} format="YYYY-MM-DD" />
+              <RangePicker
+                className="w-full sm:w-auto"
+                value={customDates}
+                onChange={(dates) => setCustomDates(dates as [Dayjs, Dayjs])}
+                format="YYYY-MM-DD"
+              />
             )}
 
             <Select
-              className="shadow-sm! rounded-md!"
+              className="shadow-sm! rounded-md! w-full sm:w-[280px]"
               value={selectedWeddingListId}
               onChange={(value) => setSelectedWeddingListId(value)}
               placeholder="Filtrar por mesa de regalos"
@@ -124,8 +125,7 @@ export function AnalyticsPage() {
               filterOption={(input, option) => {
                 const label = option?.children?.toString() || '';
                 return label.toLowerCase().includes(input.toLowerCase());
-              }}
-              style={{ width: 280 }}>
+              }}>
               <Option value={undefined}>Todas las mesas de regalos</Option>
               {weddingLists?.map((list: any) => (
                 <Option key={list.id} value={list.id}>
@@ -156,6 +156,7 @@ export function AnalyticsPage() {
               alerts={alerts}
               selectedMetric={selectedMetric}
               onMetricChange={setSelectedMetric}
+              isListFiltered={selectedWeddingListId !== undefined}
             />
           </Tabs.TabPane>
 

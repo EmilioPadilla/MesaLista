@@ -155,6 +155,11 @@ export const analyticsController = {
         'signIns',
         'registryAttempts',
         'registryPurchases',
+        'signupsCompleted',
+        'draftsCreated',
+        'giftsAdded',
+        'registriesPublished',
+        'cartsWithItems',
         'giftPurchases',
         'viewPricing',
         'viewRegistryBuilder',
@@ -193,6 +198,11 @@ export const analyticsController = {
           | 'signIns'
           | 'registryAttempts'
           | 'registryPurchases'
+          | 'signupsCompleted'
+          | 'draftsCreated'
+          | 'giftsAdded'
+          | 'registriesPublished'
+          | 'cartsWithItems'
           | 'giftPurchases'
           | 'viewPricing'
           | 'viewRegistryBuilder'
