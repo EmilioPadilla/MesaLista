@@ -23,7 +23,11 @@ vi.mock('../lib/prisma.js', () => ({
 }));
 
 vi.mock('./emailService.js', () => ({
-  default: { sendGiftListCreationEmail: vi.fn().mockResolvedValue(undefined) },
+  default: {
+    sendAdminGiftListCreatedNotification: vi.fn().mockResolvedValue(undefined),
+    sendAdminGiftListPublishedNotification: vi.fn().mockResolvedValue(undefined),
+    sendGiftListCreationEmail: vi.fn().mockResolvedValue(undefined),
+  },
 }));
 
 const { publishGiftList } = await import('./giftListPublishService.js');
@@ -134,6 +138,35 @@ describe('publishGiftList', () => {
 
     expect(discountCodeUpdate).not.toHaveBeenCalled();
     expect(giftListUpdate).not.toHaveBeenCalled();
+  });
+
+  it('notifies the admin exactly once per real publish, with the plan and amount', async () => {
+    giftListFindUnique.mockResolvedValue({ ...draft, planType: 'FIXED' });
+
+    await publishGiftList({ giftListId: 10, userId: 1, planType: 'FIXED', amount: 1800 });
+
+    expect(emailService.sendAdminGiftListPublishedNotification).toHaveBeenCalledTimes(1);
+    expect(emailService.sendAdminGiftListPublishedNotification).toHaveBeenCalledWith({
+      userId: 1,
+      giftListId: 10,
+      giftListTitle: draft.title,
+      coupleName: draft.coupleName,
+      eventDate: draft.eventDate,
+      planType: 'FIXED',
+      amount: 1800,
+      publishedAt: draft.publishedAt,
+    });
+  });
+
+  it('does not notify the admin on a replayed publish', async () => {
+    // Only the caller that wins the compare-and-set announces the publish, so a
+    // webhook replay racing the client's own completion call cannot double-send.
+    giftListUpdateMany.mockResolvedValue({ count: 0 });
+    giftListFindUnique.mockResolvedValue({ userId: 1, planType: 'FIXED' });
+
+    await publishGiftList({ giftListId: 10, userId: 1, planType: 'FIXED', amount: 1800 });
+
+    expect(emailService.sendAdminGiftListPublishedNotification).not.toHaveBeenCalled();
   });
 
   it('still reports success when the confirmation email fails', async () => {

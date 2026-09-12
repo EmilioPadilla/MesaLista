@@ -40,7 +40,11 @@ vi.mock('stripe', () => ({
 
 vi.mock('bcrypt', () => ({ default: { hash: vi.fn().mockResolvedValue('hashed') } }));
 vi.mock('../services/emailService.js', () => ({
-  default: { sendGiftListCreationEmail: vi.fn().mockResolvedValue(undefined) },
+  default: {
+    sendAdminGiftListCreatedNotification: vi.fn().mockResolvedValue(undefined),
+    sendAdminGiftListPublishedNotification: vi.fn().mockResolvedValue(undefined),
+    sendGiftListCreationEmail: vi.fn().mockResolvedValue(undefined),
+  },
 }));
 vi.mock('../services/discountCodeService.js', () => ({
   discountCodeService: { validateDiscountCode: vi.fn() },
@@ -179,10 +183,7 @@ describe('fixed-plan provisioning without a phone number', () => {
     }));
 
     const res = makeRes();
-    await paymentController.handleStripePaymentIntent(
-      { headers: { 'stripe-signature': 'sig' }, body: Buffer.from('{}') } as any,
-      res,
-    );
+    await paymentController.handleStripePaymentIntent({ headers: { 'stripe-signature': 'sig' }, body: Buffer.from('{}') } as any, res);
     return res;
   };
 

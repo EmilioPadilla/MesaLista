@@ -117,6 +117,22 @@ export async function publishGiftList({
     console.error('Error sending gift list publish email:', emailError);
   }
 
+  // Admin heads-up. This is the only draft -> published transition in the app,
+  // so one call here covers every publish: commission from the builder, fixed
+  // after Stripe, and fixed after RevenueCat. It runs only on the call that won
+  // the compare-and-set above, so a webhook replay cannot send it twice. The
+  // method never throws, so it needs no try/catch of its own.
+  await emailService.sendAdminGiftListPublishedNotification({
+    userId,
+    giftListId: result.id,
+    giftListTitle: result.title,
+    coupleName: result.coupleName,
+    eventDate: result.eventDate,
+    planType,
+    amount,
+    publishedAt: result.publishedAt as Date,
+  });
+
   return {
     ok: true,
     giftList: {

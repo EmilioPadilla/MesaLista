@@ -31,7 +31,12 @@ vi.mock('stripe', () => ({
 }));
 
 vi.mock('../services/giftListPublishService.js', () => ({ publishGiftList: vi.fn() }));
-vi.mock('../services/emailService.js', () => ({ default: {} }));
+vi.mock('../services/emailService.js', () => ({
+  default: {
+    sendAdminGiftListCreatedNotification: vi.fn().mockResolvedValue(undefined),
+    sendAdminGiftListPublishedNotification: vi.fn().mockResolvedValue(undefined),
+  },
+}));
 vi.mock('../services/pushService.js', () => ({ default: { sendGiftReceivedPush: vi.fn() } }));
 vi.mock('../services/discountCodeService.js', () => ({ discountCodeService: { validateDiscountCode: vi.fn() } }));
 vi.mock('../middleware/auth.js', () => ({ createSessionAndSetCookie: vi.fn() }));

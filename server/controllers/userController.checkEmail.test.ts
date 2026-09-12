@@ -11,7 +11,12 @@ vi.mock('../lib/prisma.js', () => ({
 }));
 
 vi.mock('../services/passwordResetService.js', () => ({ default: {} }));
-vi.mock('../services/emailService.js', () => ({ default: {} }));
+vi.mock('../services/emailService.js', () => ({
+  default: {
+    sendAdminGiftListCreatedNotification: vi.fn().mockResolvedValue(undefined),
+    sendAdminGiftListPublishedNotification: vi.fn().mockResolvedValue(undefined),
+  },
+}));
 vi.mock('../services/passwordValidationService.js', () => ({ default: {} }));
 vi.mock('../services/discountCodeService.js', () => ({ discountCodeService: {} }));
 vi.mock('../middleware/auth.js', () => ({

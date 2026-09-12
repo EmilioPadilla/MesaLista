@@ -50,7 +50,12 @@ vi.mock('stripe', () => ({
 vi.mock('bcrypt', () => ({ default: { hash: vi.fn().mockResolvedValue('hashed') } }));
 vi.mock('axios', () => ({ default: { get: vi.fn(), post: vi.fn() } }));
 vi.mock('../services/emailService.js', () => ({
-  default: { sendGiftListCreationEmail: vi.fn().mockResolvedValue(undefined), sendPaymentConfirmationEmail: vi.fn() },
+  default: {
+    sendAdminGiftListCreatedNotification: vi.fn().mockResolvedValue(undefined),
+    sendAdminGiftListPublishedNotification: vi.fn().mockResolvedValue(undefined),
+    sendGiftListCreationEmail: vi.fn().mockResolvedValue(undefined),
+    sendPaymentConfirmationEmail: vi.fn(),
+  },
 }));
 vi.mock('../services/pushService.js', () => ({ default: { sendGiftReceivedPush: vi.fn() } }));
 vi.mock('../services/discountCodeService.js', () => ({ discountCodeService: { validateDiscountCode: vi.fn() } }));
@@ -206,9 +211,7 @@ describe('legacy pre-account provisioning (old App Store builds)', () => {
     await completeSession(makeReq({ sessionId: 'cs_test_123' }) as any, res as any);
 
     expect(giftListCreate).not.toHaveBeenCalled();
-    expect(publishGiftListRecord).toHaveBeenCalledWith(
-      expect.objectContaining({ giftListId: 10, userId: 1, planType: 'FIXED' }),
-    );
+    expect(publishGiftListRecord).toHaveBeenCalledWith(expect.objectContaining({ giftListId: 10, userId: 1, planType: 'FIXED' }));
   });
 
   it('dedups on any list the user owns, not just a FIXED one', async () => {

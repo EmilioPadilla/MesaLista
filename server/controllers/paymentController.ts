@@ -444,6 +444,28 @@ const provisionFixedPlanSignupFromMetadata = async ({
     console.error('Error sending gift list creation email:', emailError);
   }
 
+  // Admin notifications. Legacy signups create and publish in one step and never
+  // pass through giftListPublishService, so both are sent here. Neither throws.
+  await emailService.sendAdminGiftListCreatedNotification({
+    userId: user.id,
+    giftListId: createdList.id,
+    giftListTitle: createdList.title,
+    coupleName,
+    eventDate: createdList.eventDate,
+    planType: 'FIXED',
+  });
+
+  await emailService.sendAdminGiftListPublishedNotification({
+    userId: user.id,
+    giftListId: createdList.id,
+    giftListTitle: createdList.title,
+    coupleName,
+    eventDate: createdList.eventDate,
+    planType: 'FIXED',
+    amount,
+    publishedOnCreate: true,
+  });
+
   return { user, giftList: createdList, created: true };
 };
 
@@ -849,6 +871,28 @@ export default {
               console.error('Error sending gift list creation email:', emailError);
               // Don't fail the webhook if email sending fails
             }
+
+            // Admin notifications — created and published in the same step here,
+            // so both go out. Neither throws, so the webhook cannot fail on them.
+            await emailService.sendAdminGiftListCreatedNotification({
+              userId: userId,
+              giftListId: createdList.id,
+              giftListTitle: giftListData.title,
+              coupleName: giftListData.coupleName,
+              eventDate: new Date(giftListData.eventDate),
+              planType: 'FIXED',
+            });
+
+            await emailService.sendAdminGiftListPublishedNotification({
+              userId: userId,
+              giftListId: createdList.id,
+              giftListTitle: giftListData.title,
+              coupleName: giftListData.coupleName,
+              eventDate: new Date(giftListData.eventDate),
+              planType: 'FIXED',
+              amount: (session.amount_total || 0) / 100,
+              publishedOnCreate: true,
+            });
           } else if (session.metadata?.paymentFor === 'PLAN_SUBSCRIPTION' && session.metadata?.email) {
             await provisionFixedPlanSignupFromMetadata({
               metadata: session.metadata,

@@ -38,7 +38,11 @@ vi.mock('stripe', () => ({
 
 vi.mock('bcrypt', () => ({ default: { hash: vi.fn().mockResolvedValue('hashed') } }));
 vi.mock('../services/emailService.js', () => ({
-  default: { sendGiftListCreationEmail: vi.fn().mockResolvedValue(undefined) },
+  default: {
+    sendAdminGiftListCreatedNotification: vi.fn().mockResolvedValue(undefined),
+    sendAdminGiftListPublishedNotification: vi.fn().mockResolvedValue(undefined),
+    sendGiftListCreationEmail: vi.fn().mockResolvedValue(undefined),
+  },
 }));
 vi.mock('../services/discountCodeService.js', () => ({
   discountCodeService: { validateDiscountCode: vi.fn() },
@@ -118,7 +122,12 @@ describe('fixed-plan provisioning event date', () => {
     userFindUnique.mockResolvedValue(null);
     userCreate.mockResolvedValue({ id: 5, email: 'maria@example.com', firstName: 'Maria', lastName: 'Gonzalez', slug: 'maria-gonzalez' });
     giftListFindFirst.mockResolvedValue(null);
-    giftListCreate.mockImplementation(async ({ data }: any) => ({ id: 20, title: data.title, coupleName: data.coupleName, eventDate: data.eventDate }));
+    giftListCreate.mockImplementation(async ({ data }: any) => ({
+      id: 20,
+      title: data.title,
+      coupleName: data.coupleName,
+      eventDate: data.eventDate,
+    }));
 
     const req: any = { headers: { 'stripe-signature': 'sig' }, body: Buffer.from('{}') };
     const res = makeRes();

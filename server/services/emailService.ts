@@ -451,6 +451,156 @@ class EmailService {
   }
 
   /**
+   * Admin heads-up that a couple started a new gift list.
+   *
+   * Paired with `sendAdminGiftListPublishedNotification`: this one fires the
+   * moment the list row exists, that one when it goes live. On the normal flow
+   * they are days apart (the list is born a draft); on the legacy
+   * create-and-publish paths both fire back to back, which is accurate — the
+   * list really was created and published in the same request.
+   *
+   * Never throws. An admin notification failing must not take down the signup,
+   * the payment webhook, or the couple's own email.
+   */
+  async sendAdminGiftListCreatedNotification(data: {
+    userId: number;
+    giftListId: number;
+    giftListTitle: string;
+    coupleName: string;
+    eventDate: Date;
+    /** null on the normal draft flow; set only when the list is born published. */
+    planType?: 'FIXED' | 'COMMISSION' | null;
+    createdAt?: Date;
+  }): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: data.userId },
+        select: { email: true, firstName: true, lastName: true, phoneNumber: true, slug: true },
+      });
+
+      if (!user) {
+        console.error(`Admin gift list created notification: user ${data.userId} not found`);
+        return;
+      }
+
+      const baseUrl = process.env.FRONTEND_URL || 'https://mesalista.com.mx';
+      const emailData = {
+        coupleName: data.coupleName,
+        userName: `${user.firstName} ${user.lastName}`,
+        userEmail: user.email,
+        phoneNumber: user.phoneNumber || undefined,
+        slug: user.slug,
+        giftListId: data.giftListId,
+        giftListTitle: data.giftListTitle,
+        eventDate: data.eventDate,
+        createdAt: data.createdAt ?? new Date(),
+        planType: data.planType ?? null,
+        builderUrl: `${baseUrl}/${user.slug}/gestionar`,
+        registryUrl: `${baseUrl}/${user.slug}/regalos?listId=${data.giftListId}`,
+      };
+
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: ADMIN_RECIPIENT_EMAIL,
+        Subject: `[MesaLista] Nueva mesa creada - ${data.coupleName}`,
+        HtmlBody: EmailTemplates.generateAdminGiftListCreatedEmailHTML(emailData),
+        TextBody: EmailTemplates.generateAdminGiftListCreatedEmailText(emailData),
+        MessageStream: 'outbound',
+      });
+
+      console.log(`Admin gift list created notification sent for list ${data.giftListId}`);
+    } catch (error) {
+      console.error('Error sending admin gift list created notification:', error);
+      // Swallowed on purpose — see the doc comment.
+    }
+  }
+
+  /**
+   * Admin heads-up that a couple published their gift list, with the plan they
+   * chose and what it earned. Twin of `sendAdminGiftListCreatedNotification`;
+   * never throws, for the same reason.
+   */
+  async sendAdminGiftListPublishedNotification(data: {
+    userId: number;
+    giftListId: number;
+    giftListTitle: string;
+    coupleName: string;
+    eventDate: Date;
+    planType: 'FIXED' | 'COMMISSION';
+    amount: number;
+    publishedAt?: Date;
+    /** True when the list was born published (legacy create-and-publish). */
+    publishedOnCreate?: boolean;
+  }): Promise<void> {
+    if (!postmarkClient) {
+      console.warn('Postmark API key not configured. Skipping email.');
+      return;
+    }
+
+    try {
+      const [user, giftCount, giftList] = await Promise.all([
+        prisma.user.findUnique({
+          where: { id: data.userId },
+          select: { email: true, firstName: true, lastName: true, phoneNumber: true, slug: true },
+        }),
+        prisma.gift.count({ where: { giftListId: data.giftListId } }),
+        prisma.giftList.findUnique({
+          where: { id: data.giftListId },
+          select: { createdAt: true },
+        }),
+      ]);
+
+      if (!user) {
+        console.error(`Admin gift list published notification: user ${data.userId} not found`);
+        return;
+      }
+
+      const publishedAt = data.publishedAt ?? new Date();
+      const draftAgeDays =
+        data.publishedOnCreate || !giftList
+          ? null
+          : Math.max(0, Math.floor((publishedAt.getTime() - giftList.createdAt.getTime()) / (24 * 60 * 60 * 1000)));
+
+      const baseUrl = process.env.FRONTEND_URL || 'https://mesalista.com.mx';
+      const emailData = {
+        coupleName: data.coupleName,
+        userName: `${user.firstName} ${user.lastName}`,
+        userEmail: user.email,
+        phoneNumber: user.phoneNumber || undefined,
+        slug: user.slug,
+        giftListId: data.giftListId,
+        giftListTitle: data.giftListTitle,
+        eventDate: data.eventDate,
+        publishedAt,
+        planType: data.planType,
+        amount: data.amount,
+        giftCount,
+        draftAgeDays,
+        registryUrl: `${baseUrl}/${user.slug}/regalos?listId=${data.giftListId}`,
+      };
+
+      await postmarkClient.sendEmail({
+        From: FROM_EMAIL,
+        To: ADMIN_RECIPIENT_EMAIL,
+        Subject: `[MesaLista] Mesa publicada (${data.planType === 'FIXED' ? 'Plan Fijo' : 'Plan Comisión'}) - ${data.coupleName}`,
+        HtmlBody: EmailTemplates.generateAdminGiftListPublishedEmailHTML(emailData),
+        TextBody: EmailTemplates.generateAdminGiftListPublishedEmailText(emailData),
+        MessageStream: 'outbound',
+      });
+
+      console.log(`Admin gift list published notification sent for list ${data.giftListId}`);
+    } catch (error) {
+      console.error('Error sending admin gift list published notification:', error);
+      // Swallowed on purpose — see the doc comment.
+    }
+  }
+
+  /**
    * Send password reset email
    */
   async sendPasswordResetEmail(email: string, firstName: string, resetLink: string): Promise<void> {

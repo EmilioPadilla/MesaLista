@@ -20,14 +20,22 @@ vi.mock('@prisma/client', () => ({
   },
 }));
 
-vi.mock('stripe', () => ({ default: class {
-  webhooks = { constructEvent: vi.fn() };
-  checkout = { sessions: { create: vi.fn(), list: vi.fn() } };
-  paymentIntents = { retrieve: vi.fn() };
-} }));
+vi.mock('stripe', () => ({
+  default: class {
+    webhooks = { constructEvent: vi.fn() };
+    checkout = { sessions: { create: vi.fn(), list: vi.fn() } };
+    paymentIntents = { retrieve: vi.fn() };
+  },
+}));
 vi.mock('axios', () => ({ default: { post: vi.fn(), get: vi.fn() } }));
 vi.mock('bcrypt', () => ({ default: { hash: vi.fn(), compare: vi.fn() } }));
-vi.mock('../services/emailService.js', () => ({ default: { sendPaymentEmails: vi.fn() } }));
+vi.mock('../services/emailService.js', () => ({
+  default: {
+    sendAdminGiftListCreatedNotification: vi.fn().mockResolvedValue(undefined),
+    sendAdminGiftListPublishedNotification: vi.fn().mockResolvedValue(undefined),
+    sendPaymentEmails: vi.fn(),
+  },
+}));
 vi.mock('../services/pushService.js', () => ({ default: { sendToUser: vi.fn() } }));
 vi.mock('../services/discountCodeService.js', () => ({ discountCodeService: {} }));
 vi.mock('../middleware/auth.js', () => ({ createSessionAndSetCookie: vi.fn() }));

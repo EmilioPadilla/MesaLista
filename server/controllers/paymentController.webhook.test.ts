@@ -73,6 +73,8 @@ vi.mock('stripe', () => {
 
 vi.mock('../services/emailService.js', () => ({
   default: {
+    sendAdminGiftListCreatedNotification: vi.fn().mockResolvedValue(undefined),
+    sendAdminGiftListPublishedNotification: vi.fn().mockResolvedValue(undefined),
     sendPaymentEmails: emailSendPaymentEmails,
     sendGiftListCreationEmail: emailSendGiftListCreation,
   },

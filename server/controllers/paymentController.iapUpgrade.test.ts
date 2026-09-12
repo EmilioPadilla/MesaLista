@@ -45,7 +45,13 @@ vi.mock('stripe', () => ({
 }));
 vi.mock('bcrypt', () => ({ default: { hash: vi.fn().mockResolvedValue('hashed') } }));
 vi.mock('axios', () => ({ default: { get: axiosGet, post: vi.fn() } }));
-vi.mock('../services/emailService.js', () => ({ default: { sendGiftListCreationEmail: vi.fn() } }));
+vi.mock('../services/emailService.js', () => ({
+  default: {
+    sendAdminGiftListCreatedNotification: vi.fn().mockResolvedValue(undefined),
+    sendAdminGiftListPublishedNotification: vi.fn().mockResolvedValue(undefined),
+    sendGiftListCreationEmail: vi.fn(),
+  },
+}));
 vi.mock('../services/pushService.js', () => ({ default: { sendGiftReceivedPush: vi.fn() } }));
 vi.mock('../services/discountCodeService.js', () => ({ discountCodeService: { validateDiscountCode: vi.fn() } }));
 vi.mock('../middleware/auth.js', () => ({ createSessionAndSetCookie: vi.fn().mockResolvedValue({ token: 'tok' }) }));
@@ -142,9 +148,7 @@ describe('completePlanIapSignup (upgrade mode)', () => {
     const res = makeRes();
     await paymentController.completePlanIapSignup(makeReq({ appUserId: 'user_1' }) as any, res as any);
 
-    expect(publishGiftListRecord).toHaveBeenCalledWith(
-      expect.objectContaining({ giftListId: 10, userId: 1, planType: 'FIXED' }),
-    );
+    expect(publishGiftListRecord).toHaveBeenCalledWith(expect.objectContaining({ giftListId: 10, userId: 1, planType: 'FIXED' }));
     expect(pendingDelete).toHaveBeenCalled();
   });
 

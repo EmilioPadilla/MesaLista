@@ -28,7 +28,11 @@ vi.mock('../middleware/auth.js', () => ({
   logoutSession: vi.fn(),
 }));
 vi.mock('../services/emailService.js', () => ({
-  default: { sendGiftListCreationEmail: vi.fn().mockResolvedValue(undefined) },
+  default: {
+    sendAdminGiftListCreatedNotification: vi.fn().mockResolvedValue(undefined),
+    sendAdminGiftListPublishedNotification: vi.fn().mockResolvedValue(undefined),
+    sendGiftListCreationEmail: vi.fn().mockResolvedValue(undefined),
+  },
 }));
 vi.mock('../services/passwordResetService.js', () => ({ default: {} }));
 vi.mock('../services/passwordValidationService.js', () => ({ default: {} }));

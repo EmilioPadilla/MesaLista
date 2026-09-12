@@ -37,7 +37,12 @@ vi.mock('stripe', () => ({
   },
 }));
 
-vi.mock('../services/emailService.js', () => ({ default: {} }));
+vi.mock('../services/emailService.js', () => ({
+  default: {
+    sendAdminGiftListCreatedNotification: vi.fn().mockResolvedValue(undefined),
+    sendAdminGiftListPublishedNotification: vi.fn().mockResolvedValue(undefined),
+  },
+}));
 vi.mock('../services/discountCodeService.js', () => ({
   discountCodeService: { validateDiscountCode: vi.fn() },
 }));

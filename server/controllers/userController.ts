@@ -174,6 +174,33 @@ const createCoupleWithList = async (req: Request, res: Response, { mode }: { mod
       console.error(`Error sending ${isDraft ? 'draft welcome' : 'gift list creation'} email:`, emailError);
     }
 
+    // Admin notifications. Both methods swallow their own errors, so they need
+    // no try/catch here. The commission path creates AND publishes in one go —
+    // it never reaches giftListPublishService, which is where every other
+    // publish is announced — so it has to send the publish notification itself.
+    await emailService.sendAdminGiftListCreatedNotification({
+      userId: result.user.id,
+      giftListId: result.giftList.id,
+      giftListTitle: result.giftList.title,
+      coupleName: result.giftList.coupleName,
+      eventDate: result.giftList.eventDate,
+      planType: isDraft ? null : 'COMMISSION',
+    });
+
+    if (!isDraft) {
+      await emailService.sendAdminGiftListPublishedNotification({
+        userId: result.user.id,
+        giftListId: result.giftList.id,
+        giftListTitle: result.giftList.title,
+        coupleName: result.giftList.coupleName,
+        eventDate: result.giftList.eventDate,
+        planType: 'COMMISSION',
+        amount: 0,
+        publishedAt: result.giftList.publishedAt ?? undefined,
+        publishedOnCreate: true,
+      });
+    }
+
     res.status(201).json({
       ...result.user,
       giftListId: result.giftList.id,

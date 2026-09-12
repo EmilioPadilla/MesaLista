@@ -4,6 +4,7 @@ import { CreateGiftListRequest, GiftListBrief, UpdateGiftListRequest } from 'typ
 import { WhereClause } from 'types/clauses.js';
 // Aliased to keep it distinct from the controller method of the same name below.
 import { publishGiftList as publishGiftListRecord } from '../services/giftListPublishService.js';
+import emailService from '../services/emailService.js';
 
 const prisma = new PrismaClient();
 
@@ -290,6 +291,18 @@ const giftListController = {
           isPublic: false,
           discountCodeId: discountCodeId ? Number(discountCodeId) : undefined,
         },
+      });
+
+      // Admin heads-up that another list was opened. This path is a couple who
+      // already has an account adding a second list, so it is always a draft —
+      // the publish notification comes later, from publishGiftList. Never throws.
+      await emailService.sendAdminGiftListCreatedNotification({
+        userId: req.user.userId,
+        giftListId: giftList.id,
+        giftListTitle: giftList.title,
+        coupleName: giftList.coupleName,
+        eventDate: giftList.eventDate,
+        planType: null,
       });
 
       res.status(201).json(giftList);

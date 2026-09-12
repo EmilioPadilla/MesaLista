@@ -30,6 +30,8 @@ vi.mock('../middleware/auth.js', () => ({
 }));
 vi.mock('../services/emailService.js', () => ({
   default: {
+    sendAdminGiftListCreatedNotification: vi.fn().mockResolvedValue(undefined),
+    sendAdminGiftListPublishedNotification: vi.fn().mockResolvedValue(undefined),
     sendGiftListCreationEmail: vi.fn().mockResolvedValue(undefined),
     sendDraftWelcomeEmail: vi.fn().mockResolvedValue(undefined),
   },
@@ -101,6 +103,17 @@ describe('POST /user/signup (draft signup)', () => {
     expect(emailService.sendGiftListCreationEmail).not.toHaveBeenCalled();
   });
 
+  it('tells the admin a list was opened, but not that it was published', async () => {
+    const res = makeRes();
+    await userController.signupDraft(makeReq(signupBody) as any, res as any);
+
+    expect(emailService.sendAdminGiftListCreatedNotification).toHaveBeenCalledTimes(1);
+    // planType null is what marks it a draft in the admin email — the publish
+    // notification comes later, from the publish service.
+    expect((emailService.sendAdminGiftListCreatedNotification as any).mock.calls[0][0].planType).toBeNull();
+    expect(emailService.sendAdminGiftListPublishedNotification).not.toHaveBeenCalled();
+  });
+
   it('ignores a discount code sent by an old client — codes belong to publish', async () => {
     (discountCodeService.validateDiscountCode as any).mockResolvedValue({
       valid: true,
@@ -163,5 +176,21 @@ describe('POST /user/signup/commission (legacy, old App Store builds)', () => {
 
     expect(emailService.sendGiftListCreationEmail).toHaveBeenCalledTimes(1);
     expect(emailService.sendDraftWelcomeEmail).not.toHaveBeenCalled();
+  });
+
+  it('tells the admin the list was both opened and published', async () => {
+    // This path creates and publishes in one request and never reaches the
+    // publish service, so it has to announce the publish itself.
+    const res = makeRes();
+    await userController.signupCommission(makeReq(signupBody) as any, res as any);
+
+    expect(emailService.sendAdminGiftListCreatedNotification).toHaveBeenCalledTimes(1);
+    expect((emailService.sendAdminGiftListCreatedNotification as any).mock.calls[0][0].planType).toBe('COMMISSION');
+
+    expect(emailService.sendAdminGiftListPublishedNotification).toHaveBeenCalledTimes(1);
+    const published = (emailService.sendAdminGiftListPublishedNotification as any).mock.calls[0][0];
+    expect(published.planType).toBe('COMMISSION');
+    expect(published.amount).toBe(0);
+    expect(published.publishedOnCreate).toBe(true);
   });
 });

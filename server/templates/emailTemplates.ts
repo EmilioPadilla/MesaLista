@@ -2445,4 +2445,300 @@ MesaLista - Tu mesa de regalos, hecha simple
 mesalista.com.mx | info@mesalista.com.mx
     `.trim();
   }
+
+  /**
+   * Shared shell for the two admin notifications below, so they stay visually
+   * identical to each other and to the signup notification above.
+   */
+  private static adminNotificationShell(data: {
+    title: string;
+    heading: string;
+    subheading: string;
+    accentFrom: string;
+    accentTo: string;
+    body: string;
+  }): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${data.title}</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f9fafb;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, ${data.accentFrom} 0%, ${data.accentTo} 100%); color: white; padding: 32px 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px; font-weight: bold;">${data.heading}</h1>
+            <p style="margin: 8px 0 0 0; font-size: 16px; opacity: 0.9;">${data.subheading}</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 32px 24px;">
+            ${data.body}
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">Este es un email automático de notificación</p>
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">
+              <strong>MesaLista Admin</strong> - Panel de administración
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `.trim();
+  }
+
+  /**
+   * Admin notification: a couple started a new gift list.
+   *
+   * `planType` is null for the normal flow, where the list is born as a draft
+   * and the plan is only chosen at publish. It is set only on the legacy
+   * create-and-publish paths, where the list is live the moment it exists — in
+   * that case a publish notification goes out alongside this one.
+   */
+  static generateAdminGiftListCreatedEmailHTML(data: {
+    coupleName: string;
+    userName: string;
+    userEmail: string;
+    phoneNumber?: string;
+    /** Null while the couple has not claimed a link yet. */
+    slug: string | null;
+    giftListId: number;
+    giftListTitle: string;
+    eventDate: Date;
+    createdAt: Date;
+    planType: 'FIXED' | 'COMMISSION' | null;
+    builderUrl: string;
+    registryUrl: string;
+  }): string {
+    const statusText = data.planType
+      ? `Publicada al crearse (${data.planType === 'FIXED' ? 'Plan Fijo' : 'Plan Comisión'}) — flujo heredado`
+      : 'Borrador — aún sin plan ni publicar';
+
+    const body = `
+            <div style="background-color: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <strong style="color: #1e40af;">Nueva mesa de regalos creada</strong>
+              <br><small style="color: #1e40af;">Fecha: ${this.formatDateTime(data.createdAt)}</small>
+            </div>
+
+            <h2 style="color: #1f2937; margin-bottom: 16px;">Pareja</h2>
+
+            <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <p style="margin: 0 0 8px 0;"><strong>Nombre:</strong> ${data.userName}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Nombre de pareja:</strong> ${data.coupleName}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Email:</strong> <a href="mailto:${data.userEmail}" style="color: #d4704a; text-decoration: none;">${data.userEmail}</a></p>
+              ${data.phoneNumber ? `<p style="margin: 0 0 8px 0;"><strong>Teléfono:</strong> <a href="tel:${data.phoneNumber}" style="color: #d4704a; text-decoration: none;">${data.phoneNumber}</a></p>` : ''}
+              <p style="margin: 0;"><strong>Slug:</strong> <code style="background-color: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 14px;">${data.slug || '—'}</code></p>
+            </div>
+
+            <h2 style="color: #1f2937; margin-bottom: 16px;">Mesa de regalos</h2>
+
+            <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <p style="margin: 0 0 8px 0;"><strong>Título:</strong> ${data.giftListTitle}</p>
+              <p style="margin: 0 0 8px 0;"><strong>ID:</strong> ${data.giftListId}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Fecha del evento:</strong> ${this.formatDate(data.eventDate)}</p>
+              <p style="margin: 0;"><strong>Estado:</strong> ${statusText}</p>
+            </div>
+
+            <div style="background-color: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <p style="margin: 0 0 8px 0; color: #1e40af;"><strong>Constructor de la pareja:</strong></p>
+              <a href="${data.builderUrl}" style="color: #3b82f6; word-break: break-all; text-decoration: none; font-weight: 500;">${data.builderUrl}</a>
+              <p style="margin: 16px 0 8px 0; color: #1e40af;"><strong>URL pública (activa al publicar):</strong></p>
+              <a href="${data.registryUrl}" style="color: #3b82f6; word-break: break-all; text-decoration: none; font-weight: 500;">${data.registryUrl}</a>
+            </div>
+    `;
+
+    return this.adminNotificationShell({
+      title: 'Nueva mesa creada - MesaLista',
+      heading: '🆕 Nueva mesa creada',
+      subheading: `${data.coupleName} empezó su mesa de regalos`,
+      accentFrom: '#3b82f6',
+      accentTo: '#2563eb',
+      body,
+    });
+  }
+
+  /**
+   * Plain text twin of `generateAdminGiftListCreatedEmailHTML`.
+   */
+  static generateAdminGiftListCreatedEmailText(data: {
+    coupleName: string;
+    userName: string;
+    userEmail: string;
+    phoneNumber?: string;
+    /** Null while the couple has not claimed a link yet. */
+    slug: string | null;
+    giftListId: number;
+    giftListTitle: string;
+    eventDate: Date;
+    createdAt: Date;
+    planType: 'FIXED' | 'COMMISSION' | null;
+    builderUrl: string;
+    registryUrl: string;
+  }): string {
+    const statusText = data.planType
+      ? `Publicada al crearse (${data.planType === 'FIXED' ? 'Plan Fijo' : 'Plan Comisión'}) - flujo heredado`
+      : 'Borrador - aún sin plan ni publicar';
+
+    return `
+🆕 NUEVA MESA CREADA - MESALISTA
+
+${data.coupleName} empezó su mesa de regalos
+Fecha: ${this.formatDateTime(data.createdAt)}
+
+PAREJA:
+- Nombre: ${data.userName}
+- Nombre de pareja: ${data.coupleName}
+- Email: ${data.userEmail}
+${data.phoneNumber ? `- Teléfono: ${data.phoneNumber}\n` : ''}- Slug: ${data.slug || '—'}
+
+MESA DE REGALOS:
+- Título: ${data.giftListTitle}
+- ID: ${data.giftListId}
+- Fecha del evento: ${this.formatDate(data.eventDate)}
+- Estado: ${statusText}
+
+ENLACES:
+Constructor: ${data.builderUrl}
+URL pública (activa al publicar): ${data.registryUrl}
+
+---
+Este es un email automático de notificación
+MesaLista Admin - Panel de administración
+    `.trim();
+  }
+
+  /**
+   * Admin notification: a couple published their gift list.
+   *
+   * `draftAgeDays` is null when the list was born published (legacy
+   * create-and-publish), since there was never a draft to age.
+   */
+  static generateAdminGiftListPublishedEmailHTML(data: {
+    coupleName: string;
+    userName: string;
+    userEmail: string;
+    phoneNumber?: string;
+    /** Null while the couple has not claimed a link yet. */
+    slug: string | null;
+    giftListId: number;
+    giftListTitle: string;
+    eventDate: Date;
+    publishedAt: Date;
+    planType: 'FIXED' | 'COMMISSION';
+    amount: number;
+    giftCount: number;
+    draftAgeDays: number | null;
+    registryUrl: string;
+  }): string {
+    const planTypeText = data.planType === 'FIXED' ? 'Plan Fijo' : 'Plan Comisión (5%)';
+    const amountText = data.amount > 0 ? this.formatCurrency(data.amount, 'MXN') : 'Sin cobro al publicar';
+
+    const body = `
+            <div style="background-color: #d1fae5; border: 1px solid #10b981; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <strong style="color: #065f46;">Mesa de regalos publicada</strong>
+              <br><small style="color: #065f46;">Fecha: ${this.formatDateTime(data.publishedAt)}</small>
+            </div>
+
+            <h2 style="color: #1f2937; margin-bottom: 16px;">Plan</h2>
+
+            <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <p style="margin: 0 0 8px 0;"><strong>Tipo de plan:</strong> <span style="color: ${data.planType === 'FIXED' ? '#059669' : '#3b82f6'}; font-weight: 600;">${planTypeText}</span></p>
+              <p style="margin: 0;"><strong>Monto cobrado:</strong> ${amountText}</p>
+            </div>
+
+            <h2 style="color: #1f2937; margin-bottom: 16px;">Pareja</h2>
+
+            <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <p style="margin: 0 0 8px 0;"><strong>Nombre:</strong> ${data.userName}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Nombre de pareja:</strong> ${data.coupleName}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Email:</strong> <a href="mailto:${data.userEmail}" style="color: #d4704a; text-decoration: none;">${data.userEmail}</a></p>
+              ${data.phoneNumber ? `<p style="margin: 0 0 8px 0;"><strong>Teléfono:</strong> <a href="tel:${data.phoneNumber}" style="color: #d4704a; text-decoration: none;">${data.phoneNumber}</a></p>` : ''}
+              <p style="margin: 0;"><strong>Slug:</strong> <code style="background-color: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 14px;">${data.slug || '—'}</code></p>
+            </div>
+
+            <h2 style="color: #1f2937; margin-bottom: 16px;">Mesa de regalos</h2>
+
+            <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <p style="margin: 0 0 8px 0;"><strong>Título:</strong> ${data.giftListTitle}</p>
+              <p style="margin: 0 0 8px 0;"><strong>ID:</strong> ${data.giftListId}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Fecha del evento:</strong> ${this.formatDate(data.eventDate)}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Regalos en la mesa:</strong> ${data.giftCount}</p>
+              <p style="margin: 0;"><strong>Tiempo como borrador:</strong> ${data.draftAgeDays === null ? 'Publicada al crearse' : `${data.draftAgeDays} día(s)`}</p>
+            </div>
+
+            <div style="background-color: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+              <p style="margin: 0 0 8px 0; color: #1e40af;"><strong>URL pública:</strong></p>
+              <a href="${data.registryUrl}" style="color: #3b82f6; word-break: break-all; text-decoration: none; font-weight: 500;">${data.registryUrl}</a>
+            </div>
+    `;
+
+    return this.adminNotificationShell({
+      title: 'Mesa publicada - MesaLista',
+      heading: '🚀 Mesa publicada',
+      subheading: `${data.coupleName} publicó su mesa de regalos`,
+      accentFrom: '#10b981',
+      accentTo: '#059669',
+      body,
+    });
+  }
+
+  /**
+   * Plain text twin of `generateAdminGiftListPublishedEmailHTML`.
+   */
+  static generateAdminGiftListPublishedEmailText(data: {
+    coupleName: string;
+    userName: string;
+    userEmail: string;
+    phoneNumber?: string;
+    /** Null while the couple has not claimed a link yet. */
+    slug: string | null;
+    giftListId: number;
+    giftListTitle: string;
+    eventDate: Date;
+    publishedAt: Date;
+    planType: 'FIXED' | 'COMMISSION';
+    amount: number;
+    giftCount: number;
+    draftAgeDays: number | null;
+    registryUrl: string;
+  }): string {
+    const planTypeText = data.planType === 'FIXED' ? 'Plan Fijo' : 'Plan Comisión (5%)';
+    const amountText = data.amount > 0 ? this.formatCurrency(data.amount, 'MXN') : 'Sin cobro al publicar';
+
+    return `
+🚀 MESA PUBLICADA - MESALISTA
+
+${data.coupleName} publicó su mesa de regalos
+Fecha: ${this.formatDateTime(data.publishedAt)}
+
+PLAN:
+- Tipo de plan: ${planTypeText}
+- Monto cobrado: ${amountText}
+
+PAREJA:
+- Nombre: ${data.userName}
+- Nombre de pareja: ${data.coupleName}
+- Email: ${data.userEmail}
+${data.phoneNumber ? `- Teléfono: ${data.phoneNumber}\n` : ''}- Slug: ${data.slug || '—'}
+
+MESA DE REGALOS:
+- Título: ${data.giftListTitle}
+- ID: ${data.giftListId}
+- Fecha del evento: ${this.formatDate(data.eventDate)}
+- Regalos en la mesa: ${data.giftCount}
+- Tiempo como borrador: ${data.draftAgeDays === null ? 'Publicada al crearse' : `${data.draftAgeDays} día(s)`}
+
+URL PÚBLICA:
+${data.registryUrl}
+
+---
+Este es un email automático de notificación
+MesaLista Admin - Panel de administración
+    `.trim();
+  }
 }
