@@ -10,6 +10,7 @@ import {
   Search,
   User as UserIcon,
   BarChart3,
+  CalendarDays,
   Lightbulb,
   ListPlus,
   Tag,
@@ -229,6 +230,18 @@ export const TopNav = ({ slug, sticky = true }: TopNavProps) => {
                     className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
                     <Settings className="h-4 w-4" />
                     <span className="hidden md:block">Control</span>
+                  </Button>
+                </Tooltip>
+              )}
+
+              {userData?.role === 'ADMIN' && isAuthenticated && (
+                <Tooltip title={viewType === 'mobile' ? 'Calendario' : ''} placement="bottom">
+                  <Button
+                    type={currentPage === '/admin/calendario' ? 'primary' : 'text'}
+                    onClick={() => navigate('/admin/calendario')}
+                    className="flex items-center cursor-pointer transition-all duration-200 hover:shadow-md !rounded-lg !text-md">
+                    <CalendarDays className="h-4 w-4" />
+                    <span className="hidden md:block">Calendario</span>
                   </Button>
                 </Tooltip>
               )}

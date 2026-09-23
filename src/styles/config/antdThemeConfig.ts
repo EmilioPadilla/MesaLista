@@ -2,6 +2,24 @@ import cssValues from './cssValues';
 import React from 'react';
 
 /**
+ * One look for every text-entry control: Input, TextArea, Select, DatePicker,
+ * InputNumber.
+ *
+ * These used to set `colorBorder` to white, which erased the boundary of any field
+ * sitting on a white card — only DatePicker and InputNumber kept theirs, so a form
+ * showed a mix of boxed and invisible fields. Screens then patched individual
+ * inputs back with `shadow-sm` or `bg-[#f5f5f7]!`. The boundary belongs here, once:
+ * a visible resting border, a darker hover, and an oak focus ring.
+ */
+const controlTokens = {
+  colorBorder: cssValues.colors.controlBorder,
+  hoverBorderColor: cssValues.colors.controlBorderHover,
+  activeBorderColor: cssValues.colors.oak,
+  activeShadow: `0 0 0 3px ${cssValues.colors.controlFocusRing}`,
+  colorTextPlaceholder: cssValues.colors.controlPlaceholder,
+};
+
+/**
  * Ant Design theme configuration.
  */
 const antdThemeConfig = {
@@ -19,25 +37,15 @@ const antdThemeConfig = {
       itemSelectedBg: cssValues.colors.gray100,
     },
     Select: {
-      activeBorderColor: cssValues.colors.oak,
-      colorBorder: cssValues.colors.white,
+      ...controlTokens,
+      activeOutlineColor: cssValues.colors.controlFocusRing,
       optionSelectedBg: cssValues.colors.gray100,
-      controlOutline: 'none',
-      controlOutlineWidth: 0,
     },
     Input: {
-      activeBorderColor: cssValues.colors.oak,
-      colorBorder: cssValues.colors.white,
-      hoverBorderColor: 'none',
-      defaultHoverBorderColor: 'none',
+      ...controlTokens,
       colorPrimaryHover: cssValues.colors.oak,
     },
-    InputNumber: {
-      activeShadow: 'none',
-      activeBorderColor: cssValues.colors.orange,
-      hoverBorderColor: 'none',
-      defaultHoverBorderColor: 'none',
-    },
+    InputNumber: controlTokens,
     Button: {
       colorBorder: 'none',
       fontWeight: 500,
@@ -45,10 +53,7 @@ const antdThemeConfig = {
     Segmented: {
       itemColor: cssValues.colors.gray500,
     },
-    DatePicker: {
-      activeShadow: 'none',
-      activeBorderColor: cssValues.colors.orange,
-    },
+    DatePicker: controlTokens,
     Dropdown: {
       colorBorder: cssValues.colors.gray400,
       colorPrimaryHover: 'none',

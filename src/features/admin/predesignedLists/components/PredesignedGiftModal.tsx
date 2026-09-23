@@ -140,11 +140,8 @@ export function PredesignedGiftModal({ isOpen, onOpenChange, mode, gift, listId,
     <Modal title={title} open={isOpen} onCancel={handleClose} footer={null} width={700}>
       <Form form={form} onFinish={handleFinish} layout="vertical" className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Form.Item
-            name="title"
-            label="Nombre del Regalo"
-            rules={[{ required: true, message: 'Por favor ingresa el nombre del regalo' }]}>
-            <Input placeholder="Vuelos a París" className="shadow-sm" />
+          <Form.Item name="title" label="Nombre del Regalo" rules={[{ required: true, message: 'Por favor ingresa el nombre del regalo' }]}>
+            <Input placeholder="Vuelos a París" />
           </Form.Item>
 
           <Form.Item
@@ -162,7 +159,7 @@ export function PredesignedGiftModal({ isOpen, onOpenChange, mode, gift, listId,
                 },
               },
             ]}>
-            <Input type="number" placeholder="15000" className="shadow-sm" />
+            <Input type="number" placeholder="15000" />
           </Form.Item>
         </div>
 
@@ -172,7 +169,7 @@ export function PredesignedGiftModal({ isOpen, onOpenChange, mode, gift, listId,
               mode="tags"
               allowClear
               optionFilterProp="label"
-              className="shadow-sm w-full rounded"
+              className="w-full rounded"
               placeholder="Selecciona o crea categorías"
               options={[
                 { label: 'Transporte', value: 'Transporte' },
@@ -192,7 +189,7 @@ export function PredesignedGiftModal({ isOpen, onOpenChange, mode, gift, listId,
         </div>
 
         <Form.Item name="description" label="Descripción">
-          <Input.TextArea placeholder="Boletos de avión para dos personas" className="shadow-sm" rows={3} />
+          <Input.TextArea placeholder="Boletos de avión para dos personas" rows={3} />
         </Form.Item>
 
         {/* Image Upload Section */}

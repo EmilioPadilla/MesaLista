@@ -345,7 +345,7 @@ export function UserAnalyticsTab({
       <Card
         title="Tendencia Histórica"
         extra={
-          <Select className="!shadow-sm !rounded-md" value={selectedMetric} onChange={onMetricChange} style={{ width: 240 }}>
+          <Select value={selectedMetric} onChange={onMetricChange} style={{ width: 240 }}>
             {(Object.keys(METRIC_LABELS) as MetricType[]).map((metric) => (
               <Option key={metric} value={metric}>
                 {METRIC_LABELS[metric]}

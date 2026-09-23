@@ -63,11 +63,11 @@ export function AddInviteeModal({ open, invitee, onClose, onSave }: AddInviteeMo
       width={500}>
       <Form form={form} layout="vertical" className="mt-4">
         <Form.Item name="firstName" label="Nombre" rules={[{ required: true, message: 'El nombre es requerido' }]}>
-          <Input className="shadow-sm" placeholder="Juan" />
+          <Input placeholder="Juan" />
         </Form.Item>
 
         <Form.Item name="lastName" label="Apellido" rules={[{ required: true, message: 'El apellido es requerido' }]}>
-          <Input className="shadow-sm" placeholder="Pérez" />
+          <Input placeholder="Pérez" />
         </Form.Item>
 
         <Form.Item
@@ -75,7 +75,7 @@ export function AddInviteeModal({ open, invitee, onClose, onSave }: AddInviteeMo
           label="Número de Boletos"
           rules={[{ required: true, message: 'El número de boletos es requerido' }]}
           extra="Número máximo de personas que pueden asistir con esta invitación">
-          <Input className="shadow-sm" type="number" min={1} placeholder="1" />
+          <Input type="number" min={1} placeholder="1" />
         </Form.Item>
 
         <div className="flex gap-2 items-center">
@@ -87,7 +87,7 @@ export function AddInviteeModal({ open, invitee, onClose, onSave }: AddInviteeMo
             extra="Este código será necesario para confirmar la asistencia">
             <Input
               placeholder="ABC12345"
-              className="flex-1 shadow-sm"
+              className="flex-1"
               onChange={(e) => {
                 form.setFieldValue('secretCode', e.target.value.toUpperCase());
               }}

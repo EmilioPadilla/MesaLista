@@ -23,6 +23,15 @@ const cssValues = {
     transparent: 'transparent',
 
     oak: '#d4704a',
+    oakDark: '#a8542f',
+
+    // Form controls. A warm stone rather than the cool gray scale below, so a field
+    // reads as part of the cream-and-terracotta palette while still having a
+    // boundary you can see on a white card. Hover darkens; focus goes to oak.
+    controlBorder: '#c9bcae',
+    controlBorderHover: '#9c8b79',
+    controlPlaceholder: '#a39584',
+    controlFocusRing: 'rgba(212, 112, 74, 0.16)',
     chai: '#d2a880',
     pistaccio: '#b3b792',
     gray: '#f3f4f5',

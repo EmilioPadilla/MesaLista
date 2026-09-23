@@ -20,7 +20,7 @@ export function PasswordSection({ form, password, onValuesChange, isUpdating, ha
           className="mb-0!"
           label={<span className="text-sm text-foreground/70 font-medium">Contraseña actual</span>}
           rules={[{ required: true, message: 'La contraseña actual es requerida' }]}>
-          <Input.Password className="h-12 px-4 bg-[#f5f5f7]!" />
+          <Input.Password className="h-12 px-4" />
         </Form.Item>
 
         <Form.Item
@@ -31,7 +31,7 @@ export function PasswordSection({ form, password, onValuesChange, isUpdating, ha
             { required: true, message: 'La nueva contraseña es requerida' },
             { min: 8, message: 'La contraseña debe tener al menos 8 caracteres' },
           ]}>
-          <Input.Password className="h-12 px-4 bg-[#f5f5f7]!" />
+          <Input.Password className="h-12 px-4" />
         </Form.Item>
 
         {password && <PasswordStrengthIndicator password={password} />}
@@ -52,7 +52,7 @@ export function PasswordSection({ form, password, onValuesChange, isUpdating, ha
               },
             }),
           ]}>
-          <Input.Password className="h-12 px-4 bg-[#f5f5f7]!" />
+          <Input.Password className="h-12 px-4" />
         </Form.Item>
       </Form>
 

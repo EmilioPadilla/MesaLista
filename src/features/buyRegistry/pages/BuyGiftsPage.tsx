@@ -219,8 +219,9 @@ export function BuyGiftsPage() {
           <div className="space-y-2">
             <h2 className="text-2xl font-semibold text-gray-900">Esta mesa de regalos ya está cerrada</h2>
             <p className="text-gray-600">
-              {giftList.coupleName ? `${giftList.coupleName} ya no está recibiendo regalos a través de esta mesa.` : 'Esta mesa de regalos ya no está recibiendo regalos.'}
-              {' '}
+              {giftList.coupleName
+                ? `${giftList.coupleName} ya no está recibiendo regalos a través de esta mesa.`
+                : 'Esta mesa de regalos ya no está recibiendo regalos.'}{' '}
               Puedes explorar otras mesas activas en nuestro buscador.
             </p>
           </div>
@@ -314,7 +315,7 @@ export function BuyGiftsPage() {
               <Input
                 prefix={<SearchOutlined />}
                 placeholder="Buscar regalos..."
-                className="!rounded-md !shadow-sm pl-6"
+                className="pl-6"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -325,7 +326,7 @@ export function BuyGiftsPage() {
               <div className="flex items-center w-full">
                 <Select
                   suffixIcon={<ArrowUpDown size={14} />}
-                  className="w-full !rounded-md !shadow-sm pl-6"
+                  className="w-full pl-6"
                   value={sortBy}
                   onChange={(value: SortOption) => setSortBy(value)}
                   options={[
@@ -344,7 +345,7 @@ export function BuyGiftsPage() {
               <div className="flex items-center w-full">
                 <Select
                   suffixIcon={<Filter size={14} />}
-                  className="w-full !rounded-md !shadow-sm pl-6"
+                  className="w-full pl-6"
                   value={filterBy}
                   mode="multiple"
                   allowClear

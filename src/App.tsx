@@ -23,6 +23,7 @@ import { AnalyticsPage, MarketingPage } from 'src/features/admin/analytics';
 import { AdminControlPage } from 'src/features/admin/control';
 import { ManageDiscountCodesPage } from 'src/features/admin/discountCodes';
 import { AdminPredesignedListsPage } from 'src/features/admin/predesignedLists';
+import { EventCalendarPage } from 'src/features/admin/eventCalendar';
 import { PredesignedListsPage } from 'src/features/predesignedLists';
 import { InvitationsPage, PublicInvitationView } from 'src/features/invitations';
 import { MyGiftListsPage } from 'src/features/giftLists';
@@ -79,6 +80,7 @@ function App() {
                 <Route path="/admin/analytics" element={<AnalyticsPage />} />
                 <Route path="/admin/marketing" element={<MarketingPage />} />
                 <Route path="/admin/control" element={<AdminControlPage />} />
+                <Route path="/admin/calendario" element={<EventCalendarPage />} />
                 <Route path="/admin/colecciones" element={<AdminPredesignedListsPage />} />
                 <Route path="/admin/codigos-descuento" element={<ManageDiscountCodesPage />} />
               </Route>

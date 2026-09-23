@@ -1,0 +1,39 @@
+/*---------------------------------
+  Planner calendar (FullCalendar v7)
+
+  v7 ships no theme, only a structural skeleton, and every visible style is passed
+  as Tailwind classes through its *Class props (see CalendarGrid.tsx). The skeleton
+  goes in its own cascade layer, below utilities, so those classes win.
+
+  Only what class props cannot reach lives here.
+*/
+@import '@fullcalendar/react/skeleton.css' layer(fullcalendar);
+
+/* Thin oak bar under the toolbar while a month loads. The grid stays visible. */
+@keyframes planner-cal-progress {
+  from {
+    left: -33%;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+.planner-cal-progress {
+  animation: planner-cal-progress 0.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .planner-cal-progress {
+    animation: none;
+    left: 0;
+    width: 100%;
+    opacity: 0.5;
+  }
+}
+
+/* The time grid scrolls inside the card; keep its scrollbar quiet on linen. */
+.planner-cal * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}

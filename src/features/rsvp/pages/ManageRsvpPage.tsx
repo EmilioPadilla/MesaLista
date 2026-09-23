@@ -232,9 +232,7 @@ export function ManageRsvpPage() {
   const renderContent = () => (
     <>
       {/* RSVP codes don't resolve for guests until the registry is published. */}
-      {activeGiftList && !activeGiftList.publishedAt && (
-        <DraftShareNotice userSlug={user?.slug} subject="tu lista de invitados" />
-      )}
+      {activeGiftList && !activeGiftList.publishedAt && <DraftShareNotice userSlug={user?.slug} subject="tu lista de invitados" />}
 
       {/* Statistics Cards */}
       <RsvpStatistics stats={localStats} />
@@ -261,7 +259,7 @@ export function ManageRsvpPage() {
               <Select
                 value={statusFilter}
                 onChange={setStatusFilter}
-                className="w-full max-w-[192px] shadow-sm"
+                className="w-full max-w-[192px]"
                 options={[
                   { label: 'Todos', value: 'all' },
                   { label: 'Pendientes', value: 'PENDING' },

@@ -1,6 +1,7 @@
 import postmark from 'postmark';
 import { PrismaClient } from '@prisma/client';
 import { EmailTemplates } from '../templates/emailTemplates.js';
+import eventCalendarService from './eventCalendarService.js';
 
 const prisma = new PrismaClient();
 
@@ -1097,6 +1098,10 @@ class EmailService {
               break;
             case 'bank_info_request':
               await this.sendBankInfoRequestEmail(userId);
+              // The email already went out; failing to log it must not count as a failed send.
+              await eventCalendarService
+                .recordEmailSentOutsideCalendar(userId, emailType)
+                .catch((error) => console.error(`Failed to log ${emailType} on the event calendar for user ${userId}:`, error));
               break;
           }
           sent++;

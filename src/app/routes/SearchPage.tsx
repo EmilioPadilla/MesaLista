@@ -102,22 +102,12 @@ export function SearchPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="space-y-2">
                 <label className="text-foreground">Nombres de la pareja o código</label>
-                <Input
-                  placeholder="Sol & Emilio, sol-y-emilio..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-input-background border-border shadow-sm"
-                />
+                <Input placeholder="Sol & Emilio, sol-y-emilio..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-foreground">Fecha de evento (aprox.)</label>
                 <div className="relative">
-                  <Input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="bg-input-background border-border shadow-sm"
-                  />
+                  <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
                   <Calendar className="absolute right-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
                 </div>
               </div>

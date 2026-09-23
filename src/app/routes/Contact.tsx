@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Input, Button, Select, Form, message, Tooltip } from 'antd';
-import { Mail, Phone, CheckCircle, HelpCircle } from 'lucide-react';
+import { Mail, MessageCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Footer } from '../modules/navigation/Footer';
 import { useSendContactForm } from 'src/hooks/useEmail';
@@ -52,7 +52,7 @@ export function Contact() {
     <div className="min-h-screen bg-background">
       <PageSEO
         title="Contacto - MesaLista"
-        description="¿Tienes alguna pregunta sobre tu mesa de regalos? Nuestro equipo está listo para ayudarte. Contáctanos por email o teléfono."
+        description="¿Tienes alguna pregunta sobre tu mesa de regalos? Nuestro equipo está listo para ayudarte. Contáctanos por email o WhatsApp."
         keywords="contacto mesa de regalos, soporte MesaLista, ayuda lista de bodas, atención al cliente"
         customStructuredData={faqStructuredData}
         breadcrumbs={[
@@ -99,7 +99,7 @@ export function Contact() {
               </div>
             </motion.div>
 
-            {/* Phone Support */}
+            {/* WhatsApp Support */}
             <motion.div
               className="text-center"
               initial={{ opacity: 0, y: 30 }}
@@ -108,12 +108,14 @@ export function Contact() {
               viewport={{ once: true }}>
               <div className="text-center p-8 rounded-3xl bg-white shadow-sm border border-border/30 hover:shadow-md transition-all duration-300">
                 <div className="w-16 h-16 bg-[#d4704a]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Phone className="h-8 w-8 text-[#d4704a]" />
+                  <MessageCircle className="h-8 w-8 text-[#d4704a]" />
                 </div>
-                <h3 className="text-xl mb-4 text-foreground">Línea de Atención</h3>
-                <p className="text-muted-foreground mb-6">Lunes a Viernes de 9:00 AM a 6:00 PM</p>
+                <h3 className="text-xl mb-4 text-foreground">Soporte por WhatsApp</h3>
+                <p className="text-muted-foreground mb-6">
+                  Mándanos un mensaje de Lunes a Viernes de 9:00 AM a 6:00 PM. Ideal si tu evento está próximo.
+                </p>
                 <span
-                  onClick={() => (window.location.href = 'tel:+524463069982')}
+                  onClick={() => window.open('https://wa.me/524463069982', '_blank')}
                   className="text-[#d4704a] font-medium hover:underline cursor-pointer">
                   +52 446 306 9982
                 </span>
@@ -235,26 +237,6 @@ export function Contact() {
                   )}
                 </div>
               </motion.div>
-
-              {/* Emergency Support */}
-              <div className="bg-linear-to-br from-[#ff3b30]/5 to-[#ff3b30]/10 rounded-3xl p-8 border border-[#ff3b30]/20 mt-10">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-[#ff3b30]/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <HelpCircle className="h-6 w-6 text-[#ff3b30]" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl mb-2 text-foreground">¿Necesitas ayuda urgente?</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Si tienes un evento próximo y necesitas asistencia inmediata, contáctanos por WhatsApp.
-                    </p>
-                    <Button
-                      onClick={() => window.open('https://wa.me/524463069982', '_blank')}
-                      className="bg-[#25d366]! hover:bg-[#1da851] text-white! rounded-full px-6">
-                      WhatsApp: +52 446 306 9982
-                    </Button>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Support Information */}

@@ -46,7 +46,7 @@ export function GiftListDetailsSection({
             <Input
               addonBefore="mesalista.com.mx/"
               value={slug}
-              className="[&_input]:bg-[#f5f5f7]! [&_input]:h-12 [&_.ant-input-group-addon]:bg-white! [&_.ant-input-group-addon]:border-border!"
+              className="[&_input]:h-12"
               onChange={(e) => {
                 const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
                 onSlugChange(value);
@@ -77,21 +77,21 @@ export function GiftListDetailsSection({
               name="weddingVenue"
               className="mb-0!"
               label={<span className="text-sm text-foreground/70 font-medium">Lugar del evento</span>}>
-              <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: Hacienda San José" />
+              <Input className="h-12 px-4" placeholder="Ej: Hacienda San José" />
             </Form.Item>
 
             <Form.Item
               name="weddingLocation"
               className="mb-0!"
               label={<span className="text-sm text-foreground/70 font-medium">Ciudad, Estado</span>}>
-              <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: Guadalajara, Jalisco" />
+              <Input className="h-12 px-4" placeholder="Ej: Guadalajara, Jalisco" />
             </Form.Item>
 
             <Form.Item
               name="weddingDate"
               className="md:col-span-2 mb-0!"
               label={<span className="text-sm text-foreground/70 font-medium">Fecha del evento</span>}>
-              <DatePicker className="w-full h-12 bg-[#f5f5f7]!" format="MMM DD, YYYY" placeholder="Selecciona la fecha" />
+              <DatePicker className="w-full h-12" format="MMM DD, YYYY" placeholder="Selecciona la fecha" />
             </Form.Item>
           </div>
         </div>
@@ -102,7 +102,7 @@ export function GiftListDetailsSection({
             <Input.TextArea
               rows={5}
               placeholder="Describe tu mesa de regalos, comparte tu historia o deja un mensaje para tus invitados..."
-              className="bg-[#f5f5f7]! resize-none"
+              className="resize-none"
               maxLength={500}
               showCount
             />

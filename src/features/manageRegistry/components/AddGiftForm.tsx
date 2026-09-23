@@ -192,7 +192,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
                     label="Nombre del Regalo"
                     className="!mb-0"
                     rules={[{ required: true, message: 'Por favor, ingresa el nombre del regalo' }]}>
-                    <Input id="title" placeholder="Ej. Juego de sábanas" className="shadow-sm" />
+                    <Input id="title" placeholder="Ej. Juego de sábanas" />
                   </Form.Item>
                 </div>
 
@@ -206,7 +206,6 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
                       id="price"
                       type="number"
                       placeholder="1500"
-                      className="shadow-sm"
                       onChange={(event) => setPriceDraft(Number(event.target.value) || 0)}
                     />
                   </Form.Item>
@@ -219,7 +218,6 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
                     className="!mb-0"
                     rules={[{ required: true, message: 'Por favor, selecciona una categoría' }]}>
                     <Select
-                      className="!shadow-sm !rounded-md"
                       mode="tags"
                       allowClear
                       suffixIcon={<CaretDownFilled />}
@@ -250,7 +248,7 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
 
               <div className="space-y-2">
                 <Form.Item name="description" label="Descripción" className="!mb-0">
-                  <Input.TextArea id="description" placeholder="Descripción detallada del regalo..." className="shadow-sm" />
+                  <Input.TextArea id="description" placeholder="Descripción detallada del regalo..." />
                 </Form.Item>
               </div>
 

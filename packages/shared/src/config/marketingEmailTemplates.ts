@@ -61,7 +61,7 @@ export const MARKETING_EMAIL_TEMPLATES: MarketingEmailTemplate[] = [
     description: 'Solicita datos bancarios (titular, banco, CLABE, carátula) para preparar transferencias relacionadas con el evento.',
     icon: '🏦',
     color: 'from-emerald-400 to-teal-600',
-    timing: 'Enviar cuando se acerque la fecha del evento',
+    timing: 'Enviar 7 días antes del evento (ver Calendario de eventos)',
   },
 ];
 

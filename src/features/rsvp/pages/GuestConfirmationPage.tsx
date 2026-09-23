@@ -25,11 +25,7 @@ export function GuestConfirmationPage() {
   const giftListId = giftList?.id ?? 0;
 
   // React Query hooks
-  const { data: invitee, refetch: searchInvitee, isLoading: searchLoading } = useInviteeByCode(
-    normalizedSearchCode,
-    giftListId,
-    false,
-  );
+  const { data: invitee, refetch: searchInvitee, isLoading: searchLoading } = useInviteeByCode(normalizedSearchCode, giftListId, false);
   const { data: messages } = useRsvpMessages(invitee?.giftListId || 0, !!invitee);
   const { data: customFields = [] } = useRsvpCustomFields(invitee?.giftListId || 0, !!invitee);
   const respondMutation = useRespondToRsvp();
@@ -234,7 +230,7 @@ export function GuestConfirmationPage() {
                           <Input
                             value={customFieldValues[field.id] || ''}
                             onChange={(e) => setCustomFieldValues((prev) => ({ ...prev, [field.id]: e.target.value }))}
-                            className="rounded-xl bg-[#f5f5f7]! border-border/30"
+                            className="rounded-xl"
                             placeholder="Tu respuesta..."
                             maxLength={500}
                           />

@@ -10,6 +10,8 @@
   --popover-foreground: #2c2c2c;
   --primary: #d4704a;
   --primary-foreground: #ffffff;
+  /* Oak dark enough to be text: #d4704a on white is 3.3:1, this is 5.9:1. */
+  --primary-strong: #a8542f;
   --secondary: #f5f1ed;
   --secondary-foreground: #6b5b4f;
   --muted: #f8f6f3;
@@ -19,6 +21,7 @@
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --border: rgba(212, 112, 74, 0.15);
+  --border-strong: rgba(212, 112, 74, 0.3);
   --input: transparent;
   --input-background: #ffffff;
   --switch-background: #e8ddd4;
@@ -105,6 +108,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-strong: var(--primary-strong);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -114,6 +118,7 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-input-background: var(--input-background);
   --color-switch-background: var(--switch-background);

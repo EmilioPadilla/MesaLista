@@ -96,10 +96,7 @@ export function AnalyticsPage() {
         {/* Filters */}
         <Card className="mb-4 sm:mb-6">
           <div className="flex flex-wrap gap-3 sm:gap-4 items-center">
-            <Select
-              className="shadow-sm! rounded-md! w-full sm:w-[200px]"
-              value={dateRange}
-              onChange={(value) => setDateRange(value as DateRange)}>
+            <Select className="w-full sm:w-[200px]" value={dateRange} onChange={(value) => setDateRange(value as DateRange)}>
               <Option value="today">Hoy</Option>
               <Option value="last7days">Últimos 7 días</Option>
               <Option value="last30days">Últimos 30 días</Option>
@@ -116,7 +113,7 @@ export function AnalyticsPage() {
             )}
 
             <Select
-              className="shadow-sm! rounded-md! w-full sm:w-[280px]"
+              className="w-full sm:w-[280px]"
               value={selectedWeddingListId}
               onChange={(value) => setSelectedWeddingListId(value)}
               placeholder="Filtrar por mesa de regalos"

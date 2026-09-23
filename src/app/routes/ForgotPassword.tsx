@@ -132,7 +132,7 @@ export function ForgotPassword() {
                       { required: true, message: 'Por favor ingresa tu correo electrónico' },
                       { type: 'email', message: 'Por favor ingresa un correo válido' },
                     ]}>
-                    <Input id="email" type="email" placeholder="tu@email.com" className="pl-10 h-12 shadow-sm" />
+                    <Input id="email" type="email" placeholder="tu@email.com" className="pl-10 h-12" />
                   </Form.Item>
                 </div>
               </div>

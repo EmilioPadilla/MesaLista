@@ -81,7 +81,7 @@ export function ResetPassword() {
       console.error('Error resetting password:', error);
       const errorMessage = error.response?.data?.error || 'Error al restablecer la contraseña';
       const errors = error.response?.data?.errors;
-      
+
       if (errors && errors.length > 0) {
         // Show all validation errors
         errors.forEach((err: string) => message.error(err));
@@ -241,7 +241,7 @@ export function ResetPassword() {
                       id="newPassword"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className="pl-10 pr-10 h-12 shadow-sm"
+                      className="pl-10 pr-10 h-12"
                       onChange={(e) => setPassword(e.target.value)}
                     />
                   </Form.Item>
@@ -281,7 +281,7 @@ export function ResetPassword() {
                       id="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className="pl-10 pr-10 h-12 shadow-sm"
+                      className="pl-10 pr-10 h-12"
                     />
                   </Form.Item>
                   <button

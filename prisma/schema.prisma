@@ -30,6 +30,7 @@ model User {
   passwordHistory     PasswordHistory[]
   loginAttempts       LoginAttempt[]
   pushTokens          PushToken[]
+  eventActions        EventAction[]
 
   @@map("users")
 }
@@ -93,6 +94,7 @@ model GiftList {
   invitees          Invitee[] // Invitees for this gift list
   rsvpMessages      RsvpMessages? // RSVP messages for this gift list
   rsvpCustomFields  RsvpCustomField[] // Custom fields for RSVP responses
+  eventActions      EventAction[] // Admin follow-ups tied to the event date (bank info, payout)
 
   @@index([userId])
   @@index([publishedAt])
@@ -298,6 +300,32 @@ model Payment {
 
   @@index([emailDeliveryStatus])
   @@map("payments")
+}
+
+// Admin log of the follow-ups each event needs around its date (bank info email,
+// receiving the couple's CLABE, paying them out). The schedule itself lives in
+// packages/shared/src/config/eventActions.ts; this table only records what an
+// admin already did, so the calendar can tell pending from done.
+enum EventActionStatus {
+  DONE
+  SKIPPED
+}
+
+model EventAction {
+  id            Int               @id @default(autoincrement())
+  giftListId    Int               @map("gift_list_id")
+  action        String // Key from EVENT_ACTIONS, e.g. "bank_info_request"
+  status        EventActionStatus @default(DONE)
+  note          String?           @db.Text
+  completedAt   DateTime          @default(now()) @map("completed_at")
+  completedById Int?              @map("completed_by_id") // Admin who logged it; null when recorded automatically
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  giftList      GiftList          @relation(fields: [giftListId], references: [id], onDelete: Cascade)
+  completedBy   User?             @relation(fields: [completedById], references: [id], onDelete: SetNull)
+
+  @@unique([giftListId, action])
+  @@map("event_actions")
 }
 
 enum EmailDeliveryStatus {

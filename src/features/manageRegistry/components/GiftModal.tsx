@@ -185,7 +185,7 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
       <Form form={form} onFinish={handleFinish} layout="vertical" className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Form.Item name="title" label="Nombre del Regalo" rules={[{ required: true, message: 'Por favor ingresa el título del regalo' }]}>
-            <Input placeholder="Ej. Juego de sábanas" className="shadow-sm" />
+            <Input placeholder="Ej. Juego de sábanas" />
           </Form.Item>
 
           <Form.Item
@@ -203,12 +203,7 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
                 },
               },
             ]}>
-            <Input
-              type="number"
-              placeholder="1500"
-              className="shadow-sm"
-              onChange={(event) => setPriceDraft(Number(event.target.value) || 0)}
-            />
+            <Input type="number" placeholder="1500" onChange={(event) => setPriceDraft(Number(event.target.value) || 0)} />
           </Form.Item>
         </div>
 
@@ -229,7 +224,7 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
               mode="tags"
               allowClear
               optionFilterProp="label"
-              className="shadow-sm w-full rounded"
+              className="w-full rounded"
               placeholder="Selecciona (o crea) de 1 a 3 categorías"
               maxCount={3}
               options={categoryOptions}
@@ -242,7 +237,7 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
         </div>
 
         <Form.Item name="description" label="Descripción">
-          <Input.TextArea placeholder="Descripción detallada del regalo..." className="shadow-sm" rows={3} />
+          <Input.TextArea placeholder="Descripción detallada del regalo..." rows={3} />
         </Form.Item>
 
         {/* Image Upload Section */}

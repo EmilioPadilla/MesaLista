@@ -100,7 +100,7 @@ export function PredesignedRegistryModal({ isOpen, onOpenChange, mode, registry,
             onError: () => {
               message.error('Error al actualizar la lista');
             },
-          }
+          },
         );
       } else {
         createList(data, {
@@ -138,18 +138,12 @@ export function PredesignedRegistryModal({ isOpen, onOpenChange, mode, registry,
   return (
     <Modal title={title} open={isOpen} onCancel={handleClose} footer={null} width={700}>
       <Form form={form} onFinish={handleFinish} layout="vertical" className="space-y-6">
-        <Form.Item
-          name="name"
-          label="Nombre de la Lista"
-          rules={[{ required: true, message: 'Por favor ingresa el nombre de la lista' }]}>
-          <Input placeholder="Luna de Miel en París" className="shadow-sm" />
+        <Form.Item name="name" label="Nombre de la Lista" rules={[{ required: true, message: 'Por favor ingresa el nombre de la lista' }]}>
+          <Input placeholder="Luna de Miel en París" />
         </Form.Item>
 
-        <Form.Item
-          name="description"
-          label="Descripción"
-          rules={[{ required: true, message: 'Por favor ingresa la descripción' }]}>
-          <Input.TextArea placeholder="Ciudad del amor, arte y gastronomía" className="shadow-sm" rows={3} />
+        <Form.Item name="description" label="Descripción" rules={[{ required: true, message: 'Por favor ingresa la descripción' }]}>
+          <Input.TextArea placeholder="Ciudad del amor, arte y gastronomía" rows={3} />
         </Form.Item>
 
         {/* Image Upload Section */}
@@ -195,7 +189,7 @@ export function PredesignedRegistryModal({ isOpen, onOpenChange, mode, registry,
 
         <Form.Item name="icon" label="Icono" initialValue="MapPin">
           <Select
-            className="w-full shadow-sm"
+            className="w-full"
             options={iconOptions.map((icon) => ({
               label: (
                 <span>

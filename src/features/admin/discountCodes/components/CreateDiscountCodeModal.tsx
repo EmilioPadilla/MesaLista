@@ -39,7 +39,7 @@ export const CreateDiscountCodeModal = ({ open, onCancel, onSubmit, isLoading }:
         </Form.Item>
 
         <Form.Item name="discountType" label="Tipo de Descuento" rules={[{ required: true, message: 'Selecciona el tipo' }]}>
-          <Select className="shadow-sm" placeholder="Selecciona el tipo">
+          <Select placeholder="Selecciona el tipo">
             <Select.Option value="PERCENTAGE">Porcentaje</Select.Option>
             <Select.Option value="FIXED_AMOUNT">Cantidad Fija</Select.Option>
           </Select>
@@ -57,11 +57,11 @@ export const CreateDiscountCodeModal = ({ open, onCancel, onSubmit, isLoading }:
         </Form.Item>
 
         <Form.Item name="usageLimit" label="Límite de Uso" rules={[{ required: true, message: 'El límite es requerido' }]}>
-          <Input type="number" min={1} style={{ width: '100%' }} className="shadow-sm" placeholder="100" />
+          <Input type="number" min={1} style={{ width: '100%' }} placeholder="100" />
         </Form.Item>
 
         <Form.Item name="expiresAt" label="Fecha de Expiración (Opcional)">
-          <DatePicker className="shadow-sm" style={{ width: '100%' }} format="DD/MM/YYYY" />
+          <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
         </Form.Item>
       </Form>
     </Modal>

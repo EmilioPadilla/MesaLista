@@ -45,7 +45,6 @@ export const GiftsList = ({
             <Input
               prefix={<SearchOutlined />}
               placeholder="Buscar regalos..."
-              className="!rounded-md !shadow-sm"
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -55,7 +54,7 @@ export const GiftsList = ({
             <label className="text-md">Ordenar por:</label>
             <Select
               suffixIcon={<ArrowUpDown size={14} />}
-              className="w-full !rounded-md !shadow-sm"
+              className="w-full"
               value={sortBy}
               onChange={onSortChange}
               options={[
@@ -72,7 +71,7 @@ export const GiftsList = ({
             <label className="text-md">Filtrar por:</label>
             <Select
               suffixIcon={<Filter size={14} />}
-              className="w-full !rounded-md !shadow-sm"
+              className="w-full"
               value={filterBy}
               onChange={onFilterChange}
               options={[

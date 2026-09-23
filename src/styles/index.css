@@ -2,9 +2,15 @@
   Main CSS file for the project that imports all other CSS files
 */
 
+/* Cascade layer order, declared before anything else so it wins. `fullcalendar`
+   sits below `utilities` so Tailwind classes passed to the calendar's class props
+   override its structural skeleton. */
+@layer theme, base, fullcalendar, components, utilities;
+
 @import './_tailwind.css';
 @import './_fonts.css';
 @import './_elements.css';
 @import './_utilities.css';
 @import './_overrides.css';
 @import './_global.css';
+@import './_calendar.css';

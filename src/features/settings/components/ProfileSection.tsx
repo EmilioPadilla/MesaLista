@@ -32,7 +32,7 @@ export function ProfileSection({
               className="mb-0!"
               label={<span className="text-sm text-foreground/70 font-medium">Nombre</span>}
               rules={[{ required: true, message: 'El nombre es requerido' }]}>
-              <Input className="h-12 px-4 bg-[#f5f5f7]!" />
+              <Input className="h-12 px-4" />
             </Form.Item>
 
             <Form.Item
@@ -40,7 +40,7 @@ export function ProfileSection({
               className="mb-0!"
               label={<span className="text-sm text-foreground/70 font-medium">Apellido</span>}
               rules={[{ required: true, message: 'El apellido es requerido' }]}>
-              <Input className="h-12 px-4 bg-[#f5f5f7]!" />
+              <Input className="h-12 px-4" />
             </Form.Item>
 
             <Form.Item
@@ -51,7 +51,7 @@ export function ProfileSection({
                 { required: true, message: 'El teléfono es requerido' },
                 { pattern: /^[\d\s\-\+\(\)]{10,}$/, message: 'Teléfono inválido' },
               ]}>
-              <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="55 1234 5678" />
+              <Input className="h-12 px-4" placeholder="55 1234 5678" />
             </Form.Item>
           </div>
         </div>
@@ -64,12 +64,18 @@ export function ProfileSection({
 
           <Collapsible isOpen={isWeddingAccount}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              <Form.Item name="spouseFirstName" className="mb-0!" label={<span className="text-sm text-foreground/70 font-medium">Nombre de la pareja</span>}>
-                <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: María" />
+              <Form.Item
+                name="spouseFirstName"
+                className="mb-0!"
+                label={<span className="text-sm text-foreground/70 font-medium">Nombre de la pareja</span>}>
+                <Input className="h-12 px-4" placeholder="Ej: María" />
               </Form.Item>
 
-              <Form.Item name="spouseLastName" className="mb-0!" label={<span className="text-sm text-foreground/70 font-medium">Apellido de la pareja</span>}>
-                <Input className="h-12 px-4 bg-[#f5f5f7]!" placeholder="Ej: García" />
+              <Form.Item
+                name="spouseLastName"
+                className="mb-0!"
+                label={<span className="text-sm text-foreground/70 font-medium">Apellido de la pareja</span>}>
+                <Input className="h-12 px-4" placeholder="Ej: García" />
               </Form.Item>
             </div>
           </Collapsible>

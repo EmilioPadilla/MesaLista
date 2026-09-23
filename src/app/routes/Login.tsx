@@ -153,13 +153,13 @@ const Login: React.FC = () => {
                   label="Correo Electrónico"
                   name="email"
                   rules={[{ required: true, message: 'Por favor ingresa tu correo electrónico' }]}>
-                  <Input size="large" id="email" type="email" placeholder="tu@correo.com" className="pl-10 h-12 shadow-sm" />
+                  <Input size="large" id="email" type="email" placeholder="tu@correo.com" className="pl-10 h-12" />
                 </Form.Item>
               </div>
 
               <div className="space-y-2">
                 <Form.Item name="password" label="Contraseña" rules={[{ required: true, message: 'Por favor ingresa tu contraseña' }]}>
-                  <Input.Password size="large" id="password" placeholder="••••••••" className="shadow-sm" />
+                  <Input.Password size="large" id="password" placeholder="••••••••" />
                 </Form.Item>
               </div>
 
