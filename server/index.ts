@@ -31,6 +31,7 @@ import signupEmailRoutes from './routes/signupEmailRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
 import bodyParser from 'body-parser';
 import paymentController from './controllers/paymentController.js';
+import sentryWebhookController from './controllers/sentryWebhookController.js';
 import SessionCleanupJob from './lib/sessionCleanup.js';
 import AnalyticsAggregationJob from './lib/analyticsAggregation.js';
 import EventReminderJob from './lib/eventReminders.js';
@@ -78,7 +79,8 @@ app.use(
             'http://localhost:19006',
           ], // Development origins
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    // sentry-trace/baggage: Sentry's distributed tracing headers from the web client
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'sentry-trace', 'baggage'],
     credentials: true,
     maxAge: 86400, // Cache preflight requests for 24 hours
   }),
@@ -101,10 +103,17 @@ app.use('/api/payments/stripe-payment-intent', (req, res, next) => {
 
 app.post('/api/payments/stripe-payment-intent', paymentController.handleStripePaymentIntent);
 
+// Sentry webhook (raw body for HMAC signature) → GitHub autofix workflow
+app.post(
+  '/api/webhooks/sentry',
+  bodyParser.raw({ type: 'application/json' }),
+  sentryWebhookController.handleSentryWebhook,
+);
+
 // Apply JSON parsing to all other routes
 app.use((req, res, next) => {
-  // Skip JSON parsing for webhook route
-  if (req.path === '/api/payments/stripe-payment-intent') {
+  // Skip JSON parsing for webhook routes
+  if (req.path === '/api/payments/stripe-payment-intent' || req.path === '/api/webhooks/sentry') {
     return next();
   }
   express.json()(req, res, next);

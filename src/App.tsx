@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import * as Sentry from '@sentry/react';
 import { ConfigProvider } from 'antd';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
@@ -34,11 +35,15 @@ import ProtectedRoute from 'src/components/ProtectedRoute';
 import AdminRoute from 'src/components/AdminRoute';
 import { PageViewTracker } from 'src/components/analytics/PageViewTracker';
 import { Footer } from 'src/app/modules/navigation/Footer';
+import { SentryTestButton } from 'src/components/SentryTestButton';
 
 import { GuestConfirmationPage, ManageRsvpPage } from 'src/features/rsvp';
 
 import { NotificationProvider } from 'src/contexts/NotificationContext';
 import antdThemeConfig from 'src/styles/config/antdThemeConfig';
+
+// Lets Sentry name transactions by route pattern instead of raw URL.
+const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
 
 function App() {
   const isLocalhost = window.location.hostname === 'localhost';
@@ -48,7 +53,7 @@ function App() {
       <NotificationProvider>
         <BrowserRouter>
           <PageViewTracker />
-          <Routes>
+          <SentryRoutes>
             {/* Standalone routes (no TopNav) */}
             <Route path="/login" element={<Login />} />
             <Route path="/olvide-contrasena" element={<ForgotPassword />} />
@@ -106,10 +111,11 @@ function App() {
             </Route>
 
             <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+          </SentryRoutes>
         </BrowserRouter>
       </NotificationProvider>
       {isLocalhost && <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />}
+      {isLocalhost && <SentryTestButton />}
     </ConfigProvider>
   );
 }
