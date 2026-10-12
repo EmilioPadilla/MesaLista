@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       issue_id:
-        description: 'Sentry issue id (the number in the issue URL)'
+        description: 'Sentry issue id or short id (e.g. MESALISTA-SERVER-1)'
         required: true
 
 concurrency:
@@ -43,8 +43,14 @@ jobs:
         id: guard
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           ISSUE_ID: ${{ github.event.client_payload.issueId || inputs.issue_id }}
         run: |
+          # Manual runs may pass the short id shown in the Sentry UI; resolve it.
+          if [[ "$ISSUE_ID" =~ ^[A-Za-z0-9]+(-[A-Za-z0-9]+)+$ ]]; then
+            ISSUE_ID=$(curl -fsS -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" \
+              "$SENTRY_API/organizations/$SENTRY_ORG/shortids/$ISSUE_ID/" | jq -r '.groupId')
+          fi
           if ! [[ "$ISSUE_ID" =~ ^[0-9]+$ ]]; then
             echo "::error::Invalid Sentry issue id: '$ISSUE_ID'"
             exit 1
