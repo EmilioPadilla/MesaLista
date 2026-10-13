@@ -52,7 +52,9 @@ export const PageSEO: React.FC<PageSEOProps> = ({
     schemas.push(customStructuredData);
   }
 
-  const structuredData = schemas.length > 1 ? { '@graph': schemas } : schemas[0];
+  // A @graph document still needs its own top-level @context; JSON-LD consumers
+  // (crawlers, browser extensions) read it from the root object.
+  const structuredData = schemas.length > 1 ? { '@context': 'https://schema.org', '@graph': schemas } : schemas[0];
 
   return (
     <SEOHead
