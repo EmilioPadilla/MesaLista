@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -204,6 +205,9 @@ app.use((req, res, next) => {
     }
   });
 });
+
+// Report unhandled route errors to Sentry before our handler responds.
+Sentry.setupExpressErrorHandler(app);
 
 // Error handling middleware (must be last)
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

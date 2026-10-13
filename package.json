@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "server": "tsx watch server/index.ts",
+    "server": "tsx watch --import ./server/instrument.ts server/index.ts",
     "dev:all": "concurrently \"npm run dev\" \"npm run server\"",
     "build": "npm run build:client && npm run build:server",
     "build:client": "tsc -b && vite build",
@@ -53,6 +53,7 @@
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.1.2",
     "@radix-ui/react-tabs": "^1.1.12",
+    "@sentry/node": "^11.7.0",
     "@sentry/react": "^11.7.0",
     "@stripe/react-stripe-js": "^3.9.0",
     "@stripe/stripe-js": "^7.8.0",
