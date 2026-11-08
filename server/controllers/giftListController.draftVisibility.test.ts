@@ -7,12 +7,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const giftListFindMany = vi.fn();
 const giftListFindFirst = vi.fn();
 const giftListFindUnique = vi.fn();
+const giftListCount = vi.fn();
 const giftFindMany = vi.fn();
 const userFindUnique = vi.fn();
 
 vi.mock('@prisma/client', () => ({
   PrismaClient: class {
-    giftList = { findMany: giftListFindMany, findFirst: giftListFindFirst, findUnique: giftListFindUnique, create: vi.fn() };
+    giftList = { findMany: giftListFindMany, findFirst: giftListFindFirst, findUnique: giftListFindUnique, count: giftListCount, create: vi.fn() };
     gift = { findMany: giftFindMany };
     user = { findUnique: userFindUnique };
     giftCategoryOnGift = { findMany: vi.fn().mockResolvedValue([]) };
@@ -90,6 +91,27 @@ describe('GET /giftLists/:id', () => {
 
     expect(res.status).not.toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalled();
+  });
+
+  it("flags the owner's only list so the guest page can drop ?listId=", async () => {
+    giftListFindUnique.mockResolvedValue(publishedList);
+    giftListCount.mockResolvedValue(1);
+    const res = makeRes();
+
+    await giftListController.getGiftListById({ params: { giftListId: '10' } } as any, res as any);
+
+    expect(giftListCount).toHaveBeenCalledWith({ where: { userId: publishedList.userId } });
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ isOnlyList: true }));
+  });
+
+  it('does not flag a list when the owner has several', async () => {
+    giftListFindUnique.mockResolvedValue(publishedList);
+    giftListCount.mockResolvedValue(2);
+    const res = makeRes();
+
+    await giftListController.getGiftListById({ params: { giftListId: '10' } } as any, res as any);
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ isOnlyList: false }));
   });
 
   it('returns a published list to anyone', async () => {

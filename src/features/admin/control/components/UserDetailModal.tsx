@@ -94,7 +94,7 @@ export function UserDetailModal({ isOpen, onClose, user, formatDate, formatCurre
                     <div className="font-medium">{user.weddingList.coupleName}</div>
                   </div>
                   <div>
-                    <span className="text-gray-500">Fecha de Boda:</span>
+                    <span className="text-gray-500">Fecha del Evento:</span>
                     <div className="font-medium">{dayjs(user.weddingList.weddingDate).format('DD/MMM/YYYY')}</div>
                   </div>
                   <div>

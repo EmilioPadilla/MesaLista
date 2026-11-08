@@ -68,7 +68,7 @@ export function OrderConfirmationScreen({ slug, cartSession, method, paypalToken
             </View>
             <Text className="mt-5 text-2xl font-bold text-ink">¡Gracias por tu regalo!</Text>
             <Text className="mt-2 text-center text-sm text-mutedForeground">
-              Tu pago se procesó correctamente. La pareja recibirá una notificación con tu mensaje.
+              Tu pago se procesó correctamente. Los anfitriones recibirán una notificación con tu mensaje.
             </Text>
 
             <View className="mt-6 w-full rounded-ml border border-gray-200 bg-white p-4">

@@ -176,7 +176,7 @@ export function RegistriesControlTab({ summary, listsData, isListsLoading, onRef
       sorter: (a, b) => (a.invitationCount || 0) - (b.invitationCount || 0),
     },
     {
-      title: 'Fecha Boda',
+      title: 'Fecha Evento',
       key: 'weddingDate',
       width: 130,
       render: (_, record) => (
@@ -337,7 +337,7 @@ export function RegistriesControlTab({ summary, listsData, isListsLoading, onRef
       {/* Search and Actions */}
       <div className="mb-4 flex justify-between items-center">
         <Input
-          placeholder="Buscar por título, pareja, email o slug..."
+          placeholder="Buscar por título, anfitriones, email o slug..."
           prefix={<Search className="h-4 w-4 text-gray-400" />}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}

@@ -118,7 +118,7 @@ export class EmailTemplates {
             ${
               data.coupleThankYouMessage
                 ? `
-            <h3 style="color: #1f2937; margin-bottom: 16px;">Mensaje por parte de la pareja</h3>
+            <h3 style="color: #1f2937; margin-bottom: 16px;">Mensaje por parte de los anfitriones</h3>
             <div style="border: 1px solid #d4704a; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
               <p style="margin: 0; color: #92400e; font-style: italic;">${data.coupleThankYouMessage}</p>
             </div>
@@ -148,7 +148,7 @@ export class EmailTemplates {
 
             <div style="background-color: #eff6ff; border: 1px solid #93c5fd; border-radius: 8px; padding: 16px; margin-top: 24px;">
               <h3 style="margin: 0 0 8px 0; color: #1e40af;">¿Qué sigue?</h3>
-              <p style="margin: 0; color: #1e40af;">La pareja será notificada de tu regalo. ¡Gracias por ser parte de su día especial!</p>
+              <p style="margin: 0; color: #1e40af;">Los anfitriones recibirán un aviso de tu regalo. ¡Gracias por ser parte de su día especial!</p>
             </div>
           </div>
 
@@ -192,14 +192,14 @@ Fecha: ${formatDate(new Date())}
 
 ${
   data.message
-    ? `TU MENSAJE PARA LA PAREJA:
+    ? `TU MENSAJE PARA LOS ANFITRIONES:
 "${data.message}"
 
 `
     : ''
 }${
       data.coupleThankYouMessage
-        ? `MENSAJE POR PARTE DE LA PAREJA:
+        ? `MENSAJE POR PARTE DE LOS ANFITRIONES:
 "${data.coupleThankYouMessage}"
 
 `
@@ -210,7 +210,7 @@ ${itemsList}
 TOTAL PAGADO: ${formatCurrency(totalAmount)}
 
 ¿QUÉ SIGUE?
-La pareja será notificada de tu regalo. ¡Gracias por ser parte de su día especial!
+Los anfitriones recibirán un aviso de tu regalo. ¡Gracias por ser parte de su día especial!
 
 ---
 Este es un email automático de confirmación
@@ -855,14 +855,14 @@ Usa una contraseña única que no hayas usado en otros sitios. Combina letras ma
               </div>
             </div>
 
-            <h2 style="color: #1f2937; margin-bottom: 16px;">Información de la Pareja</h2>
+            <h2 style="color: #1f2937; margin-bottom: 16px;">Información de los Anfitriones</h2>
             
             <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
               <p style="margin: 0 0 8px 0;"><strong>Nombre completo:</strong> ${fullName}</p>
-              <p style="margin: 0 0 8px 0;"><strong>Nombre de pareja:</strong> ${coupleName}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Nombre de anfitriones:</strong> ${coupleName}</p>
               <p style="margin: 0 0 8px 0;"><strong>Email:</strong> <a href="mailto:${data.email}" style="color: #d4704a; text-decoration: none;">${data.email}</a></p>
               ${data.phoneNumber ? `<p style="margin: 0 0 8px 0;"><strong>Teléfono:</strong> <a href="tel:${data.phoneNumber}" style="color: #d4704a; text-decoration: none;">${data.phoneNumber}</a></p>` : ''}
-              <p style="margin: 0 0 8px 0;"><strong>Slug de pareja:</strong> <code style="background-color: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 14px;">${data.slug}</code></p>
+              <p style="margin: 0 0 8px 0;"><strong>Slug:</strong> <code style="background-color: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 14px;">${data.slug}</code></p>
               <p style="margin: 0;"><strong>Tipo de plan:</strong> <span style="color: ${data.planType === 'FIXED' ? '#059669' : '#3b82f6'}; font-weight: 600;">${planTypeText}</span></p>
             </div>
 
@@ -887,7 +887,7 @@ Usa una contraseña única que no hayas usado en otros sitios. Combina letras ma
 
             <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; margin-top: 24px; border-radius: 4px;">
               <p style="margin: 0; color: #065f46;">
-                <strong>💡 Acción sugerida:</strong> Puedes contactar a la pareja para darles la bienvenida y ofrecerles asistencia para configurar su lista de regalos.
+                <strong>💡 Acción sugerida:</strong> Puedes contactar a los anfitriones para darles la bienvenida y ofrecerles asistencia para configurar su lista de regalos.
               </p>
             </div>
           </div>
@@ -933,11 +933,11 @@ Un nuevo usuario se ha registrado en MesaLista
 ✅ Nueva lista de regalos creada
 Fecha: ${this.formatDateTime(data.createdAt)}
 
-INFORMACIÓN DE LA PAREJA:
+INFORMACIÓN DE LOS ANFITRIONES:
 - Nombre completo: ${fullName}
-- Nombre de pareja: ${coupleName}
+- Nombre de anfitriones: ${coupleName}
 - Email: ${data.email}
-${data.phoneNumber ? `- Teléfono: ${data.phoneNumber}\n` : ''}- Slug de pareja: ${data.slug}
+${data.phoneNumber ? `- Teléfono: ${data.phoneNumber}\n` : ''}- Slug: ${data.slug}
 - Tipo de plan: ${planTypeText}
 
 ${
@@ -950,7 +950,7 @@ ${
 ${registryUrl}
 
 💡 ACCIÓN SUGERIDA:
-Puedes contactar a la pareja para darles la bienvenida y ofrecerles asistencia para configurar su lista de regalos.
+Puedes contactar a los anfitriones para darles la bienvenida y ofrecerles asistencia para configurar su lista de regalos.
 
 ---
 Este es un email automático de notificación
@@ -1040,7 +1040,7 @@ MesaLista Admin - Panel de administración
                       <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">Gestiona tus confirmaciones (RSVPs)</h3>
                       <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
                         Crea y administra las confirmaciones de asistencia de tus invitados. Mantén todo organizado en un solo lugar 
-                        y lleva el control de quién asistirá a tu gran día.
+                        y lleva el control de quién asistirá a tu evento.
                       </p>
                     </td>
                   </tr>
@@ -1169,7 +1169,7 @@ Hola ${coupleName},
    Crea tu lista de regalos con fotos, descripciones y precios. Puedes agregar desde electrodomésticos hasta experiencias de viaje. ¡Sé creativo y agrega todo lo que necesiten para su nueva vida juntos!
 
 2. GESTIONA TUS CONFIRMACIONES (RSVPs)
-   Crea y administra las confirmaciones de asistencia de tus invitados. Mantén todo organizado en un solo lugar y lleva el control de quién asistirá a tu gran día.
+   Crea y administra las confirmaciones de asistencia de tus invitados. Mantén todo organizado en un solo lugar y lleva el control de quién asistirá a tu evento.
 
 3. COMPARTE TU LISTA
    Una vez que tengas tus regalos listos, comparte el enlace de tu lista con familiares y amigos. Ellos podrán ver tus regalos y hacer sus contribuciones de forma fácil y segura.
@@ -1416,7 +1416,7 @@ MesaLista · @mesalista.mx
                     <td style="color: #1d1d1f; font-size: 14px; font-weight: 500; text-align: right; padding: 8px 0;">${data.giftListTitle}</td>
                   </tr>
                   <tr>
-                    <td style="color: #86868b; font-size: 14px; padding: 8px 0;">Pareja:</td>
+                    <td style="color: #86868b; font-size: 14px; padding: 8px 0;">Anfitriones:</td>
                     <td style="color: #1d1d1f; font-size: 14px; font-weight: 500; text-align: right; padding: 8px 0;">${data.coupleName}</td>
                   </tr>
                   <tr>
@@ -1545,7 +1545,7 @@ ${heroBlock}
 
 DETALLES DE TU LISTA:
 - Nombre de la Lista: ${data.giftListTitle}
-- Pareja: ${data.coupleName}
+- Anfitriones: ${data.coupleName}
 - Fecha del Evento: ${formatDate(data.eventDate)}
 - Plan: ${planLabel}
 
@@ -1868,20 +1868,20 @@ El equipo de MesaLista
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Parejas como tú están usando MesaLista</title>
+        <title>Anfitriones como tú están usando MesaLista</title>
       </head>
       <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; margin: 0; padding: 0; background-color: #f9fafb;">
         <div style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           <!-- Header -->
           <div style="background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); color: white; padding: 40px 24px; text-align: center;">
             <h1 style="margin: 0; font-size: 32px; font-weight: bold;">Historias de Éxito</h1>
-            <p style="margin: 12px 0 0 0; font-size: 18px; opacity: 0.95;">Parejas reales, resultados reales</p>
+            <p style="margin: 12px 0 0 0; font-size: 18px; opacity: 0.95;">Anfitriones reales, resultados reales</p>
           </div>
 
           <!-- Content -->
           <div style="padding: 40px 24px;">
             <p style="font-size: 18px; margin: 0 0 32px 0; color: #1f2937;">
-              Hola ${firstName}, ¿sabías que cientos de parejas ya están usando MesaLista para hacer sus eventos más especiales? Aquí te compartimos algunas historias.
+              Hola ${firstName}, ¿sabías que cientos de anfitriones ya están usando MesaLista para hacer sus eventos más especiales? Aquí te compartimos algunas historias.
             </p>
 
             <!-- Testimonial 1 -->
@@ -1932,7 +1932,7 @@ El equipo de MesaLista
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 12px; padding: 20px;">
                   <p style="margin: 0; color: white; font-size: 32px; font-weight: bold;">500+</p>
-                  <p style="margin: 8px 0 0 0; color: white; font-size: 14px; opacity: 0.9;">Parejas Felices</p>
+                  <p style="margin: 8px 0 0 0; color: white; font-size: 14px; opacity: 0.9;">Anfitriones Felices</p>
                 </div>
                 <div style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 12px; padding: 20px;">
                   <p style="margin: 0; color: white; font-size: 32px; font-weight: bold;">95%</p>
@@ -1951,7 +1951,7 @@ El equipo de MesaLista
 
             <!-- CTA Button -->
             <div style="text-align: center; margin: 40px 0;">
-              <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 16px;">¿Listo para unirte a estas parejas exitosas?</p>
+              <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 16px;">¿Listo para unirte a estos anfitriones?</p>
               <a href="https://mesalista.com.mx/${coupleSlug}/gestionar" 
                  style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);">
                 Crear Mi Mesa Ahora →
@@ -1982,9 +1982,9 @@ El equipo de MesaLista
     return `
 HISTORIAS DE ÉXITO
 
-Parejas reales, resultados reales
+Anfitriones reales, resultados reales
 
-Hola ${firstName}, ¿sabías que cientos de parejas ya están usando MesaLista para hacer sus eventos más especiales? Aquí te compartimos algunas historias.
+Hola ${firstName}, ¿sabías que cientos de anfitriones ya están usando MesaLista para hacer sus eventos más especiales? Aquí te compartimos algunas historias.
 
 ❤️ MARÍA Y CARLOS - CIUDAD DE MÉXICO
 "MesaLista transformó completamente nuestra experiencia de boda. En solo 10 minutos teníamos nuestra lista completa usando las colecciones prediseñadas. ¡Recibimos más de $85,000 en regalos!"
@@ -1997,12 +1997,12 @@ Hola ${firstName}, ¿sabías que cientos de parejas ya están usando MesaLista p
 
 MESALISTA EN NÚMEROS:
 
-500+ Parejas Felices
+500+ Anfitriones Felices
 95% Satisfacción
 5 min Setup Promedio
 $0 Costo Inicial
 
-¿Listo para unirte a estas parejas exitosas?
+¿Listo para unirte a estos anfitriones?
 
 CREAR MI MESA AHORA:
 https://mesalista.com.mx/${coupleSlug}/gestionar
@@ -2089,7 +2089,7 @@ El equipo de MesaLista
             <!-- Final Push -->
             <div style="background-color: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 20px; margin-top: 32px; text-align: center;">
               <p style="margin: 0; color: #991b1b; font-size: 14px; line-height: 1.6;">
-                <strong>⚠️ Última oportunidad:</strong> Si no activamos tu cuenta en los próximos 30 días, tendremos que liberar tu espacio para otras parejas en lista de espera.
+                <strong>⚠️ Última oportunidad:</strong> Si no activamos tu cuenta en los próximos 30 días, tendremos que liberar tu espacio para otras personas en lista de espera.
               </p>
             </div>
 
@@ -2157,7 +2157,7 @@ https://mesalista.com.mx/${coupleSlug}/gestionar
 Oferta válida por 7 días
 
 ⚠️ ÚLTIMA OPORTUNIDAD:
-Si no activamos tu cuenta en los próximos 30 días, tendremos que liberar tu espacio para otras parejas en lista de espera.
+Si no activamos tu cuenta en los próximos 30 días, tendremos que liberar tu espacio para otras personas en lista de espera.
 
 ¿NECESITAS AYUDA PARA EMPEZAR?
 Nuestro equipo está listo para ayudarte. Responde a este email o escríbenos:
@@ -2345,7 +2345,7 @@ mesalista.com.mx | info@mesalista.com.mx
   <div class="container">
     <div class="header">
       <h1>📋 Información Bancaria</h1>
-      <p>¡Cada vez falta menos para tu gran día!</p>
+      <p>¡Cada vez falta menos para tu evento!</p>
     </div>
     
     <div class="content">
@@ -2413,7 +2413,7 @@ mesalista.com.mx | info@mesalista.com.mx
     return `
 📋 INFORMACIÓN BANCARIA
 
-¡Cada vez falta menos para tu gran día!
+¡Cada vez falta menos para tu evento!
 
 Hola ${firstName},
 
@@ -2525,11 +2525,11 @@ mesalista.com.mx | info@mesalista.com.mx
               <br><small style="color: #1e40af;">Fecha: ${this.formatDateTime(data.createdAt)}</small>
             </div>
 
-            <h2 style="color: #1f2937; margin-bottom: 16px;">Pareja</h2>
+            <h2 style="color: #1f2937; margin-bottom: 16px;">Anfitriones</h2>
 
             <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
               <p style="margin: 0 0 8px 0;"><strong>Nombre:</strong> ${data.userName}</p>
-              <p style="margin: 0 0 8px 0;"><strong>Nombre de pareja:</strong> ${data.coupleName}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Nombre de anfitriones:</strong> ${data.coupleName}</p>
               <p style="margin: 0 0 8px 0;"><strong>Email:</strong> <a href="mailto:${data.userEmail}" style="color: #d4704a; text-decoration: none;">${data.userEmail}</a></p>
               ${data.phoneNumber ? `<p style="margin: 0 0 8px 0;"><strong>Teléfono:</strong> <a href="tel:${data.phoneNumber}" style="color: #d4704a; text-decoration: none;">${data.phoneNumber}</a></p>` : ''}
               <p style="margin: 0;"><strong>Slug:</strong> <code style="background-color: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 14px;">${data.slug || '—'}</code></p>
@@ -2545,7 +2545,7 @@ mesalista.com.mx | info@mesalista.com.mx
             </div>
 
             <div style="background-color: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-              <p style="margin: 0 0 8px 0; color: #1e40af;"><strong>Constructor de la pareja:</strong></p>
+              <p style="margin: 0 0 8px 0; color: #1e40af;"><strong>Constructor de la mesa:</strong></p>
               <a href="${data.builderUrl}" style="color: #3b82f6; word-break: break-all; text-decoration: none; font-weight: 500;">${data.builderUrl}</a>
               <p style="margin: 16px 0 8px 0; color: #1e40af;"><strong>URL pública (activa al publicar):</strong></p>
               <a href="${data.registryUrl}" style="color: #3b82f6; word-break: break-all; text-decoration: none; font-weight: 500;">${data.registryUrl}</a>
@@ -2590,9 +2590,9 @@ mesalista.com.mx | info@mesalista.com.mx
 ${data.coupleName} empezó su mesa de regalos
 Fecha: ${this.formatDateTime(data.createdAt)}
 
-PAREJA:
+ANFITRIONES:
 - Nombre: ${data.userName}
-- Nombre de pareja: ${data.coupleName}
+- Nombre de anfitriones: ${data.coupleName}
 - Email: ${data.userEmail}
 ${data.phoneNumber ? `- Teléfono: ${data.phoneNumber}\n` : ''}- Slug: ${data.slug || '—'}
 
@@ -2651,11 +2651,11 @@ MesaLista Admin - Panel de administración
               <p style="margin: 0;"><strong>Monto cobrado:</strong> ${amountText}</p>
             </div>
 
-            <h2 style="color: #1f2937; margin-bottom: 16px;">Pareja</h2>
+            <h2 style="color: #1f2937; margin-bottom: 16px;">Anfitriones</h2>
 
             <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
               <p style="margin: 0 0 8px 0;"><strong>Nombre:</strong> ${data.userName}</p>
-              <p style="margin: 0 0 8px 0;"><strong>Nombre de pareja:</strong> ${data.coupleName}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Nombre de anfitriones:</strong> ${data.coupleName}</p>
               <p style="margin: 0 0 8px 0;"><strong>Email:</strong> <a href="mailto:${data.userEmail}" style="color: #d4704a; text-decoration: none;">${data.userEmail}</a></p>
               ${data.phoneNumber ? `<p style="margin: 0 0 8px 0;"><strong>Teléfono:</strong> <a href="tel:${data.phoneNumber}" style="color: #d4704a; text-decoration: none;">${data.phoneNumber}</a></p>` : ''}
               <p style="margin: 0;"><strong>Slug:</strong> <code style="background-color: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 14px;">${data.slug || '—'}</code></p>
@@ -2720,9 +2720,9 @@ PLAN:
 - Tipo de plan: ${planTypeText}
 - Monto cobrado: ${amountText}
 
-PAREJA:
+ANFITRIONES:
 - Nombre: ${data.userName}
-- Nombre de pareja: ${data.coupleName}
+- Nombre de anfitriones: ${data.coupleName}
 - Email: ${data.userEmail}
 ${data.phoneNumber ? `- Teléfono: ${data.phoneNumber}\n` : ''}- Slug: ${data.slug || '—'}
 

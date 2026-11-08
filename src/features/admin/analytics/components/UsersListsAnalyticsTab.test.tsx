@@ -124,7 +124,7 @@ describe('desktop layout', () => {
     );
 
     expect(screen.getAllByText('Invitaciones').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Fecha Boda').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Fecha Evento').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Registro').length).toBeGreaterThan(0);
     expect(screen.getAllByText('$48,000.00').length).toBeGreaterThan(0);
   });

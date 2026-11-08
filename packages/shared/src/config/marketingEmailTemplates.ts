@@ -34,7 +34,7 @@ export const MARKETING_EMAIL_TEMPLATES: MarketingEmailTemplate[] = [
   {
     type: 3,
     title: 'Email 3: Prueba Social e Historias de Éxito',
-    description: 'Testimonios de parejas reales y estadísticas de la plataforma para generar confianza.',
+    description: 'Testimonios de anfitriones reales y estadísticas de la plataforma para generar confianza.',
     icon: '⭐',
     color: 'from-pink-400 to-orange-500',
     timing: 'Enviar 7 días después del registro',

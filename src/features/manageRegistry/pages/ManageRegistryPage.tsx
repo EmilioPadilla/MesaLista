@@ -20,7 +20,7 @@ import type { GiftItem, SortOption, FilterOption } from '../types';
 export function ManageRegistryPage() {
   const contextData = useOutletContext<OutletContextPrivateType>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const listIdParam = searchParams.get('listId');
 
   // Fetch all user's gift lists
@@ -29,11 +29,22 @@ export function ManageRegistryPage() {
   // Find the specific list by ID from query params, fallback to first list if no ID provided
   const giftList = useMemo(() => {
     if (!giftLists) return undefined;
-    if (listIdParam) {
+    if (listIdParam && giftLists.length > 1) {
       return giftLists.find((list) => list.id === parseInt(listIdParam));
     }
     return giftLists[0];
   }, [giftLists, listIdParam]);
+
+  // With only one list the id says nothing, so keep the address clean however
+  // the owner got here (old bookmarks, links from emails).
+  const hasMultipleLists = (giftLists?.length ?? 0) > 1;
+  const onlyListId = giftLists?.length === 1 ? giftLists[0].id : undefined;
+  useEffect(() => {
+    if (!listIdParam || !onlyListId) return;
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('listId');
+    setSearchParams(nextParams, { replace: true });
+  }, [listIdParam, onlyListId, searchParams, setSearchParams]);
 
   const { data: weddingListCategories } = useGetCategoriesByGiftList(giftList?.id);
   const { mutate: reorderGifts } = useReorderGifts(giftList?.userId);
@@ -164,7 +175,7 @@ export function ManageRegistryPage() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl mb-2 text-primary">Gestionar Mesa de Regalos</h1>
-          <p className="text-muted-foreground">Administra tu lista de regalos, ve estadísticas y mantén todo organizado para tu gran día</p>
+          <p className="text-muted-foreground">Administra tu lista de regalos, ve estadísticas y mantén todo organizado para tu evento</p>
         </div>
         <Button type="primary" icon={<SettingOutlined />} onClick={() => navigate(`/${contextData?.userData?.slug}/configuracion`)}>
           <span className="hidden md:flex">Configuración</span>
@@ -202,6 +213,8 @@ export function ManageRegistryPage() {
                 {/* Add New Gift */}
                 <AddGiftForm
                   giftListId={giftList?.id}
+                  hasMultipleLists={hasMultipleLists}
+                  isDraft={isDraft}
                   categoryOptions={categoryOptions}
                   onGiftCreated={() => {
                     // Refresh the gifts list when a new gift is created

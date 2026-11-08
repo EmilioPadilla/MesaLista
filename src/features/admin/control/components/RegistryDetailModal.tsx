@@ -53,7 +53,7 @@ export function RegistryDetailModal({
                 <div className="font-medium">{registry.title}</div>
               </div>
               <div>
-                <span className="text-gray-500">Pareja:</span>
+                <span className="text-gray-500">Anfitriones:</span>
                 <div className="font-medium">{registry.coupleName}</div>
               </div>
               <div>
@@ -88,7 +88,7 @@ export function RegistryDetailModal({
           </div>
 
           <div>
-            <h3 className="font-semibold text-lg mb-2">Fecha de Boda</h3>
+            <h3 className="font-semibold text-lg mb-2">Fecha del Evento</h3>
             <div className="bg-purple-50 p-4 rounded-lg">
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-purple-600" />

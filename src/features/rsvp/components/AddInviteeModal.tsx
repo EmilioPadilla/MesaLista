@@ -66,7 +66,7 @@ export function AddInviteeModal({ open, invitee, onClose, onSave }: AddInviteeMo
           <Input placeholder="Juan" />
         </Form.Item>
 
-        <Form.Item name="lastName" label="Apellido" rules={[{ required: true, message: 'El apellido es requerido' }]}>
+        <Form.Item name="lastName" label="Apellido (opcional)">
           <Input placeholder="Pérez" />
         </Form.Item>
 

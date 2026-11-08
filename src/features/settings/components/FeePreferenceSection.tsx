@@ -64,7 +64,7 @@ export function FeePreferenceSection({
             </div>
           </div>
           <div className="flex-1">
-            <div className="text-base font-semibold text-foreground">Nosotros (la pareja) absorberemos las comisiones</div>
+            <div className="text-base font-semibold text-foreground">Nosotros absorberemos las comisiones</div>
             <p className="text-sm text-foreground/70 mt-1">
               Tus invitados pagarán exactamente el monto del regalo. Las comisiones de pago se deducirán de lo que recibas.
             </p>

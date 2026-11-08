@@ -87,7 +87,7 @@ export function ImportInviteesModal({ open, onClose, onImport }: ImportInviteesM
       }
 
       // Check if any values are missing to mark as warning
-      const hasWarnings = !firstName || !lastName || !tickets || isNaN(tickets as number) || !secretCode;
+      const hasWarnings = !firstName || !tickets || isNaN(tickets as number) || !secretCode;
 
       invitees.push({
         firstName: firstName || undefined,
@@ -155,7 +155,7 @@ export function ImportInviteesModal({ open, onClose, onImport }: ImportInviteesM
   };
 
   const downloadTemplate = () => {
-    const template = 'Nombre,Apellido,Boletos,Código,Mensaje,Estado\nJuan,Pérez,2,ABC12345,¡Nos vemos en la boda!,CONFIRMED\nMaría,González,1,XYZ67890,Felicidades,PENDING\nCarlos,Rodríguez,4,DEF54321,,REJECTED';
+    const template = 'Nombre,Apellido,Boletos,Código,Mensaje,Estado\nJuan,Pérez,2,ABC12345,¡Nos vemos en el evento!,CONFIRMED\nMaría,González,1,XYZ67890,Felicidades,PENDING\nCarlos,Rodríguez,4,DEF54321,,REJECTED';
     const blob = new Blob([template], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -193,7 +193,7 @@ export function ImportInviteesModal({ open, onClose, onImport }: ImportInviteesM
                   • <strong>Nombre:</strong> Nombre del invitado
                 </li>
                 <li>
-                  • <strong>Apellido:</strong> Apellido del invitado
+                  • <strong>Apellido:</strong> Apellido del invitado (opcional)
                 </li>
                 <li>
                   • <strong>Boletos:</strong> Número de boletos (1 o más)
@@ -287,8 +287,8 @@ export function ImportInviteesModal({ open, onClose, onImport }: ImportInviteesM
                       <td className={`px-3 py-2 ${!invitee.firstName ? 'bg-red-50' : ''}`}>
                         <span className="text-foreground">{invitee.firstName || '(Auto)'}</span>
                       </td>
-                      <td className={`px-3 py-2 ${!invitee.lastName ? 'bg-red-50' : ''}`}>
-                        <span className="text-foreground">{invitee.lastName || '(Auto)'}</span>
+                      <td className="px-3 py-2">
+                        <span className="text-foreground">{invitee.lastName || '—'}</span>
                       </td>
                       <td className={`px-3 py-2 text-center ${!invitee.tickets ? 'bg-red-50' : ''}`}>
                         <span className="text-foreground">{invitee.tickets || '(Auto)'}</span>

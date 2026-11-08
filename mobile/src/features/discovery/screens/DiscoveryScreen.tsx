@@ -55,7 +55,7 @@ export function DiscoveryScreen() {
         <TextInput
           value={search}
           onChangeText={setSearch}
-          placeholder="Buscar por pareja o código…"
+          placeholder="Buscar por nombre o código…"
           placeholderTextColor="#949ca4"
           autoCapitalize="none"
           className="mt-4 rounded-ml border border-gray-200 bg-white px-4 py-2.5 text-base text-ink"

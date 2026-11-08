@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { Collapsible } from 'src/components/core/Collapsible';
-import { Plus, X, Eye, ExternalLink } from 'lucide-react';
+import { Plus, X, Eye, ExternalLink, Link2, Check } from 'lucide-react';
 import { UploadOutlined, CaretDownFilled } from '@ant-design/icons';
 import { Checkbox, Form, Input, Upload, Select, message, Image, Button, Card } from 'antd';
 import { useForm } from 'antd/es/form/Form';
@@ -12,20 +12,33 @@ import { convertHeicToJpegIfNeeded, isHeic } from '../utils/heicToJpeg';
 import { GiftTypeSelector } from './GiftTypeSelector';
 import type { GiftType } from 'types/models/gift';
 import { MIN_CONTRIBUTOR_TARGET } from 'src/utils/giftFunding';
+import { publicRegistryPath, publicRegistryUrl } from 'src/utils/registryLinks';
 
 interface AddGiftFormProps {
   giftListId?: number;
+  /** With several lists the slug alone can't say which one, so links carry the id. */
+  hasMultipleLists?: boolean;
+  /** A draft's link doesn't work for guests yet, so there's nothing to copy. */
+  isDraft?: boolean;
   categoryOptions?: Array<{ value: string; label: string }>;
   onGiftCreated?: () => void;
 }
 
-export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOptions = [], onGiftCreated }) => {
+export const AddGiftForm: React.FC<AddGiftFormProps> = ({
+  giftListId,
+  hasMultipleLists = false,
+  isDraft = false,
+  categoryOptions = [],
+  onGiftCreated,
+}) => {
   const [form] = useForm();
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
 
   // Extract slug from current URL path
   const slug = location.pathname.split('/')[1];
+  const linkListId = hasMultipleLists ? giftListId : undefined;
+  const [isLinkCopied, setIsLinkCopied] = useState(false);
 
   // Check URL query parameter to determine initial modal state
   const shouldShowModal = searchParams.get('addGift') === 'true';
@@ -66,6 +79,21 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
       message.error('Error al agregar el regalo');
     }
   }, [createSuccess, createError]);
+
+  useEffect(() => {
+    if (!isLinkCopied) return;
+    const timer = setTimeout(() => setIsLinkCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [isLinkCopied]);
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(publicRegistryUrl(slug, linkListId));
+      setIsLinkCopied(true);
+    } catch {
+      message.error('No se pudo copiar el enlace. Inténtalo de nuevo.');
+    }
+  };
 
   const handleCloseModal = () => {
     setShowAddGiftModal(false);
@@ -156,15 +184,27 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
 
   return (
     <>
-      <div className="flex justify-between items-center !mb-0">
-        {/* Button to take user to see the list of gifts as a guest */}
-        <Button
-          type="default"
-          icon={<Eye className="h-4 w-4" />}
-          onClick={() => window.open(`/${slug}/regalos${giftListId ? `?listId=${giftListId}` : ''}`, '_blank')}
-          className="mt-2 group">
-          Ver como Invitado <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-        </Button>
+      <div className="flex flex-wrap justify-between items-center gap-x-4 !mb-0">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Button to take user to see the list of gifts as a guest */}
+          <Button
+            type="default"
+            icon={<Eye className="h-4 w-4" />}
+            onClick={() => window.open(publicRegistryPath(slug, linkListId), '_blank')}
+            className="mt-2 group">
+            Ver como Invitado <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          </Button>
+
+          {!isDraft && (
+            <Button
+              type="default"
+              icon={isLinkCopied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
+              onClick={handleCopyLink}
+              className="mt-2">
+              <span aria-live="polite">{isLinkCopied ? 'Enlace copiado' : 'Copiar enlace'}</span>
+            </Button>
+          )}
+        </div>
 
         <div className="flex items-center">
           {showAddGiftModal ? (
@@ -289,15 +329,17 @@ export const AddGiftForm: React.FC<AddGiftFormProps> = ({ giftListId, categoryOp
                           style={{ maxHeight: '200px' }}
                         />
                       </div>
-                      <div className="absolute top-2 right-2">
-                        <Button
-                          type="default"
-                          icon={<X />}
-                          className="flex items-center justify-center cursor-pointer h-6 w-6 p-0 bg-background/80 hover:bg-background shadow-md"
-                          onClick={() => {
-                            setImageState({ name: '', file: null, url: '' });
-                          }}></Button>
-                      </div>
+                      <Button
+                        type="default"
+                        shape="circle"
+                        size="small"
+                        aria-label="Quitar imagen"
+                        icon={<X className="h-4 w-4" />}
+                        className="!absolute top-2 right-2 !inline-flex items-center justify-center shadow-md [&_.ant-btn-icon]:flex"
+                        onClick={() => {
+                          setImageState({ name: '', file: null, url: '' });
+                        }}
+                      />
                     </div>
                   </div>
                 )}

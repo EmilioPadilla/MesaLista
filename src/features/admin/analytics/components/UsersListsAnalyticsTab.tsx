@@ -243,7 +243,7 @@ export function UsersListsAnalyticsTab({
       sorter: (a, b) => compareDates(a.lastPurchaseDate, b.lastPurchaseDate),
     },
     {
-      title: 'Fecha Boda',
+      title: 'Fecha Evento',
       key: 'weddingDate',
       width: 120,
       render: (_, row) => (row.weddingDate ? formatDate(row.weddingDate) : '-'),
@@ -297,7 +297,7 @@ export function UsersListsAnalyticsTab({
         { label: 'Valor Total', value: row.hasList ? formatCurrency(row.totalValue) : '-' },
         { label: 'Invitaciones', value: row.hasList ? row.invitationCount : '-' },
         { label: 'Última Compra', value: row.lastPurchaseDate ? formatDate(row.lastPurchaseDate) : '-' },
-        { label: 'Fecha Boda', value: row.weddingDate ? formatDate(row.weddingDate) : '-' },
+        { label: 'Fecha Evento', value: row.weddingDate ? formatDate(row.weddingDate) : '-' },
         { label: 'Creada', value: row.hasList ? formatDate(row.createdAt) : '-' },
         { label: 'Registro', value: row.registeredAt ? formatDate(row.registeredAt) : '-' },
       ]}
@@ -324,7 +324,7 @@ export function UsersListsAnalyticsTab({
                   background="!bg-blue-50"
                   footer={
                     <>
-                      <div>Parejas: {summary.totalCouples}</div>
+                      <div>Anfitriones: {summary.totalCouples}</div>
                       <div>Invitados: {summary.totalGuests}</div>
                       <div>Admins: {summary.totalAdmins}</div>
                     </>
@@ -419,7 +419,7 @@ export function UsersListsAnalyticsTab({
 
       {/* Registries and their couples */}
       <Card
-        title="Listas de Regalos y Parejas"
+        title="Listas de Regalos y Anfitriones"
         className="!shadow-sm"
         size={isMobile ? 'small' : 'default'}
         styles={isMobile ? { body: { padding: 8 } } : undefined}>

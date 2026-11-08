@@ -13,8 +13,30 @@ interface InvitationContentTabProps {
   formData: Record<string, string>;
   handleFieldChange: (key: string, value: string) => void;
   sections: InvitationSection[];
+  templateId?: string;
   onEventNameChange?: () => void;
 }
+
+// The name fields are stored under wedding keys for every template, so templates
+// for other events only need their own labels.
+const templateFieldLabels: Record<string, Record<string, string>> = {
+  'bold-celebration': {
+    brideName: 'Nombre del festejado',
+    groomName: 'Otro festejado (opcional)',
+  },
+  'baby-shower-soft': {
+    brideName: 'Nombre de la mamá',
+    groomName: 'Nombre del papá (opcional)',
+  },
+  'anniversary-golden': {
+    brideName: 'Nombre 1',
+    groomName: 'Nombre 2',
+    brideMother: 'Madre de Nombre 1',
+    brideFather: 'Padre de Nombre 1',
+    groomMother: 'Madre de Nombre 2',
+    groomFather: 'Padre de Nombre 2',
+  },
+};
 
 interface ScheduleItem {
   time: string;
@@ -77,7 +99,14 @@ const sectionFieldMappings: Record<string, Array<{ key: string; label: string; t
   rsvp: [{ key: 'rsvpMessage', label: 'Mensaje de Confirmación', type: 'text', placeholder: 'Ingresa tu nombre y código para confirmar' }],
 };
 
-export function InvitationContentTab({ eventName, setEventName, formData, handleFieldChange, sections }: InvitationContentTabProps) {
+export function InvitationContentTab({
+  eventName,
+  setEventName,
+  formData,
+  handleFieldChange,
+  sections,
+  templateId,
+}: InvitationContentTabProps) {
   // State for dynamic arrays
   const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([{ time: '', activity: '' }]);
   const [hotelItems, setHotelItems] = useState<HotelItem[]>([{ name: '', stars: 5, distance: '', phone: '', image: '', amenities: '' }]);
@@ -149,7 +178,7 @@ export function InvitationContentTab({ eventName, setEventName, formData, handle
   enabledSections.forEach((section) => {
     const sectionFields = sectionFieldMappings[section.id] || [];
     sectionFields.forEach((field) => {
-      dynamicFields.push({ ...field, sectionName: section.name });
+      dynamicFields.push({ ...field, label: templateFieldLabels[templateId ?? '']?.[field.key] ?? field.label, sectionName: section.name });
     });
   });
 
@@ -457,7 +486,7 @@ export function InvitationContentTab({ eventName, setEventName, formData, handle
             id="eventName"
             value={eventName}
             onChange={(e) => setEventName(e.target.value)}
-            placeholder="Ej: Boda de Ana y Carlos"
+            placeholder="Ej: Bautizo de Mateo"
             className="bg-[#f5f5f7]! border-0 rounded-xl"
             size="large"
           />

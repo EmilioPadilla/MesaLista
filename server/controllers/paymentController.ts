@@ -1185,7 +1185,7 @@ export default {
               currency_code: 'MXN',
               value: totalAmount.toFixed(2),
             },
-            description: `Regalos para ${cart.inviteeName || 'la pareja'}`,
+            description: `Regalos para ${cart.inviteeName || 'los anfitriones'}`,
             custom_id: cartId.toString(),
           },
         ],

@@ -256,6 +256,7 @@ export function InvitationEditor({ giftListId, template, invitation, onBack, onP
                   }
                   key="content">
                   <InvitationContentTab
+                    templateId={templateId}
                     eventName={eventName}
                     setEventName={(name) => {
                       setEventName(name);

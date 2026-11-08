@@ -8,6 +8,7 @@ import { DeleteInviteePopover } from './DeleteInviteePopover';
 import { GuestMessageModal } from './GuestMessageModal';
 import type { RsvpCustomField, RsvpCustomFieldResponse } from 'src/services/rsvp.service';
 import type { RsvpInvitee, RsvpStatus } from '../types';
+import { inviteeFullName, inviteeLastName } from 'src/utils/inviteeName';
 
 interface InviteesTableProps {
   invitees: RsvpInvitee[];
@@ -194,7 +195,7 @@ export function InviteesTable({
                       type="text"
                       size="small"
                       icon={<MessageSquare className="h-4 w-4 text-primary!" />}
-                      onClick={() => handleViewMessage(`${record.firstName} ${record.lastName}`, record.guestMessage)}></Button>
+                      onClick={() => handleViewMessage(inviteeFullName(record), record.guestMessage)}></Button>
                   )}
                 </span>
               ),
@@ -203,7 +204,7 @@ export function InviteesTable({
               title: 'Apellido',
               dataIndex: 'lastName',
               key: 'lastName',
-              render: (text) => <span className={!text || text === 'Sin Apellido' ? 'bg-red-50 px-2 py-1 rounded' : ''}>{text}</span>,
+              render: (text) => inviteeLastName(text) || <span className="text-muted-foreground">—</span>,
             },
             {
               title: 'Código',
@@ -296,7 +297,7 @@ export function InviteesTable({
                     onClick={() => onEdit(record)}
                     title="Editar"
                   />
-                  <DeleteInviteePopover inviteeName={`${record.firstName} ${record.lastName}`} onConfirm={() => onDelete(record.id)}>
+                  <DeleteInviteePopover inviteeName={inviteeFullName(record)} onConfirm={() => onDelete(record.id)}>
                     <Button type="text" size="small" icon={<Trash2 className="h-4 w-4 text-[#ff3b30]" />} title="Eliminar" />
                   </DeleteInviteePopover>
                 </div>

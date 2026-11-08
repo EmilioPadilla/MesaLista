@@ -324,7 +324,7 @@ export function Checkout() {
                 </div>
                 <div>
                   <h2 className="text-2xl font-semibold text-foreground tracking-tight">Información del invitado</h2>
-                  <p className="text-muted-foreground font-light">Para que la pareja sepa quién les está enviando este regalo</p>
+                  <p className="text-muted-foreground font-light">Para que los anfitriones sepan quién les envía este regalo</p>
                 </div>
               </div>
 
@@ -507,7 +507,7 @@ export function Checkout() {
                       {feePreference === 'guest' && (
                         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
                           <p className="text-xs text-amber-800">
-                            Las comisiones de pago están incluidas en el total. La pareja recibirá ${cartTotal.toLocaleString()}.
+                            Las comisiones de pago están incluidas en el total. Los anfitriones recibirán ${cartTotal.toLocaleString()}.
                           </p>
                         </div>
                       )}

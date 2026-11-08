@@ -131,7 +131,7 @@ export const HomePage = () => {
       <p className="text-xl mb-8 max-w-2xl mx-auto text-muted-foreground leading-relaxed">
         {isAuthenticated
           ? `Gestiona tu${hasMultipleLists ? 's' : ''} lista${hasMultipleLists ? 's' : ''}, ve estadísticas y mantente al día con las compras de tus invitados.`
-          : 'Explora las mesas de regalos disponibles y encuentra el regalo ideal para esa pareja especial.'}
+          : 'Explora las mesas de regalos disponibles y encuentra el regalo ideal para esa persona especial.'}
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -167,14 +167,14 @@ export const HomePage = () => {
           <>
             <Button size="large" type="primary" className="px-8 py-4 hover:-translate-y-1 bg-primary!" onClick={() => navigate('regalos')}>
               <Gift className="mr-2 h-5 w-5" />
-              Explorar Mesa de Regalos de Pareja
+              Explorar Mesas de Regalos
             </Button>
             <Button
               size="large"
               className="px-8 py-4 hover:-translate-y-1 border-primary! text-primary!"
               onClick={() => navigate('/buscar')}>
               <Heart className="mr-2 h-5 w-5" />
-              Buscar por Pareja
+              Buscar una Mesa
             </Button>
           </>
         )}
@@ -231,7 +231,7 @@ export const HomePage = () => {
       <PageSEO
         title="MesaLista - Mesa de Regalos Digital para tu Evento"
         description="Crea tu mesa de regalos en minutos. Gestiona RSVP, recibe regalos en efectivo o productos. Fácil, elegante y sin comisiones ocultas."
-        keywords="mesa de regalos, evento, matrimonio, boda, regalos de boda, lista de bodas, RSVP, confirmaciones, regalos digitales, México"
+        keywords="mesa de regalos, evento, boda, bautizo, cumpleaños, baby shower, regalos de boda, lista de bodas, RSVP, confirmaciones, regalos digitales, México"
         includeOrganizationSchema
         includeServiceSchema
         includeWebsiteSchema
@@ -332,7 +332,7 @@ export const HomePage = () => {
             transition={{ duration: 1, delay: 0.5 }}
             className="relative">
             <div className="rounded-3xl overflow-hidden shadow-2xl mx-auto max-w-6xl mt-20">
-              <img src="/images/HP.JPG" alt="Elegant wedding table setting" className="w-full h-[500px] object-cover" />
+              <img src="/images/HP.JPG" alt="Mesa elegante puesta para un evento" className="w-full h-[500px] object-cover" />
             </div>
           </motion.div>
         </div>
@@ -673,7 +673,7 @@ export const HomePage = () => {
               {
                 step: '01',
                 title: 'Crea tu cuenta',
-                description: 'Regístrate en menos de 2 minutos y personaliza tu perfil de pareja.',
+                description: 'Regístrate en menos de 2 minutos y personaliza tu perfil.',
               },
               {
                 step: '02',

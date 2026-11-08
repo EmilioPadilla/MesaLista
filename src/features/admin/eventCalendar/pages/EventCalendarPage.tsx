@@ -104,7 +104,7 @@ export function EventCalendarPage() {
             Calendario de Eventos
           </h1>
           <p className="mt-2 text-gray-600">
-            Fechas de los eventos de todas las parejas y las acciones de email y banco que dependen de ellas.
+            Fechas de los eventos de todos los anfitriones y las acciones de email y banco que dependen de ellas.
           </p>
         </div>
 
@@ -162,7 +162,7 @@ export function EventCalendarPage() {
             <Input
               allowClear
               prefix={<Search className="h-4 w-4 text-gray-400" />}
-              placeholder="Buscar pareja, lista o email"
+              placeholder="Buscar anfitriones, lista o email"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="sm:max-w-xs"

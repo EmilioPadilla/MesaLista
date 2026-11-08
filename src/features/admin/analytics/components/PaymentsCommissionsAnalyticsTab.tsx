@@ -4,7 +4,6 @@ import { DollarSign, CreditCard, Wallet, TrendingUp, Percent, Gift, EllipsisVert
 import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
 import type { GiftListPaymentAnalytics, PaymentAnalyticsSummary } from 'services/paymentAnalytics.service';
-import { stripeMexicoBreakdown, paypalMexicoBreakdown } from 'utils/feeUtils';
 import { GiftPaymentsReportModal } from './GiftPaymentsReportModal';
 import { DetailList, StatCard, formatCurrency, formatDate, summaryGutter, useIsMobile } from './analyticsShared';
 
@@ -17,35 +16,6 @@ interface PaymentsCommissionsAnalyticsTabProps {
 
 // Fixed plan price
 const FIXED_PLAN_PRICE = 2000;
-const COMMISSION_RATE = 0.03;
-
-// Calculate net amounts based on fee preference
-const calculateNetPaypal = (gross: number, feePreference: 'couple' | 'guest') => {
-  if (gross === 0) return 0;
-  if (feePreference === 'guest') {
-    // Guest pays fees, couple receives the full amount
-    return gross;
-  } else {
-    // Couple absorbs fees
-    const breakdown = paypalMexicoBreakdown(gross);
-    return breakdown.net;
-  }
-};
-
-const calculateNetStripe = (gross: number, feePreference: 'couple' | 'guest') => {
-  if (gross === 0) return 0;
-  if (feePreference === 'guest') {
-    // Guest pays fees, couple receives the full amount
-    return gross;
-  } else {
-    // Couple absorbs fees
-    const breakdown = stripeMexicoBreakdown(gross);
-    return breakdown.net;
-  }
-};
-
-const calculateNetTotal = (record: GiftListPaymentAnalytics) =>
-  calculateNetPaypal(record.grossPaypal, record.feePreference) + calculateNetStripe(record.grossStripe, record.feePreference);
 
 // Calculate MesaLista earnings for a gift list
 const calculateEarnings = (record: GiftListPaymentAnalytics) => {
@@ -53,8 +23,8 @@ const calculateEarnings = (record: GiftListPaymentAnalytics) => {
     // Fixed plan: 2000 - discount applied
     return FIXED_PLAN_PRICE - record.discountValue;
   } else if (record.planType === 'COMMISSION') {
-    // Commission plan: 3% of net earnings (PayPal + Stripe)
-    return calculateNetTotal(record) * COMMISSION_RATE;
+    // Commission plan: same per-payment commission the payment report shows
+    return record.mesaListaCommission;
   }
   return 0;
 };
@@ -65,7 +35,7 @@ const renderPlan = (planType: GiftListPaymentAnalytics['planType']) => {
 };
 
 const renderFeePreference = (feePreference: GiftListPaymentAnalytics['feePreference']) => (
-  <Tag color={feePreference === 'couple' ? 'purple' : 'cyan'}>{feePreference === 'couple' ? 'Pareja' : 'Invitado'}</Tag>
+  <Tag color={feePreference === 'couple' ? 'purple' : 'cyan'}>{feePreference === 'couple' ? 'Anfitriones' : 'Invitado'}</Tag>
 );
 
 export function PaymentsCommissionsAnalyticsTab({
@@ -80,16 +50,20 @@ export function PaymentsCommissionsAnalyticsTab({
 
   // Calculate totals for summary
   const totals = useMemo(() => {
-    if (!listsData) return { totalNetPaypal: 0, totalNetStripe: 0, totalNetValue: 0, totalEarnings: 0 };
+    if (!listsData) return { totalNetPaypal: 0, totalNetStripe: 0, totalNetValue: 0, totalEarnings: 0, totalGifts: 0, totalTransfer: 0 };
 
     let totalNetPaypal = 0;
     let totalNetStripe = 0;
     let totalEarnings = 0;
+    let totalGifts = 0;
+    let totalTransfer = 0;
 
     for (const list of listsData) {
-      totalNetPaypal += calculateNetPaypal(list.grossPaypal, list.feePreference);
-      totalNetStripe += calculateNetStripe(list.grossStripe, list.feePreference);
+      totalNetPaypal += list.netPaypal;
+      totalNetStripe += list.netStripe;
       totalEarnings += calculateEarnings(list);
+      totalGifts += list.giftsTotal;
+      totalTransfer += list.coupleReceives;
     }
 
     return {
@@ -97,6 +71,8 @@ export function PaymentsCommissionsAnalyticsTab({
       totalNetStripe,
       totalNetValue: totalNetPaypal + totalNetStripe,
       totalEarnings,
+      totalGifts,
+      totalTransfer,
     };
   }, [listsData]);
 
@@ -203,6 +179,22 @@ export function PaymentsCommissionsAnalyticsTab({
       width: 120,
       render: (_, record) => renderFeePreference(record.feePreference),
     },
+    // What the couple sees column
+    {
+      title: (
+        <div>
+          <div>Monto Regalos</div>
+          <div className="text-xs font-normal text-gray-500">Lo que ven los anfitriones</div>
+        </div>
+      ),
+      key: 'giftsTotal',
+      width: 150,
+      align: 'right' as const,
+      render: (_, record) => (
+        <div className={record.giftsTotal > 0 ? 'font-semibold' : 'text-gray-400'}>{formatCurrency(record.giftsTotal)}</div>
+      ),
+      sorter: (a, b) => a.giftsTotal - b.giftsTotal,
+    },
     // Gross PayPal column
     {
       title: 'Bruto PayPal',
@@ -231,11 +223,10 @@ export function PaymentsCommissionsAnalyticsTab({
       key: 'netPaypal',
       width: 120,
       align: 'right' as const,
-      render: (_, record) => {
-        const net = calculateNetPaypal(record.grossPaypal, record.feePreference);
-        return <div className={net > 0 ? 'text-blue-700 font-medium' : 'text-gray-400'}>{formatCurrency(net)}</div>;
-      },
-      sorter: (a, b) => calculateNetPaypal(a.grossPaypal, a.feePreference) - calculateNetPaypal(b.grossPaypal, b.feePreference),
+      render: (_, record) => (
+        <div className={record.netPaypal > 0 ? 'text-blue-700 font-medium' : 'text-gray-400'}>{formatCurrency(record.netPaypal)}</div>
+      ),
+      sorter: (a, b) => a.netPaypal - b.netPaypal,
     },
     // Net Stripe column
     {
@@ -243,11 +234,10 @@ export function PaymentsCommissionsAnalyticsTab({
       key: 'netStripe',
       width: 120,
       align: 'right' as const,
-      render: (_, record) => {
-        const net = calculateNetStripe(record.grossStripe, record.feePreference);
-        return <div className={net > 0 ? 'text-purple-700 font-medium' : 'text-gray-400'}>{formatCurrency(net)}</div>;
-      },
-      sorter: (a, b) => calculateNetStripe(a.grossStripe, a.feePreference) - calculateNetStripe(b.grossStripe, b.feePreference),
+      render: (_, record) => (
+        <div className={record.netStripe > 0 ? 'text-purple-700 font-medium' : 'text-gray-400'}>{formatCurrency(record.netStripe)}</div>
+      ),
+      sorter: (a, b) => a.netStripe - b.netStripe,
     },
     // Total Net Value column
     {
@@ -255,11 +245,23 @@ export function PaymentsCommissionsAnalyticsTab({
       key: 'totalNetValue',
       width: 130,
       align: 'right' as const,
-      render: (_, record) => {
-        const total = calculateNetTotal(record);
-        return <div className={total > 0 ? 'font-semibold text-green-600' : 'text-gray-400'}>{formatCurrency(total)}</div>;
-      },
-      sorter: (a, b) => calculateNetTotal(a) - calculateNetTotal(b),
+      render: (_, record) => (
+        <div className={record.netTotal > 0 ? 'font-semibold' : 'text-gray-400'}>{formatCurrency(record.netTotal)}</div>
+      ),
+      sorter: (a, b) => a.netTotal - b.netTotal,
+    },
+    // Payout column
+    {
+      title: 'Total a Transferir',
+      key: 'coupleReceives',
+      width: 140,
+      align: 'right' as const,
+      render: (_, record) => (
+        <div className={record.coupleReceives > 0 ? 'font-semibold text-green-600' : 'text-gray-400'}>
+          {formatCurrency(record.coupleReceives)}
+        </div>
+      ),
+      sorter: (a, b) => a.coupleReceives - b.coupleReceives,
     },
     // MesaLista Earnings column
     {
@@ -322,11 +324,13 @@ export function PaymentsCommissionsAnalyticsTab({
   const mobileDetails = (record: GiftListPaymentAnalytics) => (
     <DetailList
       items={[
+        { label: 'Monto Regalos (lo que ven los anfitriones)', value: formatCurrency(record.giftsTotal) },
+        { label: 'Total a Transferir', value: formatCurrency(record.coupleReceives) },
         { label: 'Bruto PayPal', value: formatCurrency(record.grossPaypal) },
         { label: 'Bruto Stripe', value: formatCurrency(record.grossStripe) },
-        { label: 'Neto PayPal', value: formatCurrency(calculateNetPaypal(record.grossPaypal, record.feePreference)) },
-        { label: 'Neto Stripe', value: formatCurrency(calculateNetStripe(record.grossStripe, record.feePreference)) },
-        { label: 'Valor Neto', value: formatCurrency(calculateNetTotal(record)) },
+        { label: 'Neto PayPal', value: formatCurrency(record.netPaypal) },
+        { label: 'Neto Stripe', value: formatCurrency(record.netStripe) },
+        { label: 'Valor Neto', value: formatCurrency(record.netTotal) },
         { label: 'Comisión Pago', value: renderFeePreference(record.feePreference) },
         { label: 'Regalos', value: `${record.purchasedGifts} / ${record.totalGifts}` },
         {
@@ -390,16 +394,17 @@ export function PaymentsCommissionsAnalyticsTab({
 
               <Col xs={12} md={8} lg={6}>
                 <StatCard
-                  title="Neto Total (Parejas)"
-                  value={totals.totalNetValue}
+                  title="Total a Transferir (Anfitriones)"
+                  value={totals.totalTransfer}
                   icon={<Wallet className="text-green-600" size={20} />}
                   color="#52c41a"
                   background="!bg-green-50"
                   currency
                   footer={
                     <>
-                      <div>PayPal: {formatCurrency(totals.totalNetPaypal)}</div>
-                      <div>Stripe: {formatCurrency(totals.totalNetStripe)}</div>
+                      <div>Lo que ven los anfitriones: {formatCurrency(totals.totalGifts)}</div>
+                      <div>Neto PayPal: {formatCurrency(totals.totalNetPaypal)}</div>
+                      <div>Neto Stripe: {formatCurrency(totals.totalNetStripe)}</div>
                     </>
                   }
                 />
@@ -476,7 +481,7 @@ export function PaymentsCommissionsAnalyticsTab({
           loading={isListsLoading}
           rowKey="id"
           size={isMobile ? 'small' : 'middle'}
-          scroll={isMobile ? undefined : { x: 1900 }}
+          scroll={isMobile ? undefined : { x: 2190 }}
           expandable={isMobile ? { expandedRowRender: mobileDetails, expandRowByClick: true } : undefined}
           pagination={{
             pageSize: 10,

@@ -281,13 +281,15 @@ export function GiftModal({ gift, isOpen, onClose, afterClose, weddingListId, on
                     }}
                   />
                 </div>
-                <div className="absolute top-2 right-2">
-                  <Button
-                    type="default"
-                    icon={<X />}
-                    className="flex items-center justify-center cursor-pointer h-6 w-6 p-0 bg-background/80 hover:bg-background shadow-md"
-                    onClick={handleRemoveImage}></Button>
-                </div>
+                <Button
+                  type="default"
+                  shape="circle"
+                  size="small"
+                  aria-label="Quitar imagen"
+                  icon={<X className="h-4 w-4" />}
+                  className="!absolute top-2 right-2 !inline-flex items-center justify-center shadow-md [&_.ant-btn-icon]:flex"
+                  onClick={handleRemoveImage}
+                />
               </div>
 
               <div className="space-y-4 rounded-xl border border-gray-100 bg-gray-50 p-4">

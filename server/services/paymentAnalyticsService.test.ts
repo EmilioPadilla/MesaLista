@@ -221,7 +221,7 @@ describe('getGiftListPaymentDetails — real fee reporting', () => {
     expect(cartFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          status: 'PAID',
+          payment: { status: 'PAID' },
           items: { some: { gift: { giftListId: GIFT_LIST_ID } } },
         }),
       }),
@@ -304,8 +304,8 @@ describe('getGiftListsPaymentAnalytics — orphan cart bucketing', () => {
     // The PAID cart row has NO giftListId (null) — exactly the orphan state the bug created.
     cartFindMany.mockResolvedValue([
       {
-        payment: { amount: 2078, paymentType: 'PAYPAL', status: 'PAID' },
-        items: [{ gift: { giftListId: GIFT_LIST_ID } }],
+        payment: { amount: 2078, paymentType: 'PAYPAL', status: 'PAID', createdAt: new Date('2026-04-14T00:00:00Z') },
+        items: [{ price: 1000, quantity: 1, gift: { id: 1, title: 'Gift', price: 1000, giftListId: GIFT_LIST_ID } }],
       },
     ]);
 
@@ -323,8 +323,8 @@ describe('getGiftListsPaymentAnalytics — orphan cart bucketing', () => {
     giftListFindMany.mockResolvedValue([baseGiftList]);
     cartFindMany.mockResolvedValue([
       {
-        payment: { amount: 2078, paymentType: 'PAYPAL', status: 'PENDING' },
-        items: [{ gift: { giftListId: GIFT_LIST_ID } }],
+        payment: { amount: 2078, paymentType: 'PAYPAL', status: 'PENDING', createdAt: new Date('2026-04-14T00:00:00Z') },
+        items: [{ price: 1000, quantity: 1, gift: { id: 1, title: 'Gift', price: 1000, giftListId: GIFT_LIST_ID } }],
       },
     ]);
 
@@ -339,8 +339,8 @@ describe('getGiftListsPaymentAnalytics — orphan cart bucketing', () => {
     // Cart still PAID but somehow the gift was deleted / detached — nothing to attribute to.
     cartFindMany.mockResolvedValue([
       {
-        payment: { amount: 1000, paymentType: 'STRIPE', status: 'PAID' },
-        items: [{ gift: { giftListId: null } }],
+        payment: { amount: 1000, paymentType: 'STRIPE', status: 'PAID', createdAt: new Date('2026-04-14T00:00:00Z') },
+        items: [{ price: 1000, quantity: 1, gift: { id: 1, title: 'Gift', price: 1000, giftListId: null } }],
       },
     ]);
 
@@ -358,18 +358,18 @@ describe('getGiftListsPaymentAnalytics — orphan cart bucketing', () => {
     cartFindMany.mockResolvedValue([
       // Stripe → list 10, orphan (cart.giftListId null in real DB)
       {
-        payment: { amount: 1000, paymentType: 'STRIPE', status: 'PAID' },
-        items: [{ gift: { giftListId: 10 } }],
+        payment: { amount: 1000, paymentType: 'STRIPE', status: 'PAID', createdAt: new Date('2026-04-14T00:00:00Z') },
+        items: [{ price: 1000, quantity: 1, gift: { id: 1, title: 'Gift', price: 1000, giftListId: 10 } }],
       },
       // PayPal → list 10
       {
-        payment: { amount: 2000, paymentType: 'PAYPAL', status: 'PAID' },
-        items: [{ gift: { giftListId: 10 } }],
+        payment: { amount: 2000, paymentType: 'PAYPAL', status: 'PAID', createdAt: new Date('2026-04-14T00:00:00Z') },
+        items: [{ price: 1000, quantity: 1, gift: { id: 1, title: 'Gift', price: 1000, giftListId: 10 } }],
       },
       // Stripe → list 20
       {
-        payment: { amount: 500, paymentType: 'STRIPE', status: 'PAID' },
-        items: [{ gift: { giftListId: 20 } }],
+        payment: { amount: 500, paymentType: 'STRIPE', status: 'PAID', createdAt: new Date('2026-04-14T00:00:00Z') },
+        items: [{ price: 1000, quantity: 1, gift: { id: 1, title: 'Gift', price: 1000, giftListId: 20 } }],
       },
     ]);
 
@@ -383,5 +383,70 @@ describe('getGiftListsPaymentAnalytics — orphan cart bucketing', () => {
     expect(listB.grossStripe).toBe(500);
     expect(listB.grossPaypal).toBe(0);
     expect(listB.grossTotal).toBe(500);
+  });
+
+  it('reports the same totals as the per-list payment report', async () => {
+    const list = { ...baseGiftList, planType: 'COMMISSION', feePreference: 'couple' };
+    const carts = [
+      {
+        ...makeCart({
+          paymentType: 'STRIPE',
+          amount: 3000,
+          transactionFee: 120,
+          netAmount: 2880,
+          feeSource: 'reported',
+          items: [],
+        }),
+        // A $500 contribution toward a $3,000 goal, beside 2 units of a $1,250 gift.
+        items: [
+          { price: 500, quantity: 1, gift: { id: 1, title: 'Luna de miel', price: 3000, giftListId: GIFT_LIST_ID } },
+          { price: 1250, quantity: 2, gift: { id: 2, title: 'Sillas', price: 1250, giftListId: GIFT_LIST_ID } },
+        ],
+      },
+      makeCart({
+        paymentType: 'PAYPAL',
+        amount: 1000,
+        transactionFee: 43.5,
+        netAmount: 956.5,
+        feeSource: 'reported',
+        items: [{ id: 3, price: 1000, quantity: 1 }],
+      }),
+    ].map((cart) => ({
+      ...cart,
+      items: cart.items.map((item: any) => ({ price: item.gift.price, ...item })),
+    }));
+    giftListFindMany.mockResolvedValue([list]);
+    giftListFindUnique.mockResolvedValue(list);
+    cartFindMany.mockResolvedValue(carts);
+
+    const [row] = await paymentAnalyticsService.getGiftListsPaymentAnalytics();
+    const lines = await paymentAnalyticsService.getGiftListPaymentDetails(GIFT_LIST_ID);
+    const sum = (pick: (line: (typeof lines)[number]) => number) => lines.reduce((total, line) => total + pick(line), 0);
+
+    expect(row.giftsTotal).toBe(4000); // 500 + 1250 x 2 + 1000: the couple's number
+    expect(row.giftsTotal).toBeCloseTo(
+      sum((l) => l.paymentAmount),
+      2,
+    );
+    expect(row.paymentFees).toBeCloseTo(
+      sum((l) => l.paymentFee),
+      2,
+    );
+    expect(row.netTotal).toBeCloseTo(
+      sum((l) => l.netAmount),
+      2,
+    );
+    expect(row.netStripe).toBe(2880);
+    expect(row.netPaypal).toBe(956.5);
+    expect(row.mesaListaCommission).toBeCloseTo(
+      sum((l) => l.mesaListaCommission),
+      2,
+    );
+    expect(row.coupleReceives).toBeCloseTo(
+      sum((l) => l.coupleReceives),
+      2,
+    );
+    // Bruto stays what guests were charged; it's a different figure on purpose.
+    expect(row.grossTotal).toBe(4000);
   });
 });

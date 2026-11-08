@@ -39,7 +39,7 @@ export function GiftListDetailsSection({
           <Form.Item
             name="slug"
             className="mb-0!"
-            label={<span className="text-sm text-foreground/70 font-medium">ID de la pareja</span>}
+            label={<span className="text-sm text-foreground/70 font-medium">Enlace de tu mesa</span>}
             rules={[{ required: true, message: 'El slug es requerido' }]}
             validateStatus={slugError ? 'error' : slugAvailable ? 'success' : undefined}
             help={null}>

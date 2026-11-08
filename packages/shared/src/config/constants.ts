@@ -14,7 +14,7 @@ export const faqs = [
   {
     question: '¿Cómo puedo retirar mis fondos?',
     answer:
-      'En la semana de tu evento te enviaremos un correo para solicitar tu número de cuenta Clabe así como la carátula de tu estado de cuenta donde podamos ver el nombre tuyo o de tu pareja. Una vez que finalice tu evento, te haremos llegar el resumen de tu Mesa de Regalos para que nos confirmes y enviaremos los fondos en un lapso menor a 15 días hábiles.',
+      'En la semana de tu evento te enviaremos un correo para solicitar tu número de cuenta Clabe así como la carátula de tu estado de cuenta donde podamos ver tu nombre. Una vez que finalice tu evento, te haremos llegar el resumen de tu Mesa de Regalos para que nos confirmes y enviaremos los fondos en un lapso menor a 15 días hábiles.',
   },
   {
     question: '¿Qué tipo de pagos aceptas?',

@@ -44,7 +44,7 @@ export const GROUPS: SectionGroup[] = [
         icon: UserIcon,
         group: 'Cuenta',
         title: 'Perfil',
-        description: 'Tu información de contacto y los datos de tu pareja.',
+        description: 'Tu nombre y tu información de contacto.',
       },
       {
         id: 'contrasena',

@@ -1,14 +1,17 @@
 import { Eye, EyeOff, AlertCircle, Lock } from 'lucide-react';
+import { publicRegistryDisplayLink } from 'src/utils/registryLinks';
 
 interface PrivacySectionProps {
   isPublic: boolean;
   userSlug?: string;
+  /** Set only when the owner has several lists, so the link opens this one. */
+  giftListId?: number;
   /** Draft registries aren't visible to anyone yet, so the choice doesn't apply. */
   isDraft?: boolean;
   onPublicChange: (isPublic: boolean) => void;
 }
 
-export function PrivacySection({ isPublic, userSlug, isDraft = false, onPublicChange }: PrivacySectionProps) {
+export function PrivacySection({ isPublic, userSlug, giftListId, isDraft = false, onPublicChange }: PrivacySectionProps) {
   // While the list is a draft this setting has no effect — the server hides
   // unpublished lists from search regardless. Locking it here keeps the UI honest
   // instead of implying a choice that does nothing.
@@ -84,10 +87,10 @@ export function PrivacySection({ isPublic, userSlug, isDraft = false, onPublicCh
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
           <div className="flex items-start gap-2">
             <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
-            <p className="text-sm text-blue-900 font-medium">
+            <p className="text-sm text-blue-900 font-medium min-w-0 wrap-anywhere">
               {isPublic
                 ? 'Tu mesa es visible en la página de búsqueda. Los invitados también pueden acceder con tu enlace directo.'
-                : `Tu mesa solo es accesible mediante tu enlace: mesalista.com.mx/${userSlug || 'tu-enlace'}`}
+                : `Tu mesa solo es accesible mediante tu enlace: ${publicRegistryDisplayLink(userSlug || 'tu-enlace', giftListId)}`}
             </p>
           </div>
         </div>

@@ -104,7 +104,7 @@ export function RegistryNotFound({ slug, variant = 'not-found', onRetry }: Regis
           <p className="registry-rise mx-auto max-w-md text-base leading-relaxed text-[#6b5c53]" style={{ animationDelay: '0.28s' }}>
             {isError
               ? 'La conexión con nuestro servidor falló. Vuelve a intentarlo en un momento.'
-              : 'Esta dirección no corresponde a ninguna mesa publicada. Puede que el enlace tenga un error, o que la pareja todavía no haya publicado la suya.'}
+              : 'Esta dirección no corresponde a ninguna mesa publicada. Puede que el enlace tenga un error, o que todavía no se haya publicado.'}
           </p>
 
           {slug && !isError && (

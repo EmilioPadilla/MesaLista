@@ -57,7 +57,7 @@ export function ProfileSection({
         </div>
 
         <div className="pt-2">
-          <h3 className="text-xs tracking-[0.18em] uppercase text-foreground/65 font-bold mb-4">Pareja</h3>
+          <h3 className="text-xs tracking-[0.18em] uppercase text-foreground/65 font-bold mb-4">Cuenta de boda</h3>
           <Checkbox checked={isWeddingAccount} onChange={(e) => onWeddingAccountChange(e.target.checked)} className="text-base mb-4">
             <span className="text-foreground font-medium">Esta es una cuenta de boda</span>
           </Checkbox>

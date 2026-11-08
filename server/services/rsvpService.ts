@@ -97,7 +97,7 @@ export const rsvpService = {
   }) {
     // Auto-generate missing values
     const firstName = data.firstName || 'Invitado';
-    const lastName = data.lastName || 'Sin Apellido';
+    const lastName = data.lastName || '';
     const tickets = data.tickets || 1;
     let secretCode = data.secretCode ? this.normalizeSecretCode(data.secretCode) : undefined;
 

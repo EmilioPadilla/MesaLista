@@ -142,7 +142,7 @@ export function UserAnalyticsTab({
     },
     {
       name: 'Completaron el registro',
-      hint: 'Cuentas de pareja creadas en el período (tabla users). El registro crea la mesa en la misma transacción.',
+      hint: 'Cuentas de anfitriones creadas en el período (tabla users). El registro crea la mesa en la misma transacción.',
       value: summary.signupsCompleted || 0,
       color: '#6dc48a',
     },
@@ -208,7 +208,7 @@ export function UserAnalyticsTab({
       )}
 
       {/* Row 1: the couple side — does the product get mesas built and published? */}
-      <div className="text-xs uppercase tracking-wide text-gray-400 mb-2 font-semibold">Parejas</div>
+      <div className="text-xs uppercase tracking-wide text-gray-400 mb-2 font-semibold">Anfitriones</div>
       <Row gutter={[16, 16]} className="mb-6">
         <Col xs={24} sm={12} lg={6}>
           <Card>
@@ -329,7 +329,7 @@ export function UserAnalyticsTab({
       <Row gutter={[16, 16]} className="mb-6">
         {!isListFiltered && (
           <Col xs={24} lg={12}>
-            <Card title="Embudo de parejas: de visita a mesa publicada">
+            <Card title="Embudo de anfitriones: de visita a mesa publicada">
               <FunnelChart steps={coupleFunnel} />
             </Card>
           </Col>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export interface CollapsibleProps {
   isOpen: boolean;
@@ -7,13 +7,20 @@ export interface CollapsibleProps {
 }
 
 export const Collapsible: React.FC<CollapsibleProps> = ({ isOpen, children, className = '' }) => {
+  // Content must clip while the height animates, but once open it can't: that
+  // would cut off card shadows and focus rings.
+  const [isSettled, setIsSettled] = useState(isOpen);
+
   return (
     <div
       data-testid="collapsible"
-      className={`transition-all duration-500 ${className} ${
-        isOpen ? 'max-h-screen opacity-100 my-3' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
+      onTransitionEnd={(event) => {
+        if (event.target === event.currentTarget && event.propertyName === 'grid-template-rows') setIsSettled(isOpen);
+      }}
+      className={`grid transition-all duration-500 ${className} ${
+        isOpen ? 'grid-rows-[1fr] opacity-100 my-3' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
       }`}>
-      {children}
+      <div className={`min-h-0 min-w-0 ${isOpen && isSettled ? 'overflow-visible' : 'overflow-hidden'}`}>{children}</div>
     </div>
   );
 };

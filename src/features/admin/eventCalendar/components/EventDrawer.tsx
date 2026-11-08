@@ -99,7 +99,7 @@ export function EventDrawer({ event, tasks, onClose }: EventDrawerProps) {
                 type="info"
                 showIcon
                 message="Lista en borrador"
-                description="Las acciones bancarias empiezan cuando la pareja publica su lista, porque hasta entonces no puede recibir dinero."
+                description="Las acciones bancarias empiezan cuando los anfitriones publican su lista, porque hasta entonces no puede recibir dinero."
               />
             ) : tasks.length === 0 ? (
               <Alert

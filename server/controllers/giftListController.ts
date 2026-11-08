@@ -189,7 +189,10 @@ const giftListController = {
               .filter(Boolean)
           : [],
       }));
-      res.json({ ...giftList, gifts: transformedGifts });
+      // Lets the guest page drop `?listId=` from the address when the slug alone
+      // already identifies this list.
+      const ownerListCount = await prisma.giftList.count({ where: { userId: giftList.userId } });
+      res.json({ ...giftList, gifts: transformedGifts, isOnlyList: ownerListCount === 1 });
     } catch (error) {
       console.error('Error fetching gift list:', error);
       res.status(500).json({ error: 'Failed to fetch gift list' });

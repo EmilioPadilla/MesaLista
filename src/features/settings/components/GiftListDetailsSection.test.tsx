@@ -45,7 +45,7 @@ describe('GiftListDetailsSection', () => {
 
   it('renders all field labels', () => {
     render(<Harness />);
-    expect(screen.getByText(/id de la pareja/i)).toBeInTheDocument();
+    expect(screen.getByText(/enlace de tu mesa/i)).toBeInTheDocument();
     expect(screen.getByText(/lugar del evento/i)).toBeInTheDocument();
     expect(screen.getByText(/ciudad, estado/i)).toBeInTheDocument();
     expect(screen.getByText(/fecha del evento/i)).toBeInTheDocument();

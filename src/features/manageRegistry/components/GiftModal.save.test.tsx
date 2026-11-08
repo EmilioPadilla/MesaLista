@@ -137,9 +137,8 @@ describe('GiftModal save behaviour', () => {
   it('emits empty-string imageUrl when the user clicks X to remove the image (regression)', async () => {
     renderModal();
 
-    // The remove button is the small X next to the preview — it sits in an
-    // `absolute top-2 right-2` div. Match it by its X icon path's parent.
-    const removeBtn = document.querySelector('.absolute.top-2.right-2 button');
+    // The remove button is the small X overlaid on the preview.
+    const removeBtn = document.querySelector('button[aria-label="Quitar imagen"]');
     expect(removeBtn).not.toBeNull();
     fireEvent.click(removeBtn!);
 

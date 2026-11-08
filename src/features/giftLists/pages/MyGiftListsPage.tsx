@@ -66,7 +66,7 @@ export function MyGiftListsPage() {
 
   const handleViewList = (listId: number) => {
     if (user?.slug) {
-      navigate(`/${user.slug}/gestionar?listId=${listId}`);
+      navigate(giftLists?.length === 1 ? `/${user.slug}/gestionar` : `/${user.slug}/gestionar?listId=${listId}`);
     }
   };
 

@@ -20,6 +20,7 @@ import { InviteeRow } from '../components/InviteeRow';
 import { AddInviteeModal, type InviteeFormValues } from '../components/AddInviteeModal';
 import { CustomFieldsModal } from '../components/CustomFieldsModal';
 import { InviteeDetailModal } from '../components/InviteeDetailModal';
+import { inviteeFullName } from 'utils/inviteeName';
 
 export function ManageRsvpScreen({ listId }: { listId: number }) {
   const router = useRouter();
@@ -66,7 +67,7 @@ export function ManageRsvpScreen({ listId }: { listId: number }) {
   };
 
   const onDelete = (invitee: Invitee) => {
-    const name = [invitee.firstName, invitee.lastName].filter(Boolean).join(' ') || 'este invitado';
+    const name = inviteeFullName(invitee) || 'este invitado';
     Alert.alert('¿Eliminar invitado?', `Se eliminará a ${name}.`, [
       { text: 'Cancelar', style: 'cancel' },
       {

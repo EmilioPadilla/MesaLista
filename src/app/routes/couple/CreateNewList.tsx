@@ -133,7 +133,7 @@ export function CreateNewList() {
             <Input
               value={listName}
               onChange={(e) => setListName(e.target.value)}
-              placeholder="Ej: Boda de Ana y Carlos"
+              placeholder="Ej: Bautizo de Mateo"
               size="large"
               style={{ borderRadius: '12px', backgroundColor: '#f5f5f7', border: 'none' }}
             />
@@ -141,7 +141,7 @@ export function CreateNewList() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Nombres de la Pareja</label>
+            <label className="block text-sm font-medium mb-2">Nombres de los anfitriones</label>
             <Input
               value={coupleNames}
               onChange={(e) => setCoupleNames(e.target.value)}
@@ -223,7 +223,7 @@ export function CreateNewList() {
             <span className="font-medium">{listName}</span>
           </div>
           <div className="flex items-center justify-between py-3 border-b border-gray-200">
-            <span className="text-gray-500 font-light">Pareja</span>
+            <span className="text-gray-500 font-light">Anfitriones</span>
             <span className="font-medium">{coupleNames}</span>
           </div>
           <div className="flex items-center justify-between py-3 border-b border-gray-200">

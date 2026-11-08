@@ -43,7 +43,7 @@ describe('ProfileSection', () => {
   it('renders subsection headings', () => {
     render(<Harness />);
     expect(screen.getByRole('heading', { level: 3, name: /^datos personales$/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 3, name: /^pareja$/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: /^cuenta de boda$/i })).toBeInTheDocument();
   });
 
   it('fires onWeddingAccountChange when checkbox is toggled', () => {

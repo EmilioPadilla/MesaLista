@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma.js';
+import { lineTotal, roundMoney } from '../lib/giftFunding.js';
 
 export interface UserAnalytics {
   id: number;
@@ -66,6 +67,30 @@ export interface UsersListsSummary {
   averagePurchaseRate: number;
 }
 
+/**
+ * Money received per gift list, from the same records as the couple's "Monto Total
+ * Recibido": every line of a PAID payment, at the price it was actually paid.
+ * Summing `gift.price` over `isPurchased` gifts can't match that: it misses partly
+ * funded group gifts and repeat units, and moves when a couple edits a price.
+ */
+async function getReceivedByGiftList(): Promise<Map<number, number>> {
+  const paidLines = await prisma.cartItem.findMany({
+    where: { cart: { payment: { status: 'PAID' } } },
+    select: {
+      price: true,
+      quantity: true,
+      gift: { select: { giftListId: true } },
+    },
+  });
+
+  const received = new Map<number, number>();
+  for (const line of paidLines) {
+    const listId = line.gift.giftListId;
+    received.set(listId, roundMoney((received.get(listId) ?? 0) + lineTotal({ price: line.price, quantity: line.quantity })));
+  }
+  return received;
+}
+
 class UsersListsAnalyticsService {
   /**
    * Get summary statistics for users and lists
@@ -119,13 +144,14 @@ class UsersListsAnalyticsService {
     let totalGiftsCreated = 0;
     let totalGiftsPurchased = 0;
     let totalRevenue = 0;
+    const receivedByList = await getReceivedByGiftList();
 
     giftLists.forEach((list) => {
       totalGiftsCreated += list.gifts.length;
+      totalRevenue += receivedByList.get(list.id) ?? 0;
       list.gifts.forEach((gift) => {
         if (gift.isPurchased) {
           totalGiftsPurchased++;
-          totalRevenue += gift.price;
         }
       });
     });
@@ -172,6 +198,7 @@ class UsersListsAnalyticsService {
       },
       include: {
         giftLists: {
+          orderBy: { createdAt: 'asc' },
           include: {
             gifts: {
               select: {
@@ -187,6 +214,8 @@ class UsersListsAnalyticsService {
       },
     });
 
+    const receivedByList = await getReceivedByGiftList();
+
     return users.map((user) => {
       let weddingListData = null;
       // Get the first gift list (users can have multiple now)
@@ -196,7 +225,7 @@ class UsersListsAnalyticsService {
         const totalGifts = giftList.gifts.length;
         const purchasedGifts = giftList.gifts.filter((g: any) => g.isPurchased).length;
         const totalValue = giftList.gifts.reduce((sum: number, g: any) => sum + g.price, 0);
-        const totalReceived = giftList.gifts.filter((g: any) => g.isPurchased).reduce((sum: number, g: any) => sum + g.price, 0);
+        const totalReceived = receivedByList.get(giftList.id) ?? 0;
         const purchaseRate = totalGifts > 0 ? (purchasedGifts / totalGifts) * 100 : 0;
 
         weddingListData = {
@@ -283,11 +312,13 @@ class UsersListsAnalyticsService {
       {} as Record<number, typeof invitees>,
     );
 
+    const receivedByList = await getReceivedByGiftList();
+
     return weddingLists.map((list) => {
       const totalGifts = list.gifts.length;
       const purchasedGifts = list.gifts.filter((g: any) => g.isPurchased).length;
       const totalValue = list.gifts.reduce((sum: number, g: any) => sum + g.price, 0);
-      const totalReceived = list.gifts.filter((g: any) => g.isPurchased).reduce((sum: number, g: any) => sum + g.price, 0);
+      const totalReceived = receivedByList.get(list.id) ?? 0;
       const purchaseRate = totalGifts > 0 ? (purchasedGifts / totalGifts) * 100 : 0;
 
       // Find the most recent purchase date

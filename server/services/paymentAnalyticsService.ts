@@ -1,8 +1,13 @@
 import { PrismaClient } from '@prisma/client';
-import { lineTotal, lineUnitPrice } from '../lib/giftFunding.js';
+import { lineTotal, lineUnitPrice, roundMoney } from '../lib/giftFunding.js';
 
 const prisma = new PrismaClient();
 const FIXED_PLAN_PRICE = 2000;
+const COMMISSION_RATE = 0.03;
+const PAYPAL_RATE = 0.0395;
+const PAYPAL_FIXED = 4.0;
+const STRIPE_RATE = 0.036;
+const STRIPE_FIXED = 3.0;
 
 export interface GiftListPaymentAnalytics {
   id: number;
@@ -21,6 +26,14 @@ export interface GiftListPaymentAnalytics {
   grossPaypal: number;
   grossStripe: number;
   grossTotal: number;
+  // Same figures as the per-list payment report, so the table can't drift from it.
+  giftsTotal: number; // What the couple sees as "Monto Total Recibido"
+  paymentFees: number;
+  netPaypal: number;
+  netStripe: number;
+  netTotal: number;
+  mesaListaCommission: number;
+  coupleReceives: number; // "Total a Transferir"
 }
 
 export interface PaymentAnalyticsSummary {
@@ -51,6 +64,100 @@ export interface GiftPaymentDetail {
   paidAt: string;
   feeSource: 'reported' | 'estimated';
 }
+
+// Same line selection as the couple's purchased-gifts view: every line of a PAID payment.
+const paidCartInclude = {
+  payment: true,
+  items: {
+    include: {
+      gift: {
+        select: {
+          id: true,
+          title: true,
+          price: true,
+          giftListId: true,
+        },
+      },
+    },
+  },
+};
+
+/**
+ * What one paid cart means for one gift list, line by line. Both the per-list report
+ * and the all-lists table add these up, which is what keeps their totals identical.
+ */
+const buildGiftPaymentDetails = (
+  cart: any,
+  giftListId: number,
+  giftList: { planType: string | null; feePreference: string },
+): GiftPaymentDetail[] => {
+  const paymentType = cart.payment.paymentType as 'PAYPAL' | 'STRIPE';
+  // For carts that mix lists (shouldn't happen, but guard anyway) only count items
+  // belonging to the gift list being reported on.
+  const relevantItems = cart.items.filter((item: any) => item.gift?.giftListId === giftListId);
+  // Price every line off the STORED line price, not gift.price. For a group gift
+  // gift.price is the funding goal, so a $500 contribution toward a $3,000
+  // honeymoon would otherwise be reported as $3,000 — and because cartGross
+  // drives the fee proration below, one group line would skew the reported fee
+  // and net of every OTHER line in the same cart too.
+  const cartGross = cart.items.reduce((sum: number, item: any) => sum + lineTotal(item), 0);
+
+  // Prefer the real fee reported by Stripe/PayPal at capture time.
+  // Fall back to formula-based estimates for legacy payments captured before reconciliation was wired up.
+  const reportedFee = cart.payment.feeSource === 'reported' ? cart.payment.transactionFee : null;
+  const reportedNet = cart.payment.feeSource === 'reported' ? cart.payment.netAmount : null;
+
+  return relevantItems.map((item: any) => {
+    const giftPrice = lineTotal(item);
+    const itemShare = cartGross > 0 ? giftPrice / cartGross : 0;
+
+    let paymentFee = 0;
+    let netAmount = giftPrice;
+    let feeSource: 'reported' | 'estimated' = 'estimated';
+
+    if (reportedFee !== null && reportedNet !== null) {
+      // Prorate the real total fee across cart items by their share of the gross.
+      // Whoever pays the fees, the real net is what actually came through from the processor.
+      paymentFee = reportedFee * itemShare;
+      netAmount = reportedNet * itemShare;
+      feeSource = 'reported';
+    } else {
+      if (giftList.feePreference === 'couple') {
+        if (paymentType === 'PAYPAL') {
+          paymentFee = giftPrice * PAYPAL_RATE + PAYPAL_FIXED;
+        } else {
+          paymentFee = giftPrice * STRIPE_RATE + STRIPE_FIXED;
+        }
+      }
+      netAmount = giftPrice - paymentFee;
+    }
+
+    // Calculate MesaLista commission (only for COMMISSION plan)
+    let mesaListaCommission = 0;
+    if (giftList.planType === 'COMMISSION') {
+      mesaListaCommission = netAmount * COMMISSION_RATE;
+    }
+
+    const coupleReceives = netAmount - mesaListaCommission;
+
+    return {
+      giftId: item.gift.id,
+      giftTitle: item.gift.title,
+      giftPrice: lineUnitPrice(item),
+      paymentId: cart.payment.id,
+      paymentType,
+      paymentAmount: giftPrice,
+      paymentFee: roundMoney(paymentFee),
+      netAmount: roundMoney(netAmount),
+      mesaListaCommission: roundMoney(mesaListaCommission),
+      coupleReceives: roundMoney(coupleReceives),
+      guestName: cart.inviteeName || 'Anónimo',
+      guestEmail: cart.inviteeEmail || '',
+      paidAt: cart.payment.createdAt.toISOString(),
+      feeSource,
+    };
+  });
+};
 
 const paymentAnalyticsService = {
   /**
@@ -89,15 +196,18 @@ const paymentAnalyticsService = {
     // would silently drop those payments from the report. Sourcing from gift.giftListId is
     // the truth.
     const paidCarts = await prisma.cart.findMany({
-      where: { status: 'PAID' },
-      select: {
-        payment: { select: { amount: true, paymentType: true, status: true } },
-        items: { select: { gift: { select: { giftListId: true } } } },
-      },
+      where: { payment: { status: 'PAID' } },
+      include: paidCartInclude,
     });
 
+    const listsById = new Map<number, any>(giftLists.map((list: any) => [list.id, list]));
     const grossByList = new Map<number, { paypal: number; stripe: number }>();
-    for (const cart of paidCarts) {
+    const reportByList = new Map<
+      number,
+      { gifts: number; fees: number; netPaypal: number; netStripe: number; commission: number; receives: number }
+    >();
+
+    for (const cart of paidCarts as any[]) {
       if (!cart.payment || cart.payment.status !== 'PAID') continue;
       // A cart's items can only belong to one gift list (enforced in addToCart),
       // so the first item with a giftListId determines the bucket.
@@ -107,6 +217,19 @@ const paymentAnalyticsService = {
       if (cart.payment.paymentType === 'PAYPAL') bucket.paypal += cart.payment.amount;
       else if (cart.payment.paymentType === 'STRIPE') bucket.stripe += cart.payment.amount;
       grossByList.set(listId, bucket);
+
+      const list = listsById.get(listId);
+      if (!list) continue;
+      const report = reportByList.get(listId) ?? { gifts: 0, fees: 0, netPaypal: 0, netStripe: 0, commission: 0, receives: 0 };
+      for (const line of buildGiftPaymentDetails(cart, listId, list)) {
+        report.gifts += line.paymentAmount;
+        report.fees += line.paymentFee;
+        if (line.paymentType === 'PAYPAL') report.netPaypal += line.netAmount;
+        else report.netStripe += line.netAmount;
+        report.commission += line.mesaListaCommission;
+        report.receives += line.coupleReceives;
+      }
+      reportByList.set(listId, report);
     }
 
     return giftLists.map((list: any) => {
@@ -120,6 +243,7 @@ const paymentAnalyticsService = {
         : 0;
 
       const gross = grossByList.get(list.id) ?? { paypal: 0, stripe: 0 };
+      const report = reportByList.get(list.id) ?? { gifts: 0, fees: 0, netPaypal: 0, netStripe: 0, commission: 0, receives: 0 };
 
       return {
         id: list.id,
@@ -138,6 +262,13 @@ const paymentAnalyticsService = {
         grossPaypal: gross.paypal,
         grossStripe: gross.stripe,
         grossTotal: gross.paypal + gross.stripe,
+        giftsTotal: roundMoney(report.gifts),
+        paymentFees: roundMoney(report.fees),
+        netPaypal: roundMoney(report.netPaypal),
+        netStripe: roundMoney(report.netStripe),
+        netTotal: roundMoney(report.netPaypal + report.netStripe),
+        mesaListaCommission: roundMoney(report.commission),
+        coupleReceives: roundMoney(report.receives),
       };
     });
   },
@@ -198,12 +329,6 @@ const paymentAnalyticsService = {
    * Get detailed gift payments for a specific gift list
    */
   getGiftListPaymentDetails: async (giftListId: number): Promise<GiftPaymentDetail[]> => {
-    const COMMISSION_RATE = 0.03;
-    const PAYPAL_RATE = 0.0395;
-    const PAYPAL_FIXED = 4.0;
-    const STRIPE_RATE = 0.036;
-    const STRIPE_FIXED = 3.0;
-
     const giftList = await prisma.giftList.findUnique({
       where: { id: giftListId },
       select: {
@@ -216,35 +341,21 @@ const paymentAnalyticsService = {
       return [];
     }
 
-    // Find every PAID cart that has at least one item belonging to this gift list.
+    // Find every cart with a PAID payment and at least one item belonging to this gift list.
     // We deliberately do NOT filter by cart.giftListId — that field can be NULL when a
     // cart was emptied & refilled around a payment, even though the items themselves
     // still point to the gift list. Going through items.gift.giftListId is the source
     // of truth.
     const carts = await prisma.cart.findMany({
       where: {
-        status: 'PAID',
+        payment: { status: 'PAID' },
         items: {
           some: {
             gift: { giftListId },
           },
         },
       },
-      include: {
-        payment: true,
-        items: {
-          include: {
-            gift: {
-              select: {
-                id: true,
-                title: true,
-                price: true,
-                giftListId: true,
-              },
-            },
-          },
-        },
-      },
+      include: paidCartInclude,
     });
 
     const giftPayments: GiftPaymentDetail[] = [];
@@ -252,81 +363,7 @@ const paymentAnalyticsService = {
     for (const cart of carts) {
       if (!cart.payment || cart.payment.status !== 'PAID') continue;
 
-      const paymentType = cart.payment.paymentType as 'PAYPAL' | 'STRIPE';
-      // For carts that mix lists (shouldn't happen, but guard anyway) only count items
-      // belonging to the gift list being reported on.
-      const relevantItems = cart.items.filter((item: any) => item.gift?.giftListId === giftListId);
-      if (relevantItems.length === 0) continue;
-      // Price every line off the STORED line price, not gift.price. For a group gift
-      // gift.price is the funding goal, so a $500 contribution toward a $3,000
-      // honeymoon would otherwise be reported as $3,000 — and because cartGross
-      // drives the fee proration below, one group line would skew the reported fee
-      // and net of every OTHER line in the same cart too.
-      const cartGross = cart.items.reduce((sum: number, item: any) => sum + lineTotal(item), 0);
-
-      // Prefer the real fee reported by Stripe/PayPal at capture time.
-      // Fall back to formula-based estimates for legacy payments captured before reconciliation was wired up.
-      const reportedFee = cart.payment.feeSource === 'reported' ? cart.payment.transactionFee : null;
-      const reportedNet = cart.payment.feeSource === 'reported' ? cart.payment.netAmount : null;
-
-      for (const item of relevantItems) {
-        if (!item.gift) continue;
-
-        const giftPrice = lineTotal(item);
-        const itemShare = cartGross > 0 ? giftPrice / cartGross : 0;
-
-        let paymentFee = 0;
-        let netAmount = giftPrice;
-        let feeSource: 'reported' | 'estimated' = 'estimated';
-
-        if (reportedFee !== null && reportedNet !== null) {
-          // Prorate the real total fee across cart items by their share of the gross.
-          paymentFee = reportedFee * itemShare;
-          if (giftList.feePreference === 'guest') {
-            // Guest paid the gross-up; the couple receives the gift price minus the processor's slice of it.
-            // The remaining fee surplus stays with the couple as the guest's gross-up cushion.
-            netAmount = reportedNet * itemShare;
-          } else {
-            // Couple absorbs: real net is what they actually got from the processor.
-            netAmount = reportedNet * itemShare;
-          }
-          feeSource = 'reported';
-        } else {
-          if (giftList.feePreference === 'couple') {
-            if (paymentType === 'PAYPAL') {
-              paymentFee = giftPrice * PAYPAL_RATE + PAYPAL_FIXED;
-            } else {
-              paymentFee = giftPrice * STRIPE_RATE + STRIPE_FIXED;
-            }
-          }
-          netAmount = giftPrice - paymentFee;
-        }
-
-        // Calculate MesaLista commission (only for COMMISSION plan)
-        let mesaListaCommission = 0;
-        if (giftList.planType === 'COMMISSION') {
-          mesaListaCommission = netAmount * COMMISSION_RATE;
-        }
-
-        const coupleReceives = netAmount - mesaListaCommission;
-
-        giftPayments.push({
-          giftId: item.gift.id,
-          giftTitle: item.gift.title,
-          giftPrice: lineUnitPrice(item),
-          paymentId: cart.payment.id,
-          paymentType,
-          paymentAmount: giftPrice,
-          paymentFee: Math.round(paymentFee * 100) / 100,
-          netAmount: Math.round(netAmount * 100) / 100,
-          mesaListaCommission: Math.round(mesaListaCommission * 100) / 100,
-          coupleReceives: Math.round(coupleReceives * 100) / 100,
-          guestName: cart.inviteeName || 'Anónimo',
-          guestEmail: cart.inviteeEmail || '',
-          paidAt: cart.payment.createdAt.toISOString(),
-          feeSource,
-        });
-      }
+      giftPayments.push(...buildGiftPaymentDetails(cart, giftListId, giftList));
     }
 
     return giftPayments;

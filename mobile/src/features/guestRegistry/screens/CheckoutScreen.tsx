@@ -151,7 +151,7 @@ export function CheckoutScreen({ slug }: { slug: string }) {
       <ScrollView contentContainerClassName="px-5 pb-10" keyboardShouldPersistTaps="handled">
         <Text className="text-2xl font-bold text-ink">Información del invitado</Text>
         <Text className="mt-1 text-sm text-mutedForeground">
-          Para que {list?.coupleName ?? 'la pareja'} sepa quién les envía este regalo.
+          Así sabrán quién les envía este regalo.
         </Text>
 
         <Field label="¿Tienes un código de invitación? (opcional)">
@@ -209,7 +209,7 @@ export function CheckoutScreen({ slug }: { slug: string }) {
           <TextInput
             value={message}
             onChangeText={setMessage}
-            placeholder={`Un mensaje para ${list?.coupleName ?? 'la pareja'}…`}
+            placeholder={`Un mensaje para ${list?.coupleName ?? 'los anfitriones'}…`}
             placeholderTextColor="#949ca4"
             multiline
             numberOfLines={4}

@@ -31,6 +31,8 @@ export interface GiftList {
 export interface GiftListWithGifts extends GiftList {
   gifts: Gift[];
   user: User;
+  /** Only sent by the by-id lookup: whether this is the owner's only list. */
+  isOnlyList?: boolean;
 }
 
 export interface FormattedGiftList {

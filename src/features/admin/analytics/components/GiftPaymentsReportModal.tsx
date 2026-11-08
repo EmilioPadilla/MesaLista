@@ -127,7 +127,7 @@ export function GiftPaymentsReportModal({ open, selectedGiftList, onClose }: Gif
       render: (value: number) => <span className={value > 0 ? 'text-purple-600' : 'text-gray-400'}>{formatCurrency(value)}</span>,
     },
     {
-      title: 'Pareja Recibe',
+      title: 'Anfitriones Reciben',
       dataIndex: 'coupleReceives',
       key: 'coupleReceives',
       align: 'right' as const,
@@ -137,7 +137,13 @@ export function GiftPaymentsReportModal({ open, selectedGiftList, onClose }: Gif
       title: 'Fecha',
       dataIndex: 'paidAt',
       key: 'paidAt',
-      width: 120,
+      width: 140,
+      // Newest first by default. Repeating 'descend' keeps the header toggling
+      // between the two orders instead of stopping on "unsorted".
+      defaultSortOrder: 'descend',
+      sortDirections: ['descend', 'ascend', 'descend'],
+      showSorterTooltip: { title: 'Cambiar orden por fecha' },
+      sorter: (a, b) => dayjs(a.paidAt).valueOf() - dayjs(b.paidAt).valueOf(),
       render: (value: string) => formatDate(value),
     },
   ];
@@ -153,7 +159,14 @@ export function GiftPaymentsReportModal({ open, selectedGiftList, onClose }: Gif
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <Card size="small">
             <Statistic
-              title="Monto Regalos"
+              title={
+                <span className="flex flex-wrap items-center gap-2">
+                  Monto Regalos
+                  <Tag color="green" className="!m-0">
+                    Lo que ven los anfitriones
+                  </Tag>
+                </span>
+              }
               value={paymentDetailsTotals.totalGiftAmount}
               formatter={(value) => formatCurrency(Number(value))}
             />

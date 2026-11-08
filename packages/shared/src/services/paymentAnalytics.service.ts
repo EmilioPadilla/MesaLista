@@ -18,6 +18,14 @@ export interface GiftListPaymentAnalytics {
   grossPaypal: number;
   grossStripe: number;
   grossTotal: number;
+  // Same figures as the per-list payment report, so the table can't drift from it.
+  giftsTotal: number; // What the couple sees as "Monto Total Recibido"
+  paymentFees: number;
+  netPaypal: number;
+  netStripe: number;
+  netTotal: number;
+  mesaListaCommission: number;
+  coupleReceives: number; // "Total a Transferir"
 }
 
 export interface PaymentAnalyticsSummary {

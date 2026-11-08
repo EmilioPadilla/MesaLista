@@ -118,7 +118,7 @@ export function BuyGiftsScreen({ slug }: { slug: string }) {
         <View className="flex-1 items-center justify-center px-8">
           <Text className="text-center text-base font-semibold text-ink">No encontramos esta mesa de regalos</Text>
           <Text className="mt-1 text-center text-sm text-mutedForeground">
-            Verifica el enlace o busca a la pareja en Explorar.
+            Verifica el enlace o busca la mesa en Explorar.
           </Text>
           <Pressable onPress={() => router.replace('/explore')} className="mt-5 rounded-full bg-oak px-5 py-2.5">
             <Text className="text-sm font-semibold text-white">Ir a Explorar</Text>

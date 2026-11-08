@@ -484,7 +484,7 @@ export const rsvpController = {
       pushService
         .sendRsvpReceivedPush({
           giftListId,
-          inviteeName: `${invitee.firstName} ${invitee.lastName}`,
+          inviteeName: [invitee.firstName, invitee.lastName !== 'Sin Apellido' && invitee.lastName].filter(Boolean).join(' '),
           status: invitee.status,
           confirmedTickets: invitee.confirmedTickets,
         })

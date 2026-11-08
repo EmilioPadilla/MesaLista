@@ -14,7 +14,7 @@ interface SEOHeadProps {
 export const SEOHead: React.FC<SEOHeadProps> = ({
   title = 'MesaLista - Mesa de Regalos Digital para tu Evento',
   description = 'Crea tu mesa de regalos en minutos. Gestiona RSVP, recibe regalos en efectivo o productos. Fácil, elegante y sin comisiones ocultas.',
-  keywords = 'mesa de regalos, evento, matrimonio, regalos de evento, lista de eventos, RSVP, confirmaciones, regalos digitales, México',
+  keywords = 'mesa de regalos, evento, boda, bautizo, cumpleaños, baby shower, regalos de evento, lista de eventos, RSVP, confirmaciones, regalos digitales, México',
   canonicalUrl,
   ogImage = 'https://www.mesalista.com.mx/og-image.jpg',
   ogType = 'website',

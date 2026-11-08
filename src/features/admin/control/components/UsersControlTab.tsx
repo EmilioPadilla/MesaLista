@@ -170,10 +170,10 @@ export function UsersControlTab({ summary, usersData, isUsersLoading, onRefresh 
       width: 100,
       render: (_, record) => {
         const hasWeddingList = !!record.weddingList;
-        return hasWeddingList ? <Tag color="purple">PAREJA</Tag> : <Tag color="default">INVITADO</Tag>;
+        return hasWeddingList ? <Tag color="purple">ANFITRIÓN</Tag> : <Tag color="default">INVITADO</Tag>;
       },
       filters: [
-        { text: 'Pareja', value: 'couple' },
+        { text: 'Anfitrión', value: 'couple' },
         { text: 'Invitado', value: 'guest' },
       ],
       onFilter: (value, record) => {
@@ -337,7 +337,7 @@ export function UsersControlTab({ summary, usersData, isUsersLoading, onRefresh 
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Parejas"
+              title="Anfitriones"
               value={summary?.totalCouples || 0}
               prefix={<UserCheck className="h-4 w-4" />}
               valueStyle={{ color: '#722ed1' }}

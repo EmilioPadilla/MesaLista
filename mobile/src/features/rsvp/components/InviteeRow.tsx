@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
 import type { Invitee } from 'services/rsvp.service';
+import { inviteeFullName } from 'utils/inviteeName';
 
 type Status = Invitee['status'];
 
@@ -21,7 +22,7 @@ interface InviteeRowProps {
 
 export function InviteeRow({ invitee, onSetStatus, onDelete, onPress, selectable, selected, onToggleSelect }: InviteeRowProps) {
   const meta = STATUS_META[invitee.status];
-  const name = [invitee.firstName, invitee.lastName].filter(Boolean).join(' ') || 'Invitado';
+  const name = inviteeFullName(invitee) || 'Invitado';
 
   if (selectable) {
     return (

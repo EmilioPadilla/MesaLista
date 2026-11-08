@@ -312,7 +312,7 @@ export function SettingsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10">
           <p className="text-[11px] tracking-[0.22em] uppercase text-[#d4704a] font-bold mb-3">Tu cuenta · MesaLista</p>
           <h1 className="text-4xl sm:text-5xl tracking-tight text-foreground">
-            Hola, <span className="italic font-light">{userData?.firstName || 'pareja'}</span>
+            Hola, <span className="italic font-light">{userData?.firstName || 'de nuevo'}</span>
           </h1>
           <p className="text-base text-foreground/70 mt-2 max-w-2xl">
             Personaliza tu perfil, tu mesa de regalos y la experiencia de tus invitados.
@@ -430,6 +430,7 @@ export function SettingsPage() {
               <PrivacySection
                 isPublic={isPublic}
                 userSlug={userData?.slug}
+                giftListId={(giftLists?.length ?? 0) > 1 ? giftListData?.id : undefined}
                 isDraft={!giftListData?.publishedAt}
                 onPublicChange={(value) => {
                   setIsPublic(value);

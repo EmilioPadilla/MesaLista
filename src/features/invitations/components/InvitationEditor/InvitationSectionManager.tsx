@@ -311,7 +311,7 @@ export const defaultSections: InvitationSection[] = [
     icon: '👋',
     enabled: true,
     order: 0,
-    description: 'Nombres de la pareja, fecha y countdown',
+    description: 'Nombres, fecha y countdown',
   },
   {
     id: 'presentation',
@@ -367,7 +367,7 @@ export const defaultSections: InvitationSection[] = [
     icon: '📸',
     enabled: true,
     order: 7,
-    description: 'Fotos de la pareja',
+    description: 'Galería de fotos',
   },
   {
     id: 'rsvp',

@@ -1,6 +1,7 @@
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Invitee, RsvpCustomFieldResponse } from 'services/rsvp.service';
+import { inviteeFullName } from 'utils/inviteeName';
 
 type Status = Invitee['status'];
 
@@ -31,7 +32,7 @@ interface InviteeDetailModalProps {
 export function InviteeDetailModal({ visible, invitee, responses, onClose, onSetStatus, onDelete }: InviteeDetailModalProps) {
   if (!invitee) return null;
 
-  const name = [invitee.firstName, invitee.lastName].filter(Boolean).join(' ') || 'Invitado';
+  const name = inviteeFullName(invitee) || 'Invitado';
   const meta = STATUS_META[invitee.status];
 
   return (

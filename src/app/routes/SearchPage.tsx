@@ -66,7 +66,7 @@ export function SearchPage() {
     <div className="min-h-screen bg-background">
       <PageSEO
         title="Buscar Mesa de Regalos - MesaLista"
-        description="Encuentra la mesa de regalos de tus seres queridos. Busca por nombre de pareja o fecha de evento."
+        description="Encuentra la mesa de regalos de tus seres queridos. Busca por nombre o fecha del evento."
         keywords="buscar mesa de regalos, encontrar lista de bodas, buscar registro de bodas, México"
         noindex={true}
       />
@@ -82,7 +82,7 @@ export function SearchPage() {
             <div className="space-y-2">
               <h1 className="text-4xl text-foreground">Buscar Mesa de Regalos</h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Encuentra la mesa de regalos de tus seres queridos por nombre de pareja o fecha de evento
+                Encuentra la mesa de regalos de tus seres queridos por nombre o fecha del evento
               </p>
             </div>
           </div>
@@ -101,7 +101,7 @@ export function SearchPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="space-y-2">
-                <label className="text-foreground">Nombres de la pareja o código</label>
+                <label className="text-foreground">Nombre o código</label>
                 <Input placeholder="Sol & Emilio, sol-y-emilio..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
               </div>
               <div className="space-y-2">

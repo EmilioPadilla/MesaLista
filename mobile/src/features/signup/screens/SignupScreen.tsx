@@ -259,7 +259,7 @@ export function SignupScreen() {
 
       case 'slug': {
         if (!slug) {
-          setSlugError('El enlace de la pareja es requerido');
+          setSlugError('El enlace de tu mesa es requerido');
           return;
         }
         if (isCheckingSlug) {

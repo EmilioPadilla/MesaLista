@@ -6,6 +6,7 @@ import { useInviteeByCode, useRespondToRsvp, useRsvpMessages, useRsvpCustomField
 import { useGiftListBySlug } from 'src/hooks/useGiftList';
 import type { OutletContextType } from 'src/app/routes/guest/PublicRegistry';
 import { normalizeSecretCode } from '../utils/secretCode';
+import { inviteeFullName } from 'src/utils/inviteeName';
 
 export function GuestConfirmationPage() {
   const navigate = useNavigate();
@@ -114,7 +115,7 @@ export function GuestConfirmationPage() {
                 </div>
                 <h2 className="mb-3 text-foreground">¡Confirmado!</h2>
                 <p className="text-muted-foreground mb-4">
-                  Hola {invitee.firstName} {invitee.lastName},
+                  Hola {inviteeFullName(invitee)},
                 </p>
                 <p className="text-muted-foreground mb-4">
                   Has confirmado tu asistencia con {confirmedTickets} {confirmedTickets === 1 ? 'boleto' : 'boletos'}.
@@ -132,7 +133,7 @@ export function GuestConfirmationPage() {
                 </div>
                 <h2 className="mb-3 text-foreground">Respuesta Registrada</h2>
                 <p className="text-muted-foreground mb-4">
-                  Gracias por tu respuesta, {invitee.firstName} {invitee.lastName}.
+                  Gracias por tu respuesta, {inviteeFullName(invitee)}.
                 </p>
                 <div className="bg-[#ff9500]/5 border border-[#ff9500]/10 rounded-xl p-5 mb-6">
                   <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">

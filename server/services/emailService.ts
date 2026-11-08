@@ -821,7 +821,7 @@ class EmailService {
       await postmarkClient.sendEmail({
         From: FROM_EMAIL,
         To: user.email,
-        Subject: `${user.firstName}, mira lo que otras parejas están logrando con MesaLista`,
+        Subject: `${user.firstName}, mira lo que otros anfitriones están logrando con MesaLista`,
         HtmlBody: EmailTemplates.generateMarketingEmail3HTML(user.firstName, user.slug),
         TextBody: EmailTemplates.generateMarketingEmail3Text(user.firstName, user.slug),
         MessageStream: 'outbound',
@@ -1152,7 +1152,7 @@ class EmailService {
         textBody = EmailTemplates.generateMarketingEmail2Text(name, genericSlug);
         break;
       case 3:
-        subject = `${name}, mira lo que otras parejas están logrando con MesaLista`;
+        subject = `${name}, mira lo que otros anfitriones están logrando con MesaLista`;
         htmlBody = EmailTemplates.generateMarketingEmail3HTML(name, genericSlug);
         textBody = EmailTemplates.generateMarketingEmail3Text(name, genericSlug);
         break;
@@ -1250,7 +1250,7 @@ class EmailService {
           break;
         case 3:
           html = EmailTemplates.generateMarketingEmail3HTML(user.firstName, user.slug);
-          subject = `${user.firstName}, mira lo que otras parejas están logrando con MesaLista`;
+          subject = `${user.firstName}, mira lo que otros anfitriones están logrando con MesaLista`;
           break;
         case 4:
           html = EmailTemplates.generateMarketingEmail4HTML(user.firstName, user.slug);

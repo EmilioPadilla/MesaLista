@@ -133,7 +133,7 @@ function UsersListsSection({ summary }: { summary: ReturnType<typeof useUsersLis
       <SectionTitle>Usuarios</SectionTitle>
       <TileGrid>
         <StatTile label="Usuarios totales" value={formatNumber(summary.totalUsers)} accent />
-        <StatTile label="Parejas" value={formatNumber(summary.totalCouples)} />
+        <StatTile label="Anfitriones" value={formatNumber(summary.totalCouples)} />
         <StatTile label="Invitados" value={formatNumber(summary.totalGuests)} />
         <StatTile label="Admins" value={formatNumber(summary.totalAdmins)} />
         <StatTile label="Plan fijo" value={formatNumber(summary.fixedPlanUsers)} />

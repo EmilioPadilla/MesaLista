@@ -17,6 +17,7 @@ import dayjs from 'dayjs';
 import { motion } from 'motion/react';
 import utc from 'dayjs/plugin/utc';
 import { useDeviceType } from 'src/hooks/useDeviceType';
+import { publicRegistryPath } from 'src/utils/registryLinks';
 
 dayjs.extend(utc);
 
@@ -49,7 +50,9 @@ export function BuyGiftsPage() {
 
   // Fetch gift list by ID if listId is provided, otherwise fetch first list by user slug
   const { data: giftListById, error: byIdError } = useGiftListById(listIdFromQuery ? Number(listIdFromQuery) : undefined);
-  const { data: giftListBySlug, error: bySlugError } = useGiftListBySlug(!listIdFromQuery ? slug : undefined);
+  // Always looked up (the layout already fetched it, so this is cached): it's what
+  // tells us whether `?listId=` and the bare slug point at the same list.
+  const { data: giftListBySlug, error: bySlugError } = useGiftListBySlug(slug);
 
   // Use whichever gift list was fetched
   const giftList = listIdFromQuery ? giftListById : giftListBySlug;
@@ -59,6 +62,15 @@ export function BuyGiftsPage() {
   // would sit on its spinner forever.
   const loadError = listIdFromQuery ? byIdError : bySlugError;
   const loadErrorStatus = (loadError as { response?: { status?: number } } | null)?.response?.status;
+
+  // Search results, invitations and old links all arrive with `?listId=`. When
+  // it's the owner's only list the slug alone addresses it, so drop the id.
+  const isRedundantListId = !!giftListById?.isOnlyList && giftListBySlug?.id === giftListById.id;
+  useEffect(() => {
+    if (listIdFromQuery && isRedundantListId) {
+      navigate(publicRegistryPath(slug!), { replace: true });
+    }
+  }, [listIdFromQuery, isRedundantListId, navigate, slug]);
 
   const { data: giftListCategories } = useGetCategoriesByGiftList(giftList?.id);
   const { mutate: updateCartQuantity } = useUpdateCartItemQuantity();
@@ -259,7 +271,7 @@ export function BuyGiftsPage() {
           {/* Background image container */}
           <div className="absolute inset-0 z-0">
             {giftList?.imageUrl ? (
-              <img src={giftList.imageUrl} alt="Romantic couple wedding portrait" className="w-full h-full object-cover opacity-40" />
+              <img src={giftList.imageUrl} alt="Portada de la mesa de regalos" className="w-full h-full object-cover opacity-40" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-gray-50 via-orange-50 to-amber-50 flex items-center justify-center">
                 <div className="text-center opacity-20">

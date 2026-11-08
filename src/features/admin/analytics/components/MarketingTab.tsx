@@ -383,9 +383,9 @@ export function MarketingTab() {
                   )}
                   {campaign.type === 3 && (
                     <>
-                      <li>Testimonios de parejas reales</li>
+                      <li>Testimonios de anfitriones reales</li>
                       <li>Estadísticas de la plataforma</li>
-                      <li>500+ parejas felices</li>
+                      <li>500+ anfitriones felices</li>
                       <li>Garantía de satisfacción</li>
                     </>
                   )}

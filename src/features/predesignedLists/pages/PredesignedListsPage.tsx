@@ -146,7 +146,7 @@ export function PredesignedListsPage() {
           </Button>,
         ]}
         title="Inicia sesión para agregar regalos">
-        <p>Para agregar regalos a tu lista, necesitas tener una cuenta de pareja.</p>
+        <p>Para agregar regalos a tu lista, necesitas tener una cuenta.</p>
       </Modal>
     </div>
   );

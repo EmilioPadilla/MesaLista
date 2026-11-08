@@ -221,13 +221,15 @@ export function PredesignedGiftModal({ isOpen, onOpenChange, mode, gift, listId,
                 <div className="w-full aspect-square bg-muted rounded-lg flex items-center justify-center overflow-hidden">
                   <Image src={imageState.url} alt="Vista previa" preview={false} className="w-full h-full object-cover" />
                 </div>
-                <div className="absolute top-2 right-2">
-                  <Button
-                    type="default"
-                    icon={<X />}
-                    className="flex items-center justify-center cursor-pointer h-6 w-6 p-0 bg-background/80 hover:bg-background shadow-md"
-                    onClick={handleRemoveImage}></Button>
-                </div>
+                <Button
+                  type="default"
+                  shape="circle"
+                  size="small"
+                  aria-label="Quitar imagen"
+                  icon={<X className="h-4 w-4" />}
+                  className="!absolute top-2 right-2 !inline-flex items-center justify-center shadow-md [&_.ant-btn-icon]:flex"
+                  onClick={handleRemoveImage}
+                />
               </div>
             </div>
           )}
