@@ -36,6 +36,7 @@ import sentryWebhookController from './controllers/sentryWebhookController.js';
 import SessionCleanupJob from './lib/sessionCleanup.js';
 import AnalyticsAggregationJob from './lib/analyticsAggregation.js';
 import EventReminderJob from './lib/eventReminders.js';
+import { runDbHeartbeat } from './lib/dbHeartbeat.js';
 import fs from 'fs';
 
 // Load environment variables
@@ -221,13 +222,7 @@ prisma
   .then(() => {
     console.log('✅ Database connected successfully');
 
-    const heartbeat = setInterval(
-      async () => {
-        await prisma.$queryRaw`SELECT 1`;
-        console.log('💓 DB heartbeat');
-      },
-      5 * 60 * 1000,
-    );
+    const heartbeat = setInterval(() => void runDbHeartbeat(prisma), 5 * 60 * 1000);
 
     process.on('SIGTERM', () => clearInterval(heartbeat));
 
